@@ -39,6 +39,7 @@ export default async function EditEventTypePage({
           dailyBookingLimit: eventType.dailyBookingLimit,
           isPrivate: eventType.isPrivate,
           redirectUrl: eventType.redirectUrl,
+          color: eventType.color,
           questions: eventType.questions,
         }}
       />

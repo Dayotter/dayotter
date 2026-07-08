@@ -1,6 +1,7 @@
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { DuplicateEventTypeButton } from "@/components/duplicate-event-type-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
+import { eventColorVar } from "@/lib/booking/event-type-input";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
@@ -47,7 +48,12 @@ export default async function EventTypesPage() {
           {eventTypes.map((et) => (
             <Card key={et.id} className="flex flex-col p-5">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-medium">
+                <h3 className="flex items-center gap-2 font-medium">
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: eventColorVar(et.color) }}
+                  />
                   {et.title}
                   {!et.isActive ? (
                     <span className="ml-2 rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[11px] font-normal text-[var(--color-muted)]">

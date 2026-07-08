@@ -1,6 +1,13 @@
 import { ApiError, api } from "@/api";
 import { Loading } from "@/components/ui";
-import type { BookingQuestion, EventTypeDetail, LocationType, QuestionType } from "@/models";
+import {
+  type BookingQuestion,
+  EVENT_COLOR_HEX,
+  type EventColor,
+  type EventTypeDetail,
+  type LocationType,
+  type QuestionType,
+} from "@/models";
 import { colors, radius } from "@/theme";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -68,6 +75,7 @@ export default function EventTypeForm() {
   const [dailyLimit, setDailyLimit] = useState("5");
   const [isPrivate, setIsPrivate] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState("");
+  const [color, setColor] = useState<EventColor>("violet");
   const [questions, setQuestions] = useState<BookingQuestion[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -94,6 +102,7 @@ export default function EventTypeForm() {
         setDailyLimit(String(e.dailyBookingLimit ?? 5));
         setIsPrivate(e.isPrivate);
         setRedirectUrl(e.redirectUrl ?? "");
+        if (e.color && e.color in EVENT_COLOR_HEX) setColor(e.color as EventColor);
         setQuestions(e.questions ?? []);
       })
       .catch(() => setError("Could not load event type"))
@@ -132,6 +141,7 @@ export default function EventTypeForm() {
       dailyBookingLimit: dailyLimitOn ? Number(dailyLimit) || 1 : null,
       isPrivate,
       redirectUrl: redirectUrl.trim() || null,
+      color,
       questions: questions
         .filter((q) => q.label.trim().length > 0)
         .map((q) => ({
@@ -329,6 +339,21 @@ export default function EventTypeForm() {
           hint="Send bookers here instead of the calSync confirmation."
         />
 
+        <Text style={styles.label}>Colour</Text>
+        <View style={styles.swatches}>
+          {(Object.keys(EVENT_COLOR_HEX) as EventColor[]).map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => setColor(c)}
+              style={[
+                styles.swatch,
+                { backgroundColor: EVENT_COLOR_HEX[c] },
+                color === c && styles.swatchOn,
+              ]}
+            />
+          ))}
+        </View>
+
         <Text style={styles.section}>Booking questions</Text>
         {questions.map((q) => (
           <View key={q.id} style={styles.qCard}>
@@ -485,6 +510,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 18,
   },
+  swatches: { flexDirection: "row", gap: 12, marginBottom: 18 },
+  swatch: { width: 34, height: 34, borderRadius: 999 },
+  swatchOn: { borderWidth: 3, borderColor: colors.text },
   qCard: {
     borderWidth: 1,
     borderColor: colors.border,

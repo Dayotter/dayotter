@@ -9,6 +9,9 @@ import { Select } from "@/components/ui/select";
 import { track } from "@/lib/analytics";
 import {
   type BookingQuestionInput,
+  EVENT_COLORS,
+  EVENT_COLOR_VAR,
+  type EventColor,
   LOCATION_DETAIL_PLACEHOLDER,
   LOCATION_LABELS,
   LOCATION_TYPES,
@@ -56,6 +59,7 @@ export interface EventTypeInitial {
   dailyBookingLimit?: number | null;
   isPrivate?: boolean;
   redirectUrl?: string | null;
+  color?: string | null;
   questions?: BookingQuestionInput[];
 }
 
@@ -92,6 +96,11 @@ export function EventTypeForm({
   const [dailyLimit, setDailyLimit] = useState(initial?.dailyBookingLimit ?? 5);
   const [isPrivate, setIsPrivate] = useState(initial?.isPrivate ?? false);
   const [redirectUrl, setRedirectUrl] = useState(initial?.redirectUrl ?? "");
+  const [color, setColor] = useState<EventColor>(
+    (initial?.color as EventColor) && EVENT_COLORS.includes(initial?.color as EventColor)
+      ? (initial?.color as EventColor)
+      : "violet",
+  );
   const [questions, setQuestions] = useState<BookingQuestionInput[]>(initial?.questions ?? []);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -131,6 +140,7 @@ export function EventTypeForm({
       dailyBookingLimit: dailyLimitOn ? dailyLimit : null,
       isPrivate,
       redirectUrl: redirectUrl.trim() || null,
+      color,
       questions: questions
         .filter((q) => q.label.trim().length > 0)
         .map((q) => ({
@@ -409,6 +419,29 @@ export function EventTypeForm({
               />
               <p className="mt-1 text-xs text-[var(--color-faint)]">
                 Send bookers here instead of the calSync confirmation page.
+              </p>
+            </div>
+            <div className="mt-4">
+              <Label>Colour</Label>
+              <div className="flex items-center gap-2.5">
+                {EVENT_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    aria-label={c}
+                    aria-pressed={color === c}
+                    className={
+                      color === c
+                        ? "h-8 w-8 rounded-full ring-2 ring-offset-2 ring-offset-[var(--color-surface)] ring-[var(--color-text)]"
+                        : "h-8 w-8 rounded-full ring-1 ring-inset ring-black/10"
+                    }
+                    style={{ backgroundColor: EVENT_COLOR_VAR[c] }}
+                  />
+                ))}
+              </div>
+              <p className="mt-1.5 text-xs text-[var(--color-faint)]">
+                Tags this event across your dashboard, calendar, and bookings.
               </p>
             </div>
           </div>

@@ -1,13 +1,13 @@
+import { api } from "@/api";
+import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
+import { useAsync } from "@/hooks";
+import { type EventType, eventColorHex } from "@/models";
+import { colors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { api } from "@/api";
-import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
-import { useAsync } from "@/hooks";
-import type { EventType } from "@/models";
-import { colors } from "@/theme";
 
 export default function EventsScreen() {
   const router = useRouter();
@@ -60,7 +60,10 @@ export default function EventsScreen() {
             >
               <Card>
                 <View style={styles.titleRow}>
-                  <Text style={styles.title}>{e.title}</Text>
+                  <View style={styles.titleLeft}>
+                    <View style={[styles.dot, { backgroundColor: eventColorHex(e.color) }]} />
+                    <Text style={styles.title}>{e.title}</Text>
+                  </View>
                   <Text style={styles.duration}>{e.durationMinutes}m</Text>
                 </View>
                 {e.description ? (
@@ -100,7 +103,9 @@ const styles = StyleSheet.create({
   newBtnText: { color: colors.white, fontWeight: "600", fontSize: 14 },
   scroll: { paddingHorizontal: 20, paddingBottom: 32 },
   titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  title: { fontWeight: "600", fontSize: 15, color: colors.text, flex: 1 },
+  titleLeft: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
+  dot: { width: 10, height: 10, borderRadius: 999 },
+  title: { fontWeight: "600", fontSize: 15, color: colors.text, flexShrink: 1 },
   duration: { color: colors.muted, fontSize: 13 },
   desc: { color: colors.muted, fontSize: 13, marginTop: 4 },
   url: { color: colors.accent, fontSize: 13, marginTop: 10 },

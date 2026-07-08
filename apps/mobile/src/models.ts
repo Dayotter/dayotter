@@ -14,6 +14,23 @@ export type LocationType = "google_meet" | "ms_teams" | "zoom" | "phone" | "in_p
 
 export type QuestionType = "text" | "textarea" | "email" | "phone" | "select" | "checkbox";
 
+export type EventColor = "violet" | "mint" | "amber" | "coral" | "sky";
+
+/** Token name → hex, mirroring the web design system's event hues. */
+export const EVENT_COLOR_HEX: Record<EventColor, string> = {
+  violet: "#5b4be6",
+  mint: "#16a085",
+  amber: "#d98829",
+  coral: "#ef6a52",
+  sky: "#3b82f6",
+};
+
+export function eventColorHex(color: string | null | undefined): string {
+  return color && color in EVENT_COLOR_HEX
+    ? EVENT_COLOR_HEX[color as EventColor]
+    : EVENT_COLOR_HEX.violet;
+}
+
 export interface BookingQuestion {
   id: string;
   label: string;
@@ -29,6 +46,7 @@ export interface EventType {
   durationMinutes: number;
   description: string | null;
   isActive: boolean;
+  color: string | null;
   url: string | null;
 }
 
@@ -48,6 +66,7 @@ export interface EventTypeDetail {
   dailyBookingLimit: number | null;
   isPrivate: boolean;
   redirectUrl: string | null;
+  color: string | null;
   questions: BookingQuestion[];
   isActive: boolean;
 }

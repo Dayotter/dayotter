@@ -8,6 +8,7 @@ import { RunningLateButton } from "@/components/running-late-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { aiEnabled } from "@/lib/ai/llm";
+import { eventColorVar } from "@/lib/booking/event-type-input";
 import { getSession } from "@/lib/auth/session";
 import { and, asc, eq, getDb, gt, gte, lte, schema } from "@calsync/db";
 import { CalendarClock, ExternalLink, Radio, Video } from "lucide-react";
@@ -36,7 +37,7 @@ export default async function DashboardPage() {
       ),
       orderBy: asc(schema.bookings.startsAt),
       limit: 10,
-      with: { attendees: true },
+      with: { attendees: true, eventType: { columns: { color: true } } },
     }),
     // A meeting happening right now (started, not yet ended) — the overflow case.
     db.query.bookings.findFirst({
@@ -47,6 +48,7 @@ export default async function DashboardPage() {
         gt(schema.bookings.endsAt, now),
       ),
       orderBy: asc(schema.bookings.startsAt),
+      with: { eventType: { columns: { color: true } } },
     }),
   ]);
 
@@ -164,7 +166,10 @@ export default async function DashboardPage() {
         <div className="space-y-2">
           {upcoming.map((b) => (
             <Card key={b.id} className="flex items-center gap-4 px-4 py-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--color-surface-2)] text-[var(--color-accent)]">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-md text-white"
+                style={{ backgroundColor: eventColorVar(b.eventType?.color) }}
+              >
                 <CalendarClock size={18} />
               </div>
               <div className="min-w-0 flex-1">

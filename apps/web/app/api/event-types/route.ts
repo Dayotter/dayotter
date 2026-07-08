@@ -25,6 +25,7 @@ export async function GET() {
       description: e.description,
       isActive: e.isActive,
       location: e.location,
+      color: e.color,
       url: handle ? `/${handle}/${e.slug}` : null,
     })),
   });
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
         dailyBookingLimit: d.dailyBookingLimit,
         isPrivate: d.isPrivate,
         redirectUrl: d.redirectUrl,
+        color: d.color,
         questions: d.questions,
       })
       .returning();

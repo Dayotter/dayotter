@@ -53,6 +53,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       dailyBookingLimit: source.dailyBookingLimit,
       isPrivate: source.isPrivate,
       redirectUrl: source.redirectUrl,
+      color: source.color,
       questions: source.questions,
     })
     .returning();

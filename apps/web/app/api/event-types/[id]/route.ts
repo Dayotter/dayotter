@@ -49,6 +49,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       dailyBookingLimit: et.dailyBookingLimit,
       isPrivate: et.isPrivate,
       redirectUrl: et.redirectUrl,
+      color: et.color,
       questions: et.questions,
       isActive: et.isActive,
     },
@@ -84,6 +85,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         dailyBookingLimit: d.dailyBookingLimit,
         isPrivate: d.isPrivate,
         redirectUrl: d.redirectUrl,
+        color: d.color,
         questions: d.questions,
       })
       .where(eq(schema.eventTypes.id, id));

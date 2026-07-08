@@ -37,6 +37,29 @@ export const LOCATION_DETAIL_PLACEHOLDER: Record<LocationTypeValue, string> = {
 };
 
 /**
+ * Preset event colours — stored as token names (not hex) so they resolve through
+ * the design system's `--color-*` vars and adapt to light/dark automatically.
+ */
+export const EVENT_COLORS = ["violet", "mint", "amber", "coral", "sky"] as const;
+export type EventColor = (typeof EVENT_COLORS)[number];
+
+/** Token name → CSS variable for rendering an event colour anywhere in the app. */
+export const EVENT_COLOR_VAR: Record<EventColor, string> = {
+  violet: "var(--color-accent)",
+  mint: "var(--color-mint)",
+  amber: "var(--color-amber)",
+  coral: "var(--color-coral)",
+  sky: "var(--color-sky)",
+};
+
+/** Resolve a stored colour (possibly null/legacy) to a CSS variable, default violet. */
+export function eventColorVar(color: string | null | undefined): string {
+  return color && color in EVENT_COLOR_VAR
+    ? EVENT_COLOR_VAR[color as EventColor]
+    : EVENT_COLOR_VAR.violet;
+}
+
+/**
  * The full editable field set for an event type — shared by the create (`POST`)
  * and update (`PUT`) API routes and the client form so validation stays in one
  * place. Every field maps directly to a column the availability engine already
@@ -87,6 +110,8 @@ export const eventTypeInputSchema = z
     isPrivate: z.boolean().default(false),
     /** Send the booker here after booking instead of the calSync confirmation. */
     redirectUrl: z.string().url().max(500).nullable().default(null),
+    /** Colour token used to visually tag this event type across the app. */
+    color: z.enum(EVENT_COLORS).nullable().default(null),
     questions: z.array(bookingQuestionSchema).max(20).default([]),
   })
   .refine(
