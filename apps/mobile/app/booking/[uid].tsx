@@ -1,18 +1,19 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { api } from "@/api";
+import { ApiError, api } from "@/api";
 import { Badge, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
 import { useAsync } from "@/hooks";
 import type { BookingDetail } from "@/models";
 import { colors, radius, statusColor } from "@/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function BookingDetailScreen() {
   const router = useRouter();
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const [cancelling, setCancelling] = useState(false);
+  const [notifying, setNotifying] = useState<"late" | "next" | null>(null);
 
   const { data, loading, error, reload } = useAsync<BookingDetail>(async () => {
     const res = await api.get<{ booking: BookingDetail }>(`/api/bookings/${uid}`);
@@ -35,6 +36,40 @@ export default function BookingDetailScreen() {
       Alert.alert("Could not cancel", "Please try again.");
     } finally {
       setCancelling(false);
+    }
+  }
+
+  async function runningLate() {
+    setNotifying("late");
+    try {
+      await api.post(`/api/bookings/${uid}/running-late`, {});
+      Alert.alert(
+        "Attendees notified",
+        "We let this meeting's attendees know you're running late.",
+      );
+    } catch {
+      Alert.alert("Couldn't notify", "Please try again.");
+    } finally {
+      setNotifying(null);
+    }
+  }
+
+  async function notifyNext() {
+    setNotifying("next");
+    try {
+      await api.post(`/api/bookings/${uid}/notify-next`, {});
+      Alert.alert(
+        "Next meeting notified",
+        "We let your back-to-back meeting know you may be late.",
+      );
+    } catch (e) {
+      const msg =
+        e instanceof ApiError && e.status === 409
+          ? "You have no back-to-back meeting to notify."
+          : "Please try again.";
+      Alert.alert("Couldn't notify", msg);
+    } finally {
+      setNotifying(null);
     }
   }
 
@@ -72,9 +107,31 @@ export default function BookingDetailScreen() {
           </View>
 
           {data.status === "confirmed" ? (
-            <Pressable style={styles.cancel} onPress={confirmCancel} disabled={cancelling}>
-              <Text style={styles.cancelText}>{cancelling ? "Cancelling…" : "Cancel booking"}</Text>
-            </Pressable>
+            <>
+              <View style={styles.actions}>
+                <Pressable
+                  style={styles.action}
+                  onPress={runningLate}
+                  disabled={notifying !== null}
+                >
+                  <Ionicons name="time-outline" size={16} color={colors.text} />
+                  <Text style={styles.actionText}>
+                    {notifying === "late" ? "Notifying…" : "I'm running late"}
+                  </Text>
+                </Pressable>
+                <Pressable style={styles.action} onPress={notifyNext} disabled={notifying !== null}>
+                  <Ionicons name="arrow-forward-outline" size={16} color={colors.text} />
+                  <Text style={styles.actionText}>
+                    {notifying === "next" ? "Notifying…" : "Tell my next meeting"}
+                  </Text>
+                </Pressable>
+              </View>
+              <Pressable style={styles.cancel} onPress={confirmCancel} disabled={cancelling}>
+                <Text style={styles.cancelText}>
+                  {cancelling ? "Cancelling…" : "Cancel booking"}
+                </Text>
+              </Pressable>
+            </>
           ) : null}
           <Pressable style={styles.back} onPress={() => router.back()}>
             <Text style={styles.backText}>Back to bookings</Text>
@@ -113,8 +170,22 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: "row", alignItems: "center", gap: 10 },
   rowText: { color: colors.text, fontSize: 14, flexShrink: 1 },
+  actions: { flexDirection: "row", gap: 10, marginTop: 24 },
+  action: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  actionText: { color: colors.text, fontWeight: "500", fontSize: 13 },
   cancel: {
-    marginTop: 24,
+    marginTop: 14,
     backgroundColor: colors.danger,
     borderRadius: radius.md,
     paddingVertical: 14,

@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { api, ApiError } from "@/api";
+import { ApiError, api } from "@/api";
 import { useAuth } from "@/auth";
 import { Loading } from "@/components/ui";
 import type { UserPreferences } from "@/models";
 import { colors, radius } from "@/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const TIME_FORMATS: { value: "12h" | "24h"; label: string }[] = [
   { value: "12h", label: "12-hour" },
@@ -26,6 +28,7 @@ const REMINDER_OPTIONS = [
 ];
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const { user, signOut } = useAuth();
   const [name, setName] = useState(user?.name ?? "");
   const [handle, setHandle] = useState(user?.handle ?? "");
@@ -157,6 +160,13 @@ export default function SettingsScreen() {
         </Pressable>
         {saved ? <Text style={styles.savedText}>Saved ✓</Text> : null}
 
+        <Text style={styles.section}>Reminders</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/notifications")}>
+          <Ionicons name="notifications-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Notification channels</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+
         <Pressable style={styles.signOut} onPress={signOut}>
           <Text style={styles.signOutText}>Sign out</Text>
         </Pressable>
@@ -243,6 +253,17 @@ const styles = StyleSheet.create({
   },
   saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   savedText: { color: colors.success, textAlign: "center", marginTop: 10 },
+  navRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+  navText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
   signOut: { marginTop: 28, alignItems: "center" },
   signOutText: { color: colors.danger, fontWeight: "500" },
 });

@@ -10,13 +10,7 @@ export interface AppUser {
   timezone: string;
 }
 
-export type LocationType =
-  | "google_meet"
-  | "ms_teams"
-  | "zoom"
-  | "phone"
-  | "in_person"
-  | "custom";
+export type LocationType = "google_meet" | "ms_teams" | "zoom" | "phone" | "in_person" | "custom";
 
 export type QuestionType = "text" | "textarea" | "email" | "phone" | "select" | "checkbox";
 
@@ -51,8 +45,21 @@ export interface EventTypeDetail {
   bufferAfterMinutes: number;
   minimumNoticeMinutes: number;
   bookingWindowDays: number | null;
+  dailyBookingLimit: number | null;
+  isPrivate: boolean;
+  redirectUrl: string | null;
   questions: BookingQuestion[];
   isActive: boolean;
+}
+
+export type ChannelType = "slack" | "whatsapp" | "sms" | "push";
+
+export interface NotificationChannel {
+  id: string;
+  type: ChannelType | "email";
+  label: string;
+  isVerified: boolean;
+  remindersEnabled: boolean;
 }
 
 export interface UserPreferences {

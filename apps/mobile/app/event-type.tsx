@@ -1,15 +1,10 @@
+import { ApiError, api } from "@/api";
+import { Loading } from "@/components/ui";
+import type { BookingQuestion, EventTypeDetail, LocationType, QuestionType } from "@/models";
+import { colors, radius } from "@/theme";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
-import { api, ApiError } from "@/api";
-import { Loading } from "@/components/ui";
-import type {
-  BookingQuestion,
-  EventTypeDetail,
-  LocationType,
-  QuestionType,
-} from "@/models";
-import { colors, radius } from "@/theme";
 
 const DURATIONS = [15, 30, 45, 60];
 
@@ -69,6 +64,10 @@ export default function EventTypeForm() {
   const [bufferAfter, setBufferAfter] = useState("0");
   const [minimumNotice, setMinimumNotice] = useState(60);
   const [bookingWindow, setBookingWindow] = useState("60");
+  const [dailyLimitOn, setDailyLimitOn] = useState(false);
+  const [dailyLimit, setDailyLimit] = useState("5");
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState("");
   const [questions, setQuestions] = useState<BookingQuestion[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -91,6 +90,10 @@ export default function EventTypeForm() {
         setBufferAfter(String(e.bufferAfterMinutes));
         setMinimumNotice(e.minimumNoticeMinutes);
         setBookingWindow(String(e.bookingWindowDays ?? 60));
+        setDailyLimitOn(e.dailyBookingLimit != null && e.dailyBookingLimit > 0);
+        setDailyLimit(String(e.dailyBookingLimit ?? 5));
+        setIsPrivate(e.isPrivate);
+        setRedirectUrl(e.redirectUrl ?? "");
         setQuestions(e.questions ?? []);
       })
       .catch(() => setError("Could not load event type"))
@@ -126,6 +129,9 @@ export default function EventTypeForm() {
       bufferAfterMinutes: Number(bufferAfter) || 0,
       minimumNoticeMinutes: minimumNotice,
       bookingWindowDays: Number(bookingWindow) || 60,
+      dailyBookingLimit: dailyLimitOn ? Number(dailyLimit) || 1 : null,
+      isPrivate,
+      redirectUrl: redirectUrl.trim() || null,
       questions: questions
         .filter((q) => q.label.trim().length > 0)
         .map((q) => ({
@@ -134,7 +140,9 @@ export default function EventTypeForm() {
           type: q.type,
           required: q.required,
           options:
-            q.type === "select" ? (q.options ?? []).map((o) => o.trim()).filter(Boolean) : undefined,
+            q.type === "select"
+              ? (q.options ?? []).map((o) => o.trim()).filter(Boolean)
+              : undefined,
         })),
     };
     try {
@@ -276,6 +284,49 @@ export default function EventTypeForm() {
           onChange={setBookingWindow}
           placeholder="60"
           numeric
+        />
+
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Limit bookings per day</Text>
+            <Text style={styles.hint}>Cap how many times this can be booked in a day.</Text>
+          </View>
+          <Switch
+            value={dailyLimitOn}
+            onValueChange={setDailyLimitOn}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+        {dailyLimitOn ? (
+          <Field
+            label="Max bookings per day"
+            value={dailyLimit}
+            onChange={setDailyLimit}
+            placeholder="5"
+            numeric
+          />
+        ) : null}
+
+        <Text style={styles.section}>Advanced</Text>
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Private</Text>
+            <Text style={styles.hint}>
+              Hidden from your public page. Still bookable by direct link.
+            </Text>
+          </View>
+          <Switch
+            value={isPrivate}
+            onValueChange={setIsPrivate}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+        <Field
+          label="Redirect after booking (optional)"
+          value={redirectUrl}
+          onChange={setRedirectUrl}
+          placeholder="https://example.com/thanks"
+          hint="Send bookers here instead of the calSync confirmation."
         />
 
         <Text style={styles.section}>Booking questions</Text>
@@ -428,6 +479,12 @@ const styles = StyleSheet.create({
   pillTextOn: { color: colors.text, fontWeight: "600" },
   row: { flexDirection: "row", gap: 12 },
   rowItem: { flex: 1 },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 18,
+  },
   qCard: {
     borderWidth: 1,
     borderColor: colors.border,
