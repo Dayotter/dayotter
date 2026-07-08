@@ -1,0 +1,199 @@
+import {
+  type EventConstraints,
+  type Slot,
+  computeAvailability,
+  intersectAvailability,
+} from "@calsync/core";
+import { and, eq, getDb, gte, inArray, lte, schema } from "@calsync/db";
+
+type EventTypeRow = typeof schema.eventTypes.$inferSelect;
+
+/** ±window used when re-validating that a chosen instant is actually offered. */
+export const SLOT_REVALIDATION_WINDOW_MS = 12 * 3_600_000;
+
+/** Map an event type's booking constraints for the availability engine. */
+export function eventConstraints(eventType: EventTypeRow): EventConstraints {
+  return {
+    durationMinutes: eventType.durationMinutes,
+    bufferBeforeMinutes: eventType.bufferBeforeMinutes,
+    bufferAfterMinutes: eventType.bufferAfterMinutes,
+    minimumNoticeMinutes: eventType.minimumNoticeMinutes,
+    slotIntervalMinutes: eventType.slotIntervalMinutes ?? undefined,
+    bookingWindowDays: eventType.bookingWindowDays ?? undefined,
+  };
+}
+
+/**
+ * Combine per-host slot arrays for an event type. Pure — no I/O — so it's unit
+ * tested directly:
+ * - individual → the single host's slots
+ * - collective → intersection (every host free)
+ * - round_robin → union, deduped by start time
+ */
+export function combineHostSlots(
+  perHost: Slot[][],
+  schedulingType: "individual" | "collective" | "round_robin",
+): Slot[] {
+  if (perHost.length === 0) return [];
+  if (perHost.length === 1) return perHost[0] ?? [];
+  if (schedulingType === "collective") return intersectAvailability(perHost);
+
+  const seen = new Set<number>();
+  const union: Slot[] = [];
+  for (const slots of perHost) {
+    for (const s of slots) {
+      const k = s.start.getTime();
+      if (!seen.has(k)) {
+        seen.add(k);
+        union.push(s);
+      }
+    }
+  }
+  return union.sort((a, b) => a.start.getTime() - b.start.getTime());
+}
+
+/**
+ * Compute one host's bookable slots: their schedule minus their calendar
+ * busy-times and existing confirmed bookings. `scheduleId` overrides the host's
+ * default schedule (used for individual event types that pin a schedule).
+ */
+export async function hostSlots(
+  userId: string,
+  scheduleId: string | null,
+  event: EventConstraints,
+  rangeStart: Date,
+  rangeEnd: Date,
+): Promise<Slot[]> {
+  const db = getDb();
+
+  // Schedule + calendar connections don't depend on each other — fetch together.
+  const [schedule, connections] = await Promise.all([
+    scheduleId
+      ? db.query.schedules.findFirst({
+          where: eq(schema.schedules.id, scheduleId),
+          with: { availabilityRules: true, dateOverrides: true },
+        })
+      : db.query.schedules.findFirst({
+          where: and(eq(schema.schedules.userId, userId), eq(schema.schedules.isDefault, true)),
+          with: { availabilityRules: true, dateOverrides: true },
+        }),
+    db.query.calendarConnections.findMany({
+      where: eq(schema.calendarConnections.userId, userId),
+      with: { calendars: true },
+    }),
+  ]);
+  if (!schedule) return [];
+
+  const calendarIds = connections
+    .flatMap((c) => c.calendars)
+    .filter((cal) => cal.checkForConflicts)
+    .map((cal) => cal.id);
+
+  const [busyRows, existingBookings] = await Promise.all([
+    calendarIds.length ? busyBlocksFor(calendarIds, rangeStart, rangeEnd) : Promise.resolve([]),
+    bookingsFor([userId], rangeStart, rangeEnd),
+  ]);
+
+  return computeAvailability({
+    schedule: {
+      timezone: schedule.timezone,
+      rules: schedule.availabilityRules.map((r) => ({
+        dayOfWeek: r.dayOfWeek,
+        startTime: r.startTime,
+        endTime: r.endTime,
+      })),
+      overrides: schedule.dateOverrides.map((o) => ({
+        date: o.date,
+        startTime: o.startTime,
+        endTime: o.endTime,
+      })),
+    },
+    busy: [
+      ...busyRows.map((b) => ({ start: b.startsAt, end: b.endsAt })),
+      ...existingBookings
+        .filter((b) => b.hostId === userId)
+        .map((b) => ({ start: b.startsAt, end: b.endsAt })),
+    ],
+    event,
+    rangeStart,
+    rangeEnd,
+    now: new Date(),
+  });
+}
+
+/** Busy blocks that OVERLAP the window (not just those that start inside it — a
+ * long meeting starting before rangeStart still blocks the window's opening). */
+function busyBlocksFor(calendarIds: string[], rangeStart: Date, rangeEnd: Date) {
+  return getDb().query.busyBlocks.findMany({
+    where: and(
+      inArray(schema.busyBlocks.calendarId, calendarIds),
+      lte(schema.busyBlocks.startsAt, rangeEnd),
+      gte(schema.busyBlocks.endsAt, rangeStart),
+    ),
+    columns: { startsAt: true, endsAt: true },
+  });
+}
+
+function bookingsFor(hostIds: string[], rangeStart: Date, rangeEnd: Date) {
+  return getDb().query.bookings.findMany({
+    where: and(
+      inArray(schema.bookings.hostId, hostIds),
+      eq(schema.bookings.status, "confirmed"),
+      gte(schema.bookings.endsAt, rangeStart),
+      lte(schema.bookings.startsAt, rangeEnd),
+    ),
+    columns: { hostId: true, startsAt: true, endsAt: true },
+  });
+}
+
+/** The user ids who host an event type (owner for individual; hosts for team). */
+export async function eventTypeHostIds(eventType: EventTypeRow): Promise<string[]> {
+  if (eventType.ownerId) return [eventType.ownerId];
+  const hosts = await getDb().query.eventTypeHosts.findMany({
+    where: eq(schema.eventTypeHosts.eventTypeId, eventType.id),
+  });
+  return hosts.map((h) => h.userId);
+}
+
+/**
+ * Per-host bookable slots for an event type, in a stable host order. Computed
+ * once here so callers (the availability API and the booking host-resolver)
+ * don't recompute it. Individual events pin the owner's schedule.
+ */
+export async function eventTypeHostSlots(
+  eventType: EventTypeRow,
+  rangeStart: Date,
+  rangeEnd: Date,
+): Promise<{ hostIds: string[]; perHost: Slot[][] }> {
+  const event = eventConstraints(eventType);
+
+  if (eventType.ownerId) {
+    const slots = await hostSlots(eventType.ownerId, eventType.scheduleId, event, rangeStart, rangeEnd);
+    return { hostIds: [eventType.ownerId], perHost: [slots] };
+  }
+
+  const hostIds = await eventTypeHostIds(eventType);
+  const perHost = await Promise.all(
+    hostIds.map((id) => hostSlots(id, null, event, rangeStart, rangeEnd)),
+  );
+  return { hostIds, perHost };
+}
+
+/**
+ * Bookable slots for any event type. Individual → the owner's slots.
+ * Collective → the intersection of all hosts' slots (everyone free).
+ * Round-robin → the union (at least one host free).
+ */
+export async function getEventTypeAvailability(
+  eventTypeId: string,
+  rangeStart: Date,
+  rangeEnd: Date,
+): Promise<Slot[] | null> {
+  const eventType = await getDb().query.eventTypes.findFirst({
+    where: eq(schema.eventTypes.id, eventTypeId),
+  });
+  if (!eventType) return null;
+
+  const { perHost } = await eventTypeHostSlots(eventType, rangeStart, rangeEnd);
+  return combineHostSlots(perHost, eventType.schedulingType);
+}

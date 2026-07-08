@@ -1,0 +1,156 @@
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@/auth";
+import { colors, radius } from "@/theme";
+
+export default function SignInScreen() {
+  const router = useRouter();
+  const { signIn, signUp } = useAuth();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function submit() {
+    setLoading(true);
+    setError(null);
+    const err = isSignUp
+      ? await signUp(name.trim(), email.trim(), password)
+      : await signIn(email.trim(), password);
+    setLoading(false);
+    if (err) setError(err);
+    else router.replace("/");
+  }
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.flex}
+      >
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.logo}>
+            <Text style={styles.logoText}>c</Text>
+          </View>
+          <Text style={styles.heading}>{isSignUp ? "Create your account" : "Welcome back"}</Text>
+          <Text style={styles.sub}>
+            {isSignUp ? "Start scheduling in minutes." : "Sign in to your calSync account."}
+          </Text>
+
+          <View style={styles.form}>
+            {isSignUp ? (
+              <Field label="Name" value={name} onChange={setName} placeholder="Ada Lovelace" />
+            ) : null}
+            <Field
+              label="Email"
+              value={email}
+              onChange={setEmail}
+              placeholder="you@company.com"
+              keyboardType="email-address"
+            />
+            <Field
+              label="Password"
+              value={password}
+              onChange={setPassword}
+              placeholder="••••••••"
+              secure
+            />
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <Pressable style={styles.button} onPress={submit} disabled={loading}>
+              <Text style={styles.buttonText}>
+                {loading ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setIsSignUp((v) => !v);
+                setError(null);
+              }}
+            >
+              <Text style={styles.toggle}>
+                {isSignUp ? "Already have an account? Sign in" : "No account? Create one"}
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+function Field(props: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  secure?: boolean;
+  keyboardType?: "email-address" | "default";
+}) {
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <Text style={styles.label}>{props.label}</Text>
+      <TextInput
+        style={styles.input}
+        value={props.value}
+        onChangeText={props.onChange}
+        placeholder={props.placeholder}
+        placeholderTextColor={colors.faint}
+        secureTextEntry={props.secure}
+        autoCapitalize="none"
+        keyboardType={props.keyboardType ?? "default"}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
+  scroll: { flexGrow: 1, justifyContent: "center", padding: 24 },
+  logo: {
+    height: 44,
+    width: 44,
+    borderRadius: 11,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  logoText: { color: colors.white, fontWeight: "700", fontSize: 22 },
+  heading: { fontSize: 28, fontWeight: "700", color: colors.text },
+  sub: { color: colors.muted, marginTop: 6 },
+  form: { marginTop: 28 },
+  label: { fontWeight: "500", fontSize: 14, marginBottom: 6, color: colors.text },
+  input: {
+    height: 48,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    color: colors.text,
+    backgroundColor: colors.surface,
+  },
+  error: { color: colors.danger, marginBottom: 12 },
+  button: {
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingVertical: 15,
+    alignItems: "center",
+  },
+  buttonText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  toggle: { color: colors.accent, textAlign: "center", marginTop: 18 },
+});

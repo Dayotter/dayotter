@@ -1,0 +1,37 @@
+# Self-host stack for calSync — Postgres + Redis.
+# `docker compose up -d` gives you the datastores; run the app with `pnpm dev`.
+# A full app image (web + worker) will be added as the apps stabilize.
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: calsync
+      POSTGRES_PASSWORD: calsync
+      POSTGRES_DB: calsync
+    ports:
+      - "5432:5432"
+    volumes:
+      - calsync_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calsync"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - calsync_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  calsync_pgdata:
+  calsync_redisdata:

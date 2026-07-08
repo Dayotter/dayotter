@@ -1,0 +1,464 @@
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { api, ApiError } from "@/api";
+import { Loading } from "@/components/ui";
+import type {
+  BookingQuestion,
+  EventTypeDetail,
+  LocationType,
+  QuestionType,
+} from "@/models";
+import { colors, radius } from "@/theme";
+
+const DURATIONS = [15, 30, 45, 60];
+
+const LOCATIONS: { value: LocationType; label: string }[] = [
+  { value: "google_meet", label: "Google Meet" },
+  { value: "ms_teams", label: "Teams" },
+  { value: "zoom", label: "Zoom" },
+  { value: "phone", label: "Phone" },
+  { value: "in_person", label: "In person" },
+  { value: "custom", label: "Custom" },
+];
+const NEEDS_DETAIL: LocationType[] = ["zoom", "phone", "in_person", "custom"];
+
+const NOTICE_OPTIONS = [
+  { value: 0, label: "None" },
+  { value: 60, label: "1h" },
+  { value: 120, label: "2h" },
+  { value: 240, label: "4h" },
+  { value: 720, label: "12h" },
+  { value: 1440, label: "1d" },
+];
+
+const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
+  { value: "text", label: "Text" },
+  { value: "textarea", label: "Long" },
+  { value: "email", label: "Email" },
+  { value: "phone", label: "Phone" },
+  { value: "select", label: "Select" },
+  { value: "checkbox", label: "Check" },
+];
+
+function slugify(v: string) {
+  return v
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function newId() {
+  return `q_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export default function EventTypeForm() {
+  const router = useRouter();
+  const params = useLocalSearchParams<{ id?: string }>();
+  const isEdit = Boolean(params.id);
+
+  const [loading, setLoading] = useState(isEdit);
+  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(isEdit);
+  const [duration, setDuration] = useState(30);
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState<LocationType>("google_meet");
+  const [locationDetail, setLocationDetail] = useState("");
+  const [bufferBefore, setBufferBefore] = useState("0");
+  const [bufferAfter, setBufferAfter] = useState("0");
+  const [minimumNotice, setMinimumNotice] = useState(60);
+  const [bookingWindow, setBookingWindow] = useState("60");
+  const [questions, setQuestions] = useState<BookingQuestion[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Load the full event type when editing.
+  useEffect(() => {
+    if (!params.id) return;
+    let active = true;
+    api
+      .get<{ eventType: EventTypeDetail }>(`/api/event-types/${params.id}`)
+      .then(({ eventType: e }) => {
+        if (!active) return;
+        setTitle(e.title);
+        setSlug(e.slug);
+        setDuration(e.durationMinutes);
+        setDescription(e.description ?? "");
+        setLocation(e.location);
+        setLocationDetail(e.locationDetail ?? "");
+        setBufferBefore(String(e.bufferBeforeMinutes));
+        setBufferAfter(String(e.bufferAfterMinutes));
+        setMinimumNotice(e.minimumNoticeMinutes);
+        setBookingWindow(String(e.bookingWindowDays ?? 60));
+        setQuestions(e.questions ?? []);
+      })
+      .catch(() => setError("Could not load event type"))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [params.id]);
+
+  const needsDetail = NEEDS_DETAIL.includes(location);
+
+  function addQuestion() {
+    setQuestions((qs) => [...qs, { id: newId(), label: "", type: "text", required: false }]);
+  }
+  function patchQuestion(id: string, patch: Partial<BookingQuestion>) {
+    setQuestions((qs) => qs.map((q) => (q.id === id ? { ...q, ...patch } : q)));
+  }
+  function removeQuestion(id: string) {
+    setQuestions((qs) => qs.filter((q) => q.id !== id));
+  }
+
+  async function save() {
+    setSaving(true);
+    setError(null);
+    const body = {
+      title,
+      slug: slug || slugify(title),
+      durationMinutes: duration,
+      description: description || undefined,
+      location,
+      locationDetail: needsDetail ? locationDetail : undefined,
+      bufferBeforeMinutes: Number(bufferBefore) || 0,
+      bufferAfterMinutes: Number(bufferAfter) || 0,
+      minimumNoticeMinutes: minimumNotice,
+      bookingWindowDays: Number(bookingWindow) || 60,
+      questions: questions
+        .filter((q) => q.label.trim().length > 0)
+        .map((q) => ({
+          id: q.id,
+          label: q.label.trim(),
+          type: q.type,
+          required: q.required,
+          options:
+            q.type === "select" ? (q.options ?? []).map((o) => o.trim()).filter(Boolean) : undefined,
+        })),
+    };
+    try {
+      if (isEdit) await api.put(`/api/event-types/${params.id}`, body);
+      else await api.post("/api/event-types", body);
+      router.back();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not save");
+      setSaving(false);
+    }
+  }
+
+  async function remove() {
+    if (!params.id) return;
+    setSaving(true);
+    try {
+      await api.del(`/api/event-types/${params.id}`);
+      router.back();
+    } catch {
+      setError("Could not delete");
+      setSaving(false);
+    }
+  }
+
+  if (loading) return <Loading />;
+
+  return (
+    <View style={styles.safe}>
+      <Stack.Screen
+        options={{ headerShown: true, title: isEdit ? "Edit event type" : "New event type" }}
+      />
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <Field
+          label="Title"
+          value={title}
+          onChange={(v) => {
+            setTitle(v);
+            if (!slugTouched) setSlug(slugify(v));
+          }}
+          placeholder="Intro call"
+        />
+        <Field
+          label="URL slug"
+          value={slug}
+          onChange={(v) => {
+            setSlugTouched(true);
+            setSlug(slugify(v));
+          }}
+          placeholder="intro-call"
+          hint={`Link: /your-handle/${slug || "intro-call"}`}
+        />
+
+        <Text style={styles.label}>Duration</Text>
+        <View style={styles.pills}>
+          {DURATIONS.map((d) => (
+            <Pressable
+              key={d}
+              onPress={() => setDuration(d)}
+              style={[styles.pill, d === duration && styles.pillOn]}
+            >
+              <Text style={[styles.pillText, d === duration && styles.pillTextOn]}>{d}m</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Text style={styles.label}>Location</Text>
+        <View style={styles.wrapPills}>
+          {LOCATIONS.map((l) => (
+            <Pressable
+              key={l.value}
+              onPress={() => setLocation(l.value)}
+              style={[styles.chip, l.value === location && styles.pillOn]}
+            >
+              <Text style={[styles.pillText, l.value === location && styles.pillTextOn]}>
+                {l.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        {needsDetail ? (
+          <Field
+            label="Location details"
+            value={locationDetail}
+            onChange={setLocationDetail}
+            placeholder="Link, number, or address"
+          />
+        ) : (
+          <View style={{ height: 18 }} />
+        )}
+
+        <Field
+          label="Description (optional)"
+          value={description}
+          onChange={setDescription}
+          placeholder="What's this meeting about?"
+          multiline
+        />
+
+        <Text style={styles.section}>Scheduling rules</Text>
+        <View style={styles.row}>
+          <View style={styles.rowItem}>
+            <Field
+              label="Buffer before (min)"
+              value={bufferBefore}
+              onChange={setBufferBefore}
+              placeholder="0"
+              numeric
+            />
+          </View>
+          <View style={styles.rowItem}>
+            <Field
+              label="Buffer after (min)"
+              value={bufferAfter}
+              onChange={setBufferAfter}
+              placeholder="0"
+              numeric
+            />
+          </View>
+        </View>
+
+        <Text style={styles.label}>Minimum notice</Text>
+        <View style={styles.wrapPills}>
+          {NOTICE_OPTIONS.map((o) => (
+            <Pressable
+              key={o.value}
+              onPress={() => setMinimumNotice(o.value)}
+              style={[styles.chip, o.value === minimumNotice && styles.pillOn]}
+            >
+              <Text style={[styles.pillText, o.value === minimumNotice && styles.pillTextOn]}>
+                {o.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Field
+          label="Bookable up to (days out)"
+          value={bookingWindow}
+          onChange={setBookingWindow}
+          placeholder="60"
+          numeric
+        />
+
+        <Text style={styles.section}>Booking questions</Text>
+        {questions.map((q) => (
+          <View key={q.id} style={styles.qCard}>
+            <View style={styles.qHeader}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={q.label}
+                onChangeText={(v) => patchQuestion(q.id, { label: v })}
+                placeholder="Question label"
+                placeholderTextColor={colors.faint}
+              />
+              <Pressable onPress={() => removeQuestion(q.id)} style={styles.qRemove}>
+                <Text style={{ color: colors.danger, fontWeight: "600" }}>✕</Text>
+              </Pressable>
+            </View>
+            <View style={styles.wrapPills}>
+              {QUESTION_TYPES.map((t) => (
+                <Pressable
+                  key={t.value}
+                  onPress={() => patchQuestion(q.id, { type: t.value })}
+                  style={[styles.chipSm, t.value === q.type && styles.pillOn]}
+                >
+                  <Text style={[styles.pillTextSm, t.value === q.type && styles.pillTextOn]}>
+                    {t.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            {q.type === "select" ? (
+              <TextInput
+                style={[styles.input, { marginTop: 8 }]}
+                value={(q.options ?? []).join(", ")}
+                onChangeText={(v) => patchQuestion(q.id, { options: v.split(",") })}
+                placeholder="Option 1, Option 2"
+                placeholderTextColor={colors.faint}
+              />
+            ) : null}
+            <View style={styles.qRequired}>
+              <Text style={{ color: colors.muted }}>Required</Text>
+              <Switch
+                value={q.required}
+                onValueChange={(v) => patchQuestion(q.id, { required: v })}
+                trackColor={{ true: colors.accent }}
+              />
+            </View>
+          </View>
+        ))}
+        <Pressable onPress={addQuestion} style={styles.addQ}>
+          <Text style={{ color: colors.accent, fontWeight: "600" }}>+ Add question</Text>
+        </Pressable>
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <Pressable style={styles.save} onPress={save} disabled={saving || !title}>
+          <Text style={styles.saveText}>
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Create event type"}
+          </Text>
+        </Pressable>
+        {isEdit ? (
+          <Pressable onPress={remove} disabled={saving} style={styles.delete}>
+            <Text style={styles.deleteText}>Delete event type</Text>
+          </Pressable>
+        ) : null}
+      </ScrollView>
+    </View>
+  );
+}
+
+function Field(props: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  hint?: string;
+  multiline?: boolean;
+  numeric?: boolean;
+}) {
+  return (
+    <View style={{ marginBottom: 18 }}>
+      <Text style={styles.label}>{props.label}</Text>
+      <TextInput
+        style={[styles.input, props.multiline && { height: 90, textAlignVertical: "top" }]}
+        value={props.value}
+        onChangeText={props.onChange}
+        placeholder={props.placeholder}
+        placeholderTextColor={colors.faint}
+        autoCapitalize={props.multiline ? "sentences" : "none"}
+        multiline={props.multiline}
+        keyboardType={props.numeric ? "number-pad" : "default"}
+      />
+      {props.hint ? <Text style={styles.hint}>{props.hint}</Text> : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.bg },
+  scroll: { padding: 20, paddingBottom: 60 },
+  label: { fontWeight: "500", fontSize: 14, marginBottom: 6, color: colors.text },
+  section: {
+    fontWeight: "600",
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    color: colors.faint,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  hint: { color: colors.faint, fontSize: 12, marginTop: 6 },
+  input: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: colors.text,
+    backgroundColor: colors.surface,
+  },
+  pills: { flexDirection: "row", gap: 8, marginBottom: 18 },
+  wrapPills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
+  pill: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  chip: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  chipSm: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+  pillText: { color: colors.muted },
+  pillTextSm: { color: colors.muted, fontSize: 13 },
+  pillTextOn: { color: colors.text, fontWeight: "600" },
+  row: { flexDirection: "row", gap: 12 },
+  rowItem: { flex: 1 },
+  qCard: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: 12,
+    marginBottom: 12,
+  },
+  qHeader: { flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 8 },
+  qRemove: { padding: 8 },
+  qRequired: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  addQ: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  error: { color: colors.danger, marginBottom: 12 },
+  save: {
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingVertical: 15,
+    alignItems: "center",
+  },
+  saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  delete: { marginTop: 16, alignItems: "center" },
+  deleteText: { color: colors.danger },
+});

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "busy_blocks_calendar_event_idx" ON "busy_blocks" USING btree ("calendar_id","external_event_id");

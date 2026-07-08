@@ -1,0 +1,112 @@
+import { getSession } from "@/lib/auth/session";
+import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
+import { and, eq, getDb, schema, sql } from "@calsync/db";
+import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+
+/**
+ * Return the event type only if `userId` may manage it: the personal owner, or
+ * — for a team-owned event type (`ownerId` null, `teamId` set) — an owner/admin
+ * of that team. Returns null otherwise (treated as 404 to avoid leaking ids).
+ */
+async function manageableEventType(id: string, userId: string) {
+  const db = getDb();
+  const et = await db.query.eventTypes.findFirst({ where: eq(schema.eventTypes.id, id) });
+  if (!et) return null;
+  if (et.ownerId === userId) return et;
+  if (et.teamId) {
+    const membership = await db.query.teamMembers.findFirst({
+      where: and(eq(schema.teamMembers.teamId, et.teamId), eq(schema.teamMembers.userId, userId)),
+    });
+    if (membership && (membership.role === "owner" || membership.role === "admin")) return et;
+  }
+  return null;
+}
+
+/** Full event type for the manage/edit views (web edit page + mobile form). */
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+
+  const et = await manageableEventType(id, session.user.id);
+  if (!et) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  return NextResponse.json({
+    eventType: {
+      id: et.id,
+      title: et.title,
+      slug: et.slug,
+      durationMinutes: et.durationMinutes,
+      description: et.description,
+      location: et.location,
+      locationDetail: et.locationDetail,
+      bufferBeforeMinutes: et.bufferBeforeMinutes,
+      bufferAfterMinutes: et.bufferAfterMinutes,
+      minimumNoticeMinutes: et.minimumNoticeMinutes,
+      bookingWindowDays: et.bookingWindowDays,
+      questions: et.questions,
+      isActive: et.isActive,
+    },
+  });
+}
+
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+
+  const existing = await manageableEventType(id, session.user.id);
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const parsed = eventTypeInputSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  const d = parsed.data;
+
+  try {
+    await getDb()
+      .update(schema.eventTypes)
+      .set({
+        title: d.title,
+        slug: d.slug,
+        durationMinutes: d.durationMinutes,
+        description: d.description ?? null,
+        location: d.location,
+        locationDetail: d.locationDetail ?? null,
+        bufferBeforeMinutes: d.bufferBeforeMinutes,
+        bufferAfterMinutes: d.bufferAfterMinutes,
+        minimumNoticeMinutes: d.minimumNoticeMinutes,
+        bookingWindowDays: d.bookingWindowDays,
+        questions: d.questions,
+      })
+      .where(eq(schema.eventTypes.id, id));
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "That slug may already be in use." }, { status: 409 });
+  }
+}
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id } = await params;
+
+  const existing = await manageableEventType(id, session.user.id);
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const db = getDb();
+  const [{ count } = { count: 0 }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(schema.bookings)
+    .where(eq(schema.bookings.eventTypeId, id));
+
+  if (count > 0) {
+    // Preserve booking history; hide it from booking pages instead of deleting.
+    await db.update(schema.eventTypes).set({ isActive: false }).where(eq(schema.eventTypes.id, id));
+    return NextResponse.json({ ok: true, archived: true });
+  }
+
+  await db.delete(schema.eventTypes).where(eq(schema.eventTypes.id, id));
+  return NextResponse.json({ ok: true });
+}

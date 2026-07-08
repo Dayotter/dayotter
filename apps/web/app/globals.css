@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+/* Dark mode is class-based (.dark on <html>), driven by the theme toggle. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * calSync design language — "editorial calm meets a living calendar."
+ * Warm ivory neutrals, rich ink text, a premium violet accent, an editorial
+ * serif display (Fraunces) + Inter body + mono labels. Light is default.
+ */
+@theme {
+  /* Surfaces — warm, not sterile white */
+  --color-bg: #faf9f6;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f2ec;
+  --color-elevated: #ffffff;
+
+  /* Lines */
+  --color-border: #ebe8e0;
+  --color-border-strong: #dcd8cd;
+
+  /* Text — warm near-black */
+  --color-text: #191720;
+  --color-muted: #6a6660;
+  --color-faint: #9c988e;
+
+  /* Accent — premium violet */
+  --color-accent: #5b4be6;
+  --color-accent-hover: #4a3ad4;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: #eeecfc;
+
+  /* Event / secondary hues (color-coded calendar) */
+  --color-mint: #16a085;
+  --color-amber: #d98829;
+  --color-coral: #ef6a52;
+  --color-sky: #3b82f6;
+  --color-danger: #e11d48;
+  --color-danger-soft: #fdf1f3;
+  --color-success: #16a085;
+
+  /* Elevation — soft, layered, warm shadows */
+  --shadow-card: 0 1px 2px rgba(40, 33, 20, 0.04), 0 2px 6px rgba(40, 33, 20, 0.05);
+  --shadow-raise: 0 8px 24px rgba(40, 33, 20, 0.08);
+  --shadow-pop: 0 24px 60px -12px rgba(40, 33, 20, 0.18);
+  --shadow-float: 0 40px 80px -24px rgba(30, 24, 60, 0.28);
+
+  /* Shape scale — use rounded-sm/md/lg/xl utilities, never arbitrary values.
+   * sm: chips/badges · md: inputs, buttons, list rows · lg: cards · xl: hero cards */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  /* Spacing rhythm — the canonical gaps/paddings the components compose from.
+   * Field gap: space-y-4 · Card padding: p-6 · Section gap: gap-3 · inline: gap-2 */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-display: var(--font-display), ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.dark {
+  --color-bg: #0b0a10;
+  --color-surface: #141219;
+  --color-surface-2: #1c1a23;
+  --color-elevated: #1c1a23;
+
+  --color-border: #262330;
+  --color-border-strong: #332f3e;
+
+  --color-text: #edeae3;
+  --color-muted: #9d988f;
+  --color-faint: #6b6678;
+
+  --color-accent: #8272f7;
+  --color-accent-hover: #948bf9;
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: rgba(130, 114, 247, 0.16);
+
+  --color-mint: #2dd4a7;
+  --color-amber: #f0ad4e;
+  --color-coral: #ff8266;
+  --color-sky: #60a5fa;
+  --color-danger: #fb7185;
+  --color-danger-soft: rgba(251, 113, 133, 0.12);
+  --color-success: #2dd4a7;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-raise: 0 8px 28px rgba(0, 0, 0, 0.5);
+  --shadow-pop: 0 24px 60px -12px rgba(0, 0, 0, 0.6);
+  --shadow-float: 0 40px 90px -24px rgba(0, 0, 0, 0.75);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  html,
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+  }
+  body,
+  body * {
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.12s ease;
+  }
+}
+
+/* Editorial display type */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+.font-mono {
+  font-family: var(--font-mono);
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* Dialog entrance (used by components/ui/dialog). */
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-dialog-in {
+  animation: dialog-in 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Subtle film grain for premium texture (fixed overlay). */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Marquee animation for the logo strip */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}

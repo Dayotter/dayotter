@@ -1,0 +1,24 @@
+{
+  "name": "@calsync/calendar",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "google-auth-library": "^9.15.0",
+    "googleapis": "^144.0.0",
+    "ical-generator": "^8.0.1",
+    "node-ical": "^0.20.1",
+    "tsdav": "^2.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

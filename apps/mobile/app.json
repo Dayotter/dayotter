@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "calSync",
+    "slug": "calsync",
+    "scheme": "calsync",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#FAF9F6"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.calsync.app"
+    },
+    "android": {
+      "package": "com.calsync.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#5B4BE6"
+      }
+    },
+    "plugins": ["expo-router", "expo-secure-store"]
+  }
+}

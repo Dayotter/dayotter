@@ -1,0 +1,2 @@
+ALTER TABLE "team_members" ADD COLUMN "role" "membership_role" DEFAULT 'member' NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "bookings_host_slot_active_idx" ON "bookings" USING btree ("host_id","starts_at") WHERE "bookings"."status" = 'confirmed';

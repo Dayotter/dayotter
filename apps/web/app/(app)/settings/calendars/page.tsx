@@ -1,0 +1,149 @@
+import { AppleConnectForm } from "@/components/apple-connect-form";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { getSession } from "@/lib/auth/session";
+import { cn } from "@/lib/cn";
+import { eq, getDb, schema } from "@calsync/db";
+import { Calendar, CheckCircle2, Plus } from "lucide-react";
+import Link from "next/link";
+
+export const dynamic = "force-dynamic";
+
+const PROVIDERS = [
+  { id: "google", name: "Google Calendar", color: "#4285F4", available: true },
+  { id: "microsoft", name: "Microsoft 365 / Outlook", color: "#0078D4", available: true },
+  { id: "apple", name: "Apple iCloud", color: "#A2AAAD", available: true },
+] as const;
+
+export default async function CalendarsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ connected?: string; calendars?: string; error?: string }>;
+}) {
+  const session = await getSession();
+  const params = await searchParams;
+
+  const connections = await getDb().query.calendarConnections.findMany({
+    where: eq(schema.calendarConnections.userId, session!.user.id),
+    with: { calendars: true },
+  });
+
+  return (
+    <>
+      {params.connected ? (
+        <div className="mb-5 flex items-center gap-2 rounded-md border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-4 py-3 text-sm text-[var(--color-success)]">
+          <CheckCircle2 size={16} />
+          Connected {params.connected}
+          {params.calendars ? ` · ${params.calendars} calendars found` : ""}.
+        </div>
+      ) : null}
+      {params.error ? (
+        <div className="mb-5 rounded-md border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-4 py-3 text-sm text-[var(--color-danger)]">
+          Couldn't connect: {params.error}
+        </div>
+      ) : null}
+
+      {/* Connected accounts */}
+      {connections.length > 0 ? (
+        <div className="mb-6 space-y-3">
+          {connections.map((conn) => {
+            const meta = PROVIDERS.find((p) => p.id === conn.provider);
+            return (
+              <Card key={conn.id}>
+                <CardHeader
+                  title={
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="inline-block h-2.5 w-2.5 rounded-full"
+                        style={{ background: meta?.color }}
+                      />
+                      {meta?.name ?? conn.provider}
+                    </span>
+                  }
+                  description={conn.externalAccountId}
+                  action={
+                    <span
+                      className={cn(
+                        "rounded-full px-2.5 py-1 text-xs font-medium",
+                        conn.status === "active"
+                          ? "bg-[var(--color-success)]/15 text-[var(--color-success)]"
+                          : "bg-[var(--color-danger)]/15 text-[var(--color-danger)]",
+                      )}
+                    >
+                      {conn.status}
+                    </span>
+                  }
+                />
+                <CardBody>
+                  {conn.status === "error" && conn.lastError ? (
+                    <p className="mb-2 rounded-sm bg-[var(--color-danger)]/10 px-3 py-2 text-xs text-[var(--color-danger)]">
+                      Last sync failed: {conn.lastError}
+                    </p>
+                  ) : null}
+                  {conn.lastSyncedAt ? (
+                    <p className="mb-2 text-xs text-[var(--color-faint)]">
+                      Last synced {new Date(conn.lastSyncedAt).toLocaleString()}
+                    </p>
+                  ) : null}
+                  <ul className="space-y-1.5">
+                    {conn.calendars.map((cal) => (
+                      <li key={cal.id} className="flex items-center gap-2 text-sm">
+                        <Calendar size={15} className="text-[var(--color-muted)]" />
+                        <span>{cal.name}</span>
+                        {cal.isTargetForBookings ? (
+                          <span className="rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[11px] text-[var(--color-muted)]">
+                            bookings
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                    {conn.calendars.length === 0 ? (
+                      <li className="text-sm text-[var(--color-muted)]">Syncing calendars…</li>
+                    ) : null}
+                  </ul>
+                </CardBody>
+              </Card>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {/* Add a calendar */}
+      <Card>
+        <CardHeader title="Add a calendar" description="Link another account." />
+        <CardBody className="space-y-2">
+          {PROVIDERS.map((p) =>
+            p.id === "apple" ? (
+              <AppleConnectForm key={p.id} name={p.name} color={p.color} />
+            ) : (
+              <div
+                key={p.id}
+                className="flex items-center justify-between rounded-md border border-[var(--color-border)] px-4 py-3"
+              >
+                <span className="flex items-center gap-3 text-sm">
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-sm text-xs font-bold text-white"
+                    style={{ background: p.color }}
+                  >
+                    {p.name.charAt(0)}
+                  </span>
+                  {p.name}
+                </span>
+                {p.available ? (
+                  <Link
+                    href={`/api/calendars/connect/${p.id}`}
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
+                  >
+                    <Plus size={15} /> Connect
+                  </Link>
+                ) : (
+                  <span className="text-xs text-[var(--color-faint)]">Coming soon</span>
+                )}
+              </div>
+            ),
+          )}
+        </CardBody>
+      </Card>
+    </>
+  );
+}

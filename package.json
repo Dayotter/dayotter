@@ -1,0 +1,36 @@
+{
+  "name": "calsync",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Open-source team scheduling & calendar platform",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.24.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "check": "biome check --write .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @calsync/db generate",
+    "db:migrate": "pnpm --filter @calsync/db migrate",
+    "db:push": "pnpm --filter @calsync/db push",
+    "db:studio": "pnpm --filter @calsync/db studio"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "ioredis": "5.11.1",
+      "@types/react": "~19.1.0",
+      "@types/react-dom": "~19.1.0"
+    }
+  }
+}
