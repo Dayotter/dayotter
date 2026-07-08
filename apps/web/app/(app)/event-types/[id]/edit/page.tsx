@@ -36,6 +36,9 @@ export default async function EditEventTypePage({
           bufferAfterMinutes: eventType.bufferAfterMinutes,
           minimumNoticeMinutes: eventType.minimumNoticeMinutes,
           bookingWindowDays: eventType.bookingWindowDays ?? undefined,
+          dailyBookingLimit: eventType.dailyBookingLimit,
+          isPrivate: eventType.isPrivate,
+          redirectUrl: eventType.redirectUrl,
           questions: eventType.questions,
         }}
       />

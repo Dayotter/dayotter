@@ -62,6 +62,9 @@ export async function POST(request: Request) {
         bufferAfterMinutes: d.bufferAfterMinutes,
         minimumNoticeMinutes: d.minimumNoticeMinutes,
         bookingWindowDays: d.bookingWindowDays,
+        dailyBookingLimit: d.dailyBookingLimit,
+        isPrivate: d.isPrivate,
+        redirectUrl: d.redirectUrl,
         questions: d.questions,
       })
       .returning();

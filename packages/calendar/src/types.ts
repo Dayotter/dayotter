@@ -67,6 +67,25 @@ export interface SyncResult {
   fullResync?: boolean;
 }
 
+/** How the user has responded to an invitation. */
+export type InviteResponseStatus = "needsAction" | "accepted" | "declined" | "tentative";
+
+/** The action a user can take on a pending invitation. */
+export type InviteResponse = "accepted" | "declined" | "tentative";
+
+/** An event the user has been invited to (their own attendance status). */
+export interface CalendarInvite {
+  externalEventId: string;
+  calendarExternalId: string;
+  title: string;
+  start: Date;
+  end: Date;
+  organizer?: { name?: string; email?: string };
+  location?: string;
+  meetingUrl?: string;
+  responseStatus: InviteResponseStatus;
+}
+
 /** A created push-notification subscription. */
 export interface WatchResult {
   /** Provider-side subscription / channel id. */
@@ -115,6 +134,23 @@ export interface CalendarAdapter {
 
   /** Tear down a push subscription. */
   unwatch?(subscription: { externalId: string; resourceId?: string }): Promise<void>;
+
+  /**
+   * Events the user has been invited to but not yet responded to, within the
+   * window. Optional — providers without an RSVP concept (CalDAV) omit it.
+   */
+  listInvites?(
+    calendarExternalId: string,
+    windowStart: Date,
+    windowEnd: Date,
+  ): Promise<CalendarInvite[]>;
+
+  /** RSVP to an invitation (accept / decline / tentative), notifying the organizer. */
+  respondToInvite?(
+    calendarExternalId: string,
+    externalEventId: string,
+    response: InviteResponse,
+  ): Promise<void>;
 }
 
 export interface ProviderOAuthConfig {

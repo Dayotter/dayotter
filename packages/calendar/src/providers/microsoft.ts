@@ -3,8 +3,10 @@ import type {
   BusyEvent,
   BusyInterval,
   CalendarAdapter,
+  CalendarInvite,
   CreatedEvent,
   ExternalCalendar,
+  InviteResponse,
   NewCalendarEvent,
   OAuthCredentials,
   ProviderOAuthConfig,
@@ -224,6 +226,53 @@ export class MicrosoftCalendarAdapter implements CalendarAdapter {
     await this.client.api(`/subscriptions/${sub.externalId}`).delete();
   }
 
+  async listInvites(
+    calId: string,
+    windowStart: Date,
+    windowEnd: Date,
+  ): Promise<CalendarInvite[]> {
+    const res = (await this.client
+      .api(`/me/calendars/${calId}/calendarView`)
+      .header("Prefer", 'outlook.timezone="UTC"')
+      .query({ startDateTime: windowStart.toISOString(), endDateTime: windowEnd.toISOString() })
+      .select("id,subject,start,end,location,organizer,responseStatus,onlineMeeting")
+      .top(250)
+      .get()) as { value: GraphInviteEvent[] };
+
+    const invites: CalendarInvite[] = [];
+    for (const ev of res.value ?? []) {
+      if (!ev.id) continue;
+      const r = ev.responseStatus?.response;
+      if (r !== "notResponded" && r !== "none") continue; // only un-answered
+      if (!ev.start?.dateTime || !ev.end?.dateTime) continue;
+      invites.push({
+        externalEventId: ev.id,
+        calendarExternalId: calId,
+        title: ev.subject ?? "(no title)",
+        start: new Date(`${ev.start.dateTime}Z`),
+        end: new Date(`${ev.end.dateTime}Z`),
+        organizer: ev.organizer?.emailAddress
+          ? { name: ev.organizer.emailAddress.name, email: ev.organizer.emailAddress.address }
+          : undefined,
+        location: ev.location?.displayName ?? undefined,
+        meetingUrl: ev.onlineMeeting?.joinUrl ?? undefined,
+        responseStatus: "needsAction",
+      });
+    }
+    return invites;
+  }
+
+  async respondToInvite(
+    _calId: string,
+    eventId: string,
+    response: InviteResponse,
+  ): Promise<void> {
+    const action =
+      response === "accepted" ? "accept" : response === "declined" ? "decline" : "tentativelyAccept";
+    // Graph's RSVP actions live on /me/events/{id}; sendResponse notifies the organizer.
+    await this.client.api(`/me/events/${eventId}/${action}`).post({ sendResponse: true });
+  }
+
   private toGraphEvent(event: NewCalendarEvent): Record<string, unknown> {
     return {
       subject: event.title,
@@ -261,4 +310,15 @@ interface GraphDeltaEvent {
   showAs?: string;
   start?: { dateTime: string; timeZone: string };
   end?: { dateTime: string; timeZone: string };
+}
+
+interface GraphInviteEvent {
+  id?: string;
+  subject?: string;
+  start?: { dateTime: string; timeZone: string };
+  end?: { dateTime: string; timeZone: string };
+  location?: { displayName?: string };
+  organizer?: { emailAddress?: { name?: string; address?: string } };
+  responseStatus?: { response?: string; time?: string };
+  onlineMeeting?: { joinUrl?: string };
 }

@@ -1,4 +1,5 @@
 import { AvailabilityEditor } from "@/components/availability-editor";
+import { FocusDefense } from "@/components/focus-defense";
 import { PageHeader } from "@/components/page-header";
 import { getSession } from "@/lib/auth/session";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
@@ -30,6 +31,7 @@ export default async function AvailabilityPage() {
         title="Availability"
         description="Set the hours you're open for bookings. Applies to all your event types."
       />
+      <FocusDefense />
       <AvailabilityEditor initial={{ timezone: schedule?.timezone ?? "UTC", days }} />
     </>
   );

@@ -1,13 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { logger, roundRobinPick } from "@calsync/core";
-import { and, eq, getDb, inArray, schema, sql } from "@calsync/db";
+import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@calsync/db";
 import { bookingConfirmation, sendEmail } from "@calsync/emails";
+import { DateTime } from "luxon";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
-import {
-  SLOT_REVALIDATION_WINDOW_MS,
-  combineHostSlots,
-  eventTypeHostSlots,
-} from "./availability";
+import { SLOT_REVALIDATION_WINDOW_MS, combineHostSlots, eventTypeHostSlots } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
@@ -100,7 +97,9 @@ export interface CreateBookingInput {
   responses?: Record<string, unknown>;
 }
 
-export async function createBooking(input: CreateBookingInput): Promise<{ uid: string }> {
+export async function createBooking(
+  input: CreateBookingInput,
+): Promise<{ uid: string; redirectUrl: string | null }> {
   const db = getDb();
 
   const eventType = await db.query.eventTypes.findFirst({
@@ -142,6 +141,30 @@ export async function createBooking(input: CreateBookingInput): Promise<{ uid: s
   let booking: typeof schema.bookings.$inferSelect;
   try {
     booking = await db.transaction(async (tx) => {
+      // Daily cap: count this event type's confirmed bookings on the same
+      // host-local calendar day as the requested slot, inside the transaction so
+      // concurrent bookings can't both slip past the limit.
+      if (eventType.dailyBookingLimit != null) {
+        const zone = host.timezone || "UTC";
+        const day = DateTime.fromJSDate(start).setZone(zone);
+        const dayStart = day.startOf("day").toJSDate();
+        const nextDay = day.startOf("day").plus({ days: 1 }).toJSDate();
+        const [{ count } = { count: 0 }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.bookings)
+          .where(
+            and(
+              eq(schema.bookings.eventTypeId, eventType.id),
+              eq(schema.bookings.status, "confirmed"),
+              gte(schema.bookings.startsAt, dayStart),
+              lt(schema.bookings.startsAt, nextDay),
+            ),
+          );
+        if (count >= eventType.dailyBookingLimit) {
+          throw new BookingError("This day is fully booked. Please pick another day.", 409);
+        }
+      }
+
       const [row] = await tx
         .insert(schema.bookings)
         .values({
@@ -266,5 +289,5 @@ export async function createBooking(input: CreateBookingInput): Promise<{ uid: s
     });
   }
 
-  return { uid };
+  return { uid, redirectUrl: eventType.redirectUrl ?? null };
 }

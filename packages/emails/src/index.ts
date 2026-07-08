@@ -4,5 +4,7 @@ export {
   bookingReminder,
   bookingRescheduled,
   bookingCancellation,
+  bookingRunningLate,
+  bookingMessage,
   type BookingEmailData,
 } from "./templates";

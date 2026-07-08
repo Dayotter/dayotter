@@ -15,6 +15,7 @@
     "@calsync/emails": "workspace:*",
     "@calsync/integrations": "workspace:*",
     "@calsync/jobs": "workspace:*",
+    "@calsync/notifications": "workspace:*",
     "bullmq": "^5.34.5",
     "ioredis": "^5.11.1",
     "luxon": "^3.5.0",

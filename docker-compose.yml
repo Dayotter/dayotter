@@ -1,6 +1,13 @@
-# Self-host stack for calSync — Postgres + Redis.
-# `docker compose up -d` gives you the datastores; run the app with `pnpm dev`.
-# A full app image (web + worker) will be added as the apps stabilize.
+# Self-host stack for calSync.
+#
+#   Datastores only (local dev — run the app with `pnpm dev`):
+#       docker compose up -d
+#
+#   Full stack (web + worker + datastores, for self-hosting):
+#       cp .env.example .env   # then fill in secrets
+#       docker compose --profile app up -d --build
+#
+# The web app is served on http://localhost:3000.
 services:
   postgres:
     image: postgres:17-alpine
@@ -31,6 +38,41 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  web:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Point at the compose services regardless of what .env has for local dev.
+      DATABASE_URL: postgresql://calsync:calsync@postgres:5432/calsync
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://calsync:calsync@postgres:5432/calsync
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   calsync_pgdata:

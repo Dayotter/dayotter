@@ -1,7 +1,9 @@
 import { and, eq, getDb, isNull, schema } from "@calsync/db";
 import { bookingReminder, sendEmail } from "@calsync/emails";
-import { connection, QUEUE_NAMES, type ReminderJob } from "@calsync/jobs";
+import { QUEUE_NAMES, type ReminderJob, connection } from "@calsync/jobs";
+import { deliverUserReminder } from "@calsync/notifications";
 import { Worker } from "bullmq";
+import { DateTime } from "luxon";
 
 /** Human label for how far out the meeting is, e.g. "in about 1 hour". */
 function leadLabel(start: Date): string {
@@ -57,6 +59,19 @@ export function startRemindersWorker(): Worker<ReminderJob> {
           }),
         ),
       );
+
+      // Also nudge the host on any extra channels they configured (Slack /
+      // WhatsApp / push). Best-effort — never blocks the attendee emails above.
+      if (booking.hostId) {
+        const when = DateTime.fromJSDate(booking.startsAt)
+          .setZone(booking.host?.timezone ?? booking.timezone)
+          .toFormat("ccc, LLL d 'at' h:mm a");
+        await deliverUserReminder(booking.hostId, {
+          title: `Upcoming: ${booking.title}`,
+          body: `Starts ${label} — ${when}.`,
+          url: `${appUrl}/booking/${booking.uid}`,
+        }).catch(() => 0);
+      }
 
       await db
         .update(schema.scheduledReminders)

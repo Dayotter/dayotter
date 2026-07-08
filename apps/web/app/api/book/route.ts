@@ -45,8 +45,8 @@ export async function POST(request: Request) {
   if (cooldown) return cooldown;
 
   try {
-    const { uid } = await createBooking(parsed.data);
-    return NextResponse.json({ uid, url: `/booking/${uid}` });
+    const { uid, redirectUrl } = await createBooking(parsed.data);
+    return NextResponse.json({ uid, url: `/booking/${uid}`, redirectUrl });
   } catch (err) {
     if (err instanceof BookingError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

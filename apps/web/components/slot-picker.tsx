@@ -73,6 +73,11 @@ export function SlotPicker({
     }
     const data = await res.json();
     track("Booking Confirmed", { eventTypeId });
+    // Honor a host-configured redirect (external URL) over the calSync confirmation.
+    if (typeof data.redirectUrl === "string" && /^https?:\/\//.test(data.redirectUrl)) {
+      window.location.href = data.redirectUrl;
+      return;
+    }
     router.push(data.url as `/${string}`);
   }
 

@@ -1,7 +1,9 @@
 import { PageHeader } from "@/components/page-header";
 import { AddMemberForm, CreateTeamEventForm } from "@/components/team-forms";
+import { TeamScheduleView } from "@/components/team-schedule-view";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
+import { teamSchedule } from "@/lib/booking/team-schedule";
 import { eq, getDb, schema } from "@calsync/db";
 import { ExternalLink, Users } from "lucide-react";
 import Link from "next/link";
@@ -30,11 +32,35 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
     where: eq(schema.eventTypes.teamId, id),
   });
 
+  // Shared team calendar — everyone's busy times for the next 7 days.
+  const viewerTz = (session!.user as { timezone?: string }).timezone ?? "UTC";
+  const now = new Date();
+  const weekEnd = new Date(now.getTime() + 7 * 86_400_000);
+  const schedule = await teamSchedule(
+    team.members.map((m) => ({
+      userId: m.userId,
+      name: m.user?.name ?? "",
+      email: m.user?.email ?? "",
+    })),
+    now,
+    weekEnd,
+  );
+
   return (
     <>
       <PageHeader title={team.name} description={`Team · ${team.members.length} members`} />
 
       <div className="space-y-6">
+        <Card>
+          <CardHeader
+            title="Team schedule"
+            description="When everyone's busy over the next 7 days, in your timezone."
+          />
+          <CardBody>
+            <TeamScheduleView schedule={schedule} timezone={viewerTz} rangeStart={now} />
+          </CardBody>
+        </Card>
+
         <Card>
           <CardHeader
             title="Members"

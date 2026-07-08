@@ -5,9 +5,11 @@ import type {
   BusyEvent,
   BusyInterval,
   CalendarAdapter,
+  CalendarInvite,
   CreatedEvent,
   CredentialRefreshHandler,
   ExternalCalendar,
+  InviteResponse,
   NewCalendarEvent,
   OAuthCredentials,
   ProviderOAuthConfig,
@@ -225,6 +227,63 @@ export class GoogleCalendarAdapter implements CalendarAdapter {
   async unwatch(sub: { externalId: string; resourceId?: string }): Promise<void> {
     await this.api.channels.stop({
       requestBody: { id: sub.externalId, resourceId: sub.resourceId },
+    });
+  }
+
+  async listInvites(
+    calId: string,
+    windowStart: Date,
+    windowEnd: Date,
+  ): Promise<CalendarInvite[]> {
+    const { data } = await this.api.events.list({
+      calendarId: calId,
+      singleEvents: true,
+      orderBy: "startTime",
+      maxResults: 250,
+      timeMin: windowStart.toISOString(),
+      timeMax: windowEnd.toISOString(),
+    });
+    const invites: CalendarInvite[] = [];
+    for (const ev of data.items ?? []) {
+      if (!ev.id || ev.status === "cancelled") continue;
+      // Only events where THIS user is still on the fence.
+      const self = ev.attendees?.find((a) => a.self);
+      if (!self || self.responseStatus !== "needsAction") continue;
+      const start = ev.start?.dateTime ?? ev.start?.date;
+      const end = ev.end?.dateTime ?? ev.end?.date;
+      if (!start || !end) continue;
+      invites.push({
+        externalEventId: ev.id,
+        calendarExternalId: calId,
+        title: ev.summary ?? "(no title)",
+        start: new Date(start),
+        end: new Date(end),
+        organizer: ev.organizer
+          ? { name: ev.organizer.displayName ?? undefined, email: ev.organizer.email ?? undefined }
+          : undefined,
+        location: ev.location ?? undefined,
+        meetingUrl: ev.hangoutLink ?? ev.conferenceData?.entryPoints?.[0]?.uri ?? undefined,
+        responseStatus: "needsAction",
+      });
+    }
+    return invites;
+  }
+
+  async respondToInvite(
+    calId: string,
+    eventId: string,
+    response: InviteResponse,
+  ): Promise<void> {
+    // Google has no direct RSVP endpoint — patch the self attendee's status.
+    const { data: ev } = await this.api.events.get({ calendarId: calId, eventId });
+    const attendees = (ev.attendees ?? []).map((a) =>
+      a.self ? { ...a, responseStatus: response } : a,
+    );
+    await this.api.events.patch({
+      calendarId: calId,
+      eventId,
+      sendUpdates: "all",
+      requestBody: { attendees },
     });
   }
 

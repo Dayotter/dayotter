@@ -46,6 +46,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       bufferAfterMinutes: et.bufferAfterMinutes,
       minimumNoticeMinutes: et.minimumNoticeMinutes,
       bookingWindowDays: et.bookingWindowDays,
+      dailyBookingLimit: et.dailyBookingLimit,
+      isPrivate: et.isPrivate,
+      redirectUrl: et.redirectUrl,
       questions: et.questions,
       isActive: et.isActive,
     },
@@ -78,6 +81,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         bufferAfterMinutes: d.bufferAfterMinutes,
         minimumNoticeMinutes: d.minimumNoticeMinutes,
         bookingWindowDays: d.bookingWindowDays,
+        dailyBookingLimit: d.dailyBookingLimit,
+        isPrivate: d.isPrivate,
+        redirectUrl: d.redirectUrl,
         questions: d.questions,
       })
       .where(eq(schema.eventTypes.id, id));

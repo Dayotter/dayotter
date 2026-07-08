@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
     "@calsync/auth": "workspace:*",
     "@calsync/calendar": "workspace:*",
     "@calsync/core": "workspace:*",
@@ -19,6 +20,7 @@
     "@calsync/emails": "workspace:*",
     "@calsync/integrations": "workspace:*",
     "@calsync/jobs": "workspace:*",
+    "@calsync/notifications": "workspace:*",
     "better-auth": "^1.2.7",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",

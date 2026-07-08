@@ -105,6 +105,8 @@ export const eventTypes = pgTable(
     isActive: boolean("is_active").notNull().default(true),
     isPrivate: boolean("is_private").notNull().default(false),
     color: text("color"),
+    /** Where to send the booker after they book (null = the calSync confirmation). */
+    redirectUrl: text("redirect_url"),
     ...timestamps,
   },
   (t) => [

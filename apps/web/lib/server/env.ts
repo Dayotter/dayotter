@@ -34,6 +34,9 @@ const schema = z.object({
   // Optional analytics — nothing loads unless set.
   NEXT_PUBLIC_MIXPANEL_TOKEN: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
+
+  // Optional AI scheduling (Claude). AI features are hidden unless set.
+  ANTHROPIC_API_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;

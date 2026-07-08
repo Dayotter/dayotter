@@ -20,9 +20,10 @@ apps/
   web       Next.js — dashboard, public booking pages, REST API
   worker    Node — BullMQ workers: reminders + calendar sync
 packages/
-  core      availability engine, round-robin, token crypto (pure, unit-tested)
-  calendar  provider adapters: Google, Microsoft, Apple (CalDAV) behind one interface
-  db        Drizzle schema + Postgres client
+  core          availability engine, round-robin, token crypto (pure, unit-tested)
+  calendar      provider adapters: Google, Microsoft, Apple (CalDAV) behind one interface
+  db            Drizzle schema + Postgres client
+  notifications multi-channel delivery: Slack, WhatsApp/SMS (Twilio), mobile push (Expo)
 ```
 
 ## Stack
@@ -53,6 +54,35 @@ Generate secrets:
 openssl rand -base64 32       # AUTH_SECRET
 openssl rand -hex 32          # ENCRYPTION_KEY (32-byte token-encryption key)
 ```
+
+## Self-hosting (Docker)
+
+The full stack — web, worker, Postgres, and Redis — runs from one compose file.
+The `app` profile builds the web + worker images; without it you get just the
+datastores (the dev workflow above).
+
+```bash
+# 1. Configure — fill in secrets, OAuth creds, and any optional providers
+cp .env.example .env
+
+# 2. Create the schema on first run (fresh database)
+docker compose up -d postgres redis
+docker compose --profile app run --rm worker pnpm --filter @calsync/db migrate
+
+# 3. Build + start everything
+docker compose --profile app up -d --build
+```
+
+The web app is served on `http://localhost:3000`. Optional integrations are
+env-gated and no-op until configured:
+
+| Feature | Env vars |
+| --- | --- |
+| AI scheduling / drafts | `ANTHROPIC_API_KEY` |
+| WhatsApp + SMS reminders | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM`, `TWILIO_SMS_FROM` |
+| Slack + mobile push reminders | none — the destination travels with each channel's config |
+| Analytics | `NEXT_PUBLIC_MIXPANEL_TOKEN`, `NEXT_PUBLIC_GA_ID` |
+| Bot/abuse protection | `TURNSTILE_SECRET`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` |
 
 ## Testing
 

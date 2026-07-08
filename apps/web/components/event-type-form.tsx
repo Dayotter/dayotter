@@ -14,8 +14,8 @@ import {
   LOCATION_TYPES,
   type LocationTypeValue,
   NEEDS_DETAIL,
-  QUESTION_TYPE_LABELS,
   QUESTION_TYPES,
+  QUESTION_TYPE_LABELS,
 } from "@/lib/booking/event-type-input";
 import { Plus, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -53,6 +53,9 @@ export interface EventTypeInitial {
   bufferAfterMinutes?: number;
   minimumNoticeMinutes?: number;
   bookingWindowDays?: number;
+  dailyBookingLimit?: number | null;
+  isPrivate?: boolean;
+  redirectUrl?: string | null;
   questions?: BookingQuestionInput[];
 }
 
@@ -83,6 +86,12 @@ export function EventTypeForm({
   const [bufferAfter, setBufferAfter] = useState(initial?.bufferAfterMinutes ?? 0);
   const [minimumNotice, setMinimumNotice] = useState(initial?.minimumNoticeMinutes ?? 60);
   const [bookingWindow, setBookingWindow] = useState(initial?.bookingWindowDays ?? 60);
+  const [dailyLimitOn, setDailyLimitOn] = useState(
+    initial?.dailyBookingLimit != null && initial.dailyBookingLimit > 0,
+  );
+  const [dailyLimit, setDailyLimit] = useState(initial?.dailyBookingLimit ?? 5);
+  const [isPrivate, setIsPrivate] = useState(initial?.isPrivate ?? false);
+  const [redirectUrl, setRedirectUrl] = useState(initial?.redirectUrl ?? "");
   const [questions, setQuestions] = useState<BookingQuestionInput[]>(initial?.questions ?? []);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -119,6 +128,9 @@ export function EventTypeForm({
       bufferAfterMinutes: bufferAfter,
       minimumNoticeMinutes: minimumNotice,
       bookingWindowDays: bookingWindow,
+      dailyBookingLimit: dailyLimitOn ? dailyLimit : null,
+      isPrivate,
+      redirectUrl: redirectUrl.trim() || null,
       questions: questions
         .filter((q) => q.label.trim().length > 0)
         .map((q) => ({
@@ -335,6 +347,69 @@ export function EventTypeForm({
                   <span className="text-sm text-[var(--color-faint)]">days out</span>
                 </div>
               </div>
+            </div>
+            <div className="mt-3 rounded-md border border-[var(--color-border)] p-3">
+              <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                <input
+                  type="checkbox"
+                  checked={dailyLimitOn}
+                  onChange={(e) => setDailyLimitOn(e.target.checked)}
+                  className="accent-[var(--color-accent)]"
+                />
+                Limit bookings per day
+              </label>
+              {dailyLimitOn ? (
+                <div className="mt-2 flex items-center gap-1">
+                  <Input
+                    aria-label="Maximum bookings per day"
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={dailyLimit}
+                    onChange={(e) => setDailyLimit(Number(e.target.value) || 1)}
+                    className="w-20"
+                  />
+                  <span className="text-sm text-[var(--color-faint)]">bookings max per day</span>
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-[var(--color-faint)]">
+                  Cap how many times this can be booked in a single day.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--color-faint)]">
+              Advanced
+            </p>
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={isPrivate}
+                onChange={(e) => setIsPrivate(e.target.checked)}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Private
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  Hidden from your public booking page. Still bookable by anyone with the direct
+                  link.
+                </span>
+              </span>
+            </label>
+            <div className="mt-4">
+              <Label htmlFor="redirect-url">Redirect after booking (optional)</Label>
+              <Input
+                id="redirect-url"
+                type="url"
+                value={redirectUrl}
+                onChange={(e) => setRedirectUrl(e.target.value)}
+                placeholder="https://example.com/thanks"
+              />
+              <p className="mt-1 text-xs text-[var(--color-faint)]">
+                Send bookers here instead of the calSync confirmation page.
+              </p>
             </div>
           </div>
 

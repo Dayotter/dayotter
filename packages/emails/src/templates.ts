@@ -111,6 +111,41 @@ export function bookingRescheduled(d: BookingEmailData): Rendered {
   };
 }
 
+export function bookingRunningLate(d: BookingEmailData & { minutes?: number }): Rendered {
+  const late = d.minutes ? `about ${d.minutes} minutes late` : "running a few minutes late";
+  const when = fmt(d.start, d.timezone);
+  return {
+    subject: `Running late: ${d.eventTitle}`,
+    text: `Heads up — ${d.hostName} is ${late} for ${d.eventTitle} (${when}). Thanks for your patience.${d.meetingUrl ? `\nJoin: ${d.meetingUrl}` : ""}`,
+    html: shell(
+      "A quick heads-up ⏳",
+      [
+        `<strong>${esc(d.hostName)}</strong> is ${esc(late)} for <strong>${esc(d.eventTitle)}</strong>.`,
+        `🗓 ${when}`,
+        "Thanks for your patience — they'll be with you shortly.",
+      ],
+      d.meetingUrl ? { label: "Join call", url: d.meetingUrl } : undefined,
+    ),
+  };
+}
+
+export function bookingMessage(d: BookingEmailData & { body: string }): Rendered {
+  const when = fmt(d.start, d.timezone);
+  return {
+    subject: `Re: ${d.eventTitle}`,
+    text: `${d.body}\n\n— ${d.hostName}\n\n${d.eventTitle}\nWhen: ${when}\nManage or reschedule: ${d.manageUrl}`,
+    html: shell(
+      `About ${esc(d.eventTitle)}`,
+      [
+        esc(d.body),
+        `— ${esc(d.hostName)}`,
+        `🗓 ${when}`,
+      ],
+      { label: "View or reschedule", url: d.manageUrl },
+    ),
+  };
+}
+
 export function bookingCancellation(d: BookingEmailData): Rendered {
   return {
     subject: `Cancelled: ${d.eventTitle} — ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,

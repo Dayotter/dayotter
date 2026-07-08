@@ -81,6 +81,12 @@ export const eventTypeInputSchema = z
     // 0 = no minimum; capped at 30 days.
     minimumNoticeMinutes: z.number().int().min(0).max(43_200).default(60),
     bookingWindowDays: z.number().int().min(1).max(730).default(60),
+    /** Cap confirmed bookings per day (null = unlimited). */
+    dailyBookingLimit: z.number().int().min(1).max(100).nullable().default(null),
+    /** Hidden from the public profile listing (still bookable by direct link). */
+    isPrivate: z.boolean().default(false),
+    /** Send the booker here after booking instead of the calSync confirmation. */
+    redirectUrl: z.string().url().max(500).nullable().default(null),
     questions: z.array(bookingQuestionSchema).max(20).default([]),
   })
   .refine(

@@ -1,4 +1,5 @@
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { DuplicateEventTypeButton } from "@/components/duplicate-event-type-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -53,6 +54,11 @@ export default async function EventTypesPage() {
                       hidden
                     </span>
                   ) : null}
+                  {et.isPrivate ? (
+                    <span className="ml-2 rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[11px] font-normal text-[var(--color-muted)]">
+                      private
+                    </span>
+                  ) : null}
                 </h3>
                 <span className="flex items-center gap-1 text-xs text-[var(--color-muted)]">
                   <Clock size={13} /> {et.durationMinutes}m
@@ -78,12 +84,15 @@ export default async function EventTypesPage() {
                 ) : (
                   <span />
                 )}
-                <Link
-                  href={`/event-types/${et.id}/edit`}
-                  className="inline-flex items-center gap-1 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
-                >
-                  <Pencil size={13} /> Edit
-                </Link>
+                <div className="flex items-center gap-3">
+                  <DuplicateEventTypeButton id={et.id} />
+                  <Link
+                    href={`/event-types/${et.id}/edit`}
+                    className="inline-flex items-center gap-1 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                  >
+                    <Pencil size={13} /> Edit
+                  </Link>
+                </div>
               </div>
             </Card>
           ))}
