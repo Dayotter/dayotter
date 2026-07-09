@@ -1,6 +1,7 @@
 /**
- * Lightweight i18n for the public booking surface. The booker sees the
- * time-selection experience in their own language + locale date formats.
+ * Lightweight i18n for the public booking surface. The booker sees the whole
+ * booking flow — time selection AND the attendee form — in their own language
+ * and locale date formats.
  *
  * Deliberately small and dependency-free: a complete message dictionary per
  * supported locale (so the UI is NEVER half-translated) plus a resolver that
@@ -13,6 +14,7 @@ export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 
 export type BookingKey =
+  // Time-selection surface
   | "selectTime"
   | "recommended"
   | "timesIn"
@@ -25,7 +27,25 @@ export type BookingKey =
   | "overlaySummaryMany"
   | "loading"
   | "noTimes"
-  | "busyTooltip";
+  | "busyTooltip"
+  // Attendee form + event details
+  | "duration"
+  | "durationMin"
+  | "back"
+  | "yourName"
+  | "email"
+  | "guestsOptional"
+  | "add"
+  | "notesOptional"
+  | "notesPlaceholder"
+  | "selectPlaceholder"
+  | "confirming"
+  | "confirmBooking"
+  | "payAndBook"
+  | "pleaseAnswer"
+  | "bookingFailed"
+  | "minutes"
+  | "deposit";
 
 const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
   en: {
@@ -43,6 +63,23 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     loading: "Loading availability…",
     noTimes: "No times available in the next two weeks.",
     busyTooltip: "You have something on your calendar then",
+    duration: "Duration",
+    durationMin: "{n} min",
+    back: "Back",
+    yourName: "Your name",
+    email: "Email",
+    guestsOptional: "Guests (optional)",
+    add: "Add",
+    notesOptional: "Notes (optional)",
+    notesPlaceholder: "Anything to share before the meeting?",
+    selectPlaceholder: "Select…",
+    confirming: "Confirming…",
+    confirmBooking: "Confirm booking",
+    payAndBook: "Pay {price} & book",
+    pleaseAnswer: "Please answer: {label}",
+    bookingFailed: "Could not confirm booking",
+    minutes: "{n} minutes",
+    deposit: "deposit",
   },
   es: {
     selectTime: "Elige una hora",
@@ -60,6 +97,23 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     loading: "Cargando disponibilidad…",
     noTimes: "No hay horas disponibles en las próximas dos semanas.",
     busyTooltip: "Tienes algo en tu calendario a esa hora",
+    duration: "Duración",
+    durationMin: "{n} min",
+    back: "Atrás",
+    yourName: "Tu nombre",
+    email: "Correo electrónico",
+    guestsOptional: "Invitados (opcional)",
+    add: "Añadir",
+    notesOptional: "Notas (opcional)",
+    notesPlaceholder: "¿Algo que quieras compartir antes de la reunión?",
+    selectPlaceholder: "Selecciona…",
+    confirming: "Confirmando…",
+    confirmBooking: "Confirmar reserva",
+    payAndBook: "Pagar {price} y reservar",
+    pleaseAnswer: "Por favor responde: {label}",
+    bookingFailed: "No se pudo confirmar la reserva",
+    minutes: "{n} minutos",
+    deposit: "depósito",
   },
   fr: {
     selectTime: "Choisissez un horaire",
@@ -78,6 +132,23 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     loading: "Chargement des disponibilités…",
     noTimes: "Aucun horaire disponible dans les deux prochaines semaines.",
     busyTooltip: "Vous avez déjà quelque chose à cet horaire",
+    duration: "Durée",
+    durationMin: "{n} min",
+    back: "Retour",
+    yourName: "Votre nom",
+    email: "E-mail",
+    guestsOptional: "Invités (facultatif)",
+    add: "Ajouter",
+    notesOptional: "Notes (facultatif)",
+    notesPlaceholder: "Quelque chose à partager avant la réunion ?",
+    selectPlaceholder: "Sélectionner…",
+    confirming: "Confirmation…",
+    confirmBooking: "Confirmer la réservation",
+    payAndBook: "Payer {price} et réserver",
+    pleaseAnswer: "Veuillez répondre : {label}",
+    bookingFailed: "Impossible de confirmer la réservation",
+    minutes: "{n} minutes",
+    deposit: "acompte",
   },
   de: {
     selectTime: "Wähle eine Uhrzeit",
@@ -96,6 +167,23 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     loading: "Verfügbarkeit wird geladen…",
     noTimes: "In den nächsten zwei Wochen sind keine Zeiten verfügbar.",
     busyTooltip: "Du hast zu dieser Zeit bereits etwas im Kalender",
+    duration: "Dauer",
+    durationMin: "{n} Min.",
+    back: "Zurück",
+    yourName: "Dein Name",
+    email: "E-Mail",
+    guestsOptional: "Gäste (optional)",
+    add: "Hinzufügen",
+    notesOptional: "Notizen (optional)",
+    notesPlaceholder: "Etwas, das du vor dem Meeting teilen möchtest?",
+    selectPlaceholder: "Auswählen…",
+    confirming: "Wird bestätigt…",
+    confirmBooking: "Buchung bestätigen",
+    payAndBook: "{price} zahlen & buchen",
+    pleaseAnswer: "Bitte beantworten: {label}",
+    bookingFailed: "Buchung konnte nicht bestätigt werden",
+    minutes: "{n} Minuten",
+    deposit: "Anzahlung",
   },
   pt: {
     selectTime: "Escolha um horário",
@@ -114,6 +202,23 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     loading: "Carregando disponibilidade…",
     noTimes: "Nenhum horário disponível nas próximas duas semanas.",
     busyTooltip: "Você já tem algo no calendário nesse horário",
+    duration: "Duração",
+    durationMin: "{n} min",
+    back: "Voltar",
+    yourName: "Seu nome",
+    email: "E-mail",
+    guestsOptional: "Convidados (opcional)",
+    add: "Adicionar",
+    notesOptional: "Notas (opcional)",
+    notesPlaceholder: "Algo para compartilhar antes da reunião?",
+    selectPlaceholder: "Selecionar…",
+    confirming: "Confirmando…",
+    confirmBooking: "Confirmar agendamento",
+    payAndBook: "Pagar {price} e agendar",
+    pleaseAnswer: "Por favor responda: {label}",
+    bookingFailed: "Não foi possível confirmar o agendamento",
+    minutes: "{n} minutos",
+    deposit: "sinal",
   },
 };
 

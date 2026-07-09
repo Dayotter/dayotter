@@ -76,7 +76,7 @@ export default async function PublicBookingPage({
             ) : null}
             <div className="mt-4 space-y-2 text-sm text-[var(--color-muted)]">
               <p className="flex items-center gap-2">
-                <Clock size={15} /> {eventType.durationMinutes} minutes
+                <Clock size={15} /> {t(locale, "minutes", { n: eventType.durationMinutes })}
               </p>
               <p className="flex items-center gap-2">
                 <Video size={15} /> {LOCATION_LABELS[eventType.location] ?? eventType.location}
@@ -85,7 +85,9 @@ export default async function PublicBookingPage({
                 <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
                   <CreditCard size={15} /> {priceLabel}
                   {isDeposit ? (
-                    <span className="text-xs font-normal text-[var(--color-faint)]">deposit</span>
+                    <span className="text-xs font-normal text-[var(--color-faint)]">
+                      {t(locale, "deposit")}
+                    </span>
                   ) : null}
                 </p>
               ) : null}

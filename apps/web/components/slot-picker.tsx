@@ -8,6 +8,8 @@ import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { track } from "@/lib/analytics";
 import type { BookingQuestionInput } from "@/lib/booking/event-type-input";
+import { t } from "@/lib/i18n/booking";
+import { useBookingLocale } from "@/lib/i18n/use-locale";
 import { ArrowLeft } from "lucide-react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
@@ -31,6 +33,7 @@ export function SlotPicker({
 }) {
   const router = useRouter();
   const zone = useLocalZone();
+  const locale = useBookingLocale();
   const hasDurations = durationOptions.length > 0;
   const [duration, setDuration] = useState(defaultDuration);
   const [selected, setSelected] = useState<Slot | null>(null);
@@ -67,7 +70,7 @@ export function SlotPicker({
       return q.type === "checkbox" ? v !== true : !v || String(v).trim() === "";
     });
     if (missing) {
-      setError(`Please answer: ${missing.label}`);
+      setError(t(locale, "pleaseAnswer", { label: missing.label }));
       return;
     }
 
@@ -93,7 +96,7 @@ export function SlotPicker({
       const data = await res.json().catch(() => ({}));
       setSubmitting(false);
       track("Booking Failed", { eventTypeId, status: res.status });
-      setError(typeof data.error === "string" ? data.error : "Could not confirm booking");
+      setError(typeof data.error === "string" ? data.error : t(locale, "bookingFailed"));
       return;
     }
     const data = await res.json();
@@ -114,7 +117,7 @@ export function SlotPicker({
 
   const durationSelector = hasDurations ? (
     <div className="mb-4">
-      <Label>Duration</Label>
+      <Label>{t(locale, "duration")}</Label>
       <div className="flex flex-wrap gap-2">
         {durationOptions.map((d) => (
           <button
@@ -127,7 +130,7 @@ export function SlotPicker({
                 : "rounded-md border border-[var(--color-border-strong)] px-3 py-1.5 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
             }
           >
-            {d} min
+            {t(locale, "durationMin", { n: d })}
           </button>
         ))}
       </div>
@@ -154,7 +157,7 @@ export function SlotPicker({
         onClick={() => setSelected(null)}
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
       >
-        <ArrowLeft size={15} /> Back
+        <ArrowLeft size={15} /> {t(locale, "back")}
       </button>
       <div className="mb-4 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3 text-sm">
         {DateTime.fromISO(selected.start).setZone(zone).toFormat("cccc, LLLL d 'at' h:mm a")}
@@ -162,7 +165,7 @@ export function SlotPicker({
       </div>
       <div className="space-y-4">
         <div>
-          <Label htmlFor="b-name">Your name</Label>
+          <Label htmlFor="b-name">{t(locale, "yourName")}</Label>
           <Input
             id="b-name"
             required
@@ -172,7 +175,7 @@ export function SlotPicker({
           />
         </div>
         <div>
-          <Label htmlFor="b-email">Email</Label>
+          <Label htmlFor="b-email">{t(locale, "email")}</Label>
           <Input
             id="b-email"
             type="email"
@@ -183,7 +186,7 @@ export function SlotPicker({
           />
         </div>
         <div>
-          <Label htmlFor="b-guest">Guests (optional)</Label>
+          <Label htmlFor="b-guest">{t(locale, "guestsOptional")}</Label>
           <div className="flex gap-2">
             <Input
               id="b-guest"
@@ -199,7 +202,7 @@ export function SlotPicker({
               placeholder="colleague@company.com"
             />
             <Button type="button" variant="outline" onClick={addGuest}>
-              Add
+              {t(locale, "add")}
             </Button>
           </div>
           {guests.length > 0 ? (
@@ -224,13 +227,13 @@ export function SlotPicker({
           ) : null}
         </div>
         <div>
-          <Label htmlFor="b-notes">Notes (optional)</Label>
+          <Label htmlFor="b-notes">{t(locale, "notesOptional")}</Label>
           <textarea
             id="b-notes"
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Anything to share before the meeting?"
+            placeholder={t(locale, "notesPlaceholder")}
             className="w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
           />
         </div>
@@ -273,7 +276,7 @@ export function SlotPicker({
                   onChange={(e) => setAnswer(q.id, e.target.value)}
                 >
                   <option value="" disabled>
-                    Select…
+                    {t(locale, "selectPlaceholder")}
                   </option>
                   {(q.options ?? []).map((opt) => (
                     <option key={opt} value={opt}>
@@ -300,7 +303,11 @@ export function SlotPicker({
           className="w-full"
           disabled={submitting || (captchaEnabled && !captchaToken)}
         >
-          {submitting ? "Confirming…" : priceLabel ? `Pay ${priceLabel} & book` : "Confirm booking"}
+          {submitting
+            ? t(locale, "confirming")
+            : priceLabel
+              ? t(locale, "payAndBook", { price: priceLabel })
+              : t(locale, "confirmBooking")}
         </Button>
       </div>
     </form>
