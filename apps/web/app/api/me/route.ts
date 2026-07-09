@@ -1,4 +1,5 @@
 import { aiEnabled } from "@/lib/ai/llm";
+import { paymentsEnabled } from "@/lib/payments/stripe";
 import { jsonError, withUser } from "@/lib/server/http";
 import { eq, getDb, schema } from "@calsync/db";
 import { NextResponse } from "next/server";

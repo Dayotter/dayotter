@@ -2,6 +2,9 @@ import { ApiError, BASE_URL, api } from "@/api";
 import { Loading } from "@/components/ui";
 import {
   type BookingQuestion,
+  CURRENCIES,
+  CURRENCY_SYMBOL,
+  type Currency,
   EVENT_COLOR_HEX,
   type EventColor,
   type EventTypeDetail,
@@ -83,6 +86,24 @@ export default function EventTypeForm() {
   const [saving, setSaving] = useState(false);
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [creatingLink, setCreatingLink] = useState(false);
+  const [paymentsEnabled, setPaymentsEnabled] = useState(false);
+  const [priceOn, setPriceOn] = useState(false);
+  const [price, setPrice] = useState(""); // major units, e.g. "25.00"
+  const [currency, setCurrency] = useState<Currency>("usd");
+  const [depositOn, setDepositOn] = useState(false);
+  const [deposit, setDeposit] = useState("");
+
+  // Whether this server has Stripe configured (gates the pricing UI).
+  useEffect(() => {
+    let active = true;
+    api
+      .get<{ paymentsEnabled?: boolean }>("/api/me")
+      .then((d) => active && setPaymentsEnabled(Boolean(d.paymentsEnabled)))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Load the full event type when editing.
   useEffect(() => {
@@ -107,6 +128,15 @@ export default function EventTypeForm() {
         setIsPrivate(e.isPrivate);
         setRedirectUrl(e.redirectUrl ?? "");
         if (e.color && e.color in EVENT_COLOR_HEX) setColor(e.color as EventColor);
+        if (e.price != null && e.price > 0) {
+          setPriceOn(true);
+          setPrice((e.price / 100).toFixed(2));
+        }
+        if (e.currency) setCurrency(e.currency as Currency);
+        if (e.depositAmount != null && e.depositAmount > 0) {
+          setDepositOn(true);
+          setDeposit((e.depositAmount / 100).toFixed(2));
+        }
         setMinGap(String(e.minimumGapMinutes ?? 0));
         setDurationOptions(e.durationOptions ?? []);
         setQuestions(e.questions ?? []);
@@ -150,6 +180,9 @@ export default function EventTypeForm() {
       isPrivate,
       redirectUrl: redirectUrl.trim() || null,
       color,
+      price: priceOn ? Math.round((Number(price) || 0) * 100) : null,
+      currency,
+      depositAmount: priceOn && depositOn ? Math.round((Number(deposit) || 0) * 100) : null,
       questions: questions
         .filter((q) => q.label.trim().length > 0)
         .map((q) => ({
@@ -456,6 +489,65 @@ export default function EventTypeForm() {
           <Text style={{ color: colors.accent, fontWeight: "600" }}>+ Add question</Text>
         </Pressable>
 
+        {paymentsEnabled ? (
+          <View style={styles.priceBox}>
+            <View style={styles.priceHead}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.linkTitle}>Require payment</Text>
+                <Text style={styles.linkHint}>Collect a fee when someone books.</Text>
+              </View>
+              <Switch value={priceOn} onValueChange={setPriceOn} />
+            </View>
+            {priceOn ? (
+              <>
+                <View style={styles.priceRow}>
+                  <View style={styles.currencyPills}>
+                    {CURRENCIES.map((c) => (
+                      <Pressable
+                        key={c}
+                        onPress={() => setCurrency(c)}
+                        style={[styles.curPill, c === currency && styles.curPillOn]}
+                      >
+                        <Text style={[styles.curText, c === currency && styles.curTextOn]}>
+                          {CURRENCY_SYMBOL[c]}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+                <View style={styles.priceInputRow}>
+                  <Text style={styles.priceLabel}>Price</Text>
+                  <TextInput
+                    style={styles.priceInput}
+                    value={price}
+                    onChangeText={(v) => setPrice(v.replace(/[^0-9.]/g, ""))}
+                    keyboardType="decimal-pad"
+                    placeholder="0.00"
+                    placeholderTextColor={colors.faint}
+                  />
+                </View>
+                <View style={styles.priceHead}>
+                  <Text style={styles.priceLabel}>Take a deposit only</Text>
+                  <Switch value={depositOn} onValueChange={setDepositOn} />
+                </View>
+                {depositOn ? (
+                  <View style={styles.priceInputRow}>
+                    <Text style={styles.priceLabel}>Deposit</Text>
+                    <TextInput
+                      style={styles.priceInput}
+                      value={deposit}
+                      onChangeText={(v) => setDeposit(v.replace(/[^0-9.]/g, ""))}
+                      keyboardType="decimal-pad"
+                      placeholder="0.00"
+                      placeholderTextColor={colors.faint}
+                    />
+                  </View>
+                ) : null}
+              </>
+            ) : null}
+          </View>
+        ) : null}
+
         {isEdit ? (
           <View style={styles.linkBox}>
             <Text style={styles.linkTitle}>One-off booking link</Text>
@@ -612,6 +704,39 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: 14,
     marginBottom: 20,
+  },
+  priceBox: {
+    backgroundColor: colors.surface2,
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: 20,
+  },
+  priceHead: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
+  priceRow: { marginTop: 12 },
+  currencyPills: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  curPill: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  curPillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+  curText: { color: colors.muted, fontWeight: "600" },
+  curTextOn: { color: colors.text },
+  priceInputRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 12 },
+  priceLabel: { color: colors.text, fontSize: 14, flex: 1 },
+  priceInput: {
+    minWidth: 100,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    textAlign: "right",
   },
   linkTitle: { color: colors.text, fontWeight: "600" },
   linkHint: { color: colors.muted, fontSize: 12, marginTop: 2 },

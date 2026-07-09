@@ -70,9 +70,23 @@ export interface EventTypeDetail {
   isPrivate: boolean;
   redirectUrl: string | null;
   color: string | null;
+  price: number | null;
+  currency: string | null;
+  depositAmount: number | null;
   questions: BookingQuestion[];
   isActive: boolean;
 }
+
+export const CURRENCIES = ["usd", "eur", "gbp", "cad", "aud", "inr"] as const;
+export type Currency = (typeof CURRENCIES)[number];
+export const CURRENCY_SYMBOL: Record<Currency, string> = {
+  usd: "$",
+  eur: "€",
+  gbp: "£",
+  cad: "C$",
+  aud: "A$",
+  inr: "₹",
+};
 
 export type ChannelType = "slack" | "whatsapp" | "sms" | "push";
 
