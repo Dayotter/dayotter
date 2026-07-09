@@ -69,7 +69,10 @@ export function startWebhooksWorker(): Worker<WebhookJob> {
 
       const body = JSON.stringify(delivery.payload);
       const secret = decrypt(endpoint.secretEncrypted);
-      const signature = hmacSha256hex(secret, body);
+      // Sign `timestamp.body` (Stripe-style) so a consumer can reject replays by
+      // checking the timestamp is recent before trusting the signature.
+      const timestamp = Math.floor(Date.now() / 1000);
+      const signature = hmacSha256hex(secret, `${timestamp}.${body}`);
 
       let responseStatus: number | null = null;
       try {
@@ -80,7 +83,8 @@ export function startWebhooksWorker(): Worker<WebhookJob> {
             "user-agent": "calSync-Webhooks/1.0",
             "x-calsync-event": delivery.event,
             "x-calsync-delivery": delivery.id,
-            "x-calsync-signature": `sha256=${signature}`,
+            "x-calsync-timestamp": String(timestamp),
+            "x-calsync-signature": `t=${timestamp},v1=${signature}`,
           },
           body,
         );
