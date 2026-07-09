@@ -1,5 +1,6 @@
 import { SlotPicker } from "@/components/slot-picker";
 import { Card, CardBody } from "@/components/ui/card";
+import { ViewTracker } from "@/components/view-tracker";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { paymentsEnabled } from "@/lib/payments/stripe";
@@ -40,6 +41,7 @@ export default async function PublicBookingPage({
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+      <ViewTracker eventTypeId={eventType.id} />
       <Card>
         <div className="grid gap-0 md:grid-cols-[280px_1fr]">
           {/* Event details */}

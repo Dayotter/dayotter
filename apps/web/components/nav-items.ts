@@ -6,6 +6,7 @@ import {
   Inbox,
   LayoutDashboard,
   Settings,
+  TrendingUp,
   Users,
 } from "lucide-react";
 
@@ -17,6 +18,7 @@ export const NAV = [
   { href: "/teams", label: "Teams", short: "Teams", icon: Users },
   { href: "/bookings", label: "Bookings", short: "Bookings", icon: CalendarDays },
   { href: "/insights", label: "Insights", short: "Insights", icon: ChartColumn },
+  { href: "/analytics", label: "Analytics", short: "Stats", icon: TrendingUp },
   { href: "/availability", label: "Availability", short: "Hours", icon: Clock },
   { href: "/settings/profile", label: "Settings", short: "Settings", icon: Settings },
 ] as const;
