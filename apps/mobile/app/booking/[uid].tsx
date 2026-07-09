@@ -9,16 +9,27 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+interface Slot {
+  start: string;
+  end: string;
+}
+
 export default function BookingDetailScreen() {
   const router = useRouter();
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const [cancelling, setCancelling] = useState(false);
   const [notifying, setNotifying] = useState<"late" | "next" | null>(null);
+  const [markingNoShow, setMarkingNoShow] = useState(false);
+  const [rescheduling, setRescheduling] = useState(false);
+  const [slots, setSlots] = useState<Slot[] | null>(null);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   const { data, loading, error, reload } = useAsync<BookingDetail>(async () => {
     const res = await api.get<{ booking: BookingDetail }>(`/api/bookings/${uid}`);
     return res.booking;
   }, [uid]);
+
+  const isPast = data ? new Date(data.endsAt).getTime() < Date.now() : false;
 
   function confirmCancel() {
     Alert.alert("Cancel booking?", "This notifies everyone and frees the time.", [
@@ -43,10 +54,7 @@ export default function BookingDetailScreen() {
     setNotifying("late");
     try {
       await api.post(`/api/bookings/${uid}/running-late`, {});
-      Alert.alert(
-        "Attendees notified",
-        "We let this meeting's attendees know you're running late.",
-      );
+      Alert.alert("Attendees notified", "We let this meeting's attendees know you're running late.");
     } catch {
       Alert.alert("Couldn't notify", "Please try again.");
     } finally {
@@ -58,10 +66,7 @@ export default function BookingDetailScreen() {
     setNotifying("next");
     try {
       await api.post(`/api/bookings/${uid}/notify-next`, {});
-      Alert.alert(
-        "Next meeting notified",
-        "We let your back-to-back meeting know you may be late.",
-      );
+      Alert.alert("Next meeting notified", "We let your back-to-back meeting know you may be late.");
     } catch (e) {
       const msg =
         e instanceof ApiError && e.status === 409
@@ -71,6 +76,63 @@ export default function BookingDetailScreen() {
     } finally {
       setNotifying(null);
     }
+  }
+
+  async function toggleNoShow() {
+    if (!data) return;
+    const next = data.status !== "no_show";
+    setMarkingNoShow(true);
+    try {
+      await api.post(`/api/bookings/${uid}/no-show`, { noShow: next });
+      reload();
+    } catch {
+      Alert.alert("Couldn't update", "Please try again.");
+    } finally {
+      setMarkingNoShow(false);
+    }
+  }
+
+  async function openReschedule() {
+    if (!data) return;
+    setRescheduling(true);
+    if (slots) return;
+    setSlotsLoading(true);
+    try {
+      const from = new Date().toISOString();
+      const to = new Date(Date.now() + 14 * 86_400_000).toISOString();
+      const res = await api.get<{ slots: Slot[] }>(
+        `/api/availability/${data.eventTypeId}?from=${from}&to=${to}`,
+      );
+      setSlots(res.slots.slice(0, 40));
+    } catch {
+      Alert.alert("Couldn't load times", "Please try again.");
+      setRescheduling(false);
+    } finally {
+      setSlotsLoading(false);
+    }
+  }
+
+  function confirmReschedule(slot: Slot) {
+    Alert.alert("Move to this time?", formatDateTime(slot.start), [
+      { text: "Back", style: "cancel" },
+      {
+        text: "Reschedule",
+        onPress: async () => {
+          try {
+            await api.post(`/api/bookings/${uid}/reschedule`, { start: slot.start });
+            setRescheduling(false);
+            setSlots(null);
+            reload();
+          } catch (e) {
+            const msg =
+              e instanceof ApiError && e.status === 409
+                ? "That time was just taken. Pick another."
+                : "Please try again.";
+            Alert.alert("Couldn't reschedule", msg);
+          }
+        },
+      },
+    ]);
   }
 
   return (
@@ -89,10 +151,7 @@ export default function BookingDetailScreen() {
           {data.hostName ? <Text style={styles.host}>with {data.hostName}</Text> : null}
 
           <View style={styles.card}>
-            <Row
-              icon="time-outline"
-              text={`${formatDateTime(data.startsAt)}  (${data.timezone})`}
-            />
+            <Row icon="time-outline" text={`${formatDateTime(data.startsAt)}  (${data.timezone})`} />
             {data.attendees.length > 0 ? (
               <Row
                 icon="people-outline"
@@ -106,14 +165,11 @@ export default function BookingDetailScreen() {
             ) : null}
           </View>
 
-          {data.status === "confirmed" ? (
+          {/* Upcoming confirmed meeting: running-late, reschedule, cancel. */}
+          {data.status === "confirmed" && !isPast ? (
             <>
               <View style={styles.actions}>
-                <Pressable
-                  style={styles.action}
-                  onPress={runningLate}
-                  disabled={notifying !== null}
-                >
+                <Pressable style={styles.action} onPress={runningLate} disabled={notifying !== null}>
                   <Ionicons name="time-outline" size={16} color={colors.text} />
                   <Text style={styles.actionText}>
                     {notifying === "late" ? "Notifying…" : "I'm running late"}
@@ -126,13 +182,61 @@ export default function BookingDetailScreen() {
                   </Text>
                 </Pressable>
               </View>
+
+              {rescheduling ? (
+                <View style={styles.slotBox}>
+                  <Text style={styles.slotHeader}>Pick a new time</Text>
+                  {slotsLoading ? (
+                    <Text style={styles.slotEmpty}>Loading…</Text>
+                  ) : slots && slots.length > 0 ? (
+                    slots.map((s) => (
+                      <Pressable
+                        key={s.start}
+                        style={styles.slotRow}
+                        onPress={() => confirmReschedule(s)}
+                      >
+                        <Text style={styles.slotText}>{formatDateTime(s.start)}</Text>
+                        <Ionicons name="chevron-forward" size={16} color={colors.faint} />
+                      </Pressable>
+                    ))
+                  ) : (
+                    <Text style={styles.slotEmpty}>No open times in the next two weeks.</Text>
+                  )}
+                  <Pressable onPress={() => setRescheduling(false)} style={styles.slotCancel}>
+                    <Text style={styles.backText}>Close</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable style={styles.reschedule} onPress={openReschedule}>
+                  <Ionicons name="calendar-outline" size={16} color={colors.text} />
+                  <Text style={styles.actionText}>Reschedule</Text>
+                </Pressable>
+              )}
+
               <Pressable style={styles.cancel} onPress={confirmCancel} disabled={cancelling}>
-                <Text style={styles.cancelText}>
-                  {cancelling ? "Cancelling…" : "Cancel booking"}
-                </Text>
+                <Text style={styles.cancelText}>{cancelling ? "Cancelling…" : "Cancel booking"}</Text>
               </Pressable>
             </>
           ) : null}
+
+          {/* Past meeting: no-show toggle. */}
+          {isPast && (data.status === "confirmed" || data.status === "no_show") ? (
+            <Pressable style={styles.reschedule} onPress={toggleNoShow} disabled={markingNoShow}>
+              <Ionicons
+                name={data.status === "no_show" ? "arrow-undo-outline" : "person-remove-outline"}
+                size={16}
+                color={colors.text}
+              />
+              <Text style={styles.actionText}>
+                {markingNoShow
+                  ? "Saving…"
+                  : data.status === "no_show"
+                    ? "Undo no-show"
+                    : "Mark as no-show"}
+              </Text>
+            </Pressable>
+          ) : null}
+
           <Pressable style={styles.back} onPress={() => router.back()}>
             <Text style={styles.backText}>Back to bookings</Text>
           </Pressable>
@@ -184,6 +288,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   actionText: { color: colors.text, fontWeight: "500", fontSize: 13 },
+  reschedule: {
+    marginTop: 12,
+    flexDirection: "row",
+    gap: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingVertical: 12,
+  },
+  slotBox: {
+    marginTop: 14,
+    backgroundColor: colors.surface2,
+    borderRadius: radius.lg,
+    padding: 14,
+  },
+  slotHeader: { fontWeight: "600", color: colors.text, marginBottom: 8 },
+  slotRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingVertical: 12,
+  },
+  slotText: { color: colors.text, fontSize: 14 },
+  slotEmpty: { color: colors.muted, paddingVertical: 8 },
+  slotCancel: { alignItems: "center", marginTop: 10 },
   cancel: {
     marginTop: 14,
     backgroundColor: colors.danger,

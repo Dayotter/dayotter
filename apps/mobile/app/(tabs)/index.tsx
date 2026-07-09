@@ -51,8 +51,14 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <Text style={styles.brand}>calSync</Text>
         <View style={styles.headerActions}>
+          <Pressable onPress={() => router.push("/inbox")} hitSlop={10}>
+            <Ionicons name="file-tray-outline" size={21} color={colors.muted} />
+          </Pressable>
           <Pressable onPress={() => router.push("/insights")} hitSlop={10}>
             <Ionicons name="stats-chart-outline" size={21} color={colors.muted} />
+          </Pressable>
+          <Pressable onPress={() => router.push("/analytics")} hitSlop={10}>
+            <Ionicons name="trending-up-outline" size={21} color={colors.muted} />
           </Pressable>
           <Pressable onPress={() => router.push("/availability")} hitSlop={10}>
             <Ionicons name="time-outline" size={22} color={colors.muted} />

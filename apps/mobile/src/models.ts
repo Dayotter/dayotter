@@ -94,6 +94,79 @@ export interface UserPreferences {
   travelBufferMinutes?: number;
 }
 
+/** Automation rule (GET/POST /api/automations). */
+export interface AutomationRule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  trigger: string;
+  matchTitle: string | null;
+  action: string;
+  offsetMinutes: number;
+  blockTitle: string | null;
+  dayOfWeek: number | null;
+  windowStart: string | null;
+  windowEnd: string | null;
+}
+
+/** An API key (GET/POST /api/api-keys). */
+export interface ApiKey {
+  id: string;
+  name: string;
+  prefix: string;
+  lastUsedAt: string | null;
+  createdAt: string;
+}
+
+/** Calendar Inbox (GET /api/inbox). */
+export interface InboxReconnect {
+  connectionId: string;
+  provider: string;
+  account: string;
+  error: string | null;
+}
+export interface InboxConflict {
+  uid: string;
+  title: string;
+  startsAt: string;
+  clashTitle: string;
+}
+export interface InboxData {
+  reconnect: InboxReconnect[];
+  conflicts: InboxConflict[];
+}
+
+/** Booking-funnel analytics (GET /api/analytics). */
+export interface AnalyticsTotals {
+  views: number;
+  uniqueVisitors: number;
+  bookings: number;
+  confirmed: number;
+  completed: number;
+  cancelled: number;
+  noShow: number;
+  revenueCents: number;
+  conversionRate: number;
+}
+export interface AnalyticsRow {
+  eventTypeId: string;
+  title: string;
+  color: string | null;
+  views: number;
+  uniqueVisitors: number;
+  confirmed: number;
+  cancelled: number;
+  noShow: number;
+  revenueCents: number;
+  currency: string | null;
+  conversionRate: number;
+}
+export interface Analytics {
+  totals: AnalyticsTotals;
+  currency: string | null;
+  byEventType: AnalyticsRow[];
+}
+
 /** An Intelligence recommendation (GET /api/recommendations). */
 export interface Recommendation {
   id: string;

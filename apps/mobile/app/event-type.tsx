@@ -1,4 +1,4 @@
-import { ApiError, api } from "@/api";
+import { ApiError, BASE_URL, api } from "@/api";
 import { Loading } from "@/components/ui";
 import {
   type BookingQuestion,
@@ -81,6 +81,8 @@ export default function EventTypeForm() {
   const [questions, setQuestions] = useState<BookingQuestion[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [linkUrl, setLinkUrl] = useState<string | null>(null);
+  const [creatingLink, setCreatingLink] = useState(false);
 
   // Load the full event type when editing.
   useEffect(() => {
@@ -180,6 +182,21 @@ export default function EventTypeForm() {
     } catch {
       setError("Could not delete");
       setSaving(false);
+    }
+  }
+
+  async function createLink() {
+    if (!params.id) return;
+    setCreatingLink(true);
+    try {
+      const res = await api.post<{ url: string }>(`/api/event-types/${params.id}/links`, {
+        maxUses: 1,
+      });
+      setLinkUrl(`${BASE_URL}${res.url}`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not create a link");
+    } finally {
+      setCreatingLink(false);
     }
   }
 
@@ -439,6 +456,25 @@ export default function EventTypeForm() {
           <Text style={{ color: colors.accent, fontWeight: "600" }}>+ Add question</Text>
         </Pressable>
 
+        {isEdit ? (
+          <View style={styles.linkBox}>
+            <Text style={styles.linkTitle}>One-off booking link</Text>
+            <Text style={styles.linkHint}>
+              A single-use link to share privately — expires after one booking.
+            </Text>
+            {linkUrl ? (
+              <Text selectable style={styles.linkUrl}>
+                {linkUrl}
+              </Text>
+            ) : null}
+            <Pressable style={styles.linkBtn} onPress={createLink} disabled={creatingLink}>
+              <Text style={styles.linkBtnText}>
+                {creatingLink ? "Creating…" : linkUrl ? "Create another" : "Create link"}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <Pressable style={styles.save} onPress={save} disabled={saving || !title}>
@@ -571,6 +607,24 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   error: { color: colors.danger, marginBottom: 12 },
+  linkBox: {
+    backgroundColor: colors.surface2,
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: 20,
+  },
+  linkTitle: { color: colors.text, fontWeight: "600" },
+  linkHint: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  linkUrl: { color: colors.accent, fontSize: 13, marginTop: 10, fontFamily: "Courier" },
+  linkBtn: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingVertical: 11,
+    alignItems: "center",
+  },
+  linkBtnText: { color: colors.text, fontWeight: "500" },
   save: {
     backgroundColor: colors.accent,
     borderRadius: radius.md,

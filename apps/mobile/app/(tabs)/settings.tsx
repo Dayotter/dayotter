@@ -225,6 +225,18 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={18} color={colors.faint} />
         </Pressable>
 
+        <Text style={styles.section}>Advanced</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/automations")}>
+          <Ionicons name="flash-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Automations</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+        <Pressable style={[styles.navRow, { marginTop: 10 }]} onPress={() => router.push("/developer")}>
+          <Ionicons name="code-slash-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Developer &amp; API keys</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+
         <Pressable style={styles.signOut} onPress={signOut}>
           <Text style={styles.signOutText}>Sign out</Text>
         </Pressable>
