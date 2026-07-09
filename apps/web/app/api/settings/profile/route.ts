@@ -25,6 +25,15 @@ const RESERVED_HANDLES = new Set([
   "pricing",
   "terms",
   "privacy",
+  "contact",
+  "blog",
+  "docs",
+  "security",
+  "self-hosting",
+  "changelog",
+  "status",
+  "book",
+  "embed.js",
 ]);
 
 const bodySchema = z.object({
