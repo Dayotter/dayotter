@@ -127,6 +127,13 @@
       "when": 1783600831101,
       "tag": "0017_lyrical_scalphunter",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1783614137173,
+      "tag": "0018_plain_strong_guy",
+      "breakpoints": true
     }
   ]
 }

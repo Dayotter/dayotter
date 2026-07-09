@@ -9,6 +9,8 @@ export interface FunnelRow {
   views: number;
   /** Distinct visitors (deduped by client id). */
   uniqueVisitors: number;
+  /** Paid checkouts started (Stripe session created) — paid-funnel drop-off. */
+  checkoutStarted: number;
   /** Bookings created in the window, any status. */
   bookings: number;
   /** Bookings that went through (confirmed + completed + no_show). */
@@ -29,6 +31,7 @@ export interface AnalyticsData {
   totals: {
     views: number;
     uniqueVisitors: number;
+    checkoutStarted: number;
     bookings: number;
     confirmed: number;
     completed: number;
@@ -74,6 +77,7 @@ export async function computeAnalytics(params: {
     totals: {
       views: 0,
       uniqueVisitors: 0,
+      checkoutStarted: 0,
       bookings: 0,
       confirmed: 0,
       completed: 0,
@@ -92,8 +96,9 @@ export async function computeAnalytics(params: {
   const viewRows = await db
     .select({
       eventTypeId: schema.bookingPageViews.eventTypeId,
-      views: sql<number>`count(*)::int`,
-      unique: sql<number>`count(distinct ${schema.bookingPageViews.visitorId})::int`,
+      views: sql<number>`count(*) filter (where ${schema.bookingPageViews.kind} = 'view')::int`,
+      unique: sql<number>`count(distinct ${schema.bookingPageViews.visitorId}) filter (where ${schema.bookingPageViews.kind} = 'view')::int`,
+      checkouts: sql<number>`count(*) filter (where ${schema.bookingPageViews.kind} = 'checkout')::int`,
     })
     .from(schema.bookingPageViews)
     .where(
@@ -141,6 +146,7 @@ export async function computeAnalytics(params: {
       color: t.color,
       views: v?.views ?? 0,
       uniqueVisitors,
+      checkoutStarted: v?.checkouts ?? 0,
       bookings: rows.reduce((s, r) => s + r.count, 0),
       confirmed,
       completed: countFor(["completed"]),
@@ -166,6 +172,7 @@ export async function computeAnalytics(params: {
     totals: {
       views: sum("views"),
       uniqueVisitors: totalUnique,
+      checkoutStarted: sum("checkoutStarted"),
       bookings: sum("bookings"),
       confirmed: totalConfirmed,
       completed: sum("completed"),

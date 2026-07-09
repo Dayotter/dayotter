@@ -17,6 +17,9 @@ export const bookingPageViews = pgTable(
       .notNull()
       .references(() => eventTypes.id, { onDelete: "cascade" }),
     visitorId: text("visitor_id"),
+    /** "view" (page load) | "checkout" (paid Stripe checkout started). Lets the
+     * funnel show the paid-checkout drop-off, not just page→booking. */
+    kind: text("kind").notNull().default("view"),
     viewedAt: timestamp("viewed_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("booking_page_views_type_idx").on(t.eventTypeId, t.viewedAt)],

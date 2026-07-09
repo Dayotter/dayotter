@@ -86,6 +86,12 @@ export async function POST(request: Request) {
           customerEmail: parsed.data.attendee.email,
           metadata: { token },
         });
+        // Funnel: record that a paid checkout was started (best-effort), so
+        // analytics can show the paid-step drop-off, not just page→booking.
+        await getDb()
+          .insert(db.bookingPageViews)
+          .values({ eventTypeId: parsed.data.eventTypeId, kind: "checkout" })
+          .catch(() => {});
         return NextResponse.json({ checkoutUrl: url });
       } catch (err) {
         console.error("[api/book] checkout error:", err);

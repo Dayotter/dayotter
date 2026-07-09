@@ -89,6 +89,13 @@ export function AnalyticsDashboard() {
           <CardBody className="space-y-3 p-5">
             <h2 className="text-sm font-semibold">Funnel</h2>
             <FunnelBar label="Visitors" value={t.uniqueVisitors} max={t.uniqueVisitors} />
+            {t.checkoutStarted > 0 ? (
+              <FunnelBar
+                label="Checkout started"
+                value={t.checkoutStarted}
+                max={t.uniqueVisitors}
+              />
+            ) : null}
             <FunnelBar label="Bookings made" value={t.bookings} max={t.uniqueVisitors} />
             <FunnelBar label="Confirmed" value={t.confirmed} max={t.uniqueVisitors} />
             <FunnelBar
