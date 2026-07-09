@@ -134,6 +134,13 @@
       "when": 1783614137173,
       "tag": "0018_plain_strong_guy",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1783619899592,
+      "tag": "0019_short_chimera",
+      "breakpoints": true
     }
   ]
 }

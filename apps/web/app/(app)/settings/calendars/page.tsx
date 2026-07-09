@@ -1,7 +1,9 @@
 import { AppleConnectForm } from "@/components/apple-connect-form";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { ZoomConnect } from "@/components/zoom-connect";
 import { getSession } from "@/lib/auth/session";
+import { zoomEnabled } from "@/lib/integrations/zoom";
 import { cn } from "@/lib/cn";
 import { eq, getDb, schema } from "@calsync/db";
 import { Calendar, CheckCircle2, Plus } from "lucide-react";
@@ -18,7 +20,7 @@ const PROVIDERS = [
 export default async function CalendarsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connected?: string; calendars?: string; error?: string }>;
+  searchParams: Promise<{ connected?: string; calendars?: string; error?: string; zoom?: string }>;
 }) {
   const session = await getSession();
   const params = await searchParams;
@@ -40,6 +42,15 @@ export default async function CalendarsPage({
       {params.error ? (
         <div className="mb-5 rounded-md border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-4 py-3 text-sm text-[var(--color-danger)]">
           Couldn't connect: {params.error}
+        </div>
+      ) : null}
+      {params.zoom === "connected" ? (
+        <div className="mb-5 flex items-center gap-2 rounded-md border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-4 py-3 text-sm text-[var(--color-success)]">
+          <CheckCircle2 size={16} /> Zoom connected. New Zoom bookings get a meeting automatically.
+        </div>
+      ) : params.zoom === "error" ? (
+        <div className="mb-5 rounded-md border border-[var(--color-danger)]/30 bg-[var(--color-danger)]/10 px-4 py-3 text-sm text-[var(--color-danger)]">
+          Couldn't connect Zoom. Please try again.
         </div>
       ) : null}
 
@@ -144,6 +155,19 @@ export default async function CalendarsPage({
           )}
         </CardBody>
       </Card>
+
+      {/* Video conferencing (Zoom) — only when configured on this server. */}
+      {zoomEnabled ? (
+        <Card className="mt-6">
+          <CardHeader
+            title="Video conferencing"
+            description="Connect Zoom to auto-create a meeting for every Zoom booking."
+          />
+          <CardBody>
+            <ZoomConnect />
+          </CardBody>
+        </Card>
+      ) : null}
     </>
   );
 }

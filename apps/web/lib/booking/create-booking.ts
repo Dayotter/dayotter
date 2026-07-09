@@ -13,6 +13,7 @@ import {
 } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
+import { createZoomMeeting } from "../integrations/zoom";
 import { emitWebhook } from "../webhooks/emit";
 import { reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
 import { reserveTravelBlocks } from "./travel";
@@ -265,8 +266,20 @@ export async function createBooking(
     attendee: { name: input.attendee.name, email: input.attendee.email },
   });
 
+  // Zoom event types: auto-create a real Zoom meeting when the host has Zoom
+  // connected (falls back to any manual link otherwise). Best-effort.
+  let zoomUrl: string | null = null;
+  if (eventType.location === "zoom") {
+    zoomUrl = await createZoomMeeting(host.id, {
+      topic: eventType.title,
+      startISO: start.toISOString(),
+      durationMinutes: duration,
+      timezone: input.attendee.timezone,
+    });
+  }
+
   // Write to the host's calendar (best-effort; booking stands without it).
-  let meetingUrl: string | undefined;
+  let meetingUrl: string | undefined = zoomUrl ?? undefined;
   try {
     const written = await writeBookingToCalendar(host.id, {
       title: eventType.title,
@@ -278,15 +291,14 @@ export async function createBooking(
         { email: input.attendee.email, name: input.attendee.name },
         ...guests.map((email) => ({ email })),
       ],
-      location: eventType.locationDetail ?? undefined,
+      // Prefer the fresh Zoom link so the calendar invite carries it.
+      location: zoomUrl ?? eventType.locationDetail ?? undefined,
       createConference: AUTO_CONFERENCE.includes(eventType.location),
     });
     if (written) {
-      meetingUrl = written.meetingUrl;
-      await db
-        .update(schema.bookings)
-        .set({ meetingUrl })
-        .where(eq(schema.bookings.id, booking.id));
+      // A provider conference (Google Meet / Teams) wins if one was created;
+      // otherwise keep the Zoom link.
+      meetingUrl = written.meetingUrl ?? meetingUrl;
       await db.insert(schema.bookingReferences).values({
         bookingId: booking.id,
         calendarId: written.calendarId,
@@ -301,6 +313,14 @@ export async function createBooking(
       hostId: host.id,
       err,
     });
+  }
+
+  // Persist the resolved meeting URL (Zoom and/or a calendar conference).
+  if (meetingUrl) {
+    await db
+      .update(schema.bookings)
+      .set({ meetingUrl })
+      .where(eq(schema.bookings.id, booking.id));
   }
 
   // Schedule reminders at the host's preferred lead times.

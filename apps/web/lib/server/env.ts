@@ -23,6 +23,8 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().default(""),
   MICROSOFT_CLIENT_ID: z.string().default(""),
   MICROSOFT_CLIENT_SECRET: z.string().default(""),
+  ZOOM_CLIENT_ID: z.string().default(""),
+  ZOOM_CLIENT_SECRET: z.string().default(""),
 
   SMTP_URL: z.string().optional(),
   EMAIL_FROM: z.string().default("calSync <no-reply@example.com>"),
