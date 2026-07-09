@@ -1,4 +1,4 @@
-import { getEventTypeAvailability } from "@/lib/booking/availability";
+import { getEventTypeAvailability, recommendSlotsForEventType } from "@/lib/booking/availability";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -50,10 +50,14 @@ export async function GET(
     return NextResponse.json({ error: "Event type not found" }, { status: 404 });
   }
 
+  // Smart-scheduling: highlight a few recommended times (individual events only).
+  const recommended = await recommendSlotsForEventType(eventTypeId, slots);
+
   return NextResponse.json({
     eventTypeId,
     from: from.toISOString(),
     to: to.toISOString(),
     slots: slots.map((s) => ({ start: s.start.toISOString(), end: s.end.toISOString() })),
+    recommended,
   });
 }

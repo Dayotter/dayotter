@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { Sparkles } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
 
@@ -31,6 +32,7 @@ export function SlotGrid({
 }) {
   const zone = useLocalZone();
   const [slots, setSlots] = useState<Slot[]>([]);
+  const [recommended, setRecommended] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDay, setActiveDay] = useState<string | null>(null);
 
@@ -42,13 +44,29 @@ export function SlotGrid({
     let active = true;
     fetch(`/api/availability/${eventTypeId}?from=${from}&to=${to}${durationParam}`)
       .then((r) => r.json())
-      .then((data) => active && setSlots(data.slots ?? []))
-      .catch(() => active && setSlots([]))
+      .then((data) => {
+        if (!active) return;
+        setSlots(data.slots ?? []);
+        setRecommended(data.recommended ?? []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setSlots([]);
+        setRecommended([]);
+      })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
   }, [eventTypeId, duration]);
+
+  const recommendedSet = useMemo(() => new Set(recommended), [recommended]);
+  // Resolve recommended ISO starts back to slot objects, in chronological order.
+  const recommendedSlots = useMemo(
+    () =>
+      recommended.map((iso) => slots.find((s) => s.start === iso)).filter((s): s is Slot => !!s),
+    [recommended, slots],
+  );
 
   const byDay = useMemo(() => {
     const map = new Map<string, Slot[]>();
@@ -72,6 +90,26 @@ export function SlotGrid({
 
   return (
     <div>
+      {recommendedSlots.length > 0 ? (
+        <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/[0.06] p-3">
+          <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-accent)]">
+            <Sparkles size={13} /> Recommended times
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {recommendedSlots.map((s) => (
+              <button
+                key={s.start}
+                type="button"
+                onClick={() => onSelect(s)}
+                className="rounded-md border border-[var(--color-accent)]/40 bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
+              >
+                {DateTime.fromISO(s.start).setZone(zone).toFormat("ccc, LLL d · h:mm a")}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <p className="mb-3 text-xs text-[var(--color-faint)]">Times shown in {zone}</p>
       <div className="grid gap-5 sm:grid-cols-[220px_1fr] sm:gap-6">
         <div className="flex gap-1.5 overflow-x-auto pb-1 sm:max-h-80 sm:flex-col sm:overflow-x-visible sm:overflow-y-auto sm:pb-0 sm:pr-1">
@@ -100,16 +138,25 @@ export function SlotGrid({
         </div>
 
         <div className="grid max-h-80 grid-cols-4 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
-          {daySlots.map((s) => (
-            <button
-              key={s.start}
-              type="button"
-              onClick={() => onSelect(s)}
-              className="rounded-md border border-[var(--color-border-strong)] py-2 text-sm transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-            >
-              {DateTime.fromISO(s.start).setZone(zone).toFormat("h:mm a")}
-            </button>
-          ))}
+          {daySlots.map((s) => {
+            const isRecommended = recommendedSet.has(s.start);
+            return (
+              <button
+                key={s.start}
+                type="button"
+                onClick={() => onSelect(s)}
+                className={cn(
+                  "inline-flex items-center justify-center gap-1 rounded-md border py-2 text-sm transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+                  isRecommended
+                    ? "border-[var(--color-accent)]/50 text-[var(--color-accent)]"
+                    : "border-[var(--color-border-strong)]",
+                )}
+              >
+                {isRecommended ? <Sparkles size={11} /> : null}
+                {DateTime.fromISO(s.start).setZone(zone).toFormat("h:mm a")}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

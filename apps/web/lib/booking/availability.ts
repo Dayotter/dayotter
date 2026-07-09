@@ -5,6 +5,7 @@ import {
   intersectAvailability,
 } from "@calsync/core";
 import { and, eq, getDb, gte, inArray, lte, ne, schema } from "@calsync/db";
+import { recommendedSlots } from "./rank-slots";
 
 type EventTypeRow = typeof schema.eventTypes.$inferSelect;
 
@@ -277,4 +278,67 @@ export async function getEventTypeAvailability(
       : undefined;
   const { perHost } = await eventTypeHostSlots(eventType, rangeStart, rangeEnd, duration);
   return combineHostSlots(perHost, eventType.schedulingType);
+}
+
+/** The host's real commitments (own bookings + external busy + focus blocks) in a window. */
+async function hostCommitments(userId: string, rangeStart: Date, rangeEnd: Date) {
+  const connections = await getDb().query.calendarConnections.findMany({
+    where: eq(schema.calendarConnections.userId, userId),
+    with: { calendars: true },
+  });
+  const calendarIds = connections
+    .flatMap((c) => c.calendars)
+    .filter((cal) => cal.checkForConflicts)
+    .map((cal) => cal.id);
+
+  const [bookings, busy, blocks] = await Promise.all([
+    bookingsFor([userId], rangeStart, rangeEnd),
+    calendarIds.length ? busyBlocksFor(calendarIds, rangeStart, rangeEnd) : Promise.resolve([]),
+    timeBlocksFor(userId, rangeStart, rangeEnd),
+  ]);
+  return [...bookings, ...busy, ...blocks].map((b) => ({ start: b.startsAt, end: b.endsAt }));
+}
+
+/**
+ * Smart-scheduling: pick the top recommended slots for an event type from an
+ * already-computed slot list. Only for individual (owner) event types — team
+ * scheduling has no single host whose day we're consolidating. Returns the
+ * recommended slots' ISO start instants (a subset of `slots`).
+ */
+export async function recommendSlotsForEventType(
+  eventTypeId: string,
+  slots: Slot[],
+  max = 3,
+): Promise<string[]> {
+  if (slots.length === 0) return [];
+  const eventType = await getDb().query.eventTypes.findFirst({
+    where: eq(schema.eventTypes.id, eventTypeId),
+  });
+  if (!eventType?.ownerId) return [];
+
+  // Time-of-day scoring uses the governing schedule's timezone.
+  const schedule = eventType.scheduleId
+    ? await getDb().query.schedules.findFirst({
+        where: eq(schema.schedules.id, eventType.scheduleId),
+        columns: { timezone: true },
+      })
+    : await getDb().query.schedules.findFirst({
+        where: and(
+          eq(schema.schedules.userId, eventType.ownerId),
+          eq(schema.schedules.isDefault, true),
+        ),
+        columns: { timezone: true },
+      });
+
+  const rangeStart = slots[0]!.start;
+  const rangeEnd = slots[slots.length - 1]!.end;
+  const commitments = await hostCommitments(eventType.ownerId, rangeStart, rangeEnd);
+
+  const recommended = recommendedSlots(slots, commitments, {
+    timezone: schedule?.timezone ?? "UTC",
+    now: new Date(),
+    gapMinutes: gapFor(eventType),
+    max,
+  });
+  return recommended.map((s) => s.start.toISOString());
 }
