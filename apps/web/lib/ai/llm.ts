@@ -98,8 +98,9 @@ export async function extract<T>(opts: ExtractOptions<T>): Promise<T> {
   const response = await getClient().messages.create({
     model,
     // Adaptive thinking shares the budget with the output, so give the deep tier
-    // headroom above the ~400-token JSON so a bit of thinking can't truncate it.
-    max_tokens: opts.maxTokens ?? (deep ? 2048 : 1024),
+    // generous headroom above the small JSON — otherwise heavy reasoning on a
+    // complex request could truncate the structured output (→ a parse failure).
+    max_tokens: opts.maxTokens ?? (deep ? 4096 : 1024),
     system: buildSystem(opts.system, opts.cacheSystem !== false),
     output_config: {
       format: { type: "json_schema", schema: opts.inputSchema as Record<string, unknown> },
@@ -115,6 +116,8 @@ export async function extract<T>(opts: ExtractOptions<T>): Promise<T> {
       event: "llm_no_result",
       feature: opts.feature,
       model,
+      // Surface a truncation so it's diagnosable rather than a bare parse failure.
+      stopReason: response.stop_reason,
     });
     throw new Error("The assistant did not return a result");
   }
