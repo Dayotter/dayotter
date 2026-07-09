@@ -293,8 +293,9 @@ export async function createBooking(
   // Schedule reminders at the host's preferred lead times.
   await scheduleBookingReminders(booking.id, start, await reminderOffsetsForHost(host.id));
 
-  // Automation rules (prep blocks / buffers). Best-effort — never blocks a booking.
+  // Automation rules (prep blocks / buffers / follow-ups). Best-effort.
   await applyBookingRules({
+    bookingId: booking.id,
     hostId: host.id,
     title: eventType.title,
     startsAt: start,

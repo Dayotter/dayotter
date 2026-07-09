@@ -1,7 +1,9 @@
 import { logger } from "@calsync/core";
 import { and, eq, getDb, schema } from "@calsync/db";
+import { scheduleBookingFollowUp } from "../booking/reminders";
 
 interface BookingContext {
+  bookingId: string;
   hostId: string;
   title: string;
   startsAt: Date;
@@ -25,8 +27,10 @@ export async function applyBookingRules(ctx: BookingContext): Promise<void> {
     if (rules.length === 0) return;
 
     const title = ctx.title.toLowerCase();
-    const blocks = rules
-      .filter((r) => !r.matchTitle || title.includes(r.matchTitle.toLowerCase()))
+    const matched = rules.filter((r) => !r.matchTitle || title.includes(r.matchTitle.toLowerCase()));
+
+    const blocks = matched
+      .filter((r) => r.action === "prep_block" || r.action === "buffer_after")
       .map((r) => {
         const mins = r.offsetMinutes * 60_000;
         const [start, end] =
@@ -41,13 +45,20 @@ export async function applyBookingRules(ctx: BookingContext): Promise<void> {
           endsAt: end,
         };
       });
+    if (blocks.length > 0) await db.insert(schema.timeBlocks).values(blocks);
 
-    if (blocks.length > 0) {
-      await db.insert(schema.timeBlocks).values(blocks);
+    // Follow-up rules schedule a post-meeting email via the reminder infra.
+    const followups = matched.filter((r) => r.action === "followup");
+    for (const r of followups) {
+      await scheduleBookingFollowUp(ctx.bookingId, ctx.endsAt, r.offsetMinutes);
+    }
+
+    if (blocks.length + followups.length > 0) {
       logger.info("automation rules applied", {
         event: "automation_applied",
         hostId: ctx.hostId,
-        created: blocks.length,
+        blocks: blocks.length,
+        followups: followups.length,
       });
     }
   } catch (err) {

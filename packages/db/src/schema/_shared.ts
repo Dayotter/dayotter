@@ -42,6 +42,8 @@ export const bookingStatus = pgEnum("booking_status", [
   "confirmed",
   "cancelled",
   "rejected",
+  "no_show", // attendee didn't show (Meeting Lifecycle)
+  "completed", // happened and is done
 ]);
 
 export const workflowTrigger = pgEnum("workflow_trigger", [

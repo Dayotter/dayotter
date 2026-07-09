@@ -1,5 +1,5 @@
 import { and, eq, getDb, isNull, schema } from "@calsync/db";
-import { bookingReminder, sendEmail } from "@calsync/emails";
+import { bookingFollowUp, bookingReminder, sendEmail } from "@calsync/emails";
 import { QUEUE_NAMES, type ReminderJob, connection } from "@calsync/jobs";
 import { deliverUserReminder } from "@calsync/notifications";
 import { Worker } from "bullmq";
@@ -35,9 +35,37 @@ export function startRemindersWorker(): Worker<ReminderJob> {
         where: eq(schema.bookings.id, job.data.bookingId),
         with: { attendees: true, host: true },
       });
-      if (!booking || booking.status !== "confirmed") return;
-
+      if (!booking) return;
       const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+
+      // Post-meeting follow-up — send unless the meeting was cancelled/rejected.
+      if (reminder.kind === "followup") {
+        if (booking.status !== "cancelled" && booking.status !== "rejected") {
+          await Promise.all(
+            booking.attendees.map((a) =>
+              sendEmail({
+                ...bookingFollowUp({
+                  eventTitle: booking.title,
+                  start: booking.startsAt,
+                  end: booking.endsAt,
+                  timezone: a.timezone ?? booking.timezone,
+                  hostName: booking.host?.name ?? "your host",
+                  attendeeName: a.name ?? a.email,
+                  manageUrl: `${appUrl}/booking/${booking.uid}`,
+                }),
+                to: a.email,
+              }),
+            ),
+          );
+        }
+        await db
+          .update(schema.scheduledReminders)
+          .set({ sentAt: new Date() })
+          .where(eq(schema.scheduledReminders.id, reminder.id));
+        return;
+      }
+
+      if (booking.status !== "confirmed") return;
       const label = leadLabel(booking.startsAt);
 
       await Promise.all(

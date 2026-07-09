@@ -10,8 +10,10 @@ import { useState } from "react";
 
 export interface HistoryBooking {
   id: string;
+  uid: string;
   title: string;
   startsAt: string;
+  endsAt: string;
   status: string;
   color: string | null;
   attendees: string[];
@@ -22,7 +24,10 @@ const STATUS_STYLES: Record<string, string> = {
   pending: "bg-[var(--color-mint)]/15 text-[var(--color-mint)]",
   cancelled: "bg-[var(--color-danger)]/15 text-[var(--color-danger)]",
   rejected: "bg-[var(--color-danger)]/15 text-[var(--color-danger)]",
+  no_show: "bg-[var(--color-amber)]/15 text-[var(--color-amber)]",
+  completed: "bg-[var(--color-surface-2)] text-[var(--color-muted)]",
 };
+const STATUS_LABEL: Record<string, string> = { no_show: "no-show" };
 
 type Tab = "calendar" | "history";
 
@@ -61,39 +66,66 @@ export function BookingsWorkspace({ tz, history }: { tz: string; history: Histor
       ) : (
         <div className="space-y-2">
           {history.map((b) => (
-            <Card key={b.id} className="flex items-center gap-4 px-4 py-3">
-              <span
-                aria-hidden
-                className="h-9 w-1 shrink-0 rounded-full"
-                style={{ backgroundColor: eventColorVar(b.color) }}
-              />
-              <div className="w-28 shrink-0 text-sm">
-                <p className="font-medium">
-                  {DateTime.fromISO(b.startsAt).setZone(tz).toFormat("LLL d")}
-                </p>
-                <p className="text-xs text-[var(--color-muted)]">
-                  {DateTime.fromISO(b.startsAt).setZone(tz).toFormat("h:mm a")}
-                </p>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{b.title}</p>
-                <p className="truncate text-xs text-[var(--color-muted)]">
-                  {b.attendees.join(", ") || "No attendees"}
-                </p>
-              </div>
-              <span
-                className={cn(
-                  "shrink-0 rounded-full px-2.5 py-1 text-xs font-medium",
-                  STATUS_STYLES[b.status] ??
-                    "bg-[var(--color-surface-2)] text-[var(--color-muted)]",
-                )}
-              >
-                {b.status}
-              </span>
-            </Card>
+            <HistoryRow key={b.id} b={b} tz={tz} />
           ))}
         </div>
       )}
     </>
+  );
+}
+
+function HistoryRow({ b, tz }: { b: HistoryBooking; tz: string }) {
+  const [status, setStatus] = useState(b.status);
+  const isPast = new Date(b.endsAt).getTime() < Date.now();
+  const canMark = isPast && (status === "confirmed" || status === "no_show");
+
+  async function toggleNoShow() {
+    const noShow = status !== "no_show";
+    setStatus(noShow ? "no_show" : "confirmed");
+    const res = await fetch(`/api/bookings/${b.uid}/no-show`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ noShow }),
+    });
+    if (!res.ok) setStatus(b.status);
+  }
+
+  return (
+    <Card className="flex items-center gap-4 px-4 py-3">
+      <span
+        aria-hidden
+        className="h-9 w-1 shrink-0 rounded-full"
+        style={{ backgroundColor: eventColorVar(b.color) }}
+      />
+      <div className="w-28 shrink-0 text-sm">
+        <p className="font-medium">{DateTime.fromISO(b.startsAt).setZone(tz).toFormat("LLL d")}</p>
+        <p className="text-xs text-[var(--color-muted)]">
+          {DateTime.fromISO(b.startsAt).setZone(tz).toFormat("h:mm a")}
+        </p>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{b.title}</p>
+        <p className="truncate text-xs text-[var(--color-muted)]">
+          {b.attendees.join(", ") || "No attendees"}
+        </p>
+      </div>
+      {canMark ? (
+        <button
+          type="button"
+          onClick={toggleNoShow}
+          className="shrink-0 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)]"
+        >
+          {status === "no_show" ? "Undo" : "No-show"}
+        </button>
+      ) : null}
+      <span
+        className={cn(
+          "shrink-0 rounded-full px-2.5 py-1 text-xs font-medium",
+          STATUS_STYLES[status] ?? "bg-[var(--color-surface-2)] text-[var(--color-muted)]",
+        )}
+      >
+        {STATUS_LABEL[status] ?? status}
+      </span>
+    </Card>
   );
 }

@@ -27,8 +27,8 @@ export const GET = withUser(async (u) => {
 const body = z.object({
   name: z.string().min(1).max(120),
   matchTitle: z.string().max(120).nullable().default(null),
-  action: z.enum(["prep_block", "buffer_after"]).default("prep_block"),
-  offsetMinutes: z.number().int().min(5).max(240).default(15),
+  action: z.enum(["prep_block", "buffer_after", "followup"]).default("prep_block"),
+  offsetMinutes: z.number().int().min(5).max(10_080).default(15),
   blockTitle: z.string().max(120).nullable().default(null),
 });
 

@@ -60,3 +60,27 @@ export async function scheduleBookingReminders(
     }),
   );
 }
+
+/** Schedule a post-meeting follow-up email `offsetMinutes` after the meeting ends. */
+export async function scheduleBookingFollowUp(
+  bookingId: string,
+  endsAt: Date,
+  offsetMinutes: number,
+): Promise<void> {
+  const fireAt = new Date(endsAt.getTime() + offsetMinutes * 60_000);
+  const db = getDb();
+  const [rem] = await db
+    .insert(schema.scheduledReminders)
+    .values({ bookingId, kind: "followup", scheduledFor: fireAt })
+    .returning();
+  if (!rem) return;
+  try {
+    await scheduleReminder({ reminderId: rem.id, bookingId }, fireAt);
+  } catch (err) {
+    logger.error("failed to enqueue follow-up", {
+      event: "followup_enqueue_failed",
+      bookingId,
+      err,
+    });
+  }
+}

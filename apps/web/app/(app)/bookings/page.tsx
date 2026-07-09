@@ -18,8 +18,10 @@ export default async function BookingsPage() {
 
   const history: HistoryBooking[] = rows.map((b) => ({
     id: b.id,
+    uid: b.uid,
     title: b.title,
     startsAt: b.startsAt.toISOString(),
+    endsAt: b.endsAt.toISOString(),
     status: b.status,
     color: b.eventType?.color ?? null,
     attendees: b.attendees.map((a) => a.name ?? a.email),

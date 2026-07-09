@@ -9,7 +9,7 @@ import { track } from "@/lib/analytics";
 import { Trash2, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 
-type Action = "prep_block" | "buffer_after";
+type Action = "prep_block" | "buffer_after" | "followup";
 interface Rule {
   id: string;
   name: string;
@@ -27,7 +27,9 @@ function describe(r: Rule): string {
   const what =
     r.action === "buffer_after"
       ? `add a ${r.offsetMinutes}-min buffer after`
-      : `add a ${r.offsetMinutes}-min prep block before`;
+      : r.action === "followup"
+        ? `send a follow-up email ${r.offsetMinutes} min after`
+        : `add a ${r.offsetMinutes}-min prep block before`;
   return `When ${when}, ${what} it.`;
 }
 
@@ -175,6 +177,7 @@ export function AutomationsForm() {
               >
                 <option value="prep_block">Add a prep block before</option>
                 <option value="buffer_after">Add a buffer after</option>
+                <option value="followup">Send a follow-up email after</option>
               </Select>
             </div>
             <div>

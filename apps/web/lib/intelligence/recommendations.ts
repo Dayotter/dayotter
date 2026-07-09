@@ -1,4 +1,4 @@
-import { and, eq, getDb, gte, lt, ne, schema } from "@calsync/db";
+import { and, eq, getDb, gte, inArray, lt, ne, schema } from "@calsync/db";
 import { DateTime } from "luxon";
 
 export interface Recommendation {
@@ -54,7 +54,7 @@ export async function getRecommendations(params: {
     db.query.bookings.findMany({
       where: and(
         eq(schema.bookings.hostId, params.userId),
-        eq(schema.bookings.status, "cancelled"),
+        inArray(schema.bookings.status, ["cancelled", "no_show"]),
         gte(schema.bookings.startsAt, from),
         lt(schema.bookings.startsAt, to),
       ),
@@ -137,14 +137,14 @@ export async function getRecommendations(params: {
     });
   }
 
-  // 4. Cancellation rate.
-  const cancelRate = Math.round((cancelled.length / (total + cancelled.length)) * 100);
-  if (cancelled.length >= 3 && cancelRate >= 20) {
+  // 4. Cancellation / no-show rate.
+  const dropRate = Math.round((cancelled.length / (total + cancelled.length)) * 100);
+  if (cancelled.length >= 3 && dropRate >= 20) {
     recs.push({
       id: "high-cancellations",
       icon: "calendar-x",
-      title: "A lot of bookings get cancelled",
-      detail: `${cancelRate}% of your bookings were cancelled. A confirmation reminder — or a deposit on paid events — usually cuts no-shows.`,
+      title: "A lot of bookings fall through",
+      detail: `${dropRate}% of your bookings were cancelled or no-showed. A confirmation reminder — or a deposit on paid events — usually helps.`,
     });
   }
 

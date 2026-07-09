@@ -89,6 +89,21 @@ export function bookingReminder(d: BookingEmailData & { leadLabel: string }): Re
   };
 }
 
+export function bookingFollowUp(d: BookingEmailData): Rendered {
+  return {
+    subject: `Thanks for meeting — ${d.eventTitle}`,
+    text: `Thanks for taking the time to meet about ${d.eventTitle} with ${d.hostName}. If anything came up or you'd like to follow up, just reply — or book another time: ${d.manageUrl}`,
+    html: shell(
+      "Thanks for meeting 🙌",
+      [
+        `Thanks for taking the time to meet about <strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)}.`,
+        "If anything came up, just reply to this email — or grab another time below.",
+      ],
+      { label: "Book another time", url: d.manageUrl },
+    ),
+  };
+}
+
 export function bookingRescheduled(d: BookingEmailData): Rendered {
   const when = fmt(d.start, d.timezone);
   const where = d.meetingUrl
