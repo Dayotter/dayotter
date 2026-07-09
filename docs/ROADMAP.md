@@ -52,19 +52,19 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Capability | Status | Notes |
 |---|---|---|
 | Availability engine (working hours, buffers, focus, holidays, limits, tz) | ✅ | pure + unit-tested |
-| **Ranked availability / conflict reasons / suggested alternatives** | ⬜ | **NEW** — engine returns flat slots only |
+| **Ranked availability / suggested slots** | ✅ | **recommended times** — `rank-slots.ts` scores by consolidation (back-to-back), preferred hour, recency; top-3 surfaced on the booking page + starred in the grid. Conflict-reason strings ⬜ |
 | Booking links: 1:1, collective, round-robin | ✅ | |
 | **Group events** (many bookers, one slot) | ⬜ | **NEW** |
 | Unlimited event types (duration/buffer/questions/platform/notifications) | ✅ | |
-| Multiple durations · slot interval · min-gap · daily limit | ✅ | shipped this session |
-| **Expiring / password-protected / one-off links** | ⬜ | one-off ⬜, expiring ⬜, password ⬜ (**NEW**) |
+| Multiple durations · slot interval · min-gap · daily limit | ✅ | |
+| **Expiring / password-protected / one-off links** | 🟡 | one-off ✅, expiring ✅ (`booking_links.expires_at`), **password ⬜** |
 | Private/secret event types · redirect · color · duplicate | ✅ | |
 | Booking pages: public profile, team, mobile-friendly | ✅ | |
-| **Branded booking pages · embedded widget** | 🟡 | **embed widget shipped** — `/embed.js` inline-iframe + popup modes, `window.calSync`; branding/theming ⬜ |
+| **Branded booking pages · embedded widget** | ✅ | embed `/embed.js` (inline+popup) + **per-host branding** (accent colour + welcome message + avatar, re-themes the whole page) + **i18n** (en/es/fr/de/pt) + **SavvyCal overlay** (booker pastes ICS → clashing slots grey out) |
 | Scheduling policies: min notice, daily/weekly limits, window | ✅ / 🟡 | weekly limit ⬜ |
 | **No-meeting windows · preferred weekdays** | 🟡 | date-overrides support it in engine; no dedicated UI |
-| **Date-specific overrides UI · multiple named schedules** | ⬜ | engine supports; editor UI missing |
-| Payments: require payment, deposits, refunds, multi-currency | ✅ | Stripe, shipped this session |
+| **Date-specific overrides UI · multiple named schedules** | ✅ | date-overrides editor + **multiple named schedules** (CRUD + switcher + per-event-type picker; engine honours the pinned `scheduleId`) |
+| Payments: require payment, deposits, refunds, multi-currency | ✅ | Stripe |
 
 ## Phase 3 — Planning Engine
 | Capability | Status | Notes |
@@ -113,7 +113,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 ## Phase 8 — Mobile (companion, not reduced web)
 | Capability | Status | Notes |
 |---|---|---|
-| Expo app: host mgmt, event types, availability, bookings, settings, calendar, insights, AI, channels, overflow | ✅ | typecheck + Metro-export verified |
+| Expo app: host mgmt, event types, availability, bookings, settings, calendar, insights, AI, channels, overflow, **workflows, booking-page branding** | ✅ | typecheck + Metro-export verified; workflows CRUD + branding (accent + welcome) at parity with web |
 | **Native push · widgets · live activities · offline · voice shortcuts** | ⬜ | needs `expo-notifications` + a dev build |
 | Quick actions (running late, accept/decline, book, delay) | 🟡 | running-late + overflow shipped; rest ⬜ |
 
