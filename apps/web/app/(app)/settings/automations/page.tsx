@@ -1,7 +1,12 @@
 import { AutomationsForm } from "@/components/automations-form";
+import { ProGate } from "@/components/upgrade-prompt";
 
 export const dynamic = "force-dynamic";
 
 export default function AutomationsSettingsPage() {
-  return <AutomationsForm />;
+  return (
+    <ProGate feature="automation">
+      <AutomationsForm />
+    </ProGate>
+  );
 }

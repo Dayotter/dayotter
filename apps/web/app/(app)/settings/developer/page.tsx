@@ -1,4 +1,5 @@
 import { DeveloperSettings } from "@/components/developer-settings";
+import { ProGate } from "@/components/upgrade-prompt";
 import { getSession } from "@/lib/auth/session";
 import { eq, getDb, schema } from "@calsync/db";
 
@@ -14,5 +15,9 @@ export default async function DeveloperSettingsPage() {
     : null;
 
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
-  return <DeveloperSettings appUrl={appUrl} handle={user?.handle ?? "your-handle"} />;
+  return (
+    <ProGate feature="developer">
+      <DeveloperSettings appUrl={appUrl} handle={user?.handle ?? "your-handle"} />
+    </ProGate>
+  );
 }

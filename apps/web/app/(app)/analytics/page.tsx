@@ -1,5 +1,6 @@
 import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { PageHeader } from "@/components/page-header";
+import { ProGate } from "@/components/upgrade-prompt";
 
 export const metadata = { title: "Analytics — calSync" };
 
@@ -10,7 +11,9 @@ export default function AnalyticsPage() {
         title="Analytics"
         description="How your booking pages convert — views, bookings, cancellations, and revenue."
       />
-      <AnalyticsDashboard />
+      <ProGate feature="analytics">
+        <AnalyticsDashboard />
+      </ProGate>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { api } from "@/api";
+import { ProLock, useFeature } from "@/components/pro-lock";
 import { EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { Analytics } from "@/models";
@@ -30,10 +31,20 @@ function pct(n: number): string {
 
 export default function AnalyticsScreen() {
   const [days, setDays] = useState(30);
+  const feat = useFeature("analytics");
   const { data, loading, error } = useAsync<Analytics>(async () => {
     const res = await api.get<{ analytics: Analytics }>(`/api/analytics?days=${days}`);
     return res.analytics;
   }, [days]);
+
+  if (!feat.loading && !feat.allowed) {
+    return (
+      <View style={styles.safe}>
+        <Stack.Screen options={{ headerShown: true, title: "Analytics" }} />
+        <ProLock feature="analytics" />
+      </View>
+    );
+  }
 
   const t = data?.totals;
   const hasData = !!t && (t.views > 0 || t.bookings > 0);

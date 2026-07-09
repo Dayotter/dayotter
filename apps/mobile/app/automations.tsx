@@ -1,4 +1,5 @@
 import { ApiError, api } from "@/api";
+import { ProLock, useFeature } from "@/components/pro-lock";
 import { EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { AutomationRule } from "@/models";
@@ -40,6 +41,7 @@ function describe(r: AutomationRule): string {
 }
 
 export default function AutomationsScreen() {
+  const feat = useFeature("automation");
   const { data, loading, error, reload } = useAsync<AutomationRule[]>(async () => {
     const res = await api.get<{ rules: AutomationRule[] }>("/api/automations");
     return res.rules;
@@ -101,6 +103,15 @@ export default function AutomationsScreen() {
         },
       },
     ]);
+  }
+
+  if (!feat.loading && !feat.allowed) {
+    return (
+      <View style={styles.safe}>
+        <Stack.Screen options={{ headerShown: true, title: "Automations" }} />
+        <ProLock feature="automation" />
+      </View>
+    );
   }
 
   return (

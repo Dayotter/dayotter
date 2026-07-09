@@ -1,4 +1,5 @@
 import { ApiError, api } from "@/api";
+import { ProLock, useFeature } from "@/components/pro-lock";
 import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { ApiKey } from "@/models";
@@ -16,6 +17,7 @@ interface Endpoint {
 }
 
 export default function DeveloperScreen() {
+  const feat = useFeature("developer");
   const keys = useAsync<ApiKey[]>(async () => {
     const res = await api.get<{ keys: ApiKey[] }>("/api/api-keys");
     return res.keys;
@@ -88,6 +90,15 @@ export default function DeveloperScreen() {
         },
       },
     ]);
+  }
+
+  if (!feat.loading && !feat.allowed) {
+    return (
+      <View style={styles.safe}>
+        <Stack.Screen options={{ headerShown: true, title: "Developer" }} />
+        <ProLock feature="developer" />
+      </View>
+    );
   }
 
   return (
