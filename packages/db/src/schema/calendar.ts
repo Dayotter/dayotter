@@ -60,6 +60,10 @@ export const calendars = pgTable(
     checkForConflicts: boolean("check_for_conflicts").notNull().default(true),
     /** Is this the calendar that new bookings get written to? */
     isTargetForBookings: boolean("is_target_for_bookings").notNull().default(false),
+    /** Read-only source (ICS feed, or a calendar the user can't write): never a booking target. */
+    isReadOnly: boolean("is_read_only").notNull().default(false),
+    /** Hidden from the calendar list UI (still syncs if checkForConflicts). */
+    isHidden: boolean("is_hidden").notNull().default(false),
     /** Incremental-sync cursor: Google syncToken / MS deltaLink / CalDAV ctag. */
     syncToken: text("sync_token"),
     ...timestamps,

@@ -1,18 +1,21 @@
+import { createHash } from "node:crypto";
 import {
   AppleCalendarAdapter,
   type AppleCredentials,
   type CalendarAdapter,
   type ExternalCalendar,
   GoogleCalendarAdapter,
+  ICS_FEED_CALENDAR_ID,
   MicrosoftCalendarAdapter,
   type OAuthCredentials,
+  fetchIcsFeed,
 } from "@calsync/calendar";
-import { encryptJson } from "@calsync/core";
+import { SsrfError, encryptJson } from "@calsync/core";
 import { getDb, schema } from "@calsync/db";
 import { enqueueSync } from "@calsync/jobs";
 import { providerConfig } from "./providers";
 
-type Provider = "google" | "microsoft" | "apple";
+type Provider = "google" | "microsoft" | "apple" | "ics";
 
 /**
  * Store a connection + its calendars and enqueue an initial sync. Shared by the
@@ -25,6 +28,8 @@ async function persistConnection(params: {
   externalAccountId: string;
   encryptedCredentials: string;
   externalCalendars: ExternalCalendar[];
+  /** Mark the created calendars read-only (ICS feeds) — never booking targets. */
+  readOnly?: boolean;
 }): Promise<{ connectionId: string; calendarCount: number }> {
   const db = getDb();
 
@@ -58,7 +63,8 @@ async function persistConnection(params: {
         name: cal.name,
         color: cal.color,
         timezone: cal.timezone,
-        isTargetForBookings: cal.primary ?? false,
+        isTargetForBookings: params.readOnly ? false : (cal.primary ?? false),
+        isReadOnly: params.readOnly ?? false,
       })
       .onConflictDoNothing({
         target: [schema.calendars.connectionId, schema.calendars.externalId],
@@ -129,3 +135,45 @@ export async function connectAppleAccount(params: {
 
 /** Thrown for user-facing Apple connect failures (bad creds, no calendars). */
 export class AppleConnectError extends Error {}
+
+/** Thrown for user-facing ICS-feed connect failures (bad URL, unreachable, not a calendar). */
+export class IcsFeedError extends Error {}
+
+/**
+ * Subscribe to an external ICS / webcal feed as a read-only busy source. The
+ * feed is fetched once to validate it (SSRF-guarded, must parse as iCalendar);
+ * the URL — which may embed a secret token — is stored encrypted, and only a
+ * hash of it is used as the account identifier. Poll-only: the maintenance tick
+ * re-fetches it on the normal sync cadence.
+ */
+export async function connectIcsFeed(params: {
+  userId: string;
+  url: string;
+  name?: string;
+}): Promise<{ connectionId: string; calendarCount: number }> {
+  const url = params.url.trim();
+  let text: string;
+  try {
+    text = await fetchIcsFeed(url);
+  } catch (err) {
+    if (err instanceof SsrfError) {
+      throw new IcsFeedError("That URL isn't allowed. Use a public https or webcal feed address.");
+    }
+    throw new IcsFeedError("Couldn't reach that calendar feed. Check the address and try again.");
+  }
+  if (!/BEGIN:VCALENDAR/i.test(text)) {
+    throw new IcsFeedError("That address didn't return a calendar (ICS) feed.");
+  }
+
+  const name = params.name?.trim() || "Calendar feed";
+  return persistConnection({
+    userId: params.userId,
+    provider: "ics",
+    // Hash the URL for the account id so the (possibly secret) feed token is
+    // never stored in plaintext — the real URL lives encrypted in credentials.
+    externalAccountId: createHash("sha256").update(url).digest("hex"),
+    encryptedCredentials: encryptJson({ url, name }),
+    externalCalendars: [{ externalId: ICS_FEED_CALENDAR_ID, name }],
+    readOnly: true,
+  });
+}

@@ -1,4 +1,4 @@
-export type Provider = "google" | "microsoft" | "apple";
+export type Provider = "google" | "microsoft" | "apple" | "ics";
 
 export interface OAuthCredentials {
   accessToken: string;

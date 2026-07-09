@@ -1,10 +1,11 @@
 import { AppleConnectForm } from "@/components/apple-connect-form";
+import { IcsConnectForm } from "@/components/ics-connect-form";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { ZoomConnect } from "@/components/zoom-connect";
 import { getSession } from "@/lib/auth/session";
-import { zoomEnabled } from "@/lib/integrations/zoom";
 import { cn } from "@/lib/cn";
+import { zoomEnabled } from "@/lib/integrations/zoom";
 import { eq, getDb, schema } from "@calsync/db";
 import { Calendar, CheckCircle2, Plus } from "lucide-react";
 import Link from "next/link";
@@ -15,6 +16,7 @@ const PROVIDERS = [
   { id: "google", name: "Google Calendar", color: "#4285F4", available: true },
   { id: "microsoft", name: "Microsoft 365 / Outlook", color: "#0078D4", available: true },
   { id: "apple", name: "Apple iCloud", color: "#A2AAAD", available: true },
+  { id: "ics", name: "Calendar feed (ICS)", color: "#6366F1", available: true },
 ] as const;
 
 export default async function CalendarsPage({
@@ -126,6 +128,8 @@ export default async function CalendarsPage({
           {PROVIDERS.map((p) =>
             p.id === "apple" ? (
               <AppleConnectForm key={p.id} name={p.name} color={p.color} />
+            ) : p.id === "ics" ? (
+              <IcsConnectForm key={p.id} name={p.name} color={p.color} />
             ) : (
               <div
                 key={p.id}

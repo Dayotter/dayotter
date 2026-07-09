@@ -13,7 +13,11 @@ async function targetCalendar(userId: string) {
     with: { calendars: true },
   });
   for (const conn of connections) {
-    const cal = conn.calendars.find((c) => c.isTargetForBookings) ?? conn.calendars[0];
+    // Never write to a read-only source (e.g. an ICS feed) — pick a writable
+    // calendar: the chosen booking target if set, else the first writable one.
+    const cal =
+      conn.calendars.find((c) => c.isTargetForBookings && !c.isReadOnly) ??
+      conn.calendars.find((c) => !c.isReadOnly);
     if (cal) return { connection: conn, calendar: cal };
   }
   return null;
@@ -21,7 +25,7 @@ async function targetCalendar(userId: string) {
 
 export interface WrittenEvent {
   calendarId: string;
-  provider: "google" | "microsoft" | "apple";
+  provider: "google" | "microsoft" | "apple" | "ics";
   externalEventId: string;
   meetingUrl?: string;
 }

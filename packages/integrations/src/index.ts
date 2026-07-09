@@ -3,6 +3,7 @@ import {
   type AppleCredentials,
   type CalendarAdapter,
   GoogleCalendarAdapter,
+  IcsFeedAdapter,
   MicrosoftCalendarAdapter,
   type OAuthCredentials,
   type ProviderOAuthConfig,
@@ -57,6 +58,10 @@ export async function adapterForConnection(connection: ConnectionRow): Promise<C
     }
     case "apple":
       return AppleCalendarAdapter.connect(decryptJson<AppleCredentials>(connection.credentials));
+    case "ics": {
+      const feed = decryptJson<{ url: string; name?: string }>(connection.credentials);
+      return new IcsFeedAdapter(feed.url, feed.name);
+    }
     default:
       throw new Error(`Unsupported provider: ${connection.provider}`);
   }

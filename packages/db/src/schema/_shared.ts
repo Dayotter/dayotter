@@ -13,7 +13,12 @@ export const timestamps = {
 
 export const membershipRole = pgEnum("membership_role", ["owner", "admin", "member"]);
 
-export const calendarProvider = pgEnum("calendar_provider", ["google", "microsoft", "apple"]);
+export const calendarProvider = pgEnum("calendar_provider", [
+  "google",
+  "microsoft",
+  "apple",
+  "ics", // read-only external ICS/webcal feed subscription
+]);
 
 export const connectionStatus = pgEnum("connection_status", [
   "active",

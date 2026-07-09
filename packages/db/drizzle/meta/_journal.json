@@ -148,6 +148,13 @@
       "when": 1783624984117,
       "tag": "0020_hesitant_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1783640643422,
+      "tag": "0021_greedy_magik",
+      "breakpoints": true
     }
   ]
 }
