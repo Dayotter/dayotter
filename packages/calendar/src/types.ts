@@ -48,17 +48,44 @@ export interface CreatedEvent {
   meetingUrl?: string;
 }
 
-/** A busy interval that carries its source event id (for incremental upserts). */
-export interface BusyEvent {
+/** An attendee on a synced event. */
+export interface SyncedAttendee {
+  email: string;
+  name?: string;
+  responseStatus?: string;
+}
+
+/**
+ * A full external event mapped into calSync's unified model. Times + id are
+ * always present; the rest is populated best-effort from what each provider
+ * exposes. `transparency: "transparent"` means the event doesn't block time.
+ */
+export interface SyncedEvent {
   externalEventId: string;
   start: Date;
   end: Date;
+  allDay?: boolean;
+  title?: string;
+  description?: string;
+  location?: string;
+  meetingUrl?: string;
+  organizer?: { email?: string; name?: string };
+  attendees?: SyncedAttendee[];
+  status?: "confirmed" | "tentative" | "cancelled";
+  visibility?: "default" | "public" | "private";
+  transparency?: "opaque" | "transparent";
+  recurringEventId?: string;
+  isRecurring?: boolean;
+  timezone?: string;
 }
+
+/** @deprecated use {@link SyncedEvent}. */
+export type BusyEvent = SyncedEvent;
 
 /** The result of an incremental change fetch. */
 export interface SyncResult {
-  /** Busy events created/updated since the last cursor. */
-  busy: BusyEvent[];
+  /** Full events created/updated since the last cursor. */
+  events: SyncedEvent[];
   /** Event ids removed/cancelled since the last cursor. */
   deletedExternalIds: string[];
   /** Opaque cursor to pass to the next syncEvents call (syncToken / deltaLink / ctag). */

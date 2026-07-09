@@ -1,16 +1,16 @@
-import ical from "node-ical";
 import icalGenerator from "ical-generator";
+import ical from "node-ical";
 // tsdav is CommonJS; a named ESM import isn't statically resolvable at runtime,
 // so import the default and destructure.
 import tsdav from "tsdav";
 import type {
-  BusyEvent,
   BusyInterval,
   CalendarAdapter,
   CreatedEvent,
   ExternalCalendar,
   NewCalendarEvent,
   SyncResult,
+  SyncedEvent,
 } from "../types";
 
 const { createDAVClient } = tsdav;
@@ -20,7 +20,8 @@ const ICLOUD_CALDAV = "https://caldav.icloud.com";
 /** Hostnames / IP-literal patterns that must never be used as a CalDAV target —
  * blocks SSRF to cloud metadata, loopback, and private ranges when a user
  * supplies a custom `serverUrl`. */
-const BLOCKED_HOST = /^(localhost|.*\.local|0\.0\.0\.0|127\.|10\.|192\.168\.|169\.254\.|::1|\[?::1\]?|\[?fc00:|\[?fe80:)/i;
+const BLOCKED_HOST =
+  /^(localhost|.*\.local|0\.0\.0\.0|127\.|10\.|192\.168\.|169\.254\.|::1|\[?::1\]?|\[?fc00:|\[?fe80:)/i;
 const BLOCKED_172 = /^172\.(1[6-9]|2\d|3[01])\./;
 
 /**
@@ -194,31 +195,53 @@ export class AppleCalendarAdapter implements CalendarAdapter {
     windowEnd: Date,
   ): Promise<SyncResult> {
     const calendar = this.calendars.find((c) => c.url === calId);
-    if (!calendar) return { busy: [], deletedExternalIds: [] };
+    if (!calendar) return { events: [], deletedExternalIds: [] };
 
     const objects = await this.client.fetchCalendarObjects({
       calendar,
       timeRange: { start: windowStart.toISOString(), end: windowEnd.toISOString() },
     });
 
-    const busy: BusyEvent[] = [];
+    const events: SyncedEvent[] = [];
     for (const obj of objects) {
       if (!obj.data) continue;
       const parsed = ical.parseICS(obj.data);
       for (const [key, component] of Object.entries(parsed)) {
         if (component.type === "VEVENT" && component.start && component.end) {
-          const uid = (component as { uid?: string }).uid ?? obj.url ?? key;
-          busy.push({
+          const c = component as {
+            uid?: string;
+            summary?: string;
+            description?: string;
+            location?: string;
+            transparency?: string;
+            rrule?: unknown;
+            organizer?: { params?: { CN?: string }; val?: string };
+          };
+          const uid = c.uid ?? obj.url ?? key;
+          events.push({
             externalEventId: uid,
             start: new Date(component.start),
             end: new Date(component.end),
+            title: c.summary,
+            description: c.description,
+            location: c.location,
+            organizer: c.organizer
+              ? {
+                  name: c.organizer.params?.CN,
+                  email: c.organizer.val?.replace(/^mailto:/i, ""),
+                }
+              : undefined,
+            transparency: c.transparency === "TRANSPARENT" ? "transparent" : "opaque",
+            isRecurring: Boolean(c.rrule),
+            status: "confirmed",
+            visibility: "default",
           });
         }
       }
     }
 
     return {
-      busy,
+      events,
       deletedExternalIds: [],
       fullResync: true,
       nextCursor: typeof calendar.ctag === "string" ? calendar.ctag : undefined,

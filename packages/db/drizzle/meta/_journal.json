@@ -57,6 +57,13 @@
       "when": 1783582622731,
       "tag": "0007_cynical_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783583691813,
+      "tag": "0008_petite_sprite",
+      "breakpoints": true
     }
   ]
 }
