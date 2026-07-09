@@ -1,9 +1,9 @@
 import { type BookingContext, aiEnabled, parseCommand } from "@/lib/ai/command-parse";
+import { retrieveCalendarContext } from "@/lib/ai/retrieval";
 import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { logger } from "@calsync/core";
-import { and, asc, eq, getDb, gte, schema } from "@calsync/db";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -33,30 +33,17 @@ export const POST = withUser(async (u, request) => {
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Enter a request", 400);
 
-  const db = getDb();
-  const user = await db.query.users.findFirst({
-    where: eq(schema.users.id, u.id),
-    columns: { timezone: true },
-  });
-  const tz = user?.timezone ?? "UTC";
+  // RAG-lite: retrieve only the bookings relevant to this request (soonest +
+  // keyword matches) instead of dumping the whole calendar — smaller, faster,
+  // more accurate. This retrieved list is the source of truth for booking refs.
+  const ctx = await retrieveCalendarContext(u.id, parsed.data.text);
+  const tz = ctx.timezone;
 
-  // The host's upcoming confirmed bookings — the only ones AI may act on.
-  const upcoming = await db.query.bookings.findMany({
-    where: and(
-      eq(schema.bookings.hostId, u.id),
-      eq(schema.bookings.status, "confirmed"),
-      gte(schema.bookings.startsAt, new Date()),
-    ),
-    orderBy: asc(schema.bookings.startsAt),
-    limit: 25,
-    with: { attendees: { columns: { name: true, email: true } } },
-  });
-
-  const contexts: BookingContext[] = upcoming.map((b, i) => ({
+  const contexts: BookingContext[] = ctx.bookings.map((b, i) => ({
     ref: i + 1,
     title: b.title,
     whenLocal: DateTime.fromJSDate(b.startsAt).setZone(tz).toFormat("ccc, LLL d 'at' h:mm a"),
-    attendees: b.attendees.map((a) => a.name ?? a.email),
+    attendees: b.attendees,
   }));
 
   let draft: Awaited<ReturnType<typeof parseCommand>>;
@@ -76,7 +63,7 @@ export const POST = withUser(async (u, request) => {
   // and attach a summary so the client can render a clear confirmation.
   let target: { uid: string; title: string; startISO: string } | null = null;
   if (draft.intent === "reschedule" || draft.intent === "cancel") {
-    const b = upcoming[draft.bookingRef - 1];
+    const b = ctx.bookings[draft.bookingRef - 1];
     if (!b) {
       return NextResponse.json({
         draft: {
