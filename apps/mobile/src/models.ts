@@ -123,6 +123,19 @@ export interface AutomationRule {
   windowEnd: string | null;
 }
 
+/** An automated attendee-messaging workflow (GET /api/workflows). */
+export interface Workflow {
+  id: string;
+  name: string;
+  trigger: "before_event" | "after_event";
+  offsetMinutes: number;
+  action: string;
+  subjectTemplate: string;
+  bodyTemplate: string;
+  isActive: boolean;
+  eventTypeIds: string[];
+}
+
 /** A connected calendar account (GET /api/calendars). */
 export interface CalendarConnection {
   id: string;

@@ -9,13 +9,21 @@ export const dynamic = "force-dynamic";
 
 /** Current user + profile + server capabilities + plan entitlements. */
 export const GET = withUser(async (u) => {
-  const [user, entitlements] = await Promise.all([
+  const [user, prefs, entitlements] = await Promise.all([
     getDb().query.users.findFirst({
       where: eq(schema.users.id, u.id),
       columns: { id: true, name: true, email: true, image: true, handle: true, timezone: true },
     }),
+    getDb().query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, u.id),
+      columns: { brandColor: true, welcomeMessage: true },
+    }),
     getEntitlements(u.id),
   ]);
   if (!user) return jsonError("Not found", 404);
-  return NextResponse.json({ user, aiEnabled, paymentsEnabled, entitlements });
+  const branding = {
+    brandColor: prefs?.brandColor ?? null,
+    welcomeMessage: prefs?.welcomeMessage ?? null,
+  };
+  return NextResponse.json({ user, branding, aiEnabled, paymentsEnabled, entitlements });
 });

@@ -26,6 +26,8 @@ const REMINDER_OPTIONS = [
   { value: 30, label: "30 min" },
   { value: 10, label: "10 min" },
 ];
+/** Booking-page accent presets (hex); null = the default theme. */
+const BRAND_PRESETS = ["#5b4be6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -39,6 +41,8 @@ export default function SettingsScreen() {
   const [adaptive, setAdaptive] = useState(false);
   const [maxPerDay, setMaxPerDay] = useState(5);
   const [travelBuffer, setTravelBuffer] = useState(0);
+  const [welcomeMessage, setWelcomeMessage] = useState("");
+  const [brandColor, setBrandColor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -46,9 +50,13 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     let active = true;
-    api
-      .get<{ preferences: UserPreferences }>("/api/settings/preferences")
-      .then(({ preferences: p }) => {
+    Promise.all([
+      api.get<{ preferences: UserPreferences }>("/api/settings/preferences"),
+      api
+        .get<{ branding: { brandColor: string | null; welcomeMessage: string | null } }>("/api/me")
+        .catch(() => null),
+    ])
+      .then(([{ preferences: p }, me]) => {
         if (!active) return;
         setTimeFormat(p.timeFormat);
         setWeekStartsOn(p.weekStartsOn);
@@ -56,6 +64,8 @@ export default function SettingsScreen() {
         setAdaptive(p.adaptiveAvailability ?? false);
         setMaxPerDay(p.maxMeetingsPerDay ?? 5);
         setTravelBuffer(p.travelBufferMinutes ?? 0);
+        setWelcomeMessage(me?.branding?.welcomeMessage ?? "");
+        setBrandColor(me?.branding?.brandColor ?? null);
       })
       .catch(() => {})
       .finally(() => active && setLoading(false));
@@ -74,7 +84,13 @@ export default function SettingsScreen() {
     setError(null);
     setSaved(false);
     try {
-      await api.patch("/api/settings/profile", { name, timezone, handle });
+      await api.patch("/api/settings/profile", {
+        name,
+        timezone,
+        handle,
+        brandColor,
+        welcomeMessage: welcomeMessage.trim() || null,
+      });
       await api.patch("/api/settings/preferences", {
         timeFormat,
         weekStartsOn,
@@ -109,6 +125,43 @@ export default function SettingsScreen() {
           hint={`Your public page: /${handle || "your-handle"}`}
         />
         <Field label="Timezone" value={timezone} onChange={setTimezone} placeholder="UTC" />
+
+        <Text style={styles.section}>Booking page</Text>
+        <Field
+          label="Welcome message"
+          value={welcomeMessage}
+          onChange={(v) => {
+            setWelcomeMessage(v);
+            setSaved(false);
+          }}
+          placeholder="A short intro shown on your booking page"
+        />
+        <Text style={styles.label}>Accent colour</Text>
+        <View style={styles.pills}>
+          <Pressable
+            onPress={() => {
+              setBrandColor(null);
+              setSaved(false);
+            }}
+            style={[styles.pill, brandColor === null && styles.pillOn]}
+          >
+            <Text style={[styles.pillText, brandColor === null && styles.pillTextOn]}>Default</Text>
+          </Pressable>
+          {BRAND_PRESETS.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => {
+                setBrandColor(c);
+                setSaved(false);
+              }}
+              style={[
+                styles.swatch,
+                { backgroundColor: c },
+                brandColor?.toLowerCase() === c && styles.swatchOn,
+              ]}
+            />
+          ))}
+        </View>
 
         <Text style={styles.section}>Preferences</Text>
         <Text style={styles.label}>Time format</Text>
@@ -245,7 +298,18 @@ export default function SettingsScreen() {
           <Text style={styles.navText}>Automations</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.faint} />
         </Pressable>
-        <Pressable style={[styles.navRow, { marginTop: 10 }]} onPress={() => router.push("/developer")}>
+        <Pressable
+          style={[styles.navRow, { marginTop: 10 }]}
+          onPress={() => router.push("/workflows")}
+        >
+          <Ionicons name="mail-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Workflows</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+        <Pressable
+          style={[styles.navRow, { marginTop: 10 }]}
+          onPress={() => router.push("/developer")}
+        >
           <Ionicons name="code-slash-outline" size={18} color={colors.muted} />
           <Text style={styles.navText}>Developer &amp; API keys</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.faint} />
@@ -367,6 +431,8 @@ const styles = StyleSheet.create({
   },
   pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
   pillText: { color: colors.muted },
+  swatch: { width: 36, height: 36, borderRadius: 999 },
+  swatchOn: { borderWidth: 3, borderColor: colors.text },
   pillTextOn: { color: colors.text, fontWeight: "600" },
   error: { color: colors.danger, marginBottom: 12 },
   save: {
