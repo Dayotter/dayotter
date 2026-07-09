@@ -44,6 +44,9 @@ export const userPreferences = pgTable(
     adaptiveAvailability: boolean("adaptive_availability").notNull().default(false),
     /** Max meetings/day before adaptive availability stops offering slots that day. */
     maxMeetingsPerDay: smallint("max_meetings_per_day").notNull().default(5),
+    /** Travel-aware scheduling: minutes of travel time to reserve around
+     * in-person meetings (0 = off). Reserved as time_blocks before + after. */
+    travelBufferMinutes: smallint("travel_buffer_minutes").notNull().default(0),
 
     /** Encrypted JSON for sensitive / evolving preferences. */
     encryptedData: text("encrypted_data"),

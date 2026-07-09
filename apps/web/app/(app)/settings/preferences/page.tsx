@@ -19,6 +19,7 @@ export default async function PreferencesSettingsPage() {
         defaultReminderOffsets: prefs?.defaultReminderOffsets ?? [1440, 60],
         adaptiveAvailability: prefs?.adaptiveAvailability ?? false,
         maxMeetingsPerDay: prefs?.maxMeetingsPerDay ?? 5,
+        travelBufferMinutes: prefs?.travelBufferMinutes ?? 0,
       }}
     />
   );

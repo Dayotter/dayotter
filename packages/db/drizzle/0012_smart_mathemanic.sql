@@ -1,0 +1,1 @@
+ALTER TABLE "user_preferences" ADD COLUMN "travel_buffer_minutes" smallint DEFAULT 0 NOT NULL;

@@ -14,6 +14,7 @@ import {
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
+import { reserveTravelBlocks } from "./travel";
 
 export { BookingError } from "./booking-logic";
 
@@ -300,6 +301,15 @@ export async function createBooking(
     title: eventType.title,
     startsAt: start,
     endsAt: end,
+  });
+
+  // Travel-Aware Scheduling: reserve travel time around in-person meetings.
+  await reserveTravelBlocks({
+    hostId: host.id,
+    location: eventType.location,
+    startsAt: start,
+    endsAt: end,
+    place: eventType.locationDetail,
   });
 
   // Confirmation emails to attendee + host.

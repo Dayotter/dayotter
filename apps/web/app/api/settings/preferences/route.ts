@@ -19,6 +19,7 @@ export const GET = withUser(async (u) => {
       defaultReminderOffsets: prefs?.defaultReminderOffsets ?? [...DEFAULT_REMINDER_OFFSETS],
       adaptiveAvailability: prefs?.adaptiveAvailability ?? false,
       maxMeetingsPerDay: prefs?.maxMeetingsPerDay ?? 5,
+      travelBufferMinutes: prefs?.travelBufferMinutes ?? 0,
     },
   });
 });
@@ -30,6 +31,7 @@ const bodySchema = z.object({
   defaultReminderOffsets: z.array(z.number().int().min(0).max(43_200)).max(5),
   adaptiveAvailability: z.boolean().default(false),
   maxMeetingsPerDay: z.number().int().min(1).max(20).default(5),
+  travelBufferMinutes: z.number().int().min(0).max(240).default(0),
 });
 
 export const PATCH = withUser(async (u, request) => {
@@ -50,6 +52,7 @@ export const PATCH = withUser(async (u, request) => {
       defaultReminderOffsets: offsets,
       adaptiveAvailability: d.adaptiveAvailability,
       maxMeetingsPerDay: d.maxMeetingsPerDay,
+      travelBufferMinutes: d.travelBufferMinutes,
     })
     .onConflictDoUpdate({
       target: schema.userPreferences.userId,
@@ -60,6 +63,7 @@ export const PATCH = withUser(async (u, request) => {
         defaultReminderOffsets: offsets,
         adaptiveAvailability: d.adaptiveAvailability,
         maxMeetingsPerDay: d.maxMeetingsPerDay,
+        travelBufferMinutes: d.travelBufferMinutes,
       },
     });
 

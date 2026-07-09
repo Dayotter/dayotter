@@ -51,6 +51,7 @@ export function PreferencesForm({
     defaultReminderOffsets: number[];
     adaptiveAvailability?: boolean;
     maxMeetingsPerDay?: number;
+    travelBufferMinutes?: number;
   };
 }) {
   const [timeFormat, setTimeFormat] = useState(initial.timeFormat);
@@ -59,6 +60,7 @@ export function PreferencesForm({
   const [reminders, setReminders] = useState<number[]>(initial.defaultReminderOffsets);
   const [adaptive, setAdaptive] = useState(initial.adaptiveAvailability ?? false);
   const [maxPerDay, setMaxPerDay] = useState(initial.maxMeetingsPerDay ?? 5);
+  const [travelBuffer, setTravelBuffer] = useState(initial.travelBufferMinutes ?? 0);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,6 +100,7 @@ export function PreferencesForm({
         defaultReminderOffsets: reminders,
         adaptiveAvailability: adaptive,
         maxMeetingsPerDay: maxPerDay,
+        travelBufferMinutes: travelBuffer,
       }),
     });
     setSaving(false);
@@ -231,6 +234,30 @@ export function PreferencesForm({
                 />
               </div>
             ) : null}
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <Label htmlFor="travel-buffer">Travel time for in-person meetings</Label>
+            <p className="mb-2 -mt-1 text-xs text-[var(--color-faint)]">
+              Reserve this much travel time before and after every in-person booking, so you're
+              never offered back-to-back slots with no room to get there. 0 = off.
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                id="travel-buffer"
+                type="number"
+                min={0}
+                max={240}
+                step={5}
+                value={travelBuffer}
+                onChange={(e) => {
+                  setTravelBuffer(Math.max(0, Number(e.target.value) || 0));
+                  setSaved(false);
+                }}
+                className="w-24"
+              />
+              <span className="text-sm text-[var(--color-muted)]">minutes each way</span>
+            </div>
           </div>
 
           <FormError>{error}</FormError>
