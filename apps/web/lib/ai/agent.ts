@@ -107,10 +107,15 @@ You also have a read-only tool, find_free_slots, that returns times the host is 
   for (let step = 0; step < MAX_STEPS; step++) {
     const response = await client.messages.create({
       model: MODELS.deep,
-      max_tokens: 1500,
+      max_tokens: 3000,
       system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       tools: [FREE_SLOTS_TOOL, OUTPUT_TOOL],
       tool_choice: { type: "auto" },
+      // Adaptive thinking (compatible with auto tool-choice) so the model reasons
+      // across the availability it looks up before proposing a time. Assistant
+      // content — including thinking blocks — is echoed back below, as required.
+      output_config: { effort: "high" },
+      thinking: { type: "adaptive" },
       messages,
     });
 

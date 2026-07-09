@@ -52,17 +52,20 @@ function buildSystem(system: string, cache: boolean): string | Anthropic.TextBlo
   return [{ type: "text", text: system, cache_control: { type: "ephemeral" } }];
 }
 
+/** Thinking depth for the deep tier. Higher = more reasoning, more tokens/latency. */
+export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
+
 export interface ExtractOptions<T> {
   /** System prompt — set the assistant's scope and rules here. Keep it static so it caches. */
   system: string;
   /** The user's request / the content to interpret. */
   user: string;
-  /** Name of the output tool (Claude is forced to call it). */
-  toolName: string;
-  toolDescription: string;
-  /** JSON Schema for the tool input. Put a leading `reasoning` field first for chain-of-thought. */
+  /** Name of the output tool. Retained for back-compat / logging; not sent to the API. */
+  toolName?: string;
+  toolDescription?: string;
+  /** JSON Schema for the output. Structured outputs constrains the reply to it. */
   inputSchema: Record<string, unknown>;
-  /** Validate/narrow the raw tool input into `T` (e.g. a Zod `.parse`). */
+  /** Validate/narrow the raw output into `T` (e.g. a Zod `.parse`). */
   parse: (input: unknown) => T;
   maxTokens?: number;
   /** Short label for logs. */
@@ -71,39 +74,43 @@ export interface ExtractOptions<T> {
   tier?: ModelTier;
   /** Cache the system prompt (default true). Disable only for tiny/one-off prompts. */
   cacheSystem?: boolean;
+  /** Reasoning effort on the deep tier (default `medium`). Ignored on the fast tier. */
+  effort?: Effort;
 }
 
 /**
- * The platform's single structured-extraction primitive: prompt Claude, force
- * it to return data matching a schema, and hand back a validated object. Used
- * by every AI feature that needs structured output.
+ * The platform's single structured-extraction primitive: prompt Claude,
+ * constrain the reply to a JSON schema (structured outputs), and hand back a
+ * validated object. Used by every AI feature that needs structured output.
  *
- * Chain-of-thought: because tool use is forced, put a `reasoning` string as the
- * FIRST property of `inputSchema` and instruct the model (in `system`) to fill
- * it first. The model reasons in that field before committing to the answer
- * fields — better results, and the reasoning is loggable. (This is the
- * SDK-portable way to get CoT alongside guaranteed structured output.)
+ * Chain-of-thought: on the deep tier this runs with adaptive thinking, so the
+ * model reasons (internally) before producing the constrained JSON — better
+ * results. Consumers may ALSO keep a leading `reasoning` field in the schema to
+ * surface a short rationale (the raw thinking is not returned by default).
+ * The fast tier (Haiku) omits thinking/effort — it doesn't support them.
  */
 export async function extract<T>(opts: ExtractOptions<T>): Promise<T> {
-  const model = MODELS[opts.tier ?? "deep"];
+  const tier = opts.tier ?? "deep";
+  const model = MODELS[tier];
+  const deep = tier === "deep";
   const started = Date.now();
+
   const response = await getClient().messages.create({
     model,
-    max_tokens: opts.maxTokens ?? 1024,
+    // Adaptive thinking shares the budget with the output, so give the deep tier
+    // headroom above the ~400-token JSON so a bit of thinking can't truncate it.
+    max_tokens: opts.maxTokens ?? (deep ? 2048 : 1024),
     system: buildSystem(opts.system, opts.cacheSystem !== false),
-    tools: [
-      {
-        name: opts.toolName,
-        description: opts.toolDescription,
-        input_schema: opts.inputSchema as unknown as Anthropic.Tool.InputSchema,
-      },
-    ],
-    tool_choice: { type: "tool", name: opts.toolName },
+    output_config: {
+      format: { type: "json_schema", schema: opts.inputSchema as Record<string, unknown> },
+      ...(deep ? { effort: opts.effort ?? "medium" } : {}),
+    },
+    ...(deep ? { thinking: { type: "adaptive" as const } } : {}),
     messages: [{ role: "user", content: opts.user }],
   });
 
-  const toolUse = response.content.find((b) => b.type === "tool_use");
-  if (!toolUse || toolUse.type !== "tool_use") {
+  const text = response.content.find((b) => b.type === "text");
+  if (!text || text.type !== "text") {
     logger.error("llm returned no structured result", {
       event: "llm_no_result",
       feature: opts.feature,
@@ -120,7 +127,7 @@ export async function extract<T>(opts: ExtractOptions<T>): Promise<T> {
     cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
     outputTokens: response.usage.output_tokens,
   });
-  return opts.parse(toolUse.input);
+  return opts.parse(JSON.parse(text.text) as unknown);
 }
 
 export interface GenerateOptions {
