@@ -1,5 +1,5 @@
 import { jsonError, withUser } from "@/lib/server/http";
-import { encrypt, randomToken } from "@calsync/core";
+import { SsrfError, assertPublicHttpUrl, encrypt, randomToken } from "@calsync/core";
 import { asc, eq, getDb, schema } from "@calsync/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -27,9 +27,20 @@ export const GET = withUser(async (u) => {
 });
 
 const body = z.object({
-  url: z.string().url().refine((u) => u.startsWith("https://") || u.startsWith("http://"), {
-    message: "URL must be http(s)",
-  }),
+  // HTTPS-only + no internal hosts (SSRF guard); DNS is re-checked at delivery.
+  url: z
+    .string()
+    .url()
+    .superRefine((u, ctx) => {
+      try {
+        assertPublicHttpUrl(u, { requireHttps: true });
+      } catch (e) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: e instanceof SsrfError ? e.message : "Invalid URL",
+        });
+      }
+    }),
   events: z.array(z.enum(["*", ...EVENTS])).min(1).default(["*"]),
 });
 

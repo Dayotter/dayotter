@@ -3,9 +3,14 @@ import { and, eq, getDb, gte, lt, schema } from "@calsync/db";
 
 export const dynamic = "force-dynamic";
 
-/** RFC-4180 field escaping. */
+/**
+ * RFC-4180 field escaping + spreadsheet formula-injection defense: attendee-
+ * controlled text starting with = + - @ (or a control char) is prefixed with a
+ * single quote so Excel/Sheets treat it as text, not a formula.
+ */
 function cell(value: unknown): string {
-  const s = value == null ? "" : String(value);
+  let s = value == null ? "" : String(value);
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

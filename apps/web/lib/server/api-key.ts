@@ -1,6 +1,7 @@
 import { sha256hex } from "@calsync/core";
 import { and, eq, getDb, isNull, schema } from "@calsync/db";
 import { jsonError } from "./http";
+import { enforceRateLimit } from "./rate-limit";
 
 /** Prefix that marks a calSync API key; the rest is 32 random bytes (base64url). */
 export const API_KEY_PREFIX = "csk_live_";
@@ -36,6 +37,15 @@ export function withApiKey<Ctx = unknown>(handler: ApiHandler<Ctx>) {
       columns: { id: true, userId: true },
     });
     if (!row) return jsonError("Invalid API key", 401);
+
+    // Throttle per-key (not per-IP: one key may share an egress IP across calls).
+    const limited = await enforceRateLimit(request, {
+      name: "apiv1",
+      limit: 600,
+      windowSec: 60,
+      key: row.id,
+    });
+    if (limited) return limited;
 
     db.update(schema.apiKeys)
       .set({ lastUsedAt: new Date() })
