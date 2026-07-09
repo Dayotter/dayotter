@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth/session";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
+import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { desc, eq, getDb, schema } from "@calsync/db";
 import { NextResponse } from "next/server";
@@ -46,13 +47,18 @@ export async function POST(request: Request) {
 
   const { organizationId, scheduleId, handle } = await ensureUserWorkspace(session.user.id);
 
+  // Honor a chosen schedule only if it belongs to this user (no cross-tenant
+  // availability leak); otherwise fall back to the default.
+  const effectiveScheduleId =
+    (await resolveScheduleId(session.user.id, d.scheduleId)) ?? scheduleId;
+
   try {
     const [created] = await getDb()
       .insert(schema.eventTypes)
       .values({
         organizationId,
         ownerId: session.user.id,
-        scheduleId,
+        scheduleId: effectiveScheduleId,
         title: d.title,
         slug: d.slug,
         durationMinutes: d.durationMinutes,

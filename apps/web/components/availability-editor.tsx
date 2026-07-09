@@ -70,8 +70,11 @@ const timeInputClass =
 
 export function AvailabilityEditor({
   initial,
+  scheduleId,
 }: {
   initial: { timezone: string; days: Range[][]; overrides?: Override[] };
+  /** When set, save to this named schedule; otherwise the legacy default endpoint. */
+  scheduleId?: string;
 }) {
   const [timezone, setTimezone] = useState(initial.timezone);
   const [days, setDays] = useState<Range[][]>(initial.days);
@@ -110,7 +113,7 @@ export function AvailabilityEditor({
   async function save() {
     setSaving(true);
     setError(null);
-    const res = await fetch("/api/schedule", {
+    const res = await fetch(scheduleId ? `/api/schedules/${scheduleId}` : "/api/schedule", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -130,8 +133,11 @@ export function AvailabilityEditor({
   return (
     <div>
       <div className="mb-6 max-w-sm">
-        <label className="mb-1.5 block text-sm font-medium">Timezone</label>
+        <label htmlFor="timezone" className="mb-1.5 block text-sm font-medium">
+          Timezone
+        </label>
         <select
+          id="timezone"
           value={timezone}
           onChange={(e) => {
             setTimezone(e.target.value);

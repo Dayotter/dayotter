@@ -23,7 +23,7 @@ import {
 import { CURRENCIES, CURRENCY_SYMBOL } from "@/lib/booking/money";
 import { Plus, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function slugify(v: string) {
   return v
@@ -68,6 +68,7 @@ export interface EventTypeInitial {
   currency?: string | null;
   depositAmount?: number | null;
   questions?: BookingQuestionInput[];
+  scheduleId?: string | null;
 }
 
 function newQuestionId() {
@@ -125,12 +126,38 @@ export function EventTypeForm({
     initial?.depositAmount ? (initial.depositAmount / 100).toString() : "",
   );
   const [questions, setQuestions] = useState<BookingQuestionInput[]>(initial?.questions ?? []);
+  const [scheduleId, setScheduleId] = useState<string>(initial?.scheduleId ?? "");
+  const [schedules, setSchedules] = useState<{ id: string; name: string; isDefault: boolean }[]>(
+    [],
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const needsDetail = NEEDS_DETAIL.includes(location);
+
+  // Load the user's named schedules so this event type can be pointed at one.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/schedules")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!active || !d?.schedules) return;
+        setSchedules(d.schedules);
+        // Treat "points at the default schedule" as the "Default" option so the
+        // select's value matches an option rather than falling through.
+        setScheduleId((cur) =>
+          d.schedules.some((s: { id: string; isDefault: boolean }) => s.id === cur && s.isDefault)
+            ? ""
+            : cur,
+        );
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function addQuestion() {
     setQuestions((qs) => [
@@ -167,6 +194,7 @@ export function EventTypeForm({
       dailyBookingLimit: dailyLimitOn ? dailyLimit : null,
       isPrivate,
       redirectUrl: redirectUrl.trim() || null,
+      scheduleId: scheduleId || null,
       color,
       price: priceOn ? Math.round((Number(priceMajor) || 0) * 100) : null,
       currency,
@@ -537,6 +565,38 @@ export function EventTypeForm({
                 Tags this event across your dashboard, calendar, and bookings.
               </p>
             </div>
+
+            {schedules.length > 1 ? (
+              <div className="mt-4">
+                <Label htmlFor="schedule">Availability schedule</Label>
+                <Select
+                  id="schedule"
+                  value={scheduleId}
+                  onChange={(e) => setScheduleId(e.target.value)}
+                >
+                  <option value="">
+                    Default {(() => {
+                      const def = schedules.find((s) => s.isDefault);
+                      return def ? `(${def.name})` : "";
+                    })()}
+                  </option>
+                  {schedules
+                    .filter((s) => !s.isDefault)
+                    .map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                </Select>
+                <p className="mt-1 text-xs text-[var(--color-faint)]">
+                  Which of your{" "}
+                  <a className="underline" href="/availability">
+                    availability schedules
+                  </a>{" "}
+                  governs when this event can be booked.
+                </p>
+              </div>
+            ) : null}
 
             {paymentsEnabled ? (
               <div className="mt-4 rounded-md border border-[var(--color-border)] p-3">

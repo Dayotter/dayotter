@@ -125,6 +125,8 @@ export const eventTypeInputSchema = z
     /** Charge only this deposit (< price) to book. null = charge full price. */
     depositAmount: z.number().int().min(0).max(100_000_000).nullable().default(null),
     questions: z.array(bookingQuestionSchema).max(20).default([]),
+    /** Which availability schedule this event type uses. null = the default. */
+    scheduleId: z.string().uuid().nullable().default(null),
   })
   .refine(
     (d) =>
