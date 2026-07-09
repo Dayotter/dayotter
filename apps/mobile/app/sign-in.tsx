@@ -12,17 +12,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/auth";
+import { googleAuthEnabled } from "@/auth-client";
 import { colors, radius } from "@/theme";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   async function submit() {
     setLoading(true);
@@ -31,6 +34,15 @@ export default function SignInScreen() {
       ? await signUp(name.trim(), email.trim(), password)
       : await signIn(email.trim(), password);
     setLoading(false);
+    if (err) setError(err);
+    else router.replace("/");
+  }
+
+  async function google() {
+    setGoogleLoading(true);
+    setError(null);
+    const err = await signInWithGoogle();
+    setGoogleLoading(false);
     if (err) setError(err);
     else router.replace("/");
   }
@@ -74,6 +86,22 @@ export default function SignInScreen() {
                 {loading ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}
               </Text>
             </Pressable>
+
+            {googleAuthEnabled ? (
+              <>
+                <View style={styles.divider}>
+                  <View style={styles.line} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.line} />
+                </View>
+                <Pressable style={styles.googleBtn} onPress={google} disabled={googleLoading}>
+                  <Ionicons name="logo-google" size={17} color={colors.text} />
+                  <Text style={styles.googleText}>
+                    {googleLoading ? "Opening…" : "Continue with Google"}
+                  </Text>
+                </Pressable>
+              </>
+            ) : null}
             <Pressable
               onPress={() => {
                 setIsSignUp((v) => !v);
@@ -152,5 +180,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  divider: { flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 18 },
+  line: { flex: 1, height: 1, backgroundColor: colors.border },
+  dividerText: { color: colors.faint, fontSize: 12 },
+  googleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    backgroundColor: colors.surface,
+  },
+  googleText: { color: colors.text, fontWeight: "600", fontSize: 15 },
   toggle: { color: colors.accent, textAlign: "center", marginTop: 18 },
 });

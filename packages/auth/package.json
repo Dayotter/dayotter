@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@better-auth/expo": "1.6.23",
     "@calsync/db": "workspace:*",
     "better-auth": "^1.2.7"
   },
