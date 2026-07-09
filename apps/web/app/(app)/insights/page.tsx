@@ -3,10 +3,20 @@ import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
 import { computeInsights } from "@/lib/booking/insights";
+import { type Recommendation, getRecommendations } from "@/lib/intelligence/recommendations";
+import { CalendarX2, Gauge, Layers, Shield, Sun } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const REC_ICON: Record<Recommendation["icon"], typeof Sun> = {
+  sun: Sun,
+  layers: Layers,
+  "calendar-x": CalendarX2,
+  gauge: Gauge,
+  shield: Shield,
+};
 
 /** A minimal SVG progress ring — Planif's signature, honest not vanity. */
 function Ring({ value, max, label }: { value: number; max: number; label: string }) {
@@ -49,6 +59,10 @@ export default async function InsightsPage() {
   const session = await getSession();
   const tz = (session!.user as { timezone?: string }).timezone ?? "UTC";
 
+  const [insights, recommendations] = await Promise.all([
+    computeInsights({ userId: session!.user.id, tz }),
+    getRecommendations({ userId: session!.user.id, tz }),
+  ]);
   const {
     upcomingCount,
     bookedMinutes,
@@ -57,7 +71,7 @@ export default async function InsightsPage() {
     thisWeek,
     weekday,
     byType: types,
-  } = await computeInsights({ userId: session!.user.id, tz });
+  } = insights;
 
   const maxWeekday = Math.max(1, ...weekday);
   const maxTypeMinutes = Math.max(1, ...types.map((t) => t.minutes));
@@ -82,6 +96,31 @@ export default async function InsightsPage() {
         </Card>
       ) : (
         <div className="space-y-6">
+          {recommendations.length > 0 ? (
+            <Card className="p-5">
+              <h3 className="mb-1 text-sm font-semibold">Recommendations</h3>
+              <p className="mb-4 text-xs text-[var(--color-faint)]">
+                Learned from your last 30 days — suggestions, never rules.
+              </p>
+              <div className="space-y-3">
+                {recommendations.map((r) => {
+                  const Icon = REC_ICON[r.icon];
+                  return (
+                    <div key={r.id} className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+                        <Icon size={16} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{r.title}</p>
+                        <p className="text-xs text-[var(--color-muted)]">{r.detail}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          ) : null}
+
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Stat value={String(upcomingCount)} label="Upcoming" sub="next 30 days" />
             <Stat value={fmtHours(bookedMinutes)} label="Booked" sub="last 30 days" />

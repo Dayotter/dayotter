@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card";
 import { aiEnabled } from "@/lib/ai/llm";
 import { getSession } from "@/lib/auth/session";
 import { inboxData } from "@/lib/calendar/inbox";
-import { AlertTriangle, PlugZap } from "lucide-react";
+import { getRecommendations } from "@/lib/intelligence/recommendations";
+import { AlertTriangle, PlugZap, Sparkles } from "lucide-react";
 import { DateTime } from "luxon";
 import Link from "next/link";
 
@@ -22,7 +23,10 @@ export default async function InboxPage() {
   const session = await getSession();
   const userId = session!.user.id;
   const tz = (session!.user as { timezone?: string }).timezone ?? "UTC";
-  const { reconnect, conflicts } = await inboxData(userId);
+  const [{ reconnect, conflicts }, recommendations] = await Promise.all([
+    inboxData(userId),
+    getRecommendations({ userId, tz }),
+  ]);
 
   return (
     <>
@@ -97,7 +101,25 @@ export default async function InboxPage() {
       {/* Focus-time protection suggestions (lazy, client-fetched) */}
       <FocusDefense />
 
-      {reconnect.length === 0 && conflicts.length === 0 ? (
+      {/* Optimization nudges from the Intelligence engine */}
+      {recommendations.length > 0 ? (
+        <Card className="mt-2 p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles size={15} className="text-[var(--color-accent)]" />
+            <p className="text-sm font-medium">Suggested optimizations</p>
+          </div>
+          <div className="space-y-2.5">
+            {recommendations.map((r) => (
+              <div key={r.id}>
+                <p className="text-sm font-medium">{r.title}</p>
+                <p className="text-xs text-[var(--color-muted)]">{r.detail}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
+
+      {reconnect.length === 0 && conflicts.length === 0 && recommendations.length === 0 ? (
         <p className="mt-2 text-sm text-[var(--color-muted)]">
           No sync problems or double-bookings right now. Pending invites and focus suggestions, if
           any, appear above.
