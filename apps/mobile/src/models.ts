@@ -123,6 +123,17 @@ export interface AutomationRule {
   windowEnd: string | null;
 }
 
+/** A connected calendar account (GET /api/calendars). */
+export interface CalendarConnection {
+  id: string;
+  provider: "google" | "microsoft" | "apple";
+  account: string;
+  status: string;
+  calendarCount: number;
+  lastSyncedAt: string | null;
+  lastError: string | null;
+}
+
 /** An API key (GET/POST /api/api-keys). */
 export interface ApiKey {
   id: string;

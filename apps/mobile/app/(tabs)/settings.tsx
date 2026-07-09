@@ -218,6 +218,13 @@ export default function SettingsScreen() {
         </Pressable>
         {saved ? <Text style={styles.savedText}>Saved ✓</Text> : null}
 
+        <Text style={styles.section}>Calendars</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/calendars")}>
+          <Ionicons name="calendar-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Connected calendars</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+
         <Text style={styles.section}>Reminders</Text>
         <Pressable style={styles.navRow} onPress={() => router.push("/notifications")}>
           <Ionicons name="notifications-outline" size={18} color={colors.muted} />
