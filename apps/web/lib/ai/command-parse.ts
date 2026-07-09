@@ -18,6 +18,8 @@ export interface BookingContext {
  * confirms before anything is created, moved, or cancelled.
  */
 export const commandDraftSchema = z.object({
+  /** Chain-of-thought: the model's step-by-step reasoning, written before the answer. */
+  reasoning: z.string(),
   understood: z.boolean(),
   intent: z.enum(["create", "reschedule", "cancel", "none"]),
   // create fields
@@ -38,6 +40,8 @@ const SYSTEM = `You are calSync's scheduling assistant. Your scope is STRICTLY c
 
 You NEVER take actions. You only produce a structured DRAFT that the human reviews and confirms.
 
+Think step by step FIRST. In the "reasoning" field, work through: what is the user asking for; if it references an existing meeting, which numbered booking matches (and why that one, not another); what absolute time results from any relative expression. Only then fill the remaining fields. Keep reasoning to a few sentences.
+
 You are given the user's upcoming bookings, each with a numeric ref. Decide the intent:
 - "create": the user wants a NEW meeting / focus block / reminder.
 - "reschedule": the user wants to MOVE an existing booking. Set bookingRef to the matching booking's ref and newStartISO to the target time.
@@ -56,6 +60,11 @@ const INPUT_SCHEMA = {
   type: "object",
   additionalProperties: false,
   properties: {
+    reasoning: {
+      type: "string",
+      description:
+        "Think step by step here FIRST: the request, which booking matches, the resolved absolute time.",
+    },
     understood: { type: "boolean" },
     intent: { type: "string", enum: ["create", "reschedule", "cancel", "none"] },
     kind: { type: "string", enum: ["meeting", "focus", "reminder"] },
@@ -77,6 +86,7 @@ const INPUT_SCHEMA = {
     message: { type: "string" },
   },
   required: [
+    "reasoning",
     "understood",
     "intent",
     "kind",
