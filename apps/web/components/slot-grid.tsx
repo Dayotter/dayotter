@@ -1,6 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { t } from "@/lib/i18n/booking";
+import { useBookingLocale } from "@/lib/i18n/use-locale";
 import { Layers } from "lucide-react";
 import { Sparkles } from "lucide-react";
 import { DateTime } from "luxon";
@@ -32,6 +34,7 @@ export function SlotGrid({
   duration?: number;
 }) {
   const zone = useLocalZone();
+  const locale = useBookingLocale();
   const [slots, setSlots] = useState<Slot[]>([]);
   const [recommended, setRecommended] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,11 +142,9 @@ export function SlotGrid({
   const currentDay = activeDay ?? days[0] ?? null;
   const daySlots = currentDay ? (byDay.get(currentDay) ?? []) : [];
 
-  if (loading) return <p className="text-sm text-[var(--color-muted)]">Loading availability…</p>;
+  if (loading) return <p className="text-sm text-[var(--color-muted)]">{t(locale, "loading")}</p>;
   if (days.length === 0) {
-    return (
-      <p className="text-sm text-[var(--color-muted)]">No times available in the next two weeks.</p>
-    );
+    return <p className="text-sm text-[var(--color-muted)]">{t(locale, "noTimes")}</p>;
   }
 
   return (
@@ -151,7 +152,7 @@ export function SlotGrid({
       {recommendedSlots.length > 0 ? (
         <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/[0.06] p-3">
           <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-accent)]">
-            <Sparkles size={13} /> Recommended times
+            <Sparkles size={13} /> {t(locale, "recommended")}
           </p>
           <div className="flex flex-wrap gap-2">
             {recommendedSlots.map((s) => (
@@ -161,7 +162,10 @@ export function SlotGrid({
                 onClick={() => onSelect(s)}
                 className="rounded-md border border-[var(--color-accent)]/40 bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
               >
-                {DateTime.fromISO(s.start).setZone(zone).toFormat("ccc, LLL d · h:mm a")}
+                {DateTime.fromISO(s.start)
+                  .setZone(zone)
+                  .setLocale(locale)
+                  .toFormat("ccc, LLL d · h:mm a")}
               </button>
             ))}
           </div>
@@ -169,24 +173,21 @@ export function SlotGrid({
       ) : null}
 
       <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="text-xs text-[var(--color-faint)]">Times shown in {zone}</p>
+        <p className="text-xs text-[var(--color-faint)]">{t(locale, "timesIn", { zone })}</p>
         {!overlayShown ? (
           <button
             type="button"
             onClick={() => setOverlayShown(true)}
             className="inline-flex items-center gap-1 text-xs text-[var(--color-accent)] hover:underline"
           >
-            <Layers size={12} /> Overlay my calendar
+            <Layers size={12} /> {t(locale, "overlayCta")}
           </button>
         ) : null}
       </div>
 
       {overlayShown ? (
         <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
-          <p className="mb-2 text-xs text-[var(--color-muted)]">
-            Paste your calendar's secret iCal (ICS) address to grey out times you're already busy.
-            It's read once and never stored.
-          </p>
+          <p className="mb-2 text-xs text-[var(--color-muted)]">{t(locale, "overlayHelp")}</p>
           <div className="flex flex-wrap gap-2">
             <input
               type="url"
@@ -201,7 +202,7 @@ export function SlotGrid({
               disabled={overlayState === "loading" || !overlayUrl.trim()}
               className="rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-accent-fg)] hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
             >
-              {overlayState === "loading" ? "Reading…" : "Overlay"}
+              {overlayState === "loading" ? t(locale, "overlayReading") : t(locale, "overlayApply")}
             </button>
             {overlayState === "on" ? (
               <button
@@ -209,7 +210,7 @@ export function SlotGrid({
                 onClick={clearOverlay}
                 className="rounded-md border border-[var(--color-border-strong)] px-3 py-1.5 text-sm text-[var(--color-muted)] hover:bg-[var(--color-surface)]"
               >
-                Clear
+                {t(locale, "overlayClear")}
               </button>
             ) : null}
           </div>
@@ -218,8 +219,9 @@ export function SlotGrid({
           ) : null}
           {overlayState === "on" ? (
             <p className="mt-2 text-xs text-[var(--color-muted)]">
-              Overlaid {busy.length} commitment{busy.length === 1 ? "" : "s"} — greyed times clash
-              with your calendar.
+              {busy.length === 1
+                ? t(locale, "overlaySummaryOne")
+                : t(locale, "overlaySummaryMany", { n: busy.length })}
             </p>
           ) : null}
         </div>
@@ -242,7 +244,9 @@ export function SlotGrid({
                     : "border-[var(--color-border)] hover:border-[var(--color-border-strong)]",
                 )}
               >
-                <span className="whitespace-nowrap">{dt.toFormat("ccc, LLL d")}</span>
+                <span className="whitespace-nowrap">
+                  {dt.setLocale(locale).toFormat("ccc, LLL d")}
+                </span>
                 <span className="text-xs text-[var(--color-muted)]">
                   {(byDay.get(d) ?? []).length}
                 </span>
@@ -260,7 +264,7 @@ export function SlotGrid({
                 key={s.start}
                 type="button"
                 onClick={() => onSelect(s)}
-                title={conflict ? "You have something on your calendar then" : undefined}
+                title={conflict ? t(locale, "busyTooltip") : undefined}
                 className={cn(
                   "inline-flex items-center justify-center gap-1 rounded-md border py-2 text-sm transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
                   conflict
@@ -271,7 +275,7 @@ export function SlotGrid({
                 )}
               >
                 {isRecommended && !conflict ? <Sparkles size={11} /> : null}
-                {DateTime.fromISO(s.start).setZone(zone).toFormat("h:mm a")}
+                {DateTime.fromISO(s.start).setZone(zone).setLocale(locale).toFormat("h:mm a")}
               </button>
             );
           })}

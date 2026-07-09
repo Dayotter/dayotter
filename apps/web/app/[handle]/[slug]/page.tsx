@@ -7,9 +7,11 @@ import { brandStyle, getHostBranding } from "@/lib/booking/branding";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { brandingHidden } from "@/lib/ee/white-label";
+import { resolveLocale, t } from "@/lib/i18n/booking";
 import { paymentsEnabled } from "@/lib/payments/stripe";
 import { and, eq, getDb, schema } from "@calsync/db";
 import { Clock, CreditCard, Video } from "lucide-react";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +40,7 @@ export default async function PublicBookingPage({
   const hostEnt = await getEntitlements(host.id);
   const hideBranding = brandingHidden({ isPro: hostEnt.isPro });
   const branding = await getHostBranding(host.id);
+  const locale = resolveLocale((await headers()).get("accept-language"));
 
   const chargeAmount = paymentsEnabled ? chargeFor(eventType.price, eventType.depositAmount) : 0;
   const priceLabel =
@@ -91,7 +94,7 @@ export default async function PublicBookingPage({
 
           {/* Slot picker */}
           <CardBody className="p-6">
-            <h2 className="mb-4 text-sm font-semibold">Select a time</h2>
+            <h2 className="mb-4 text-sm font-semibold">{t(locale, "selectTime")}</h2>
             <SlotPicker
               eventTypeId={eventType.id}
               questions={eventType.questions}
