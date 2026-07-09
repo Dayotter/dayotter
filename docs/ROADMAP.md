@@ -89,7 +89,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Capability | Status | Notes |
 |---|---|---|
 | Natural-language scheduling (create / reschedule / cancel) | ✅ | confirm-first, singular LLM layer |
-| **Automation rules** (trigger → action) | 🟡 | **v1 shipped** — `automation_rules`: "when a booking title contains X → add prep block before / buffer after". Fires in `createBooking`, creates time_blocks. Settings → Automations. Time-based triggers ("every Friday") + follow-up/email actions still ⬜. |
+| **Automation rules** (trigger → action) | ✅ | `automation_rules`: booking-created triggers (prep block before / buffer after / **follow-up email**) fire in `createBooking`; **weekly time-based triggers** ("every Friday, block 13:00–17:00") materialize focus `time_blocks` across a 14-day horizon on the maintenance tick (tz-correct, idempotent). Settings → Automations. |
 | **Event templates** (duration, buffers, reminders, links, follow-up) | ⬜ | **NEW** (email templates exist for workflows, not event templates) |
 | **Smart rescheduling** (cancelled → focus; delayed → shift downstream) | ⬜ | **NEW** |
 
@@ -132,10 +132,10 @@ Organizations ✅ · RBAC ✅ · audit logs ⬜ · SSO/SAML/SCIM ⬜ · admin da
 |---|---|---|
 | AI Meeting Overflow | 🟡 | manual today; auto-detect needs provider presence signals |
 | **Calendar Memory** (habit learning) | ⬜ | unified event model + Intelligence engine |
-| **Travel-Aware Scheduling** (travel time, airport buffers, hybrid locations) | ⬜ | unified event model + location data |
+| **Travel-Aware Scheduling** (travel time, airport buffers, hybrid locations) | 🟡 | **v1 shipped** — in-person bookings reserve a configurable travel buffer as `travel` time_blocks before + after (Preferences → travel time); airport buffers / maps-based estimates ⬜ |
 | **Adaptive Availability** (fewer slots on heavy days) | 🟡 | **shipped** — pref-driven daily meeting cap hides slots on heavy days (via the event model). Auto-reserve-focus-when-target-missed still ⬜. |
 | **Calendar Inbox** (unified: pending invites, conflicts, expired links, broken sync, suggestions) | 🟡 | **v1 shipped** — `/inbox` composes sync-health (reconnect) + double-booking detection (via event model) + pending invites + focus suggestions. Add expired-links + optimization nudges next. |
-| **Meeting Lifecycle** (scheduled→confirmed→reminded→joined→delayed→completed→follow-up→archived) with automation hooks | ⬜ | state machine on bookings + Automation engine |
+| **Meeting Lifecycle** (scheduled→confirmed→reminded→joined→delayed→completed→follow-up→archived) with automation hooks | 🟡 | **v1 shipped** — `no_show`/`completed` booking statuses; host no-show toggle on past bookings; post-meeting **follow-up emails** via the reminder infra (`kind=followup`) + follow-up automation action; no-shows feed Intelligence. Full state machine (joined/delayed detection) ⬜ |
 
 ---
 
