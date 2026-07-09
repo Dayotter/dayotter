@@ -1,15 +1,16 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "@/api";
 import { useAuth } from "@/auth";
+import { AiCommandBar } from "@/components/ai-command-bar";
 import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
 import { useAsync } from "@/hooks";
 import type { Booking } from "@/models";
 import { colors } from "@/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback } from "react";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -30,6 +31,9 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <Text style={styles.brand}>calSync</Text>
         <View style={styles.headerActions}>
+          <Pressable onPress={() => router.push("/insights")} hitSlop={10}>
+            <Ionicons name="stats-chart-outline" size={21} color={colors.muted} />
+          </Pressable>
           <Pressable onPress={() => router.push("/availability")} hitSlop={10}>
             <Ionicons name="time-outline" size={22} color={colors.muted} />
           </Pressable>
@@ -44,6 +48,10 @@ export default function DashboardScreen() {
       >
         <Text style={styles.hi}>Good to see you,</Text>
         <Text style={styles.name}>{firstName}</Text>
+
+        <View style={{ marginTop: 18 }}>
+          <AiCommandBar onDone={reload} />
+        </View>
 
         <Text style={styles.section}>Upcoming</Text>
         {loading && !data ? (

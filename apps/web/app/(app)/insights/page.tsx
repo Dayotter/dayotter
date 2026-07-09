@@ -2,8 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
-import { and, eq, getDb, gte, lt, schema } from "@calsync/db";
-import { DateTime } from "luxon";
+import { computeInsights } from "@/lib/booking/insights";
 
 export const dynamic = "force-dynamic";
 
@@ -48,60 +47,26 @@ function Stat({ value, label, sub }: { value: string; label: string; sub?: strin
 
 export default async function InsightsPage() {
   const session = await getSession();
-  const userId = session!.user.id;
   const tz = (session!.user as { timezone?: string }).timezone ?? "UTC";
-  const now = DateTime.now().setZone(tz);
-  const from = now.minus({ days: 30 }).toJSDate();
-  const to = now.plus({ days: 30 }).toJSDate();
 
-  const rows = await getDb().query.bookings.findMany({
-    where: and(
-      eq(schema.bookings.hostId, userId),
-      eq(schema.bookings.status, "confirmed"),
-      gte(schema.bookings.startsAt, from),
-      lt(schema.bookings.startsAt, to),
-    ),
-    with: { eventType: { columns: { title: true, color: true } } },
-  });
+  const {
+    upcomingCount,
+    bookedMinutes,
+    busiestWeekday,
+    avgPerWeek,
+    thisWeek,
+    weekday,
+    byType: types,
+  } = await computeInsights({ userId: session!.user.id, tz });
 
-  const nowMs = now.toMillis();
-  const past30 = rows.filter((b) => b.startsAt.getTime() < nowMs);
-  const next30 = rows.filter((b) => b.startsAt.getTime() >= nowMs);
-
-  // Booked minutes + per-weekday distribution over the last 30 days.
-  const minutesFor = (b: (typeof rows)[number]) =>
-    (b.endsAt.getTime() - b.startsAt.getTime()) / 60_000;
-  const bookedMinutes = past30.reduce((sum, b) => sum + minutesFor(b), 0);
-  const weekday = new Array(7).fill(0);
-  for (const b of past30) weekday[DateTime.fromJSDate(b.startsAt).setZone(tz).weekday % 7]++;
-  const busiestIdx = weekday.indexOf(Math.max(...weekday));
   const maxWeekday = Math.max(1, ...weekday);
-
-  // This week vs weekly average (the ring).
-  const weekStart = now.startOf("week").toMillis();
-  const weekEnd = now.endOf("week").toMillis();
-  const thisWeek = rows.filter(
-    (b) => b.startsAt.getTime() >= weekStart && b.startsAt.getTime() <= weekEnd,
-  ).length;
-  const avgPerWeek = Math.round((past30.length / 30) * 7);
-
-  // Time by event type over the last 30 days (colour-coded).
-  const byType = new Map<string, { title: string; color: string | null; minutes: number }>();
-  for (const b of past30) {
-    const title = b.eventType?.title ?? b.title;
-    const cur = byType.get(title) ?? { title, color: b.eventType?.color ?? null, minutes: 0 };
-    cur.minutes += minutesFor(b);
-    byType.set(title, cur);
-  }
-  const types = [...byType.values()].sort((a, b) => b.minutes - a.minutes).slice(0, 6);
   const maxTypeMinutes = Math.max(1, ...types.map((t) => t.minutes));
+  const hasData = upcomingCount > 0 || weekday.some((n) => n > 0) || thisWeek > 0;
 
   const fmtHours = (min: number) => {
     const h = min / 60;
     return h >= 10 ? `${Math.round(h)}h` : `${h.toFixed(1)}h`;
   };
-
-  const hasData = rows.length > 0;
 
   return (
     <>
@@ -118,10 +83,10 @@ export default async function InsightsPage() {
       ) : (
         <div className="space-y-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Stat value={String(next30.length)} label="Upcoming" sub="next 30 days" />
+            <Stat value={String(upcomingCount)} label="Upcoming" sub="next 30 days" />
             <Stat value={fmtHours(bookedMinutes)} label="Booked" sub="last 30 days" />
             <Stat
-              value={past30.length > 0 ? WEEKDAYS[busiestIdx]! : "—"}
+              value={busiestWeekday !== null ? WEEKDAYS[busiestWeekday]! : "—"}
               label="Busiest day"
               sub="last 30 days"
             />

@@ -88,6 +88,28 @@ export interface UserPreferences {
   defaultReminderOffsets: number[];
 }
 
+/** One booking in the calendar range response (GET /api/bookings/range). */
+export interface RangeBooking {
+  uid: string;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  status: string;
+  color: string | null;
+  attendees: string[];
+}
+
+/** Scheduling-scoped time insights (GET /api/insights). */
+export interface Insights {
+  upcomingCount: number;
+  bookedMinutes: number;
+  busiestWeekday: number | null;
+  avgPerWeek: number;
+  thisWeek: number;
+  weekday: number[];
+  byType: { title: string; color: string | null; minutes: number }[];
+}
+
 export interface Attendee {
   name: string | null;
   email: string;
