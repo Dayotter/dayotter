@@ -36,6 +36,9 @@ export default function SettingsScreen() {
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const [weekStartsOn, setWeekStartsOn] = useState(0);
   const [reminders, setReminders] = useState<number[]>([1440, 60]);
+  const [adaptive, setAdaptive] = useState(false);
+  const [maxPerDay, setMaxPerDay] = useState(5);
+  const [travelBuffer, setTravelBuffer] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -50,6 +53,9 @@ export default function SettingsScreen() {
         setTimeFormat(p.timeFormat);
         setWeekStartsOn(p.weekStartsOn);
         setReminders(p.defaultReminderOffsets);
+        setAdaptive(p.adaptiveAvailability ?? false);
+        setMaxPerDay(p.maxMeetingsPerDay ?? 5);
+        setTravelBuffer(p.travelBufferMinutes ?? 0);
       })
       .catch(() => {})
       .finally(() => active && setLoading(false));
@@ -74,6 +80,9 @@ export default function SettingsScreen() {
         weekStartsOn,
         theme: "system",
         defaultReminderOffsets: reminders,
+        adaptiveAvailability: adaptive,
+        maxMeetingsPerDay: maxPerDay,
+        travelBufferMinutes: travelBuffer,
       });
       setSaved(true);
     } catch (e) {
@@ -151,6 +160,55 @@ export default function SettingsScreen() {
               </Text>
             </Pressable>
           ))}
+        </View>
+
+        <Text style={styles.section}>Scheduling</Text>
+        <Pressable
+          style={styles.toggleRow}
+          onPress={() => {
+            setAdaptive((v) => !v);
+            setSaved(false);
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Adaptive availability</Text>
+            <Text style={styles.hint}>
+              On heavy days, stop offering slots once you hit your meeting cap.
+            </Text>
+          </View>
+          <View style={[styles.switch, adaptive && styles.switchOn]}>
+            <View style={[styles.knob, adaptive && styles.knobOn]} />
+          </View>
+        </Pressable>
+        {adaptive ? (
+          <View style={styles.inlineField}>
+            <Text style={styles.label}>Max meetings/day</Text>
+            <TextInput
+              style={styles.numInput}
+              value={String(maxPerDay)}
+              onChangeText={(v) => {
+                setMaxPerDay(Math.max(1, Math.min(20, Number(v.replace(/[^0-9]/g, "")) || 1)));
+                setSaved(false);
+              }}
+              keyboardType="number-pad"
+            />
+          </View>
+        ) : null}
+
+        <View style={styles.inlineField}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Travel time (in-person)</Text>
+            <Text style={styles.hint}>Minutes reserved each way. 0 = off.</Text>
+          </View>
+          <TextInput
+            style={styles.numInput}
+            value={String(travelBuffer)}
+            onChangeText={(v) => {
+              setTravelBuffer(Math.max(0, Math.min(240, Number(v.replace(/[^0-9]/g, "")) || 0)));
+              setSaved(false);
+            }}
+            keyboardType="number-pad"
+          />
         </View>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -240,6 +298,46 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 14,
+  },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 16,
+  },
+  switch: {
+    width: 46,
+    height: 28,
+    borderRadius: 999,
+    backgroundColor: colors.borderStrong,
+    padding: 3,
+    justifyContent: "center",
+  },
+  switchOn: { backgroundColor: colors.accent },
+  knob: {
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    backgroundColor: colors.white,
+  },
+  knobOn: { alignSelf: "flex-end" },
+  inlineField: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 18,
+  },
+  numInput: {
+    minWidth: 64,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    textAlign: "center",
   },
   pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
   pillText: { color: colors.muted },

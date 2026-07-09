@@ -89,6 +89,17 @@ export interface UserPreferences {
   weekStartsOn: number;
   theme: "system" | "light" | "dark";
   defaultReminderOffsets: number[];
+  adaptiveAvailability?: boolean;
+  maxMeetingsPerDay?: number;
+  travelBufferMinutes?: number;
+}
+
+/** An Intelligence recommendation (GET /api/recommendations). */
+export interface Recommendation {
+  id: string;
+  icon: "sun" | "layers" | "calendar-x" | "gauge" | "shield";
+  title: string;
+  detail: string;
 }
 
 /** One booking in the calendar range response (GET /api/bookings/range). */
