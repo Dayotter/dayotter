@@ -43,7 +43,10 @@ export function validateResponses(
  */
 export function mapInsertError(err: unknown): never {
   if (err instanceof BookingError) throw err;
-  if ((err as { code?: string })?.code === "23505") {
+  // 23505 = unique_violation (same-instant race); 23P01 = exclusion_violation
+  // (the bookings_no_overlap GiST constraint catching a cross-duration overlap).
+  const code = (err as { code?: string })?.code;
+  if (code === "23505" || code === "23P01") {
     throw new BookingError("That time was just booked", 409);
   }
   throw err;

@@ -65,7 +65,9 @@ export const bookings = pgTable(
     index("bookings_starts_idx").on(t.startsAt),
     // Prevent a check-then-insert race from creating two confirmed bookings for
     // the same host at the same instant. Enforced only for live bookings so a
-    // cancelled slot can be re-booked.
+    // cancelled slot can be re-booked. NB: a stronger GiST EXCLUSION constraint
+    // (`bookings_no_overlap`, migration 0019) additionally rejects cross-duration
+    // OVERLAPS — it can't be expressed in the drizzle DSL, so it lives in raw SQL.
     uniqueIndex("bookings_host_slot_active_idx")
       .on(t.hostId, t.startsAt)
       .where(sql`${t.status} = 'confirmed'`),
