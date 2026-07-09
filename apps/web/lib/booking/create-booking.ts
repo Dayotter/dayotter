@@ -318,6 +318,7 @@ export async function createBooking(
   // Travel-Aware Scheduling: reserve travel time around in-person meetings.
   await reserveTravelBlocks({
     hostId: host.id,
+    bookingId: booking.id,
     location: eventType.location,
     startsAt: start,
     endsAt: end,

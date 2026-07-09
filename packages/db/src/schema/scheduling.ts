@@ -81,9 +81,16 @@ export const timeBlocks = pgTable(
     kind: text("kind").notNull().default("focus"),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    /** The booking that reserved this block (travel/prep/buffer), so it can be
+     * removed on cancel and re-created on reschedule. Null = a manual block.
+     * No hard FK (same convention as event_types.team_id) — cleanup is explicit. */
+    bookingId: uuid("booking_id"),
     ...timestamps,
   },
-  (t) => [index("time_blocks_user_idx").on(t.userId, t.startsAt)],
+  (t) => [
+    index("time_blocks_user_idx").on(t.userId, t.startsAt),
+    index("time_blocks_booking_idx").on(t.bookingId),
+  ],
 );
 
 /**

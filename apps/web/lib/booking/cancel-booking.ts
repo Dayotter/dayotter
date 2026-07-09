@@ -46,6 +46,13 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
   // Cancel any pending reminder jobs.
   await clearBookingReminders(booking.id);
 
+  // Release travel / prep / buffer blocks this booking reserved (else the time
+  // stays blocked forever).
+  await db
+    .delete(schema.timeBlocks)
+    .where(eq(schema.timeBlocks.bookingId, booking.id))
+    .catch(() => {});
+
   if (booking.hostId) {
     await emitWebhook(booking.hostId, "booking.cancelled", {
       uid,

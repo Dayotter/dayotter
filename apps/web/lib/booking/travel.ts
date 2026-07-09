@@ -3,6 +3,8 @@ import { eq, getDb, schema } from "@calsync/db";
 
 interface TravelContext {
   hostId: string;
+  /** The booking these blocks belong to (so they clean up on cancel/reschedule). */
+  bookingId: string;
   /** Event type location type (e.g. "in_person", "google_meet"). */
   location: string;
   startsAt: Date;
@@ -40,6 +42,7 @@ export async function reserveTravelBlocks(ctx: TravelContext): Promise<void> {
         kind: "travel",
         startsAt: new Date(ctx.startsAt.getTime() - ms),
         endsAt: ctx.startsAt,
+        bookingId: ctx.bookingId,
       },
       {
         userId: ctx.hostId,
@@ -47,6 +50,7 @@ export async function reserveTravelBlocks(ctx: TravelContext): Promise<void> {
         kind: "travel",
         startsAt: ctx.endsAt,
         endsAt: new Date(ctx.endsAt.getTime() + ms),
+        bookingId: ctx.bookingId,
       },
     ]);
     logger.info("travel blocks reserved", {

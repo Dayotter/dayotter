@@ -113,6 +113,13 @@
       "when": 1783591419599,
       "tag": "0015_cloudy_korath",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1783599008028,
+      "tag": "0016_flimsy_franklin_storm",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,7 @@ import {
   computeAvailability,
   intersectAvailability,
 } from "@calsync/core";
-import { and, eq, getDb, gte, inArray, lte, schema } from "@calsync/db";
+import { and, eq, getDb, gte, inArray, lte, ne, schema } from "@calsync/db";
 
 type EventTypeRow = typeof schema.eventTypes.$inferSelect;
 
@@ -69,6 +69,7 @@ export async function hostSlots(
   rangeStart: Date,
   rangeEnd: Date,
   gapMinutes = 0,
+  excludeBookingId?: string,
 ): Promise<Slot[]> {
   const db = getDb();
 
@@ -97,7 +98,7 @@ export async function hostSlots(
 
   const [busyRows, existingBookings, blocks, prefs] = await Promise.all([
     calendarIds.length ? busyBlocksFor(calendarIds, rangeStart, rangeEnd) : Promise.resolve([]),
-    bookingsFor([userId], rangeStart, rangeEnd),
+    bookingsFor([userId], rangeStart, rangeEnd, excludeBookingId),
     timeBlocksFor(userId, rangeStart, rangeEnd),
     getDb().query.userPreferences.findFirst({
       where: eq(schema.userPreferences.userId, userId),
@@ -182,13 +183,21 @@ function busyBlocksFor(calendarIds: string[], rangeStart: Date, rangeEnd: Date) 
   });
 }
 
-function bookingsFor(hostIds: string[], rangeStart: Date, rangeEnd: Date) {
+function bookingsFor(
+  hostIds: string[],
+  rangeStart: Date,
+  rangeEnd: Date,
+  excludeBookingId?: string,
+) {
   return getDb().query.bookings.findMany({
     where: and(
       inArray(schema.bookings.hostId, hostIds),
       eq(schema.bookings.status, "confirmed"),
       gte(schema.bookings.endsAt, rangeStart),
       lte(schema.bookings.startsAt, rangeEnd),
+      // When re-validating a reschedule, the booking being moved must not count
+      // itself as busy (it would falsely reject nearby/overlapping new slots).
+      excludeBookingId ? ne(schema.bookings.id, excludeBookingId) : undefined,
     ),
     columns: { hostId: true, startsAt: true, endsAt: true },
   });

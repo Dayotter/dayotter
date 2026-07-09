@@ -1,9 +1,11 @@
 import { logger } from "@calsync/core";
 import { eq, getDb, schema } from "@calsync/db";
 import { bookingRescheduled, sendEmail } from "@calsync/emails";
+import { reserveRuleBlocks } from "../automation/apply-rules";
 import { updateBookingCalendarEvent } from "../calendar/host-calendar";
 import { emitWebhook } from "../webhooks/emit";
 import { SLOT_REVALIDATION_WINDOW_MS, eventConstraints, hostSlots } from "./availability";
+import { reserveTravelBlocks } from "./travel";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { clearBookingReminders, reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
 
@@ -48,6 +50,8 @@ export async function rescheduleBooking(uid: string, newStartISO: string): Promi
     eventConstraints(eventType),
     new Date(newStart.getTime() - SLOT_REVALIDATION_WINDOW_MS),
     new Date(newStart.getTime() + SLOT_REVALIDATION_WINDOW_MS),
+    0,
+    booking.id, // don't let the booking being moved block its own new slot
   );
   if (!slots.some((s) => s.start.getTime() === newStart.getTime())) {
     throw new RescheduleError("That time is no longer available", 409);
@@ -76,6 +80,28 @@ export async function rescheduleBooking(uid: string, newStartISO: string): Promi
   // Replace reminders at the host's preferred lead times.
   await clearBookingReminders(booking.id);
   await scheduleBookingReminders(booking.id, newStart, await reminderOffsetsForHost(booking.hostId));
+
+  // Move the booking's reserved travel / prep / buffer blocks to the new time
+  // (else the old ones linger and new ones would double up).
+  await db
+    .delete(schema.timeBlocks)
+    .where(eq(schema.timeBlocks.bookingId, booking.id))
+    .catch(() => {});
+  await reserveRuleBlocks({
+    bookingId: booking.id,
+    hostId: booking.hostId,
+    title: booking.title,
+    startsAt: newStart,
+    endsAt: newEnd,
+  }).catch(() => {});
+  await reserveTravelBlocks({
+    hostId: booking.hostId,
+    bookingId: booking.id,
+    location: eventType.location,
+    startsAt: newStart,
+    endsAt: newEnd,
+    place: eventType.locationDetail,
+  });
 
   logger.info("booking rescheduled", {
     event: "booking_rescheduled",
