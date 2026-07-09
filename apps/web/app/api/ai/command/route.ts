@@ -1,3 +1,4 @@
+import { runSchedulingAgent } from "@/lib/ai/agent";
 import { type BookingContext, aiEnabled, parseCommand } from "@/lib/ai/command-parse";
 import { retrieveCalendarContext } from "@/lib/ai/retrieval";
 import { requireFeature } from "@/lib/billing/require-feature";
@@ -11,6 +12,17 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 const body = z.object({ text: z.string().min(1).max(500) });
+
+/**
+ * Does the request need the host's real availability to answer? If so we run the
+ * read-only agentic loop (which can look up free slots) instead of a single-shot
+ * parse. Cheap heuristic — the agent still just proposes; the human confirms.
+ */
+function needsAvailability(text: string): boolean {
+  return /\b(free|available|availability|open(ing)?|slot|sometime|any\s?time|whenever|earliest|soonest|next\s+(free|open|available))\b/i.test(
+    text,
+  );
+}
 
 /**
  * Natural-language command → an editable draft (create / reschedule / cancel).
@@ -46,14 +58,14 @@ export const POST = withUser(async (u, request) => {
     attendees: b.attendees,
   }));
 
+  const commandArgs = { text: parsed.data.text, timezone: tz, now: new Date(), bookings: contexts };
   let draft: Awaited<ReturnType<typeof parseCommand>>;
   try {
-    draft = await parseCommand({
-      text: parsed.data.text,
-      timezone: tz,
-      now: new Date(),
-      bookings: contexts,
-    });
+    // Availability-dependent requests → the agentic loop (can look up free
+    // slots); everything else → the faster single-shot parse.
+    draft = needsAvailability(parsed.data.text)
+      ? await runSchedulingAgent({ ...commandArgs, userId: u.id })
+      : await parseCommand(commandArgs);
   } catch (err) {
     logger.error("ai command parse failed", { event: "ai_command_failed", userId: u.id, err });
     return jsonError("Couldn't understand that. Try rephrasing, or manage it manually.", 502);

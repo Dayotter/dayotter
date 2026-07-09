@@ -36,7 +36,7 @@ export const commandDraftSchema = z.object({
 });
 export type CommandDraft = z.infer<typeof commandDraftSchema>;
 
-const SYSTEM = `You are calSync's scheduling assistant. Your scope is STRICTLY calendar scheduling: creating meetings / focus blocks / reminders, and managing the user's EXISTING bookings by rescheduling or cancelling them. You do NOT write emails, answer general questions, give advice, or do anything outside calendar scheduling.
+export const commandSystem = `You are calSync's scheduling assistant. Your scope is STRICTLY calendar scheduling: creating meetings / focus blocks / reminders, and managing the user's EXISTING bookings by rescheduling or cancelling them. You do NOT write emails, answer general questions, give advice, or do anything outside calendar scheduling.
 
 You NEVER take actions. You only produce a structured DRAFT that the human reviews and confirms.
 
@@ -56,7 +56,7 @@ Rules:
 - bookingRef must be 0 for create/none.
 - message: for "none", one short sentence — either that you only help with scheduling, or a clarifying question naming the ambiguous options. Otherwise empty.`;
 
-const INPUT_SCHEMA = {
+export const commandInputSchema = {
   type: "object",
   additionalProperties: false,
   properties: {
@@ -101,17 +101,13 @@ const INPUT_SCHEMA = {
   ],
 };
 
-/**
- * Parse a natural-language command into an editable draft — create, reschedule,
- * or cancel. Confirm-first: only interprets, never writes. Goes through the
- * shared LLM layer.
- */
-export function parseCommand(params: {
+/** The user turn shared by the single-shot parser and the agentic loop. */
+export function buildCommandUser(params: {
   text: string;
   timezone: string;
   now: Date;
   bookings: BookingContext[];
-}): Promise<CommandDraft> {
+}): string {
   const list = params.bookings.length
     ? params.bookings
         .map(
@@ -120,19 +116,33 @@ export function parseCommand(params: {
         )
         .join("\n")
     : "(none)";
-
-  return extract({
-    feature: "command-parse",
-    system: SYSTEM,
-    user: `Current time: ${params.now.toISOString()} (timezone: ${params.timezone})
+  return `Current time: ${params.now.toISOString()} (timezone: ${params.timezone})
 
 Upcoming bookings:
 ${list}
 
-Request: ${params.text}`,
+Request: ${params.text}`;
+}
+
+/**
+ * Parse a natural-language command into an editable draft — create, reschedule,
+ * or cancel. Confirm-first: only interprets, never writes. Goes through the
+ * shared LLM layer. For requests that need real availability, use the agentic
+ * loop (`runSchedulingAgent`) instead.
+ */
+export function parseCommand(params: {
+  text: string;
+  timezone: string;
+  now: Date;
+  bookings: BookingContext[];
+}): Promise<CommandDraft> {
+  return extract({
+    feature: "command-parse",
+    system: commandSystem,
+    user: buildCommandUser(params),
     toolName: "propose_command",
     toolDescription: "Return the structured command draft for the user to review.",
-    inputSchema: INPUT_SCHEMA,
+    inputSchema: commandInputSchema,
     parse: (input) => commandDraftSchema.parse(input),
   });
 }
