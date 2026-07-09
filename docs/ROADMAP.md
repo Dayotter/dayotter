@@ -89,7 +89,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Capability | Status | Notes |
 |---|---|---|
 | Natural-language scheduling (create / reschedule / cancel) | ✅ | confirm-first, singular LLM layer |
-| **Automation rules** (trigger → action: "every Friday block afternoon", "every investor mtg → prep block", "every flight → airport buffer", "every interview → follow-up") | ⬜ | **NEW — big** |
+| **Automation rules** (trigger → action) | 🟡 | **v1 shipped** — `automation_rules`: "when a booking title contains X → add prep block before / buffer after". Fires in `createBooking`, creates time_blocks. Settings → Automations. Time-based triggers ("every Friday") + follow-up/email actions still ⬜. |
 | **Event templates** (duration, buffers, reminders, links, follow-up) | ⬜ | **NEW** (email templates exist for workflows, not event templates) |
 | **Smart rescheduling** (cancelled → focus; delayed → shift downstream) | ⬜ | **NEW** |
 
