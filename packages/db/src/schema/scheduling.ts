@@ -102,12 +102,19 @@ export const automationRules = pgTable(
     enabled: boolean("enabled").notNull().default(true),
     /** Case-insensitive substring the booking title must contain (null = any). */
     matchTitle: text("match_title"),
-    /** prep_block (before) | buffer_after (after). */
+    /** When the rule fires: booking_created (default) | weekly (recurring). */
+    trigger: text("trigger").notNull().default("booking_created"),
+    /** prep_block (before) | buffer_after (after) | followup. Ignored for weekly. */
     action: text("action").notNull().default("prep_block"),
-    /** Length of the created block, in minutes. */
+    /** Length of the created block, in minutes (booking-created triggers). */
     offsetMinutes: integer("offset_minutes").notNull().default(15),
     /** Title for the created block. */
     blockTitle: text("block_title"),
+    /** Weekly trigger: day of week (0=Sun..6=Sat) the block recurs on. */
+    dayOfWeek: smallint("day_of_week"),
+    /** Weekly trigger: local block window as "HH:MM" strings. */
+    windowStart: text("window_start"),
+    windowEnd: text("window_end"),
     ...timestamps,
   },
   (t) => [index("automation_rules_user_idx").on(t.userId)],

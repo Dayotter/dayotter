@@ -10,17 +10,28 @@ import { Trash2, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Action = "prep_block" | "buffer_after" | "followup";
+type Trigger = "booking_created" | "weekly";
 interface Rule {
   id: string;
   name: string;
   enabled: boolean;
+  trigger: string;
   matchTitle: string | null;
   action: string;
   offsetMinutes: number;
   blockTitle: string | null;
+  dayOfWeek: number | null;
+  windowStart: string | null;
+  windowEnd: string | null;
 }
 
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
 function describe(r: Rule): string {
+  if (r.trigger === "weekly") {
+    const day = r.dayOfWeek != null ? DAY_NAMES[r.dayOfWeek] : "each week";
+    return `Every ${day}, block ${r.windowStart}–${r.windowEnd}.`;
+  }
   const when = r.matchTitle
     ? `a booking's title contains “${r.matchTitle}”`
     : "any booking is made";
@@ -37,9 +48,13 @@ function describe(r: Rule): string {
 export function AutomationsForm() {
   const [rules, setRules] = useState<Rule[]>([]);
   const [name, setName] = useState("");
+  const [trigger, setTrigger] = useState<Trigger>("booking_created");
   const [matchTitle, setMatchTitle] = useState("");
   const [action, setAction] = useState<Action>("prep_block");
   const [offset, setOffset] = useState(15);
+  const [dayOfWeek, setDayOfWeek] = useState(5); // Friday
+  const [windowStart, setWindowStart] = useState("13:00");
+  const [windowEnd, setWindowEnd] = useState("17:00");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -57,12 +72,11 @@ export function AutomationsForm() {
     const res = await fetch("/api/automations", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        name,
-        matchTitle: matchTitle.trim() || null,
-        action,
-        offsetMinutes: offset,
-      }),
+      body: JSON.stringify(
+        trigger === "weekly"
+          ? { name, trigger, dayOfWeek, windowStart, windowEnd, blockTitle: name }
+          : { name, trigger, matchTitle: matchTitle.trim() || null, action, offsetMinutes: offset },
+      ),
     });
     setSaving(false);
     const data = await res.json().catch(() => ({}));
@@ -70,7 +84,7 @@ export function AutomationsForm() {
       setError(typeof data.error === "string" ? data.error : "Couldn't create that rule");
       return;
     }
-    track("Automation Rule Created", { action });
+    track("Automation Rule Created", { trigger, action });
     setRules((prev) => [...prev, data.rule]);
     setName("");
     setMatchTitle("");
@@ -97,7 +111,7 @@ export function AutomationsForm() {
     <Card className="max-w-xl">
       <CardHeader
         title="Automations"
-        description="Rules that run automatically when a booking is made — like reserving prep time before interviews."
+        description="Rules that protect your time automatically — reserve prep before interviews, or block every Friday afternoon for deep work."
       />
       <CardBody className="space-y-5">
         {rules.length > 0 ? (
@@ -157,41 +171,92 @@ export function AutomationsForm() {
             />
           </div>
           <div>
-            <Label htmlFor="rule-match">
-              When a booking title contains (blank = every booking)
-            </Label>
-            <Input
-              id="rule-match"
-              value={matchTitle}
-              onChange={(e) => setMatchTitle(e.target.value)}
-              placeholder="Interview"
-            />
+            <Label htmlFor="rule-trigger">Trigger</Label>
+            <Select
+              id="rule-trigger"
+              value={trigger}
+              onChange={(e) => setTrigger(e.target.value as Trigger)}
+            >
+              <option value="booking_created">When a booking is made</option>
+              <option value="weekly">Every week (recurring block)</option>
+            </Select>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="rule-action">Then</Label>
-              <Select
-                id="rule-action"
-                value={action}
-                onChange={(e) => setAction(e.target.value as Action)}
-              >
-                <option value="prep_block">Add a prep block before</option>
-                <option value="buffer_after">Add a buffer after</option>
-                <option value="followup">Send a follow-up email after</option>
-              </Select>
+
+          {trigger === "booking_created" ? (
+            <>
+              <div>
+                <Label htmlFor="rule-match">
+                  When a booking title contains (blank = every booking)
+                </Label>
+                <Input
+                  id="rule-match"
+                  value={matchTitle}
+                  onChange={(e) => setMatchTitle(e.target.value)}
+                  placeholder="Interview"
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="rule-action">Then</Label>
+                  <Select
+                    id="rule-action"
+                    value={action}
+                    onChange={(e) => setAction(e.target.value as Action)}
+                  >
+                    <option value="prep_block">Add a prep block before</option>
+                    <option value="buffer_after">Add a buffer after</option>
+                    <option value="followup">Send a follow-up email after</option>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="rule-offset">Minutes</Label>
+                  <Input
+                    id="rule-offset"
+                    type="number"
+                    min={5}
+                    max={240}
+                    value={offset}
+                    onChange={(e) => setOffset(Number(e.target.value) || 15)}
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <Label htmlFor="rule-day">Day</Label>
+                <Select
+                  id="rule-day"
+                  value={dayOfWeek}
+                  onChange={(e) => setDayOfWeek(Number(e.target.value))}
+                >
+                  {DAY_NAMES.map((d, i) => (
+                    <option key={d} value={i}>
+                      {d}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="rule-start">From</Label>
+                <Input
+                  id="rule-start"
+                  type="time"
+                  value={windowStart}
+                  onChange={(e) => setWindowStart(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="rule-end">To</Label>
+                <Input
+                  id="rule-end"
+                  type="time"
+                  value={windowEnd}
+                  onChange={(e) => setWindowEnd(e.target.value)}
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="rule-offset">Minutes</Label>
-              <Input
-                id="rule-offset"
-                type="number"
-                min={5}
-                max={240}
-                value={offset}
-                onChange={(e) => setOffset(Number(e.target.value) || 15)}
-              />
-            </div>
-          </div>
+          )}
           <FormError>{error}</FormError>
           <Button type="submit" size="sm" disabled={saving || !name.trim()}>
             {saving ? "Adding…" : "Add rule"}
