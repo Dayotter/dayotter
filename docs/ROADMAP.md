@@ -17,7 +17,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 ## Phase 0 — Core Platform
 | Capability | Status | Notes |
 |---|---|---|
-| Email/password, Google, Microsoft sign-in | ✅ | Better Auth |
+| Email/password, Google, Microsoft sign-in | ✅ | Better Auth; **Google social sign-in now enabled** (env-gated `NEXT_PUBLIC_GOOGLE_AUTH`). MS social ⬜. |
 | Sessions, multi-device, bearer (mobile) | ✅ | |
 | Account recovery (password reset) | ⬜ | no reset-email flow yet |
 | Profile: name, photo, timezone, locale | 🟡 | photo = `image` URL only (no upload); working-location + language ⬜ |
@@ -69,7 +69,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 ## Phase 3 — Planning Engine
 | Capability | Status | Notes |
 |---|---|---|
-| Manual time blocks / focus blocks | 🟡 | deep-work "protect" writes a block; no first-class block manager |
+| Manual time blocks / focus blocks | ✅ | first-class `time_blocks` (focus/personal/travel/other); block the availability engine; manager on the Availability page |
 | **Recurring / flexible / protected blocks** | ⬜ | **NEW** |
 | Deep work: focus sessions, **targets, auto-protection, weekly goals** | 🟡 | suggestions only; targets/goals ⬜ |
 | Planning views: daily / weekly / monthly / agenda | ✅ | calendar views shipped this session |
@@ -133,7 +133,7 @@ Organizations ✅ · RBAC ✅ · audit logs ⬜ · SSO/SAML/SCIM ⬜ · admin da
 | AI Meeting Overflow | 🟡 | manual today; auto-detect needs provider presence signals |
 | **Calendar Memory** (habit learning) | ⬜ | unified event model + Intelligence engine |
 | **Travel-Aware Scheduling** (travel time, airport buffers, hybrid locations) | ⬜ | unified event model + location data |
-| **Adaptive Availability** (fewer slots on heavy weeks; auto-reserve focus when target missed) | ⬜ | Availability + Intelligence engines |
+| **Adaptive Availability** (fewer slots on heavy days) | 🟡 | **shipped** — pref-driven daily meeting cap hides slots on heavy days (via the event model). Auto-reserve-focus-when-target-missed still ⬜. |
 | **Calendar Inbox** (unified: pending invites, conflicts, expired links, broken sync, suggestions) | 🟡 | **v1 shipped** — `/inbox` composes sync-health (reconnect) + double-booking detection (via event model) + pending invites + focus suggestions. Add expired-links + optimization nudges next. |
 | **Meeting Lifecycle** (scheduled→confirmed→reminded→joined→delayed→completed→follow-up→archived) with automation hooks | ⬜ | state machine on bookings + Automation engine |
 
