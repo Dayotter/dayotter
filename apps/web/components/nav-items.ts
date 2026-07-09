@@ -3,6 +3,7 @@ import {
   CalendarDays,
   ChartColumn,
   Clock,
+  Inbox,
   LayoutDashboard,
   Settings,
   Users,
@@ -11,6 +12,7 @@ import {
 /** Shared primary navigation, used by the desktop sidebar and the mobile tab bar. */
 export const NAV = [
   { href: "/dashboard", label: "Dashboard", short: "Home", icon: LayoutDashboard },
+  { href: "/inbox", label: "Inbox", short: "Inbox", icon: Inbox },
   { href: "/event-types", label: "Event Types", short: "Events", icon: CalendarClock },
   { href: "/teams", label: "Teams", short: "Teams", icon: Users },
   { href: "/bookings", label: "Bookings", short: "Bookings", icon: CalendarDays },
