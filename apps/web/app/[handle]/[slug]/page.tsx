@@ -1,10 +1,12 @@
+import { HostAvatar } from "@/components/host-avatar";
 import { SlotPicker } from "@/components/slot-picker";
 import { Card, CardBody } from "@/components/ui/card";
 import { ViewTracker } from "@/components/view-tracker";
 import { getEntitlements } from "@/lib/billing/entitlements";
-import { brandingHidden } from "@/lib/ee/white-label";
+import { brandStyle, getHostBranding } from "@/lib/booking/branding";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
+import { brandingHidden } from "@/lib/ee/white-label";
 import { paymentsEnabled } from "@/lib/payments/stripe";
 import { and, eq, getDb, schema } from "@calsync/db";
 import { Clock, CreditCard, Video } from "lucide-react";
@@ -35,6 +37,7 @@ export default async function PublicBookingPage({
   // White-label (cloud + Pro): the host can hide the calSync mark.
   const hostEnt = await getEntitlements(host.id);
   const hideBranding = brandingHidden({ isPro: hostEnt.isPro });
+  const branding = await getHostBranding(host.id);
 
   const chargeAmount = paymentsEnabled ? chargeFor(eventType.price, eventType.depositAmount) : 0;
   const priceLabel =
@@ -46,18 +49,22 @@ export default async function PublicBookingPage({
     eventType.depositAmount < eventType.price;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+    <main
+      style={brandStyle(branding.brandColor)}
+      className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12"
+    >
       <ViewTracker eventTypeId={eventType.id} />
       <Card>
         <div className="grid gap-0 md:grid-cols-[280px_1fr]">
           {/* Event details */}
           <div className="border-b border-[var(--color-border)] p-6 md:border-b-0 md:border-r">
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-semibold text-white">
-                {(host.name ?? host.handle ?? "?").charAt(0).toUpperCase()}
-              </div>
+              <HostAvatar name={host.name ?? host.handle ?? "?"} image={host.image} size={36} />
               <span className="text-sm text-[var(--color-muted)]">{host.name ?? host.handle}</span>
             </div>
+            {branding.welcomeMessage ? (
+              <p className="mt-3 text-sm text-[var(--color-muted)]">{branding.welcomeMessage}</p>
+            ) : null}
             <h1 className="font-display mt-4 text-2xl leading-tight tracking-[-0.01em]">
               {eventType.title}
             </h1>

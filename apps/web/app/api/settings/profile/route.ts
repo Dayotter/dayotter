@@ -44,12 +44,21 @@ const bodySchema = z.object({
     .min(3)
     .max(32)
     .regex(/^[a-z0-9-]+$/, "lowercase letters, numbers and dashes only"),
+  /** Booking-page branding (optional). */
+  brandColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, "Use a 6-digit hex colour")
+    .nullable()
+    .optional(),
+  welcomeMessage: z.string().max(280).nullable().optional(),
 });
 
 export const PATCH = withUser(async (u, request) => {
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return jsonError("Check the highlighted fields", 400);
-  const { name, timezone, handle } = parsed.data;
+  if (!parsed.success) {
+    return jsonError(parsed.error.issues[0]?.message ?? "Check the highlighted fields", 400);
+  }
+  const { name, timezone, handle, brandColor, welcomeMessage } = parsed.data;
 
   if (RESERVED_HANDLES.has(handle)) {
     return jsonError("That handle is reserved. Try another.", 409);
@@ -63,5 +72,18 @@ export const PATCH = withUser(async (u, request) => {
   if (taken) return jsonError("That handle is already taken.", 409);
 
   await db.update(schema.users).set({ name, timezone, handle }).where(eq(schema.users.id, u.id));
+
+  // Persist booking-page branding onto the prefs row (upsert; only when provided).
+  if (brandColor !== undefined || welcomeMessage !== undefined) {
+    const branding = {
+      ...(brandColor !== undefined ? { brandColor: brandColor || null } : {}),
+      ...(welcomeMessage !== undefined ? { welcomeMessage: welcomeMessage?.trim() || null } : {}),
+    };
+    await db
+      .insert(schema.userPreferences)
+      .values({ userId: u.id, ...branding })
+      .onConflictDoUpdate({ target: schema.userPreferences.userId, set: branding });
+  }
+
   return NextResponse.json({ ok: true, handle });
 });

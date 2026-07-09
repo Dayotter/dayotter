@@ -48,6 +48,12 @@ export const userPreferences = pgTable(
      * in-person meetings (0 = off). Reserved as time_blocks before + after. */
     travelBufferMinutes: smallint("travel_buffer_minutes").notNull().default(0),
 
+    // Public booking-page branding.
+    /** Accent colour (hex, e.g. #5b4be6) themed onto the host's public pages. */
+    brandColor: text("brand_color"),
+    /** Short welcome / bio shown on the public profile + booking pages. */
+    welcomeMessage: text("welcome_message"),
+
     /** Encrypted JSON for sensitive / evolving preferences. */
     encryptedData: text("encrypted_data"),
     ...timestamps,
