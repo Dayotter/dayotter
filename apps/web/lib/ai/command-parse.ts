@@ -13,6 +13,13 @@ export interface BookingContext {
   attendees: string[];
 }
 
+/** One of the host's event types, so the model can recognise "book a sync" as it. */
+export interface EventTypeContext {
+  title: string;
+  slug: string;
+  durationMinutes: number;
+}
+
 /**
  * The unified command draft. Confirm-first: the AI only proposes; the human
  * confirms before anything is created, moved, or cancelled.
@@ -29,6 +36,8 @@ export const commandDraftSchema = z.object({
   durationMinutes: z.number().int().min(5).max(1440),
   attendees: z.array(z.object({ name: z.string(), email: z.string() })),
   notes: z.string(),
+  /** Slug of the matching event type when the request clearly names one, else "". */
+  eventTypeSlug: z.string(),
   // reschedule / cancel fields
   bookingRef: z.number().int().min(0),
   newStartISO: z.string(),
@@ -51,7 +60,8 @@ You are given the user's upcoming bookings, each with a numeric ref. Decide the 
 Rules:
 - understood: true only if you can produce an actionable draft; false otherwise.
 - Resolve all times to ABSOLUTE ISO-8601 instants using the provided current time and timezone. Interpret vague times in the user's local timezone ("morning"=09:00, "afternoon"=14:00, "evening"=18:00). Never pick a past time.
-- For create: kind, a short title, startISO, durationMinutes (default 30 meeting / 60 focus), attendees (name + email if given, else empty email), notes.
+- For create: kind, a short title, startISO, durationMinutes, attendees (name + email if given, else empty email), notes.
+- Event types: you are given the user's event types (title + default duration). If a create request clearly matches one (e.g. "book a sync" → the "Sync" type), set eventTypeSlug to its slug and use that type's default duration. Otherwise eventTypeSlug = "" and default durationMinutes to 30 (meeting) / 60 (focus).
 - For reschedule/cancel: set bookingRef to the exact ref of the intended booking. If several bookings could match and you can't tell, use intent "none" and ask which one in message.
 - bookingRef must be 0 for create/none.
 - message: for "none", one short sentence — either that you only help with scheduling, or a clarifying question naming the ambiguous options. Otherwise empty.`;
@@ -81,6 +91,10 @@ export const commandInputSchema = {
       },
     },
     notes: { type: "string" },
+    eventTypeSlug: {
+      type: "string",
+      description: "Slug of the matching event type for a create request, or empty string.",
+    },
     bookingRef: { type: "integer", description: "1-based ref of the target booking, or 0" },
     newStartISO: { type: "string", description: "ISO-8601 instant for a reschedule, else empty" },
     message: { type: "string" },
@@ -95,6 +109,7 @@ export const commandInputSchema = {
     "durationMinutes",
     "attendees",
     "notes",
+    "eventTypeSlug",
     "bookingRef",
     "newStartISO",
     "message",
@@ -107,6 +122,7 @@ export function buildCommandUser(params: {
   timezone: string;
   now: Date;
   bookings: BookingContext[];
+  eventTypes?: EventTypeContext[];
 }): string {
   const list = params.bookings.length
     ? params.bookings
@@ -116,7 +132,15 @@ export function buildCommandUser(params: {
         )
         .join("\n")
     : "(none)";
+  const types = params.eventTypes?.length
+    ? params.eventTypes
+        .map((e) => `- "${e.title}" (${e.durationMinutes} min) [slug: ${e.slug}]`)
+        .join("\n")
+    : "(none)";
   return `Current time: ${params.now.toISOString()} (timezone: ${params.timezone})
+
+Your event types:
+${types}
 
 Upcoming bookings:
 ${list}
@@ -135,6 +159,7 @@ export function parseCommand(params: {
   timezone: string;
   now: Date;
   bookings: BookingContext[];
+  eventTypes?: EventTypeContext[];
 }): Promise<CommandDraft> {
   return extract({
     feature: "command-parse",

@@ -5,6 +5,7 @@ import { hostSlots } from "../booking/availability";
 import {
   type BookingContext,
   type CommandDraft,
+  type EventTypeContext,
   buildCommandUser,
   commandDraftSchema,
   commandInputSchema,
@@ -94,6 +95,7 @@ export async function runSchedulingAgent(params: {
   timezone: string;
   now: Date;
   bookings: BookingContext[];
+  eventTypes?: EventTypeContext[];
 }): Promise<CommandDraft> {
   const client = getAnthropicClient();
   const system = `${commandSystem}
@@ -151,6 +153,7 @@ You also have a read-only tool, find_free_slots, that returns times the host is 
     durationMinutes: 30,
     attendees: [],
     notes: "",
+    eventTypeSlug: "",
     bookingRef: 0,
     newStartISO: "",
     message: "I couldn't work that out. Try naming a specific time, or manage it manually.",

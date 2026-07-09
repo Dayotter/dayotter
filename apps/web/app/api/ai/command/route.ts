@@ -58,7 +58,13 @@ export const POST = withUser(async (u, request) => {
     attendees: b.attendees,
   }));
 
-  const commandArgs = { text: parsed.data.text, timezone: tz, now: new Date(), bookings: contexts };
+  const commandArgs = {
+    text: parsed.data.text,
+    timezone: tz,
+    now: new Date(),
+    bookings: contexts,
+    eventTypes: ctx.eventTypes,
+  };
   let draft: Awaited<ReturnType<typeof parseCommand>>;
   try {
     // Availability-dependent requests → the agentic loop (can look up free
@@ -69,6 +75,14 @@ export const POST = withUser(async (u, request) => {
   } catch (err) {
     logger.error("ai command parse failed", { event: "ai_command_failed", userId: u.id, err });
     return jsonError("Couldn't understand that. Try rephrasing, or manage it manually.", 502);
+  }
+
+  // For a create that named one of the user's event types, surface the match so
+  // the client can show it and the create uses the type's real duration.
+  let matchedEventType: { title: string; slug: string; durationMinutes: number } | null = null;
+  if (draft.intent === "create" && draft.eventTypeSlug) {
+    const et = ctx.eventTypes.find((e) => e.slug === draft.eventTypeSlug);
+    if (et) matchedEventType = et;
   }
 
   // For manage intents, resolve the model's ref to a real booking the user owns
@@ -90,5 +104,5 @@ export const POST = withUser(async (u, request) => {
     target = { uid: b.uid, title: b.title, startISO: b.startsAt.toISOString() };
   }
 
-  return NextResponse.json({ draft, target });
+  return NextResponse.json({ draft, target, matchedEventType });
 });

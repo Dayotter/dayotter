@@ -60,6 +60,7 @@ export function AiQuickAdd() {
 
   const [draft, setDraft] = useState<Draft | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
+  const [matchedType, setMatchedType] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Editable create fields.
@@ -73,6 +74,7 @@ export function AiQuickAdd() {
   function reset() {
     setDraft(null);
     setTarget(null);
+    setMatchedType(null);
   }
 
   async function makeDraft(e: React.FormEvent) {
@@ -100,6 +102,7 @@ export function AiQuickAdd() {
     }
     setDraft(d);
     setTarget((data.target as Target | null) ?? null);
+    setMatchedType((data.matchedEventType as { title?: string } | null)?.title ?? null);
     if (d.intent === "create") {
       setTitle(d.title);
       setStartLocal(toLocalInput(d.startISO));
@@ -222,6 +225,11 @@ export function AiQuickAdd() {
               <span className="rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--color-accent)]">
                 {KIND_LABEL[draft.kind]}
               </span>
+              {matchedType ? (
+                <span className="rounded-full border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-muted)]">
+                  via {matchedType}
+                </span>
+              ) : null}
               <span className="text-xs text-[var(--color-faint)]">
                 Review &amp; edit, then confirm
               </span>
