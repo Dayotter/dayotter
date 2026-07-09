@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
 import { SsrfError, assertPublicHttpUrl, encrypt, randomToken } from "@calsync/core";
 import { asc, eq, getDb, schema } from "@calsync/db";
@@ -46,6 +47,8 @@ const body = z.object({
 
 /** Create a webhook endpoint. Returns the signing secret ONCE. */
 export const POST = withUser(async (u, request) => {
+  const gate = await requireFeature(u.id, "developer");
+  if (gate) return gate;
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError(parsed.error.issues[0]?.message ?? "Invalid endpoint", 400);
 

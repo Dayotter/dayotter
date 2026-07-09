@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
 import { asc, eq, getDb, schema } from "@calsync/db";
 import { NextResponse } from "next/server";
@@ -53,6 +54,8 @@ const body = z
 
 /** Create an automation rule. */
 export const POST = withUser(async (u, request) => {
+  const gate = await requireFeature(u.id, "automation");
+  if (gate) return gate;
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return jsonError(parsed.error.issues[0]?.message ?? "Invalid rule", 400);

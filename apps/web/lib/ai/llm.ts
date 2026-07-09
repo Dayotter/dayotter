@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { logger } from "@calsync/core";
+import { managedAnthropicKey } from "../ee/managed-ai";
 
 /**
  * The single LLM layer for the whole platform. Every AI feature goes through
@@ -9,15 +10,22 @@ import { logger } from "@calsync/core";
  * handling, and logging. Add a capability here; consume it from feature modules.
  */
 
-/** AI is optional platform-wide — nothing calls out unless a key is configured. */
-export const aiEnabled = Boolean(process.env.ANTHROPIC_API_KEY);
+/**
+ * The key the platform uses. Self-host: the operator's own `ANTHROPIC_API_KEY`.
+ * Cloud: falls back to calSync's managed key (the cloud-only "Managed AI"
+ * feature) so Pro customers don't bring their own.
+ */
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || managedAnthropicKey;
+
+/** AI is optional platform-wide — nothing calls out unless a key is available. */
+export const aiEnabled = Boolean(ANTHROPIC_KEY);
 
 /** The one model the platform uses for AI. Change it in exactly one place. */
 const MODEL = "claude-opus-4-8";
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
-  if (!client) client = new Anthropic();
+  if (!client) client = new Anthropic({ apiKey: ANTHROPIC_KEY });
   return client;
 }
 

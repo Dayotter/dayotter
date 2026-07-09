@@ -1,6 +1,8 @@
 import { SlotPicker } from "@/components/slot-picker";
 import { Card, CardBody } from "@/components/ui/card";
 import { ViewTracker } from "@/components/view-tracker";
+import { getEntitlements } from "@/lib/billing/entitlements";
+import { brandingHidden } from "@/lib/ee/white-label";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { paymentsEnabled } from "@/lib/payments/stripe";
@@ -29,6 +31,10 @@ export default async function PublicBookingPage({
     ),
   });
   if (!eventType) notFound();
+
+  // White-label (cloud + Pro): the host can hide the calSync mark.
+  const hostEnt = await getEntitlements(host.id);
+  const hideBranding = brandingHidden({ isPro: hostEnt.isPro });
 
   const chargeAmount = paymentsEnabled ? chargeFor(eventType.price, eventType.depositAmount) : 0;
   const priceLabel =
@@ -89,9 +95,11 @@ export default async function PublicBookingPage({
           </CardBody>
         </div>
       </Card>
-      <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
-        Powered by <span className="text-[var(--color-muted)]">calSync</span>
-      </p>
+      {hideBranding ? null : (
+        <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
+          Powered by <span className="text-[var(--color-muted)]">calSync</span>
+        </p>
+      )}
     </main>
   );
 }

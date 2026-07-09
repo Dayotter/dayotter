@@ -1,4 +1,5 @@
 import { type BookingContext, aiEnabled, parseCommand } from "@/lib/ai/command-parse";
+import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { logger } from "@calsync/core";
@@ -18,6 +19,8 @@ const body = z.object({ text: z.string().min(1).max(500) });
  */
 export const POST = withUser(async (u, request) => {
   if (!aiEnabled) return jsonError("AI scheduling isn't enabled on this server.", 503);
+  const gate = await requireFeature(u.id, "ai");
+  if (gate) return gate;
 
   const limited = await enforceRateLimit(request, {
     name: "ai-command",

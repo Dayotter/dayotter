@@ -1,3 +1,4 @@
+import { requireFeature } from "@/lib/billing/require-feature";
 import { API_KEY_PREFIX } from "@/lib/server/api-key";
 import { jsonError, withUser } from "@/lib/server/http";
 import { randomToken, sha256hex } from "@calsync/core";
@@ -28,6 +29,8 @@ const body = z.object({ name: z.string().min(1).max(80) });
 
 /** Create an API key. Returns the full secret ONCE — it's only stored hashed. */
 export const POST = withUser(async (u, request) => {
+  const gate = await requireFeature(u.id, "developer");
+  if (gate) return gate;
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Name is required", 400);
 

@@ -3,6 +3,7 @@ import {
   configFromInput,
   maskChannel,
 } from "@/lib/notifications/channel-input";
+import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
 import { decryptJson, encryptJson, logger } from "@calsync/core";
 import { asc, eq, getDb, schema } from "@calsync/db";
@@ -48,6 +49,12 @@ export const POST = withUser(async (u, request) => {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
   const input = parsed.data;
+
+  // Push (device reminders) stays free; extra channels (Slack/WhatsApp/SMS) are Pro.
+  if (input.type !== "push") {
+    const gate = await requireFeature(u.id, "multi_channel");
+    if (gate) return gate;
+  }
 
   if (!availableChannels().includes(input.type)) {
     return jsonError(`${input.type} isn't enabled on this server.`, 400);

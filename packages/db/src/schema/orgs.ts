@@ -1,10 +1,13 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { membershipRole, timestamps } from "./_shared";
 
 /**
  * Tenant boundary. Every row in the system ultimately belongs to an org.
  * Also the Better Auth `organization` model (see schema/auth.ts + packages/auth).
+ *
+ * Billing lives on the org (per-seat): the whole team shares one Pro plan. These
+ * columns only matter in the hosted edition — self-host ignores them entirely.
  */
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -12,6 +15,14 @@ export const organizations = pgTable("organizations", {
   slug: text("slug").notNull().unique(),
   logo: text("logo"),
   metadata: text("metadata"),
+  /** "free" | "pro". Cloud only; self-host treats everyone as unlocked. */
+  plan: text("plan").notNull().default("free"),
+  /** Mirror of the Stripe subscription status (active/trialing/past_due/canceled/…). */
+  planStatus: text("plan_status"),
+  planSeats: integer("plan_seats").notNull().default(1),
+  currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
   ...timestamps,
 });
 

@@ -74,3 +74,54 @@ export function constructWebhookEvent(payload: string, signature: string): Strip
   if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET is not set");
   return stripe().webhooks.constructEvent(payload, signature, secret);
 }
+
+// ---- Subscription billing (cloud Pro plan, $9/seat/mo) ----
+
+/** The recurring Stripe Price for the Pro plan; billing is disabled without it. */
+export const proPriceId = process.env.STRIPE_PRICE_PRO ?? "";
+export const subscriptionsEnabled = paymentsEnabled && Boolean(proPriceId);
+
+/**
+ * Start a per-seat Pro subscription checkout for an org. `quantity` = seat count.
+ * Reuses/creates the org's Stripe customer so the portal + webhooks line up.
+ */
+export async function createSubscriptionCheckout(params: {
+  organizationId: string;
+  quantity: number;
+  customerId?: string | null;
+  customerEmail?: string;
+  successUrl: string;
+  cancelUrl: string;
+}): Promise<{ url: string }> {
+  const session = await stripe().checkout.sessions.create({
+    mode: "subscription",
+    line_items: [{ price: proPriceId, quantity: Math.max(1, params.quantity) }],
+    success_url: params.successUrl,
+    cancel_url: params.cancelUrl,
+    ...(params.customerId
+      ? { customer: params.customerId }
+      : { customer_email: params.customerEmail }),
+    client_reference_id: params.organizationId,
+    subscription_data: { metadata: { organizationId: params.organizationId } },
+    metadata: { organizationId: params.organizationId },
+    allow_promotion_codes: true,
+  });
+  return { url: session.url ?? "" };
+}
+
+/** Billing-portal session so a customer can update seats, card, or cancel. */
+export async function createBillingPortalSession(
+  customerId: string,
+  returnUrl: string,
+): Promise<{ url: string }> {
+  const session = await stripe().billingPortal.sessions.create({
+    customer: customerId,
+    return_url: returnUrl,
+  });
+  return { url: session.url };
+}
+
+/** Fetch a subscription (webhook enrichment). */
+export function retrieveSubscription(id: string): Promise<Stripe.Subscription> {
+  return stripe().subscriptions.retrieve(id);
+}
