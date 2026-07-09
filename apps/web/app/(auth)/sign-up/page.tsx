@@ -1,5 +1,6 @@
 "use client";
 
+import { GoogleAuthButton } from "@/components/google-auth-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { FieldError, FormError } from "@/components/ui/form";
@@ -53,7 +54,11 @@ export default function SignUpPage() {
           Start scheduling in minutes. Free and open-source.
         </p>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <div className="mt-6">
+          <GoogleAuthButton label="Sign up with Google" />
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <Label htmlFor="name">Name</Label>
             <Input

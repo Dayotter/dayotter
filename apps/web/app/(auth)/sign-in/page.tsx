@@ -1,5 +1,6 @@
 "use client";
 
+import { GoogleAuthButton } from "@/components/google-auth-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { FormError } from "@/components/ui/form";
@@ -26,8 +27,7 @@ export default function SignInPage() {
     if (error) {
       track("Sign In Failed");
       setError(
-        error.message ??
-          "We couldn't sign you in. Check your email and password and try again.",
+        error.message ?? "We couldn't sign you in. Check your email and password and try again.",
       );
       return;
     }
@@ -44,7 +44,11 @@ export default function SignInPage() {
         </h1>
         <p className="mt-1 text-sm text-[var(--color-muted)]">Sign in to your calSync account.</p>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <div className="mt-6">
+          <GoogleAuthButton label="Sign in with Google" />
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input

@@ -3,7 +3,7 @@ import { FormError } from "@/components/ui/form";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
-import { Label } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/cn";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
@@ -49,12 +49,16 @@ export function PreferencesForm({
     weekStartsOn: number;
     theme: Theme;
     defaultReminderOffsets: number[];
+    adaptiveAvailability?: boolean;
+    maxMeetingsPerDay?: number;
   };
 }) {
   const [timeFormat, setTimeFormat] = useState(initial.timeFormat);
   const [weekStartsOn, setWeekStartsOn] = useState(initial.weekStartsOn);
   const [theme, setTheme] = useState<Theme>(initial.theme);
   const [reminders, setReminders] = useState<number[]>(initial.defaultReminderOffsets);
+  const [adaptive, setAdaptive] = useState(initial.adaptiveAvailability ?? false);
+  const [maxPerDay, setMaxPerDay] = useState(initial.maxMeetingsPerDay ?? 5);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +91,14 @@ export function PreferencesForm({
     const res = await fetch("/api/settings/preferences", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ timeFormat, weekStartsOn, theme, defaultReminderOffsets: reminders }),
+      body: JSON.stringify({
+        timeFormat,
+        weekStartsOn,
+        theme,
+        defaultReminderOffsets: reminders,
+        adaptiveAvailability: adaptive,
+        maxMeetingsPerDay: maxPerDay,
+      }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -182,6 +193,44 @@ export function PreferencesForm({
                 );
               })}
             </div>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={adaptive}
+                onChange={(e) => {
+                  setAdaptive(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Adaptive availability
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  On heavy days, stop offering booking slots once you hit your meeting cap — so a
+                  full day doesn't get fuller.
+                </span>
+              </span>
+            </label>
+            {adaptive ? (
+              <div className="mt-3 flex items-center gap-2">
+                <Label htmlFor="max-per-day">Max meetings/day</Label>
+                <Input
+                  id="max-per-day"
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={maxPerDay}
+                  onChange={(e) => {
+                    setMaxPerDay(Number(e.target.value) || 1);
+                    setSaved(false);
+                  }}
+                  className="w-20"
+                />
+              </div>
+            ) : null}
           </div>
 
           <FormError>{error}</FormError>

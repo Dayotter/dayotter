@@ -17,6 +17,8 @@ export const GET = withUser(async (u) => {
       weekStartsOn: prefs?.weekStartsOn ?? 0,
       theme: prefs?.theme ?? "system",
       defaultReminderOffsets: prefs?.defaultReminderOffsets ?? [...DEFAULT_REMINDER_OFFSETS],
+      adaptiveAvailability: prefs?.adaptiveAvailability ?? false,
+      maxMeetingsPerDay: prefs?.maxMeetingsPerDay ?? 5,
     },
   });
 });
@@ -26,6 +28,8 @@ const bodySchema = z.object({
   weekStartsOn: z.number().int().min(0).max(6),
   theme: z.enum(["system", "light", "dark"]),
   defaultReminderOffsets: z.array(z.number().int().min(0).max(43_200)).max(5),
+  adaptiveAvailability: z.boolean().default(false),
+  maxMeetingsPerDay: z.number().int().min(1).max(20).default(5),
 });
 
 export const PATCH = withUser(async (u, request) => {
@@ -44,6 +48,8 @@ export const PATCH = withUser(async (u, request) => {
       weekStartsOn: d.weekStartsOn,
       theme: d.theme,
       defaultReminderOffsets: offsets,
+      adaptiveAvailability: d.adaptiveAvailability,
+      maxMeetingsPerDay: d.maxMeetingsPerDay,
     })
     .onConflictDoUpdate({
       target: schema.userPreferences.userId,
@@ -52,6 +58,8 @@ export const PATCH = withUser(async (u, request) => {
         weekStartsOn: d.weekStartsOn,
         theme: d.theme,
         defaultReminderOffsets: offsets,
+        adaptiveAvailability: d.adaptiveAvailability,
+        maxMeetingsPerDay: d.maxMeetingsPerDay,
       },
     });
 

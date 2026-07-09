@@ -40,6 +40,11 @@ export const userPreferences = pgTable(
     /** Auto-notify the next meeting's attendees when a meeting overruns. */
     overflowNotifyEnabled: boolean("overflow_notify_enabled").notNull().default(false),
 
+    /** Adaptive availability: hide remaining slots on days already at the cap. */
+    adaptiveAvailability: boolean("adaptive_availability").notNull().default(false),
+    /** Max meetings/day before adaptive availability stops offering slots that day. */
+    maxMeetingsPerDay: smallint("max_meetings_per_day").notNull().default(5),
+
     /** Encrypted JSON for sensitive / evolving preferences. */
     encryptedData: text("encrypted_data"),
     ...timestamps,

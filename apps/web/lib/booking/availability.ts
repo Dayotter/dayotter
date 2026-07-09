@@ -95,12 +95,18 @@ export async function hostSlots(
     .filter((cal) => cal.checkForConflicts)
     .map((cal) => cal.id);
 
-  const [busyRows, existingBookings] = await Promise.all([
+  const [busyRows, existingBookings, blocks, prefs] = await Promise.all([
     calendarIds.length ? busyBlocksFor(calendarIds, rangeStart, rangeEnd) : Promise.resolve([]),
     bookingsFor([userId], rangeStart, rangeEnd),
+    timeBlocksFor(userId, rangeStart, rangeEnd),
+    getDb().query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, userId),
+      columns: { adaptiveAvailability: true, maxMeetingsPerDay: true },
+    }),
   ]);
 
-  return computeAvailability({
+  const ownBookings = existingBookings.filter((b) => b.hostId === userId);
+  const slots = computeAvailability({
     schedule: {
       timezone: schedule.timezone,
       rules: schedule.availabilityRules.map((r) => ({
@@ -116,19 +122,50 @@ export async function hostSlots(
     },
     busy: [
       ...busyRows.map((b) => ({ start: b.startsAt, end: b.endsAt })),
+      // First-class personal / focus time blocks also block availability.
+      ...blocks.map((b) => ({ start: b.startsAt, end: b.endsAt })),
       // Pad the host's OWN bookings by the minimum gap so back-to-back slots
       // aren't offered (external calendar events are not padded).
-      ...existingBookings
-        .filter((b) => b.hostId === userId)
-        .map((b) => ({
-          start: new Date(b.startsAt.getTime() - gapMinutes * 60_000),
-          end: new Date(b.endsAt.getTime() + gapMinutes * 60_000),
-        })),
+      ...ownBookings.map((b) => ({
+        start: new Date(b.startsAt.getTime() - gapMinutes * 60_000),
+        end: new Date(b.endsAt.getTime() + gapMinutes * 60_000),
+      })),
     ],
     event,
     rangeStart,
     rangeEnd,
     now: new Date(),
+  });
+
+  // Adaptive availability: on days already at/over the meeting cap, stop offering
+  // slots so a heavy day doesn't get heavier. Counts real meetings (own bookings +
+  // external opaque events), not personal blocks.
+  if (prefs?.adaptiveAvailability) {
+    const cap = prefs.maxMeetingsPerDay ?? 5;
+    const perDay = new Map<string, number>();
+    const key = (d: Date) => {
+      const dt = new Date(d);
+      // Group by the schedule's local calendar day.
+      return dt.toLocaleDateString("en-CA", { timeZone: schedule.timezone });
+    };
+    for (const b of ownBookings)
+      perDay.set(key(b.startsAt), (perDay.get(key(b.startsAt)) ?? 0) + 1);
+    for (const b of busyRows) perDay.set(key(b.startsAt), (perDay.get(key(b.startsAt)) ?? 0) + 1);
+    return slots.filter((s) => (perDay.get(key(s.start)) ?? 0) < cap);
+  }
+
+  return slots;
+}
+
+/** The user's personal / focus blocks overlapping the window. */
+function timeBlocksFor(userId: string, rangeStart: Date, rangeEnd: Date) {
+  return getDb().query.timeBlocks.findMany({
+    where: and(
+      eq(schema.timeBlocks.userId, userId),
+      lte(schema.timeBlocks.startsAt, rangeEnd),
+      gte(schema.timeBlocks.endsAt, rangeStart),
+    ),
+    columns: { startsAt: true, endsAt: true },
   });
 }
 

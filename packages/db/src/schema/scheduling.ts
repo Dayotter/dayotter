@@ -9,6 +9,7 @@ import {
   smallint,
   text,
   time,
+  timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
@@ -62,6 +63,27 @@ export const dateOverrides = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex("date_overrides_schedule_date_idx").on(t.scheduleId, t.date)],
+);
+
+/**
+ * A first-class personal / focus time block (Planning Engine). Blocks the user's
+ * bookable availability without needing an external calendar. kind: focus |
+ * personal | travel | other.
+ */
+export const timeBlocks = pgTable(
+  "time_blocks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    kind: text("kind").notNull().default("focus"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (t) => [index("time_blocks_user_idx").on(t.userId, t.startsAt)],
 );
 
 /** A bookable meeting definition (Calendly "event type" / Cal.com "event type"). */

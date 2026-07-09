@@ -1,6 +1,7 @@
 import { AvailabilityEditor } from "@/components/availability-editor";
 import { FocusDefense } from "@/components/focus-defense";
 import { PageHeader } from "@/components/page-header";
+import { TimeBlocks } from "@/components/time-blocks";
 import { getSession } from "@/lib/auth/session";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { and, eq, getDb, schema } from "@calsync/db";
@@ -41,6 +42,7 @@ export default async function AvailabilityPage() {
       />
       <FocusDefense />
       <AvailabilityEditor initial={{ timezone: schedule?.timezone ?? "UTC", days, overrides }} />
+      <TimeBlocks />
     </>
   );
 }

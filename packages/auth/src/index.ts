@@ -32,6 +32,17 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  // "Sign in with Google" — enabled only when Google OAuth creds are configured
+  // (the same app used for calendar connect). Register
+  // `${APP_URL}/api/auth/callback/google` as an authorized redirect URI.
+  socialProviders: process.env.GOOGLE_CLIENT_ID
+    ? {
+        google: {
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+        },
+      }
+    : undefined,
   user: {
     additionalFields: {
       handle: { type: "string", required: false, input: true },
