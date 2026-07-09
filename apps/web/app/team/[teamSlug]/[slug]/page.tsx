@@ -77,7 +77,11 @@ export default async function TeamBookingPage({
 
           <CardBody className="p-6">
             <h2 className="mb-4 text-sm font-semibold">Select a time</h2>
-            <SlotPicker eventTypeId={eventType.id} />
+            <SlotPicker
+              eventTypeId={eventType.id}
+              defaultDuration={eventType.durationMinutes}
+              durationOptions={eventType.durationOptions ?? []}
+            />
           </CardBody>
         </div>
       </Card>

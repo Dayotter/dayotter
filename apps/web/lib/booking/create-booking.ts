@@ -4,7 +4,12 @@ import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@calsync/db";
 import { bookingConfirmation, sendEmail } from "@calsync/emails";
 import { DateTime } from "luxon";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
-import { SLOT_REVALIDATION_WINDOW_MS, combineHostSlots, eventTypeHostSlots } from "./availability";
+import {
+  SLOT_REVALIDATION_WINDOW_MS,
+  combineHostSlots,
+  eventTypeHostSlots,
+  isAllowedDuration,
+} from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
@@ -95,6 +100,8 @@ export interface CreateBookingInput {
   guests?: string[];
   notes?: string;
   responses?: Record<string, unknown>;
+  /** The booker's chosen duration for multi-duration event types (minutes). */
+  durationMinutes?: number;
   /** Set when the booking was paid via Stripe (created from the payment handler). */
   payment?: { paymentIntentId: string; amountPaid: number; currency: string };
 }
@@ -115,14 +122,23 @@ export async function createBooking(
 
   const start = new Date(input.start);
   if (Number.isNaN(start.getTime())) throw new BookingError("Invalid start time", 400);
-  const end = new Date(start.getTime() + eventType.durationMinutes * 60_000);
+
+  // Multiple durations: honor the booker's chosen length only if the event type
+  // allows it; otherwise fall back to the default duration.
+  const duration =
+    input.durationMinutes && isAllowedDuration(eventType, input.durationMinutes)
+      ? input.durationMinutes
+      : eventType.durationMinutes;
+  const end = new Date(start.getTime() + duration * 60_000);
 
   // Re-validate server-side (the picker may be stale / manipulated). Compute the
-  // per-host slots once and reuse them for both the check and host resolution.
+  // per-host slots once (for the chosen duration) and reuse them for the check
+  // and host resolution.
   const { hostIds, perHost } = await eventTypeHostSlots(
     eventType,
     new Date(start.getTime() - SLOT_REVALIDATION_WINDOW_MS),
     new Date(start.getTime() + SLOT_REVALIDATION_WINDOW_MS),
+    duration,
   );
   const combined = combineHostSlots(perHost, eventType.schedulingType);
   if (!combined.some((s) => s.start.getTime() === start.getTime())) {

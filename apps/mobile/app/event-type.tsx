@@ -76,6 +76,8 @@ export default function EventTypeForm() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState("");
   const [color, setColor] = useState<EventColor>("violet");
+  const [minGap, setMinGap] = useState("0");
+  const [durationOptions, setDurationOptions] = useState<number[]>([]);
   const [questions, setQuestions] = useState<BookingQuestion[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -103,6 +105,8 @@ export default function EventTypeForm() {
         setIsPrivate(e.isPrivate);
         setRedirectUrl(e.redirectUrl ?? "");
         if (e.color && e.color in EVENT_COLOR_HEX) setColor(e.color as EventColor);
+        setMinGap(String(e.minimumGapMinutes ?? 0));
+        setDurationOptions(e.durationOptions ?? []);
         setQuestions(e.questions ?? []);
       })
       .catch(() => setError("Could not load event type"))
@@ -138,6 +142,8 @@ export default function EventTypeForm() {
       bufferAfterMinutes: Number(bufferAfter) || 0,
       minimumNoticeMinutes: minimumNotice,
       bookingWindowDays: Number(bookingWindow) || 60,
+      minimumGapMinutes: Number(minGap) || 0,
+      durationOptions: durationOptions.length ? [...durationOptions].sort((a, b) => a - b) : null,
       dailyBookingLimit: dailyLimitOn ? Number(dailyLimit) || 1 : null,
       isPrivate,
       redirectUrl: redirectUrl.trim() || null,
@@ -295,6 +301,34 @@ export default function EventTypeForm() {
           placeholder="60"
           numeric
         />
+
+        <Field
+          label="Gap between bookings (min)"
+          value={minGap}
+          onChange={setMinGap}
+          placeholder="0"
+          numeric
+        />
+
+        <Text style={styles.label}>Offer multiple durations</Text>
+        <View style={styles.wrapPills}>
+          {[15, 30, 45, 60, 90, 120].map((d) => {
+            const on = durationOptions.includes(d);
+            return (
+              <Pressable
+                key={d}
+                onPress={() =>
+                  setDurationOptions((prev) =>
+                    prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
+                  )
+                }
+                style={[styles.chip, on && styles.pillOn]}
+              >
+                <Text style={[styles.pillText, on && styles.pillTextOn]}>{d}m</Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         <View style={styles.toggleRow}>
           <View style={{ flex: 1, paddingRight: 12 }}>

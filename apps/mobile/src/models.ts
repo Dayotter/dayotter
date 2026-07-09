@@ -62,6 +62,9 @@ export interface EventTypeDetail {
   bufferBeforeMinutes: number;
   bufferAfterMinutes: number;
   minimumNoticeMinutes: number;
+  slotIntervalMinutes: number | null;
+  minimumGapMinutes: number;
+  durationOptions: number[] | null;
   bookingWindowDays: number | null;
   dailyBookingLimit: number | null;
   isPrivate: boolean;

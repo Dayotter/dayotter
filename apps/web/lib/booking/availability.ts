@@ -23,6 +23,11 @@ export function eventConstraints(eventType: EventTypeRow): EventConstraints {
   };
 }
 
+/** Minutes of free time to enforce around the host's own bookings (0 = none). */
+function gapFor(eventType: EventTypeRow): number {
+  return eventType.minimumGapMinutes ?? 0;
+}
+
 /**
  * Combine per-host slot arrays for an event type. Pure — no I/O — so it's unit
  * tested directly:
@@ -63,6 +68,7 @@ export async function hostSlots(
   event: EventConstraints,
   rangeStart: Date,
   rangeEnd: Date,
+  gapMinutes = 0,
 ): Promise<Slot[]> {
   const db = getDb();
 
@@ -110,9 +116,14 @@ export async function hostSlots(
     },
     busy: [
       ...busyRows.map((b) => ({ start: b.startsAt, end: b.endsAt })),
+      // Pad the host's OWN bookings by the minimum gap so back-to-back slots
+      // aren't offered (external calendar events are not padded).
       ...existingBookings
         .filter((b) => b.hostId === userId)
-        .map((b) => ({ start: b.startsAt, end: b.endsAt })),
+        .map((b) => ({
+          start: new Date(b.startsAt.getTime() - gapMinutes * 60_000),
+          end: new Date(b.endsAt.getTime() + gapMinutes * 60_000),
+        })),
     ],
     event,
     rangeStart,
@@ -164,19 +175,37 @@ export async function eventTypeHostSlots(
   eventType: EventTypeRow,
   rangeStart: Date,
   rangeEnd: Date,
+  durationOverride?: number,
 ): Promise<{ hostIds: string[]; perHost: Slot[][] }> {
-  const event = eventConstraints(eventType);
+  const base = eventConstraints(eventType);
+  // Multiple durations: recompute slots for the booker's chosen (allowed) length.
+  const event = durationOverride ? { ...base, durationMinutes: durationOverride } : base;
+  const gap = gapFor(eventType);
 
   if (eventType.ownerId) {
-    const slots = await hostSlots(eventType.ownerId, eventType.scheduleId, event, rangeStart, rangeEnd);
+    const slots = await hostSlots(
+      eventType.ownerId,
+      eventType.scheduleId,
+      event,
+      rangeStart,
+      rangeEnd,
+      gap,
+    );
     return { hostIds: [eventType.ownerId], perHost: [slots] };
   }
 
   const hostIds = await eventTypeHostIds(eventType);
   const perHost = await Promise.all(
-    hostIds.map((id) => hostSlots(id, null, event, rangeStart, rangeEnd)),
+    hostIds.map((id) => hostSlots(id, null, event, rangeStart, rangeEnd, gap)),
   );
   return { hostIds, perHost };
+}
+
+/** True when `duration` is a valid booking length for this event type. */
+export function isAllowedDuration(eventType: EventTypeRow, duration: number): boolean {
+  const options = eventType.durationOptions ?? [];
+  if (options.length > 0) return options.includes(duration);
+  return duration === eventType.durationMinutes;
 }
 
 /**
@@ -188,12 +217,18 @@ export async function getEventTypeAvailability(
   eventTypeId: string,
   rangeStart: Date,
   rangeEnd: Date,
+  durationOverride?: number,
 ): Promise<Slot[] | null> {
   const eventType = await getDb().query.eventTypes.findFirst({
     where: eq(schema.eventTypes.id, eventTypeId),
   });
   if (!eventType) return null;
 
-  const { perHost } = await eventTypeHostSlots(eventType, rangeStart, rangeEnd);
+  // Honor a requested duration only if the event type allows it.
+  const duration =
+    durationOverride && isAllowedDuration(eventType, durationOverride)
+      ? durationOverride
+      : undefined;
+  const { perHost } = await eventTypeHostSlots(eventType, rangeStart, rangeEnd, duration);
   return combineHostSlots(perHost, eventType.schedulingType);
 }

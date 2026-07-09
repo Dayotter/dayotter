@@ -104,6 +104,12 @@ export const eventTypeInputSchema = z
     bufferAfterMinutes: z.number().int().min(0).max(240).default(0),
     // 0 = no minimum; capped at 30 days.
     minimumNoticeMinutes: z.number().int().min(0).max(43_200).default(60),
+    /** Slot cadence (null = every `durationMinutes`). */
+    slotIntervalMinutes: z.number().int().min(5).max(240).nullable().default(null),
+    /** Minimum free time enforced around the host's own bookings. */
+    minimumGapMinutes: z.number().int().min(0).max(240).default(0),
+    /** Alternate durations the booker can choose (null/empty = fixed duration). */
+    durationOptions: z.array(z.number().int().min(5).max(480)).max(6).nullable().default(null),
     bookingWindowDays: z.number().int().min(1).max(730).default(60),
     /** Cap confirmed bookings per day (null = unlimited). */
     dailyBookingLimit: z.number().int().min(1).max(100).nullable().default(null),

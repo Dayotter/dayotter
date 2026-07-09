@@ -22,9 +22,12 @@ export function useLocalZone() {
 export function SlotGrid({
   eventTypeId,
   onSelect,
+  duration,
 }: {
   eventTypeId: string;
   onSelect: (slot: Slot) => void;
+  /** Chosen duration for multi-duration event types (refetches when it changes). */
+  duration?: number;
 }) {
   const zone = useLocalZone();
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -32,14 +35,20 @@ export function SlotGrid({
   const [activeDay, setActiveDay] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
     const from = new Date().toISOString();
     const to = new Date(Date.now() + 14 * 86_400_000).toISOString();
-    fetch(`/api/availability/${eventTypeId}?from=${from}&to=${to}`)
+    const durationParam = duration ? `&duration=${duration}` : "";
+    let active = true;
+    fetch(`/api/availability/${eventTypeId}?from=${from}&to=${to}${durationParam}`)
       .then((r) => r.json())
-      .then((data) => setSlots(data.slots ?? []))
-      .catch(() => setSlots([]))
-      .finally(() => setLoading(false));
-  }, [eventTypeId]);
+      .then((data) => active && setSlots(data.slots ?? []))
+      .catch(() => active && setSlots([]))
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [eventTypeId, duration]);
 
   const byDay = useMemo(() => {
     const map = new Map<string, Slot[]>();

@@ -17,16 +17,24 @@ export function SlotPicker({
   eventTypeId,
   questions = [],
   priceLabel = null,
+  defaultDuration,
+  durationOptions = [],
 }: {
   eventTypeId: string;
   questions?: BookingQuestionInput[];
   priceLabel?: string | null;
+  defaultDuration: number;
+  durationOptions?: number[];
 }) {
   const router = useRouter();
   const zone = useLocalZone();
+  const hasDurations = durationOptions.length > 0;
+  const [duration, setDuration] = useState(defaultDuration);
   const [selected, setSelected] = useState<Slot | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [guests, setGuests] = useState<string[]>([]);
+  const [guestInput, setGuestInput] = useState("");
   const [notes, setNotes] = useState("");
   const [answers, setAnswers] = useState<Record<string, string | boolean>>({});
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -35,6 +43,14 @@ export function SlotPicker({
 
   function setAnswer(id: string, value: string | boolean) {
     setAnswers((a) => ({ ...a, [id]: value }));
+  }
+
+  function addGuest() {
+    const g = guestInput.trim().toLowerCase();
+    if (g && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(g) && !guests.includes(g) && guests.length < 10) {
+      setGuests((prev) => [...prev, g]);
+      setGuestInput("");
+    }
   }
 
   async function confirm(e: React.FormEvent) {
@@ -61,8 +77,10 @@ export function SlotPicker({
         eventTypeId,
         start: selected.start,
         attendee: { name, email, timezone: zone },
+        guests: guests.length ? guests : undefined,
         notes: notes || undefined,
         responses: questions.length ? answers : undefined,
+        durationMinutes: hasDurations ? duration : undefined,
         captchaToken: captchaToken || undefined,
         returnPath: typeof window !== "undefined" ? window.location.pathname : undefined,
       }),
@@ -90,7 +108,40 @@ export function SlotPicker({
     router.push(data.url as `/${string}`);
   }
 
-  if (!selected) return <SlotGrid eventTypeId={eventTypeId} onSelect={setSelected} />;
+  const durationSelector = hasDurations ? (
+    <div className="mb-4">
+      <Label>Duration</Label>
+      <div className="flex flex-wrap gap-2">
+        {durationOptions.map((d) => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => setDuration(d)}
+            className={
+              d === duration
+                ? "rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)]/10 px-3 py-1.5 text-sm text-[var(--color-text)]"
+                : "rounded-md border border-[var(--color-border-strong)] px-3 py-1.5 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
+            }
+          >
+            {d} min
+          </button>
+        ))}
+      </div>
+    </div>
+  ) : null;
+
+  if (!selected) {
+    return (
+      <div>
+        {durationSelector}
+        <SlotGrid
+          eventTypeId={eventTypeId}
+          onSelect={setSelected}
+          duration={hasDurations ? duration : undefined}
+        />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={confirm}>
@@ -126,6 +177,47 @@ export function SlotPicker({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@company.com"
           />
+        </div>
+        <div>
+          <Label htmlFor="b-guest">Guests (optional)</Label>
+          <div className="flex gap-2">
+            <Input
+              id="b-guest"
+              type="email"
+              value={guestInput}
+              onChange={(e) => setGuestInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addGuest();
+                }
+              }}
+              placeholder="colleague@company.com"
+            />
+            <Button type="button" variant="outline" onClick={addGuest}>
+              Add
+            </Button>
+          </div>
+          {guests.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {guests.map((g) => (
+                <span
+                  key={g}
+                  className="inline-flex items-center gap-1 rounded-full bg-[var(--color-surface-2)] px-2.5 py-1 text-xs text-[var(--color-text)]"
+                >
+                  {g}
+                  <button
+                    type="button"
+                    onClick={() => setGuests((prev) => prev.filter((x) => x !== g))}
+                    aria-label={`Remove ${g}`}
+                    className="text-[var(--color-faint)] hover:text-[var(--color-danger)]"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div>
           <Label htmlFor="b-notes">Notes (optional)</Label>

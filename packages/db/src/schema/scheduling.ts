@@ -92,9 +92,13 @@ export const eventTypes = pgTable(
     bufferAfterMinutes: integer("buffer_after_minutes").notNull().default(0),
     minimumNoticeMinutes: integer("minimum_notice_minutes").notNull().default(60),
     slotIntervalMinutes: integer("slot_interval_minutes"),
+    /** Minimum free time enforced around the host's own bookings (0 = none). */
+    minimumGapMinutes: integer("minimum_gap_minutes").notNull().default(0),
     /** How far into the future bookings are allowed (null = unlimited). */
     bookingWindowDays: integer("booking_window_days").default(60),
     dailyBookingLimit: integer("daily_booking_limit"),
+    /** If set + non-empty, the booker chooses one of these durations (minutes). */
+    durationOptions: jsonb("duration_options").$type<number[]>(),
 
     // Intake form: array of { id, label, type, required }.
     questions: jsonb("questions").$type<BookingQuestion[]>().notNull().default([]),

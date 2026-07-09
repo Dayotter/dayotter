@@ -81,6 +81,8 @@ export default async function PublicBookingPage({
               eventTypeId={eventType.id}
               questions={eventType.questions}
               priceLabel={priceLabel}
+              defaultDuration={eventType.durationMinutes}
+              durationOptions={eventType.durationOptions ?? []}
             />
           </CardBody>
         </div>

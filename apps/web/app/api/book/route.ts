@@ -20,6 +20,7 @@ const schema = z.object({
   guests: z.array(z.string().email()).max(10).optional(),
   notes: z.string().max(2000).optional(),
   responses: z.record(z.unknown()).optional(),
+  durationMinutes: z.number().int().min(5).max(1440).optional(),
   captchaToken: z.string().max(4000).optional(),
   /** Where to send the booker if they abandon Stripe Checkout. */
   returnPath: z.string().max(400).optional(),
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
     guests: parsed.data.guests,
     notes: parsed.data.notes,
     responses: parsed.data.responses,
+    durationMinutes: parsed.data.durationMinutes,
   };
 
   // Paid event type → collect payment via Stripe Checkout first; the booking is

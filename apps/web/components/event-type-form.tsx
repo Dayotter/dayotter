@@ -56,6 +56,9 @@ export interface EventTypeInitial {
   bufferBeforeMinutes?: number;
   bufferAfterMinutes?: number;
   minimumNoticeMinutes?: number;
+  slotIntervalMinutes?: number | null;
+  minimumGapMinutes?: number;
+  durationOptions?: number[] | null;
   bookingWindowDays?: number;
   dailyBookingLimit?: number | null;
   isPrivate?: boolean;
@@ -95,6 +98,11 @@ export function EventTypeForm({
   const [bufferBefore, setBufferBefore] = useState(initial?.bufferBeforeMinutes ?? 0);
   const [bufferAfter, setBufferAfter] = useState(initial?.bufferAfterMinutes ?? 0);
   const [minimumNotice, setMinimumNotice] = useState(initial?.minimumNoticeMinutes ?? 60);
+  const [slotInterval, setSlotInterval] = useState<number | null>(
+    initial?.slotIntervalMinutes ?? null,
+  );
+  const [minimumGap, setMinimumGap] = useState(initial?.minimumGapMinutes ?? 0);
+  const [durationOptions, setDurationOptions] = useState<number[]>(initial?.durationOptions ?? []);
   const [bookingWindow, setBookingWindow] = useState(initial?.bookingWindowDays ?? 60);
   const [dailyLimitOn, setDailyLimitOn] = useState(
     initial?.dailyBookingLimit != null && initial.dailyBookingLimit > 0,
@@ -151,6 +159,10 @@ export function EventTypeForm({
       bufferBeforeMinutes: bufferBefore,
       bufferAfterMinutes: bufferAfter,
       minimumNoticeMinutes: minimumNotice,
+      slotIntervalMinutes: slotInterval,
+      minimumGapMinutes: minimumGap,
+      durationOptions:
+        durationOptions.length > 0 ? [...durationOptions].sort((a, b) => a - b) : null,
       bookingWindowDays: bookingWindow,
       dailyBookingLimit: dailyLimitOn ? dailyLimit : null,
       isPrivate,
@@ -275,6 +287,39 @@ export function EventTypeForm({
                 <span className="text-sm text-[var(--color-faint)]">min</span>
               </div>
             </div>
+            <div className="mt-3">
+              <p className="mb-1.5 text-xs text-[var(--color-faint)]">
+                Offer multiple durations (booker picks)
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[15, 30, 45, 60, 90, 120].map((d) => {
+                  const on = durationOptions.includes(d);
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() =>
+                        setDurationOptions((prev) =>
+                          prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d],
+                        )
+                      }
+                      className={
+                        on
+                          ? "rounded-full border border-[var(--color-accent)] bg-[var(--color-accent)]/10 px-3 py-1 text-sm text-[var(--color-text)]"
+                          : "rounded-full border border-[var(--color-border-strong)] px-3 py-1 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                      }
+                    >
+                      {d}m
+                    </button>
+                  );
+                })}
+              </div>
+              {durationOptions.length > 0 ? (
+                <p className="mt-1 text-xs text-[var(--color-faint)]">
+                  Bookers choose from these; {duration}m is the default.
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div>
@@ -373,6 +418,36 @@ export function EventTypeForm({
                     onChange={(e) => setBookingWindow(Number(e.target.value) || 1)}
                   />
                   <span className="text-sm text-[var(--color-faint)]">days out</span>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="slot-interval">Show slots every</Label>
+                <select
+                  id="slot-interval"
+                  value={slotInterval ?? 0}
+                  onChange={(e) => setSlotInterval(Number(e.target.value) || null)}
+                  className={selectClass}
+                >
+                  <option value={0}>Every {duration} min (default)</option>
+                  {[10, 15, 20, 30, 60].map((v) => (
+                    <option key={v} value={v}>
+                      {v} min
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="min-gap">Gap between bookings</Label>
+                <div className="flex items-center gap-1">
+                  <Input
+                    id="min-gap"
+                    type="number"
+                    min={0}
+                    max={240}
+                    value={minimumGap}
+                    onChange={(e) => setMinimumGap(Number(e.target.value) || 0)}
+                  />
+                  <span className="text-sm text-[var(--color-faint)]">min</span>
                 </div>
               </div>
             </div>

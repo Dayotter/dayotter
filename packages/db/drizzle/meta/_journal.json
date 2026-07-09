@@ -43,6 +43,13 @@
       "when": 1783559834068,
       "tag": "0005_nebulous_lockheed",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783573419185,
+      "tag": "0006_condemned_green_goblin",
+      "breakpoints": true
     }
   ]
 }
