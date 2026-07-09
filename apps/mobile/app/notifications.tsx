@@ -1,6 +1,7 @@
 import { ApiError, api } from "@/api";
 import { EmptyState, Loading } from "@/components/ui";
 import type { ChannelType, NotificationChannel } from "@/models";
+import { registerPushChannel } from "@/push";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
@@ -39,7 +40,34 @@ export default function NotificationsScreen() {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [phone, setPhone] = useState("");
   const [adding, setAdding] = useState(false);
+  const [registering, setRegistering] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const hasPush = channels.some((c) => c.type === "push");
+
+  async function enablePush() {
+    setRegistering(true);
+    const res = await registerPushChannel();
+    setRegistering(false);
+    if (res.ok) {
+      // Refresh the list so the new device channel appears.
+      const d = await api
+        .get<{ channels: NotificationChannel[] }>("/api/settings/channels")
+        .catch(() => null);
+      if (d) setChannels(d.channels);
+      Alert.alert("Push enabled", "You'll get meeting reminders on this device.");
+      return;
+    }
+    const msg =
+      res.reason === "simulator"
+        ? "Push needs a real device (not a simulator)."
+        : res.reason === "denied"
+          ? "Enable notifications for calSync in your device settings."
+          : res.reason === "token"
+            ? "Couldn't get a push token — this needs a dev build, not Expo Go."
+            : (res.message ?? "Couldn't verify the device. Please try again.");
+    Alert.alert("Couldn't enable push", msg);
+  }
 
   useEffect(() => {
     let active = true;
@@ -121,9 +149,18 @@ export default function NotificationsScreen() {
       <Stack.Screen options={{ headerShown: true, title: "Notifications" }} />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.intro}>
-          Get meeting reminders where you are — Slack, WhatsApp, or SMS. Email reminders are always
-          on.
+          Get meeting reminders where you are — push, Slack, WhatsApp, or SMS. Email reminders are
+          always on.
         </Text>
+
+        {hasPush ? null : (
+          <Pressable style={styles.pushBtn} onPress={enablePush} disabled={registering}>
+            <Ionicons name="phone-portrait-outline" size={18} color={colors.white} />
+            <Text style={styles.pushBtnText}>
+              {registering ? "Enabling…" : "Enable push on this device"}
+            </Text>
+          </Pressable>
+        )}
 
         {channels.length === 0 ? (
           <EmptyState
@@ -215,6 +252,17 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 20, paddingBottom: 60 },
   intro: { color: colors.muted, fontSize: 14, marginBottom: 18, lineHeight: 20 },
+  pushBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingVertical: 13,
+    marginBottom: 18,
+  },
+  pushBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   channel: {
     flexDirection: "row",
     alignItems: "center",

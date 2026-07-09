@@ -2,6 +2,7 @@ import { ApiError, api } from "@/api";
 import { formatDateTime } from "@/format";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -38,6 +39,9 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
   const [done, setDone] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
+  // User-edited start time (overrides the AI's proposed time before confirming).
+  const [pickedStart, setPickedStart] = useState<Date | null>(null);
+  const [picker, setPicker] = useState<"date" | "time" | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -53,6 +57,27 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
   function reset() {
     setDraft(null);
     setTarget(null);
+    setPickedStart(null);
+    setPicker(null);
+  }
+
+  // Two-step native picker (date → time) so it works the same on iOS + Android.
+  function onPick(event: { type: string }, date?: Date) {
+    if (event.type === "dismissed" || !date) {
+      setPicker(null);
+      return;
+    }
+    if (picker === "date") {
+      // Keep the current time-of-day, swap the date, then ask for the time.
+      const base = pickedStart ?? new Date();
+      const merged = new Date(date);
+      merged.setHours(base.getHours(), base.getMinutes(), 0, 0);
+      setPickedStart(merged);
+      setPicker("time");
+    } else {
+      setPickedStart(date);
+      setPicker(null);
+    }
   }
 
   async function submit() {
@@ -71,6 +96,10 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
       } else {
         setDraft(d);
         setTarget(data.target);
+        // Seed the editable time from the AI's proposal (create/reschedule).
+        const iso = d.intent === "reschedule" ? d.newStartISO : d.startISO;
+        const seed = iso ? new Date(iso) : null;
+        setPickedStart(seed && !Number.isNaN(seed.getTime()) ? seed : null);
       }
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Something went wrong");
@@ -91,17 +120,19 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
     setBusy(true);
     setError(null);
     try {
+      const startISO = pickedStart ? pickedStart.toISOString() : draft.startISO;
       if (draft.intent === "create") {
         await api.post("/api/ai/schedule/create", {
           title: draft.title,
-          startISO: draft.startISO,
+          startISO,
           durationMinutes: draft.durationMinutes,
           notes: draft.notes || undefined,
           attendees: draft.attendees,
         });
         finish("Added to your calendar.");
       } else if (draft.intent === "reschedule" && target) {
-        await api.post(`/api/bookings/${target.uid}/reschedule`, { start: draft.newStartISO });
+        const newStart = pickedStart ? pickedStart.toISOString() : draft.newStartISO;
+        await api.post(`/api/bookings/${target.uid}/reschedule`, { start: newStart });
         finish("Rescheduled — attendees notified.");
       } else if (draft.intent === "cancel" && target) {
         await api.post(`/api/bookings/${target.uid}/cancel`, {});
@@ -153,9 +184,13 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
             <>
               <Text style={styles.cardKind}>{draft.kind}</Text>
               <Text style={styles.cardTitle}>{draft.title}</Text>
-              <Text style={styles.cardWhen}>
-                {formatDateTime(draft.startISO)} · {draft.durationMinutes} min
-              </Text>
+              <Pressable style={styles.timeEdit} onPress={() => setPicker("date")}>
+                <Text style={styles.cardWhen}>
+                  {formatDateTime((pickedStart ?? new Date(draft.startISO)).toISOString())} ·{" "}
+                  {draft.durationMinutes} min
+                </Text>
+                <Ionicons name="pencil" size={13} color={colors.accent} />
+              </Pressable>
               {draft.attendees.length ? (
                 <Text style={styles.cardWho}>
                   With {draft.attendees.map((a) => a.name || a.email).join(", ")}
@@ -166,9 +201,13 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
             <>
               <Text style={styles.cardKind}>Reschedule</Text>
               <Text style={styles.cardTitle}>{target.title}</Text>
-              <Text style={styles.cardWhen}>
-                {formatDateTime(target.startISO)} → {formatDateTime(draft.newStartISO)}
-              </Text>
+              <Pressable style={styles.timeEdit} onPress={() => setPicker("date")}>
+                <Text style={styles.cardWhen}>
+                  {formatDateTime(target.startISO)} →{" "}
+                  {formatDateTime((pickedStart ?? new Date(draft.newStartISO)).toISOString())}
+                </Text>
+                <Ionicons name="pencil" size={13} color={colors.accent} />
+              </Pressable>
             </>
           ) : draft.intent === "cancel" && target ? (
             <>
@@ -198,6 +237,14 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
               <Text style={styles.discardText}>{cancelStyle ? "Keep it" : "Discard"}</Text>
             </Pressable>
           </View>
+
+          {picker ? (
+            <DateTimePicker
+              value={pickedStart ?? new Date()}
+              mode={picker}
+              onChange={onPick}
+            />
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -255,7 +302,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   cardTitle: { color: colors.text, fontWeight: "600", fontSize: 16, marginTop: 4 },
-  cardWhen: { color: colors.muted, fontSize: 13, marginTop: 3 },
+  cardWhen: { color: colors.muted, fontSize: 13 },
+  timeEdit: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 },
   cardWho: { color: colors.muted, fontSize: 12, marginTop: 3 },
   actions: { flexDirection: "row", gap: 10, marginTop: 14 },
   confirm: {
