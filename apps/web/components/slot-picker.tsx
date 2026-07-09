@@ -19,12 +19,15 @@ export function SlotPicker({
   priceLabel = null,
   defaultDuration,
   durationOptions = [],
+  linkToken,
 }: {
   eventTypeId: string;
   questions?: BookingQuestionInput[];
   priceLabel?: string | null;
   defaultDuration: number;
   durationOptions?: number[];
+  /** When booking through a single-use link, carried so the server consumes it. */
+  linkToken?: string;
 }) {
   const router = useRouter();
   const zone = useLocalZone();
@@ -82,6 +85,7 @@ export function SlotPicker({
         responses: questions.length ? answers : undefined,
         durationMinutes: hasDurations ? duration : undefined,
         captchaToken: captchaToken || undefined,
+        linkToken: linkToken || undefined,
         returnPath: typeof window !== "undefined" ? window.location.pathname : undefined,
       }),
     });

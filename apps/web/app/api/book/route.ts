@@ -22,6 +22,8 @@ const schema = z.object({
   responses: z.record(z.unknown()).optional(),
   durationMinutes: z.number().int().min(5).max(1440).optional(),
   captchaToken: z.string().max(4000).optional(),
+  /** Single-use booking-link token, if the booker came through one. */
+  linkToken: z.string().max(64).optional(),
   /** Where to send the booker if they abandon Stripe Checkout. */
   returnPath: z.string().max(400).optional(),
 });
@@ -59,6 +61,7 @@ export async function POST(request: Request) {
     notes: parsed.data.notes,
     responses: parsed.data.responses,
     durationMinutes: parsed.data.durationMinutes,
+    linkToken: parsed.data.linkToken,
   };
 
   // Paid event type → collect payment via Stripe Checkout first; the booking is

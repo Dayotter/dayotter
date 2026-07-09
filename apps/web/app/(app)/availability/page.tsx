@@ -16,7 +16,7 @@ export default async function AvailabilityPage() {
 
   const schedule = await getDb().query.schedules.findFirst({
     where: and(eq(schema.schedules.userId, userId), eq(schema.schedules.isDefault, true)),
-    with: { availabilityRules: true },
+    with: { availabilityRules: true, dateOverrides: true },
   });
 
   const days: { start: string; end: string }[][] = [[], [], [], [], [], [], []];
@@ -25,6 +25,14 @@ export default async function AvailabilityPage() {
   }
   for (const list of days) list.sort((a, b) => a.start.localeCompare(b.start));
 
+  const overrides = (schedule?.dateOverrides ?? [])
+    .map((o) => ({
+      date: o.date,
+      start: o.startTime ? o.startTime.slice(0, 5) : null,
+      end: o.endTime ? o.endTime.slice(0, 5) : null,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
   return (
     <>
       <PageHeader
@@ -32,7 +40,7 @@ export default async function AvailabilityPage() {
         description="Set the hours you're open for bookings. Applies to all your event types."
       />
       <FocusDefense />
-      <AvailabilityEditor initial={{ timezone: schedule?.timezone ?? "UTC", days }} />
+      <AvailabilityEditor initial={{ timezone: schedule?.timezone ?? "UTC", days, overrides }} />
     </>
   );
 }

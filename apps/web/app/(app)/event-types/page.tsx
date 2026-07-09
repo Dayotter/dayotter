@@ -1,10 +1,11 @@
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { DuplicateEventTypeButton } from "@/components/duplicate-event-type-button";
+import { OneOffLinkButton } from "@/components/one-off-link-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
-import { eventColorVar } from "@/lib/booking/event-type-input";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
+import { eventColorVar } from "@/lib/booking/event-type-input";
 import { desc, eq, getDb, schema } from "@calsync/db";
 import { Clock, ExternalLink, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
@@ -91,6 +92,7 @@ export default async function EventTypesPage() {
                   <span />
                 )}
                 <div className="flex items-center gap-3">
+                  <OneOffLinkButton id={et.id} />
                   <DuplicateEventTypeButton id={et.id} />
                   <Link
                     href={`/event-types/${et.id}/edit`}

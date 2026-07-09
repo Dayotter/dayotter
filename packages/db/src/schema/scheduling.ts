@@ -129,6 +129,32 @@ export type BookingQuestion = {
   options?: string[];
 };
 
+/** Single-use / expiring booking links for an event type (Calendly "one-off links"). */
+export const bookingLinks = pgTable(
+  "booking_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    eventTypeId: uuid("event_type_id")
+      .notNull()
+      .references(() => eventTypes.id, { onDelete: "cascade" }),
+    /** Opaque public token used in the /book/<token> URL. */
+    token: text("token").notNull(),
+    /** Optional expiry; null = never expires. */
+    expiresAt: date("expires_at"),
+    /** How many bookings the link allows (1 = single-use). */
+    maxUses: integer("max_uses").notNull().default(1),
+    usedCount: integer("used_count").notNull().default(0),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("booking_links_token_idx").on(t.token),
+    index("booking_links_event_idx").on(t.eventTypeId),
+  ],
+);
+
 export const schedulesRelations = relations(schedules, ({ one, many }) => ({
   user: one(users, { fields: [schedules.userId], references: [users.id] }),
   availabilityRules: many(availabilityRules),

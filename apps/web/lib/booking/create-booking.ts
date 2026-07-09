@@ -102,6 +102,8 @@ export interface CreateBookingInput {
   responses?: Record<string, unknown>;
   /** The booker's chosen duration for multi-duration event types (minutes). */
   durationMinutes?: number;
+  /** Single-use booking-link token to consume atomically with the booking. */
+  linkToken?: string;
   /** Set when the booking was paid via Stripe (created from the payment handler). */
   payment?: { paymentIntentId: string; amountPaid: number; currency: string };
 }
@@ -180,6 +182,26 @@ export async function createBooking(
           );
         if (count >= eventType.dailyBookingLimit) {
           throw new BookingError("This day is fully booked. Please pick another day.", 409);
+        }
+      }
+
+      // Consume a single-use / limited booking link atomically: only succeeds
+      // while there are uses left and it hasn't expired.
+      if (input.linkToken) {
+        const consumed = await tx
+          .update(schema.bookingLinks)
+          .set({ usedCount: sql`${schema.bookingLinks.usedCount} + 1` })
+          .where(
+            and(
+              eq(schema.bookingLinks.token, input.linkToken),
+              eq(schema.bookingLinks.eventTypeId, eventType.id),
+              sql`${schema.bookingLinks.usedCount} < ${schema.bookingLinks.maxUses}`,
+              sql`(${schema.bookingLinks.expiresAt} IS NULL OR ${schema.bookingLinks.expiresAt} >= CURRENT_DATE)`,
+            ),
+          )
+          .returning({ id: schema.bookingLinks.id });
+        if (consumed.length === 0) {
+          throw new BookingError("This booking link is no longer valid.", 410);
         }
       }
 
