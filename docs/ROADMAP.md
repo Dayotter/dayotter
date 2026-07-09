@@ -60,7 +60,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | **Expiring / password-protected / one-off links** | ⬜ | one-off ⬜, expiring ⬜, password ⬜ (**NEW**) |
 | Private/secret event types · redirect · color · duplicate | ✅ | |
 | Booking pages: public profile, team, mobile-friendly | ✅ | |
-| **Branded booking pages · embedded widget** | ⬜ | |
+| **Branded booking pages · embedded widget** | 🟡 | **embed widget shipped** — `/embed.js` inline-iframe + popup modes, `window.calSync`; branding/theming ⬜ |
 | Scheduling policies: min notice, daily/weekly limits, window | ✅ / 🟡 | weekly limit ⬜ |
 | **No-meeting windows · preferred weekdays** | 🟡 | date-overrides support it in engine; no dedicated UI |
 | **Date-specific overrides UI · multiple named schedules** | ⬜ | engine supports; editor UI missing |
@@ -97,6 +97,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Capability | Status | Notes |
 |---|---|---|
 | Calendar analytics (meeting hours, focus, busiest day, by-type) | ✅ | Insights page + `/api/insights` |
+| **Booking analytics** (funnel, conversion, revenue, CSV export) | ✅ | `booking_page_views` beacon + `computeAnalytics()`; `/analytics` page (views→visitors→bookings→confirmed funnel, per-event-type table, revenue) + `/api/analytics` + CSV export |
 | **Focus analytics** (context switching, fragmentation, deep-work consistency) | ⬜ | **NEW** |
 | **Calendar-health detection** (unused recurring mtgs, repeated cancellations, late meetings, inefficiencies) | ⬜ | **NEW** — needs unified event model |
 | **Recommendations** ("move customer calls to mornings", "protect Friday") | ⬜ | **NEW** |
@@ -120,7 +121,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Capability | Status | Notes |
 |---|---|---|
 | REST API (internal, bearer-authed for mobile) | ✅ | not a public contract |
-| **API keys · outbound webhooks · SDK · Zapier · n8n · MCP server · browser extension · CLI** | ⬜ | **NEW** — the developer cluster |
+| **API keys · outbound webhooks · SDK · Zapier · n8n · MCP server · browser extension · CLI** | 🟡 | **v1 shipped** — hashed API keys + public REST API (`/api/v1/*`); outbound webhooks (encrypted signing secret, HMAC-SHA-256 signed delivery via BullMQ queue+worker, booking.created/cancelled/rescheduled); `/embed.js` SDK. MCP server · extension · CLI ⬜ |
 
 ## Phase 10 — Enterprise (deferred by owner)
 Organizations ✅ · RBAC ✅ · audit logs ⬜ · SSO/SAML/SCIM ⬜ · admin dashboard ⬜ · billing ⬜ · self-hosting ✅ (Docker) · compliance ⬜. **Explicitly parked until earlier phases are excellent.**
