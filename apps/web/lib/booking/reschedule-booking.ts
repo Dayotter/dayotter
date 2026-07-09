@@ -5,9 +5,14 @@ import { reserveRuleBlocks } from "../automation/apply-rules";
 import { updateBookingCalendarEvent } from "../calendar/host-calendar";
 import { emitWebhook } from "../webhooks/emit";
 import { SLOT_REVALIDATION_WINDOW_MS, eventConstraints, hostSlots } from "./availability";
-import { reserveTravelBlocks } from "./travel";
 import { AUTO_CONFERENCE } from "./event-type-input";
-import { clearBookingReminders, reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
+import {
+  clearBookingReminders,
+  reminderOffsetsForHost,
+  scheduleBookingReminders,
+  scheduleWorkflowMessages,
+} from "./reminders";
+import { reserveTravelBlocks } from "./travel";
 
 export class RescheduleError extends Error {
   constructor(
@@ -79,7 +84,19 @@ export async function rescheduleBooking(uid: string, newStartISO: string): Promi
 
   // Replace reminders at the host's preferred lead times.
   await clearBookingReminders(booking.id);
-  await scheduleBookingReminders(booking.id, newStart, await reminderOffsetsForHost(booking.hostId));
+  await scheduleBookingReminders(
+    booking.id,
+    newStart,
+    await reminderOffsetsForHost(booking.hostId),
+  );
+  // Re-schedule workflow messages against the new time window.
+  await scheduleWorkflowMessages(
+    booking.id,
+    eventType.organizationId,
+    eventType.id,
+    newStart,
+    newEnd,
+  );
 
   // Move the booking's reserved travel / prep / buffer blocks to the new time
   // (else the old ones linger and new ones would double up).
@@ -151,6 +168,10 @@ export async function rescheduleBooking(uid: string, newStartISO: string): Promi
       ),
     );
   } catch (err) {
-    logger.error("reschedule email failed", { event: "reschedule_email_failed", bookingId: booking.id, err });
+    logger.error("reschedule email failed", {
+      event: "reschedule_email_failed",
+      bookingId: booking.id,
+      err,
+    });
   }
 }

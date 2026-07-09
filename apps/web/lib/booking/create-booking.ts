@@ -5,6 +5,8 @@ import { bookingConfirmation, sendEmail } from "@calsync/emails";
 import { DateTime } from "luxon";
 import { applyBookingRules } from "../automation/apply-rules";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
+import { createZoomMeeting } from "../integrations/zoom";
+import { emitWebhook } from "../webhooks/emit";
 import {
   SLOT_REVALIDATION_WINDOW_MS,
   combineHostSlots,
@@ -13,9 +15,11 @@ import {
 } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
-import { createZoomMeeting } from "../integrations/zoom";
-import { emitWebhook } from "../webhooks/emit";
-import { reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
+import {
+  reminderOffsetsForHost,
+  scheduleBookingReminders,
+  scheduleWorkflowMessages,
+} from "./reminders";
 import { reserveTravelBlocks } from "./travel";
 
 export { BookingError } from "./booking-logic";
@@ -317,14 +321,14 @@ export async function createBooking(
 
   // Persist the resolved meeting URL (Zoom and/or a calendar conference).
   if (meetingUrl) {
-    await db
-      .update(schema.bookings)
-      .set({ meetingUrl })
-      .where(eq(schema.bookings.id, booking.id));
+    await db.update(schema.bookings).set({ meetingUrl }).where(eq(schema.bookings.id, booking.id));
   }
 
   // Schedule reminders at the host's preferred lead times.
   await scheduleBookingReminders(booking.id, start, await reminderOffsetsForHost(host.id));
+
+  // Schedule the host's workflow messages (custom reminders / follow-ups).
+  await scheduleWorkflowMessages(booking.id, eventType.organizationId, eventType.id, start, end);
 
   // Automation rules (prep blocks / buffers / follow-ups). Best-effort.
   await applyBookingRules({

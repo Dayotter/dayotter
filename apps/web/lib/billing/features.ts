@@ -15,6 +15,7 @@ export type Feature =
   // Pro differentiators (self-host free; cloud paywalled)
   | "ai" // AI scheduling, NL command, intelligence recommendations
   | "automation" // automation rules + weekly blocks
+  | "workflows" // automated attendee messaging (reminders / follow-ups)
   | "analytics" // funnel / conversion / CSV
   | "multi_channel" // Slack / WhatsApp / SMS reminders
   | "adaptive" // adaptive availability
@@ -31,6 +32,7 @@ export type Feature =
 export const FEATURE_TIER: Record<Feature, FeatureTier> = {
   ai: "pro",
   automation: "pro",
+  workflows: "pro",
   analytics: "pro",
   multi_channel: "pro",
   adaptive: "pro",
@@ -50,6 +52,7 @@ export const ALL_FEATURES = Object.keys(FEATURE_TIER) as Feature[];
 export const FEATURE_LABEL: Record<Feature, string> = {
   ai: "AI scheduling",
   automation: "Automations",
+  workflows: "Workflows",
   analytics: "Analytics",
   multi_channel: "Slack / WhatsApp / SMS reminders",
   adaptive: "Adaptive availability",

@@ -29,6 +29,7 @@ export const SETTINGS_NAV = [
   { href: "/settings/preferences", label: "Preferences" },
   { href: "/settings/notifications", label: "Notifications" },
   { href: "/settings/automations", label: "Automations" },
+  { href: "/settings/workflows", label: "Workflows" },
   { href: "/settings/calendars", label: "Calendars" },
   { href: "/settings/billing", label: "Billing" },
   { href: "/settings/developer", label: "Developer" },

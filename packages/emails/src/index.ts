@@ -8,5 +8,8 @@ export {
   bookingCancellation,
   bookingRunningLate,
   bookingMessage,
+  workflowEmail,
+  applyTemplateVars,
+  WORKFLOW_VARIABLES,
   type BookingEmailData,
 } from "./templates";

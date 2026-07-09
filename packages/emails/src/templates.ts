@@ -165,15 +165,10 @@ export function bookingMessage(d: BookingEmailData & { body: string }): Rendered
   return {
     subject: `Re: ${d.eventTitle}`,
     text: `${d.body}\n\n— ${d.hostName}\n\n${d.eventTitle}\nWhen: ${when}\nManage or reschedule: ${d.manageUrl}`,
-    html: shell(
-      `About ${esc(d.eventTitle)}`,
-      [
-        esc(d.body),
-        `— ${esc(d.hostName)}`,
-        `🗓 ${when}`,
-      ],
-      { label: "View or reschedule", url: d.manageUrl },
-    ),
+    html: shell(`About ${esc(d.eventTitle)}`, [esc(d.body), `— ${esc(d.hostName)}`, `🗓 ${when}`], {
+      label: "View or reschedule",
+      url: d.manageUrl,
+    }),
   };
 }
 
@@ -185,5 +180,58 @@ export function bookingCancellation(d: BookingEmailData): Rendered {
       `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} has been cancelled.`,
       `Was: ${fmt(d.start, d.timezone)}`,
     ]),
+  };
+}
+
+/**
+ * The placeholders a host may use in a workflow's subject/body. Kept here so the
+ * settings UI and the renderer agree on exactly one vocabulary.
+ */
+export const WORKFLOW_VARIABLES = [
+  "attendee_name",
+  "host_name",
+  "event_title",
+  "event_date",
+  "location",
+  "meeting_url",
+  "manage_url",
+] as const;
+
+/** Substitute `{{variable}}` tokens (case/space tolerant) from a value map. */
+export function applyTemplateVars(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (_m, key: string) => {
+    const v = vars[key.toLowerCase()];
+    return v ?? "";
+  });
+}
+
+/**
+ * A host-authored workflow email. `subjectTemplate`/`bodyTemplate` may contain
+ * `{{variable}}` placeholders (see WORKFLOW_VARIABLES); the body's blank-line
+ * separated paragraphs are rendered into the standard shell.
+ */
+export function workflowEmail(
+  d: BookingEmailData & { subjectTemplate: string; bodyTemplate: string; heading: string },
+): Rendered {
+  const vars: Record<string, string> = {
+    attendee_name: d.attendeeName,
+    host_name: d.hostName,
+    event_title: d.eventTitle,
+    event_date: fmt(d.start, d.timezone),
+    location: d.location ?? "",
+    meeting_url: d.meetingUrl ?? "",
+    manage_url: d.manageUrl,
+  };
+  const subject = applyTemplateVars(d.subjectTemplate, vars).trim() || `About ${d.eventTitle}`;
+  const bodyText = applyTemplateVars(d.bodyTemplate, vars).trim();
+  const paragraphs = bodyText.split(/\n{2,}/).map((p) => p.replace(/\n/g, " ").trim());
+  return {
+    subject,
+    text: `${bodyText}\n\n— ${d.hostName}\n\nView or reschedule: ${d.manageUrl}`,
+    html: shell(
+      esc(d.heading),
+      [...paragraphs.map((p) => esc(p)), `— ${esc(d.hostName)}`].filter(Boolean),
+      { label: "View or reschedule", url: d.manageUrl },
+    ),
   };
 }
