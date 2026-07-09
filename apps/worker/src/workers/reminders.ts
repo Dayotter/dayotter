@@ -1,5 +1,5 @@
 import { and, eq, getDb, isNull, schema } from "@calsync/db";
-import { bookingFollowUp, bookingReminder, sendEmail } from "@calsync/emails";
+import { bookingFollowUp, bookingNoShowFollowUp, bookingReminder, sendEmail } from "@calsync/emails";
 import { QUEUE_NAMES, type ReminderJob, connection } from "@calsync/jobs";
 import { deliverUserReminder } from "@calsync/notifications";
 import { Worker } from "bullmq";
@@ -39,12 +39,15 @@ export function startRemindersWorker(): Worker<ReminderJob> {
       const appUrl = process.env.APP_URL ?? "http://localhost:3000";
 
       // Post-meeting follow-up — send unless the meeting was cancelled/rejected.
+      // Branch the copy on the outcome: a no-show gets a warm "let's rebook"
+      // note; a completed/confirmed meeting gets the usual "thanks for meeting".
       if (reminder.kind === "followup") {
         if (booking.status !== "cancelled" && booking.status !== "rejected") {
+          const render = booking.status === "no_show" ? bookingNoShowFollowUp : bookingFollowUp;
           await Promise.all(
             booking.attendees.map((a) =>
               sendEmail({
-                ...bookingFollowUp({
+                ...render({
                   eventTitle: booking.title,
                   start: booking.startsAt,
                   end: booking.endsAt,

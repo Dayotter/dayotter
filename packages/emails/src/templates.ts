@@ -104,6 +104,22 @@ export function bookingFollowUp(d: BookingEmailData): Rendered {
   };
 }
 
+/** Sent after a meeting the attendee missed — warm, with a rebook link. */
+export function bookingNoShowFollowUp(d: BookingEmailData): Rendered {
+  return {
+    subject: `Sorry we missed you — ${d.eventTitle}`,
+    text: `We had ${d.eventTitle} with ${d.hostName} on the calendar but didn't get to connect. No worries — grab a new time whenever it suits you: ${d.manageUrl}`,
+    html: shell(
+      "Sorry we missed you",
+      [
+        `We had <strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} on the calendar but didn't get to connect.`,
+        "No worries at all — grab a new time whenever it suits you.",
+      ],
+      { label: "Pick a new time", url: d.manageUrl },
+    ),
+  };
+}
+
 export function bookingRescheduled(d: BookingEmailData): Rendered {
   const when = fmt(d.start, d.timezone);
   const where = d.meetingUrl

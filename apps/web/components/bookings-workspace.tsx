@@ -77,11 +77,14 @@ export function BookingsWorkspace({ tz, history }: { tz: string; history: Histor
 function HistoryRow({ b, tz }: { b: HistoryBooking; tz: string }) {
   const [status, setStatus] = useState(b.status);
   const isPast = new Date(b.endsAt).getTime() < Date.now();
-  const canMark = isPast && (status === "confirmed" || status === "no_show");
+  // Past meetings auto-complete, so the no-show toggle covers confirmed/completed/no_show.
+  const canMark =
+    isPast && (status === "confirmed" || status === "completed" || status === "no_show");
 
   async function toggleNoShow() {
     const noShow = status !== "no_show";
-    setStatus(noShow ? "no_show" : "confirmed");
+    // Optimistic: undo on a past meeting returns to `completed`.
+    setStatus(noShow ? "no_show" : "completed");
     const res = await fetch(`/api/bookings/${b.uid}/no-show`, {
       method: "POST",
       headers: { "content-type": "application/json" },

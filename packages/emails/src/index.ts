@@ -3,6 +3,7 @@ export {
   bookingConfirmation,
   bookingReminder,
   bookingFollowUp,
+  bookingNoShowFollowUp,
   bookingRescheduled,
   bookingCancellation,
   bookingRunningLate,

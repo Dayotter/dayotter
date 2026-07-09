@@ -16,15 +16,18 @@ export const POST = withUser(async (u, request, ctx: { params: Promise<{ uid: st
 
   const booking = await getDb().query.bookings.findFirst({
     where: eq(schema.bookings.uid, uid),
-    columns: { id: true, hostId: true, status: true },
+    columns: { id: true, hostId: true, status: true, endsAt: true },
   });
   if (!booking) return jsonError("Booking not found", 404);
   if (booking.hostId !== u.id) return jsonError("Not your booking", 403);
   if (booking.status === "cancelled") return jsonError("Booking was cancelled", 409);
 
+  // Undo returns a past meeting to `completed` (its auto state), not `confirmed`.
+  const revertTo = booking.endsAt < new Date() ? "completed" : "confirmed";
+
   await getDb()
     .update(schema.bookings)
-    .set({ status: noShow ? "no_show" : "confirmed" })
+    .set({ status: noShow ? "no_show" : revertTo })
     .where(and(eq(schema.bookings.id, booking.id)));
 
   logger.info("booking no-show updated", {
