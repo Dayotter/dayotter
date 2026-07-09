@@ -43,7 +43,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Connect / disconnect calendars | ✅ | |
 | Pick conflict-check calendars / write-target | ✅ | `checkForConflicts` |
 | **Rename calendars, visibility, read-only/writable controls** | ⬜ | **NEW** — `color`/`name` stored, no UI |
-| **Unified full event model** (title, guests, recurrence, attachments, privacy, metadata) | ⬜ | **BIG GAP** — we store **busy times only**, not full events. Blocks Planning/Intelligence/Inbox. |
+| **Unified full event model** (title, guests, recurrence, location, privacy, metadata) | ✅ | `calendar_events` table (migration 0008); adapters ingest full events; `busy_blocks` is now its lean availability projection. Attachments field TBD. |
 | Calendar health: last sync, OAuth expiry, errors | 🟡 | `lastError`/`lastSyncedAt` shown; **timezone-inconsistency / missing-event / duplicate detection ⬜ (NEW)** |
 | Timezone Engine (DST, organizer/viewer/device) | ✅ | Luxon, DST-tested |
 | **Floating events / traveling-user timezone** | ⬜ | **NEW** |
@@ -134,7 +134,7 @@ Organizations ✅ · RBAC ✅ · audit logs ⬜ · SSO/SAML/SCIM ⬜ · admin da
 | **Calendar Memory** (habit learning) | ⬜ | unified event model + Intelligence engine |
 | **Travel-Aware Scheduling** (travel time, airport buffers, hybrid locations) | ⬜ | unified event model + location data |
 | **Adaptive Availability** (fewer slots on heavy weeks; auto-reserve focus when target missed) | ⬜ | Availability + Intelligence engines |
-| **Calendar Inbox** (unified: pending invites, conflicts, expired links, broken sync, suggestions) | ⬜ | **high-leverage NEW surface** — ties Comms + Sync-health + Scheduling together |
+| **Calendar Inbox** (unified: pending invites, conflicts, expired links, broken sync, suggestions) | 🟡 | **v1 shipped** — `/inbox` composes sync-health (reconnect) + double-booking detection (via event model) + pending invites + focus suggestions. Add expired-links + optimization nudges next. |
 | **Meeting Lifecycle** (scheduled→confirmed→reminded→joined→delayed→completed→follow-up→archived) with automation hooks | ⬜ | state machine on bookings + Automation engine |
 
 ---
