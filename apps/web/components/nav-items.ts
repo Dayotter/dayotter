@@ -26,5 +26,6 @@ export const SETTINGS_NAV = [
   { href: "/settings/profile", label: "Profile" },
   { href: "/settings/preferences", label: "Preferences" },
   { href: "/settings/notifications", label: "Notifications" },
+  { href: "/settings/automations", label: "Automations" },
   { href: "/settings/calendars", label: "Calendars" },
 ] as const;

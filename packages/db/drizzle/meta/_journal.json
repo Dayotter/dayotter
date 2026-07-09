@@ -64,6 +64,13 @@
       "when": 1783583691813,
       "tag": "0008_petite_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783586777150,
+      "tag": "0009_noisy_wrecker",
+      "breakpoints": true
     }
   ]
 }

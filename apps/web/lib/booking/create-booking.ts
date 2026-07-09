@@ -3,6 +3,7 @@ import { logger, roundRobinPick } from "@calsync/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@calsync/db";
 import { bookingConfirmation, sendEmail } from "@calsync/emails";
 import { DateTime } from "luxon";
+import { applyBookingRules } from "../automation/apply-rules";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
 import {
   SLOT_REVALIDATION_WINDOW_MS,
@@ -291,6 +292,14 @@ export async function createBooking(
 
   // Schedule reminders at the host's preferred lead times.
   await scheduleBookingReminders(booking.id, start, await reminderOffsetsForHost(host.id));
+
+  // Automation rules (prep blocks / buffers). Best-effort — never blocks a booking.
+  await applyBookingRules({
+    hostId: host.id,
+    title: eventType.title,
+    startsAt: start,
+    endsAt: end,
+  });
 
   // Confirmation emails to attendee + host.
   try {

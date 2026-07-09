@@ -86,6 +86,33 @@ export const timeBlocks = pgTable(
   (t) => [index("time_blocks_user_idx").on(t.userId, t.startsAt)],
 );
 
+/**
+ * Automation rule (Automation Engine): when a booking matches, automatically
+ * take an action — e.g. "every interview → 15-min prep block before". Composes
+ * the Planning Engine (creates time_blocks). trigger is currently booking-created.
+ */
+export const automationRules = pgTable(
+  "automation_rules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    /** Case-insensitive substring the booking title must contain (null = any). */
+    matchTitle: text("match_title"),
+    /** prep_block (before) | buffer_after (after). */
+    action: text("action").notNull().default("prep_block"),
+    /** Length of the created block, in minutes. */
+    offsetMinutes: integer("offset_minutes").notNull().default(15),
+    /** Title for the created block. */
+    blockTitle: text("block_title"),
+    ...timestamps,
+  },
+  (t) => [index("automation_rules_user_idx").on(t.userId)],
+);
+
 /** A bookable meeting definition (Calendly "event type" / Cal.com "event type"). */
 export const eventTypes = pgTable(
   "event_types",
