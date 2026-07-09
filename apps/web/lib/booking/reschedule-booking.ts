@@ -2,6 +2,7 @@ import { logger } from "@calsync/core";
 import { eq, getDb, schema } from "@calsync/db";
 import { bookingRescheduled, sendEmail } from "@calsync/emails";
 import { updateBookingCalendarEvent } from "../calendar/host-calendar";
+import { emitWebhook } from "../webhooks/emit";
 import { SLOT_REVALIDATION_WINDOW_MS, eventConstraints, hostSlots } from "./availability";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { clearBookingReminders, reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
@@ -82,6 +83,16 @@ export async function rescheduleBooking(uid: string, newStartISO: string): Promi
     uid,
     hostId: booking.hostId,
   });
+
+  if (booking.hostId) {
+    await emitWebhook(booking.hostId, "booking.rescheduled", {
+      uid,
+      eventTypeId: booking.eventTypeId,
+      title: booking.title,
+      startsAt: newStart.toISOString(),
+      endsAt: newEnd.toISOString(),
+    });
+  }
 
   // Notify.
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";

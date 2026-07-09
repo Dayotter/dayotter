@@ -14,6 +14,7 @@ export const QUEUE_NAMES = {
   reminders: "reminders",
   sync: "calendar-sync",
   maintenance: "calendar-maintenance",
+  webhooks: "webhooks",
 } as const;
 
 /** Liveness key the worker refreshes so the web /health can confirm it's alive. */
@@ -61,9 +62,32 @@ export interface SyncJob {
   reason: "webhook" | "poll" | "initial" | "renewal";
 }
 
+export interface WebhookJob {
+  deliveryId: string;
+}
+
 export const remindersQueue = new Queue<ReminderJob>(QUEUE_NAMES.reminders, { connection });
 export const syncQueue = new Queue<SyncJob>(QUEUE_NAMES.sync, { connection });
 export const maintenanceQueue = new Queue(QUEUE_NAMES.maintenance, { connection });
+export const webhooksQueue = new Queue<WebhookJob>(QUEUE_NAMES.webhooks, { connection });
+
+/**
+ * Enqueue delivery of a persisted webhook delivery row. Retries with backoff so
+ * a flaky consumer endpoint recovers without losing events; the delivery row
+ * records the terminal status either way.
+ */
+export async function enqueueWebhook(deliveryId: string): Promise<void> {
+  await webhooksQueue.add(
+    "deliver",
+    { deliveryId },
+    {
+      attempts: 5,
+      backoff: { type: "exponential", delay: 10_000 },
+      removeOnComplete: true,
+      removeOnFail: 200,
+    },
+  );
+}
 
 /**
  * Register the repeatable maintenance tick. It polls webhook-less providers

@@ -1,4 +1,11 @@
-import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
 
 /**
  * Constant-time string comparison that never throws on length mismatch. Use for
@@ -8,6 +15,21 @@ export function safeEqual(a: string, b: string): boolean {
   const ab = Buffer.from(a);
   const bb = Buffer.from(b);
   return ab.length === bb.length && timingSafeEqual(ab, bb);
+}
+
+/** SHA-256 hex digest — used to store API keys as irreversible lookup hashes. */
+export function sha256hex(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+/** HMAC-SHA-256 hex digest — used to sign outbound webhook payloads. */
+export function hmacSha256hex(secret: string, body: string): string {
+  return createHmac("sha256", secret).update(body).digest("hex");
+}
+
+/** Cryptographically-random URL-safe token (default 32 bytes → 43 chars). */
+export function randomToken(bytes = 32): string {
+  return randomBytes(bytes).toString("base64url");
 }
 
 /**

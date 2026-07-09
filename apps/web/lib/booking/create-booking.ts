@@ -13,6 +13,7 @@ import {
 } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
+import { emitWebhook } from "../webhooks/emit";
 import { reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
 import { reserveTravelBlocks } from "./travel";
 
@@ -251,6 +252,17 @@ export async function createBooking(
     uid,
     eventTypeId: eventType.id,
     hostId: host.id,
+  });
+
+  // Fan out to the host's webhook endpoints (best-effort).
+  await emitWebhook(host.id, "booking.created", {
+    uid,
+    eventTypeId: eventType.id,
+    title: eventType.title,
+    startsAt: start.toISOString(),
+    endsAt: end.toISOString(),
+    status: booking.status,
+    attendee: { name: input.attendee.name, email: input.attendee.email },
   });
 
   // Write to the host's calendar (best-effort; booking stands without it).

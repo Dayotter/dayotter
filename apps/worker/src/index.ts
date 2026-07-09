@@ -3,6 +3,7 @@ import { type SyncJob, connection, scheduleMaintenance, writeHeartbeat } from "@
 import { startMaintenanceWorker } from "./workers/maintenance";
 import { startRemindersWorker } from "./workers/reminders";
 import { startSyncWorker } from "./workers/sync";
+import { startWebhooksWorker } from "./workers/webhooks";
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
 
@@ -13,11 +14,13 @@ async function main(): Promise<void> {
   const reminders = startRemindersWorker();
   const sync = startSyncWorker();
   const maintenance = startMaintenanceWorker();
+  const webhooks = startWebhooksWorker();
 
   const workers = [
     ["reminders", reminders],
     ["sync", sync],
     ["maintenance", maintenance],
+    ["webhooks", webhooks],
   ] as const;
 
   for (const [name, worker] of workers) {

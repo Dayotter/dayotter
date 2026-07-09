@@ -3,6 +3,7 @@ import { eq, getDb, schema } from "@calsync/db";
 import { bookingCancellation, sendEmail } from "@calsync/emails";
 import { deleteBookingFromCalendar } from "../calendar/host-calendar";
 import { paymentsEnabled, refundPayment } from "../payments/stripe";
+import { emitWebhook } from "../webhooks/emit";
 import { clearBookingReminders } from "./reminders";
 
 /**
@@ -44,6 +45,17 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
 
   // Cancel any pending reminder jobs.
   await clearBookingReminders(booking.id);
+
+  if (booking.hostId) {
+    await emitWebhook(booking.hostId, "booking.cancelled", {
+      uid,
+      eventTypeId: booking.eventTypeId,
+      title: booking.title,
+      startsAt: booking.startsAt.toISOString(),
+      endsAt: booking.endsAt.toISOString(),
+      reason: reason ?? null,
+    });
+  }
 
   // Notify attendees.
   try {

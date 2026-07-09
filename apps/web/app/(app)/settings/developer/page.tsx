@@ -1,0 +1,18 @@
+import { DeveloperSettings } from "@/components/developer-settings";
+import { getSession } from "@/lib/auth/session";
+import { eq, getDb, schema } from "@calsync/db";
+
+export const dynamic = "force-dynamic";
+
+export default async function DeveloperSettingsPage() {
+  const session = await getSession();
+  const user = session?.user?.id
+    ? await getDb().query.users.findFirst({
+        where: eq(schema.users.id, session.user.id),
+        columns: { handle: true },
+      })
+    : null;
+
+  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  return <DeveloperSettings appUrl={appUrl} handle={user?.handle ?? "your-handle"} />;
+}
