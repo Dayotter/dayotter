@@ -54,6 +54,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       isPrivate: source.isPrivate,
       redirectUrl: source.redirectUrl,
       color: source.color,
+      price: source.price,
+      currency: source.currency,
+      depositAmount: source.depositAmount,
       questions: source.questions,
     })
     .returning();

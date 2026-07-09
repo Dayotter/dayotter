@@ -1,8 +1,10 @@
 import { SlotPicker } from "@/components/slot-picker";
 import { Card, CardBody } from "@/components/ui/card";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
+import { chargeFor, formatMoney } from "@/lib/booking/money";
+import { paymentsEnabled } from "@/lib/payments/stripe";
 import { and, eq, getDb, schema } from "@calsync/db";
-import { Clock, Video } from "lucide-react";
+import { Clock, CreditCard, Video } from "lucide-react";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +28,15 @@ export default async function PublicBookingPage({
     ),
   });
   if (!eventType) notFound();
+
+  const chargeAmount = paymentsEnabled ? chargeFor(eventType.price, eventType.depositAmount) : 0;
+  const priceLabel =
+    chargeAmount > 0 ? formatMoney(chargeAmount, eventType.currency ?? "usd") : null;
+  const isDeposit =
+    priceLabel !== null &&
+    eventType.depositAmount != null &&
+    eventType.price != null &&
+    eventType.depositAmount < eventType.price;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
@@ -52,13 +63,25 @@ export default async function PublicBookingPage({
               <p className="flex items-center gap-2">
                 <Video size={15} /> {LOCATION_LABELS[eventType.location] ?? eventType.location}
               </p>
+              {priceLabel ? (
+                <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
+                  <CreditCard size={15} /> {priceLabel}
+                  {isDeposit ? (
+                    <span className="text-xs font-normal text-[var(--color-faint)]">deposit</span>
+                  ) : null}
+                </p>
+              ) : null}
             </div>
           </div>
 
           {/* Slot picker */}
           <CardBody className="p-6">
             <h2 className="mb-4 text-sm font-semibold">Select a time</h2>
-            <SlotPicker eventTypeId={eventType.id} questions={eventType.questions} />
+            <SlotPicker
+              eventTypeId={eventType.id}
+              questions={eventType.questions}
+              priceLabel={priceLabel}
+            />
           </CardBody>
         </div>
       </Card>

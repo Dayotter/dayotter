@@ -1,6 +1,15 @@
 import { relations, sql } from "drizzle-orm";
-import { index, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { bookingStatus, calendarProvider, timestamps } from "./_shared";
+import {
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { bookingStatus, calendarProvider, paymentStatus, timestamps } from "./_shared";
 import { calendars } from "./calendar";
 import { eventTypes } from "./scheduling";
 import { organizations, users } from "./orgs";
@@ -39,6 +48,14 @@ export const bookings = pgTable(
 
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
     cancelReason: text("cancel_reason"),
+
+    // Payments (Stripe). paymentStatus="none" for free event types.
+    paymentStatus: paymentStatus("payment_status").notNull().default("none"),
+    /** Stripe PaymentIntent id — used to issue refunds on cancel. */
+    paymentIntentId: text("payment_intent_id"),
+    /** Amount actually charged, in the currency's minor units (cents). */
+    amountPaid: integer("amount_paid"),
+    paymentCurrency: text("payment_currency"),
     ...timestamps,
   },
   (t) => [

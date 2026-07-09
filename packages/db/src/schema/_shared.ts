@@ -62,5 +62,8 @@ export const notificationChannelType = pgEnum("notification_channel_type", [
   "slack",
 ]);
 
+/** Payment lifecycle for a booking. "none" = the event type was free. */
+export const paymentStatus = pgEnum("payment_status", ["none", "pending", "paid", "refunded"]);
+
 export const timeFormat = pgEnum("time_format", ["12h", "24h"]);
 export const themePref = pgEnum("theme_pref", ["system", "light", "dark"]);

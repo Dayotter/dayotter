@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CURRENCIES } from "./money";
 
 /** Location / meeting types a host can pick for an event type. */
 export const LOCATION_TYPES = [
@@ -112,6 +113,11 @@ export const eventTypeInputSchema = z
     redirectUrl: z.string().url().max(500).nullable().default(null),
     /** Colour token used to visually tag this event type across the app. */
     color: z.enum(EVENT_COLORS).nullable().default(null),
+    /** Price to book, in the currency's minor units (cents). null/0 = free. */
+    price: z.number().int().min(0).max(100_000_000).nullable().default(null),
+    currency: z.enum(CURRENCIES).default("usd"),
+    /** Charge only this deposit (< price) to book. null = charge full price. */
+    depositAmount: z.number().int().min(0).max(100_000_000).nullable().default(null),
     questions: z.array(bookingQuestionSchema).max(20).default([]),
   })
   .refine(

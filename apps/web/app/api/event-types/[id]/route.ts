@@ -50,6 +50,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       isPrivate: et.isPrivate,
       redirectUrl: et.redirectUrl,
       color: et.color,
+      price: et.price,
+      currency: et.currency,
+      depositAmount: et.depositAmount,
       questions: et.questions,
       isActive: et.isActive,
     },
@@ -86,6 +89,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         isPrivate: d.isPrivate,
         redirectUrl: d.redirectUrl,
         color: d.color,
+        price: d.price,
+        currency: d.currency,
+        depositAmount: d.depositAmount,
         questions: d.questions,
       })
       .where(eq(schema.eventTypes.id, id));

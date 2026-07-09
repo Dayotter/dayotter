@@ -16,9 +16,11 @@ import { useState } from "react";
 export function SlotPicker({
   eventTypeId,
   questions = [],
+  priceLabel = null,
 }: {
   eventTypeId: string;
   questions?: BookingQuestionInput[];
+  priceLabel?: string | null;
 }) {
   const router = useRouter();
   const zone = useLocalZone();
@@ -62,6 +64,7 @@ export function SlotPicker({
         notes: notes || undefined,
         responses: questions.length ? answers : undefined,
         captchaToken: captchaToken || undefined,
+        returnPath: typeof window !== "undefined" ? window.location.pathname : undefined,
       }),
     });
     if (!res.ok) {
@@ -72,6 +75,12 @@ export function SlotPicker({
       return;
     }
     const data = await res.json();
+    // Paid event type → hand off to Stripe Checkout.
+    if (typeof data.checkoutUrl === "string") {
+      track("Booking Checkout Started", { eventTypeId });
+      window.location.href = data.checkoutUrl;
+      return;
+    }
     track("Booking Confirmed", { eventTypeId });
     // Honor a host-configured redirect (external URL) over the calSync confirmation.
     if (typeof data.redirectUrl === "string" && /^https?:\/\//.test(data.redirectUrl)) {
@@ -195,7 +204,7 @@ export function SlotPicker({
           className="w-full"
           disabled={submitting || (captchaEnabled && !captchaToken)}
         >
-          {submitting ? "Confirming…" : "Confirm booking"}
+          {submitting ? "Confirming…" : priceLabel ? `Pay ${priceLabel} & book` : "Confirm booking"}
         </Button>
       </div>
     </form>

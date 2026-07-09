@@ -24,6 +24,7 @@ const config: NextConfig = {
     "node-ical",
     "nodemailer",
     "@anthropic-ai/sdk",
+    "stripe",
   ],
 };
 

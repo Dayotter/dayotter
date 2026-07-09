@@ -67,6 +67,9 @@ export async function POST(request: Request) {
         isPrivate: d.isPrivate,
         redirectUrl: d.redirectUrl,
         color: d.color,
+        price: d.price,
+        currency: d.currency,
+        depositAmount: d.depositAmount,
         questions: d.questions,
       })
       .returning();

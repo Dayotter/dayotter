@@ -95,6 +95,8 @@ export interface CreateBookingInput {
   guests?: string[];
   notes?: string;
   responses?: Record<string, unknown>;
+  /** Set when the booking was paid via Stripe (created from the payment handler). */
+  payment?: { paymentIntentId: string; amountPaid: number; currency: string };
 }
 
 export async function createBooking(
@@ -180,6 +182,10 @@ export async function createBooking(
           location: eventType.locationDetail,
           responses: input.responses,
           uid,
+          paymentStatus: input.payment ? "paid" : "none",
+          paymentIntentId: input.payment?.paymentIntentId,
+          amountPaid: input.payment?.amountPaid,
+          paymentCurrency: input.payment?.currency,
         })
         .returning();
       if (!row) throw new BookingError("Failed to create booking", 500);

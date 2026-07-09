@@ -2,6 +2,7 @@ import { logger } from "@calsync/core";
 import { eq, getDb, schema } from "@calsync/db";
 import { bookingCancellation, sendEmail } from "@calsync/emails";
 import { deleteBookingFromCalendar } from "../calendar/host-calendar";
+import { paymentsEnabled, refundPayment } from "../payments/stripe";
 import { clearBookingReminders } from "./reminders";
 
 /**
@@ -16,9 +17,26 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
   });
   if (!booking || booking.status === "cancelled") return false;
 
+  // Refund a paid booking on cancellation (best-effort, before marking cancelled).
+  let refunded = false;
+  if (paymentsEnabled && booking.paymentStatus === "paid" && booking.paymentIntentId) {
+    refunded = await refundPayment(booking.paymentIntentId);
+    if (refunded) {
+      logger.info("booking payment refunded on cancel", {
+        event: "booking_refunded",
+        bookingId: booking.id,
+      });
+    }
+  }
+
   await db
     .update(schema.bookings)
-    .set({ status: "cancelled", cancelledAt: new Date(), cancelReason: reason })
+    .set({
+      status: "cancelled",
+      cancelledAt: new Date(),
+      cancelReason: reason,
+      ...(refunded ? { paymentStatus: "refunded" as const } : {}),
+    })
     .where(eq(schema.bookings.id, booking.id));
 
   // Remove from the host's calendar (best-effort).
@@ -46,7 +64,11 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
       ),
     );
   } catch (err) {
-    logger.error("cancellation email failed", { event: "cancel_email_failed", bookingId: booking.id, err });
+    logger.error("cancellation email failed", {
+      event: "cancel_email_failed",
+      bookingId: booking.id,
+      err,
+    });
   }
 
   return true;

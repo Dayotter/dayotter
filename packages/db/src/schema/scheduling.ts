@@ -99,8 +99,10 @@ export const eventTypes = pgTable(
     // Intake form: array of { id, label, type, required }.
     questions: jsonb("questions").$type<BookingQuestion[]>().notNull().default([]),
 
-    price: integer("price"), // in minor units (cents); null = free
+    price: integer("price"), // in minor units (cents); null/0 = free
     currency: text("currency"),
+    /** If set (< price), only this deposit is charged to book. Null = charge full price. */
+    depositAmount: integer("deposit_amount"),
 
     isActive: boolean("is_active").notNull().default(true),
     isPrivate: boolean("is_private").notNull().default(false),

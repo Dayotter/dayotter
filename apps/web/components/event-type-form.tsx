@@ -20,6 +20,7 @@ import {
   QUESTION_TYPES,
   QUESTION_TYPE_LABELS,
 } from "@/lib/booking/event-type-input";
+import { CURRENCIES, CURRENCY_SYMBOL } from "@/lib/booking/money";
 import { Plus, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -60,6 +61,9 @@ export interface EventTypeInitial {
   isPrivate?: boolean;
   redirectUrl?: string | null;
   color?: string | null;
+  price?: number | null;
+  currency?: string | null;
+  depositAmount?: number | null;
   questions?: BookingQuestionInput[];
 }
 
@@ -74,9 +78,11 @@ function newQuestionId() {
 export function EventTypeForm({
   mode,
   initial,
+  paymentsEnabled = false,
 }: {
   mode: "create" | "edit";
   initial?: EventTypeInitial;
+  paymentsEnabled?: boolean;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -100,6 +106,15 @@ export function EventTypeForm({
     (initial?.color as EventColor) && EVENT_COLORS.includes(initial?.color as EventColor)
       ? (initial?.color as EventColor)
       : "violet",
+  );
+  const [priceOn, setPriceOn] = useState((initial?.price ?? 0) > 0);
+  const [priceMajor, setPriceMajor] = useState(
+    initial?.price ? (initial.price / 100).toString() : "",
+  );
+  const [currency, setCurrency] = useState(initial?.currency ?? "usd");
+  const [depositOn, setDepositOn] = useState((initial?.depositAmount ?? 0) > 0);
+  const [depositMajor, setDepositMajor] = useState(
+    initial?.depositAmount ? (initial.depositAmount / 100).toString() : "",
   );
   const [questions, setQuestions] = useState<BookingQuestionInput[]>(initial?.questions ?? []);
   const [error, setError] = useState<string | null>(null);
@@ -141,6 +156,9 @@ export function EventTypeForm({
       isPrivate,
       redirectUrl: redirectUrl.trim() || null,
       color,
+      price: priceOn ? Math.round((Number(priceMajor) || 0) * 100) : null,
+      currency,
+      depositAmount: priceOn && depositOn ? Math.round((Number(depositMajor) || 0) * 100) : null,
       questions: questions
         .filter((q) => q.label.trim().length > 0)
         .map((q) => ({
@@ -444,6 +462,88 @@ export function EventTypeForm({
                 Tags this event across your dashboard, calendar, and bookings.
               </p>
             </div>
+
+            {paymentsEnabled ? (
+              <div className="mt-4 rounded-md border border-[var(--color-border)] p-3">
+                <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                  <input
+                    type="checkbox"
+                    checked={priceOn}
+                    onChange={(e) => setPriceOn(e.target.checked)}
+                    className="accent-[var(--color-accent)]"
+                  />
+                  Require payment to book
+                </label>
+                {priceOn ? (
+                  <div className="mt-3 space-y-3">
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <Label htmlFor="price">Price</Label>
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm text-[var(--color-muted)]">
+                            {CURRENCY_SYMBOL[currency as keyof typeof CURRENCY_SYMBOL]}
+                          </span>
+                          <Input
+                            id="price"
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={priceMajor}
+                            onChange={(e) => setPriceMajor(e.target.value)}
+                            placeholder="25.00"
+                          />
+                        </div>
+                      </div>
+                      <div className="w-28">
+                        <Label htmlFor="currency">Currency</Label>
+                        <Select
+                          id="currency"
+                          value={currency}
+                          onChange={(e) => setCurrency(e.target.value)}
+                        >
+                          {CURRENCIES.map((c) => (
+                            <option key={c} value={c}>
+                              {c.toUpperCase()}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                      <input
+                        type="checkbox"
+                        checked={depositOn}
+                        onChange={(e) => setDepositOn(e.target.checked)}
+                        className="accent-[var(--color-accent)]"
+                      />
+                      Take a deposit instead of the full price
+                    </label>
+                    {depositOn ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-[var(--color-muted)]">
+                          {CURRENCY_SYMBOL[currency as keyof typeof CURRENCY_SYMBOL]}
+                        </span>
+                        <Input
+                          aria-label="Deposit amount"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={depositMajor}
+                          onChange={(e) => setDepositMajor(e.target.value)}
+                          placeholder="10.00"
+                          className="w-32"
+                        />
+                        <span className="text-xs text-[var(--color-faint)]">charged to book</span>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="mt-1 text-xs text-[var(--color-faint)]">
+                    Collect payment via Stripe before the booking is confirmed.
+                  </p>
+                )}
+              </div>
+            ) : null}
           </div>
 
           <div className="border-t border-[var(--color-border)] pt-4">

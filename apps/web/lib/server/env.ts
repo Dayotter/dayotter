@@ -37,6 +37,11 @@ const schema = z.object({
 
   // Optional AI scheduling (Claude). AI features are hidden unless set.
   ANTHROPIC_API_KEY: z.string().optional(),
+
+  // Optional Stripe payments — paid bookings are disabled unless set.
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
