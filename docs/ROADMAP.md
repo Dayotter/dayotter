@@ -98,7 +98,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 |---|---|---|
 | Calendar analytics (meeting hours, focus, busiest day, by-type) | ✅ | Insights page + `/api/insights` |
 | **Booking analytics** (funnel, conversion, revenue, CSV export) | ✅ | `booking_page_views` beacon + `computeAnalytics()`; `/analytics` page (views→visitors→bookings→confirmed funnel, per-event-type table, revenue) + `/api/analytics` + CSV export |
-| **Focus analytics** (context switching, fragmentation, deep-work consistency) | ⬜ | **NEW** |
+| **Focus analytics** (context switching, fragmentation, deep-work) | ✅ | Insights page: meetings/busy-day, %fragmented (3+/day), %back-to-back (<15min), avg longest focus gap — pure `computeFocusMetrics`, tz-aware |
 | **Calendar-health detection** (unused recurring mtgs, repeated cancellations, late meetings, inefficiencies) | ⬜ | **NEW** — needs unified event model |
 | **Recommendations** ("move customer calls to mornings", "protect Friday") | ⬜ | **NEW** |
 | ⭐ **Calendar Memory** (learn habits → soft recommendations, never hard rules) | ⬜ | **NEW differentiator** |
