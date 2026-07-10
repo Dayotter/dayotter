@@ -54,7 +54,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Availability engine (working hours, buffers, focus, holidays, limits, tz) | ✅ | pure + unit-tested |
 | **Ranked availability / suggested slots** | ✅ | **recommended times** — `rank-slots.ts` scores by consolidation (back-to-back), preferred hour, recency; top-3 surfaced on the booking page + starred in the grid. Conflict-reason strings ⬜ |
 | Booking links: 1:1, collective, round-robin | ✅ | |
-| **Group events** (many bookers, one slot) | ⬜ | **NEW** (deferred — capacity model) |
+| **Group events** (many bookers, one slot) | ✅ | capacity per slot (`max_attendees`); slot stays open until full, concurrency-safe (is_group exempt from the single-slot + GiST guards, seat limit enforced in-txn with a per-slot advisory lock). Not written to host calendar. |
 | Unlimited event types (duration/buffer/questions/platform/notifications) | ✅ | |
 | Multiple durations · slot interval · min-gap · daily limit | ✅ | |
 | **Expiring / password-protected / one-off links** | ✅ | one-off ✅, expiring ✅, **password ✅** (SHA-256 access code gates the public page + book-time verify) |
