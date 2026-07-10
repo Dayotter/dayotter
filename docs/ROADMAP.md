@@ -114,7 +114,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Capability | Status | Notes |
 |---|---|---|
 | Expo app: host mgmt, event types, availability, bookings, settings, calendar, insights, AI, channels, overflow, **workflows, booking-page branding** | ✅ | typecheck + Metro-export verified; workflows CRUD + branding (accent + welcome) at parity with web |
-| **Native push · widgets · live activities · offline · voice shortcuts** | ⬜ | needs `expo-notifications` + a dev build |
+| **Voice commands** ✅ (web: Web Speech API; mobile: on-device expo-speech-recognition, needs a dev build). Native push · widgets · live activities · offline ⬜ | 🟡 | |
 | Quick actions (running late, accept/decline, book, delay) | 🟡 | running-late + overflow shipped; rest ⬜ |
 
 ## Phase 9 — Public Platform

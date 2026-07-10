@@ -3,7 +3,11 @@ import { formatDateTime } from "@/format";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useEffect, useState } from "react";
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from "expo-speech-recognition";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 type Intent = "create" | "reschedule" | "cancel" | "none";
@@ -42,6 +46,7 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
   // User-edited start time (overrides the AI's proposed time before confirming).
   const [pickedStart, setPickedStart] = useState<Date | null>(null);
   const [picker, setPicker] = useState<"date" | "time" | null>(null);
+  const [listening, setListening] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -53,6 +58,43 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
       active = false;
     };
   }, []);
+
+  // Voice input (on-device speech recognition). The result handler runs the same
+  // confirm-first command flow as typing; a ref keeps it pointed at the latest
+  // submit closure so it never fires with stale state.
+  const submitRef = useRef<(override?: string) => void>(() => {});
+  useSpeechRecognitionEvent("start", () => setListening(true));
+  useSpeechRecognitionEvent("end", () => setListening(false));
+  useSpeechRecognitionEvent("error", () => setListening(false));
+  useSpeechRecognitionEvent("result", (e) => {
+    const transcript = e.results?.[0]?.transcript?.trim();
+    if (transcript) {
+      setText(transcript);
+      submitRef.current(transcript);
+    }
+  });
+
+  async function toggleVoice() {
+    if (listening) {
+      ExpoSpeechRecognitionModule.stop();
+      return;
+    }
+    try {
+      const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!perm.granted) {
+        setError("Microphone access is needed for voice commands.");
+        return;
+      }
+      setError(null);
+      ExpoSpeechRecognitionModule.start({
+        lang: "en-US",
+        interimResults: false,
+        continuous: false,
+      });
+    } catch {
+      setError("Couldn't start voice input.");
+    }
+  }
 
   function reset() {
     setDraft(null);
@@ -80,15 +122,16 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
     }
   }
 
-  async function submit() {
-    if (!text.trim()) return;
+  async function submit(override?: string) {
+    const input = (typeof override === "string" ? override : text).trim();
+    if (!input) return;
     setLoading(true);
     setError(null);
     setDone(null);
     reset();
     try {
       const data = await api.post<{ draft: Draft; target: Target | null }>("/api/ai/command", {
-        text,
+        text: input,
       });
       const d = data.draft;
       if (!d.understood || d.intent === "none") {
@@ -114,6 +157,9 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
     setDone(msg);
     onDone?.();
   }
+
+  // Keep the voice result handler bound to the current-render submit closure.
+  submitRef.current = submit;
 
   async function confirm() {
     if (!draft) return;
@@ -161,12 +207,23 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
           style={styles.input}
           value={text}
           onChangeText={setText}
-          placeholder="Move my 3pm to tomorrow…"
+          placeholder={listening ? "Listening…" : "Move my 3pm to tomorrow…"}
           placeholderTextColor={colors.faint}
           returnKeyType="go"
-          onSubmitEditing={submit}
+          onSubmitEditing={() => submit()}
         />
-        <Pressable style={styles.go} onPress={submit} disabled={loading}>
+        <Pressable
+          style={[styles.mic, listening && styles.micActive]}
+          onPress={toggleVoice}
+          accessibilityLabel={listening ? "Stop listening" : "Speak a command"}
+        >
+          <Ionicons
+            name={listening ? "mic" : "mic-outline"}
+            size={20}
+            color={listening ? colors.danger : colors.muted}
+          />
+        </Pressable>
+        <Pressable style={styles.go} onPress={() => submit()} disabled={loading}>
           {loading ? (
             <ActivityIndicator color={colors.white} size="small" />
           ) : (
@@ -284,6 +341,16 @@ const styles = StyleSheet.create({
     minWidth: 56,
   },
   goText: { color: colors.white, fontWeight: "600" },
+  mic: {
+    width: 44,
+    minHeight: 44,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  micActive: { borderColor: colors.danger, backgroundColor: `${colors.danger}14` },
   error: { color: colors.danger, marginTop: 10, fontSize: 13 },
   done: { color: colors.success, marginTop: 10, fontSize: 13 },
   card: {

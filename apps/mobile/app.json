@@ -23,7 +23,15 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "calSync uses the microphone so you can speak scheduling commands.",
+          "speechRecognitionPermission": "calSync turns your spoken commands into scheduling actions.",
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+        }
+      ]
     ]
   }
 }
