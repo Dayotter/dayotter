@@ -5,7 +5,8 @@ import { Card, CardBody } from "@/components/ui/card";
 import { FormError, FormSuccess } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { track } from "@/lib/analytics";
-import { Sparkles } from "lucide-react";
+import { useSpeechInput } from "@/lib/use-speech";
+import { Mic, Sparkles } from "lucide-react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -77,8 +78,16 @@ export function AiQuickAdd() {
     setMatchedType(null);
   }
 
-  async function makeDraft(e: React.FormEvent) {
-    e.preventDefault();
+  // Speak-to-type: fill the box and run the command in one step.
+  const speech = useSpeechInput((transcript) => {
+    setText(transcript);
+    void makeDraft(undefined, transcript);
+  });
+
+  async function makeDraft(e?: React.FormEvent, override?: string) {
+    e?.preventDefault();
+    const input = (override ?? text).trim();
+    if (!input) return;
     setLoading(true);
     setError(null);
     setDone(null);
@@ -86,7 +95,7 @@ export function AiQuickAdd() {
     const res = await fetch("/api/ai/command", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text: input }),
     });
     setLoading(false);
     const data = await res.json().catch(() => ({}));
@@ -200,9 +209,28 @@ export function AiQuickAdd() {
           <Input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="e.g. Move my 3pm to tomorrow, or block 2 hours for deep work"
-            required
+            placeholder={
+              speech.listening
+                ? "Listening…"
+                : "e.g. Move my 3pm to tomorrow, or block 2 hours for deep work"
+            }
           />
+          {speech.supported ? (
+            <button
+              type="button"
+              onClick={speech.toggle}
+              aria-label={speech.listening ? "Stop listening" : "Speak a command"}
+              aria-pressed={speech.listening}
+              title="Speak a command"
+              className={
+                speech.listening
+                  ? "flex w-11 shrink-0 items-center justify-center rounded-md border border-[var(--color-danger)] bg-[var(--color-danger)]/10 text-[var(--color-danger)]"
+                  : "flex w-11 shrink-0 items-center justify-center rounded-md border border-[var(--color-border-strong)] text-[var(--color-muted)] hover:text-[var(--color-text)]"
+              }
+            >
+              <Mic size={16} className={speech.listening ? "animate-pulse" : undefined} />
+            </button>
+          ) : null}
           <Button type="submit" disabled={loading || !text.trim()}>
             {loading ? "Thinking…" : "Go"}
           </Button>
