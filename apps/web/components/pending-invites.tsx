@@ -269,10 +269,14 @@ export function PendingInvites({ aiEnabled }: { aiEnabled: boolean }) {
                 <div className="mt-3 space-y-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
                   {panel.kind === "propose" ? (
                     <>
-                      <label className="block text-xs text-[var(--color-muted)]">
+                      <label
+                        htmlFor={`propose-${inv.externalEventId}`}
+                        className="block text-xs text-[var(--color-muted)]"
+                      >
                         Propose a new time
                       </label>
                       <Input
+                        id={`propose-${inv.externalEventId}`}
                         type="datetime-local"
                         value={proposeTime}
                         onChange={(e) => setProposeTime(e.target.value)}
@@ -281,10 +285,14 @@ export function PendingInvites({ aiEnabled }: { aiEnabled: boolean }) {
                     </>
                   ) : (
                     <>
-                      <label className="block text-xs text-[var(--color-muted)]">
+                      <label
+                        htmlFor={`delegate-${inv.externalEventId}`}
+                        className="block text-xs text-[var(--color-muted)]"
+                      >
                         Delegate to (email)
                       </label>
                       <Input
+                        id={`delegate-${inv.externalEventId}`}
                         type="email"
                         value={delegateEmail}
                         onChange={(e) => setDelegateEmail(e.target.value)}
