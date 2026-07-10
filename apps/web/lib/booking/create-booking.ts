@@ -151,6 +151,11 @@ export async function createBooking(
       : eventType.durationMinutes;
   const end = new Date(start.getTime() + duration * 60_000);
 
+  // Group event: many bookers share one slot (capacity = maxAttendees). Only
+  // meaningful for individual (owner) event types.
+  const capacity = eventType.maxAttendees ?? 1;
+  const isGroup = capacity > 1 && Boolean(eventType.ownerId);
+
   // Re-validate server-side (the picker may be stale / manipulated). Compute the
   // per-host slots once (for the chosen duration) and reuse them for the check
   // and host resolution.
@@ -225,6 +230,29 @@ export async function createBooking(
         }
       }
 
+      // Group event capacity: these bookings share a slot and are exempt from the
+      // DB single-slot / no-overlap guards, so enforce the seat limit here. A
+      // per-slot advisory lock serializes concurrent bookings on the SAME slot so
+      // the count-then-insert can't overbook.
+      if (isGroup) {
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${eventType.id + start.toISOString()}))`,
+        );
+        const [{ count } = { count: 0 }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.bookings)
+          .where(
+            and(
+              eq(schema.bookings.eventTypeId, eventType.id),
+              eq(schema.bookings.status, "confirmed"),
+              eq(schema.bookings.startsAt, start),
+            ),
+          );
+        if (count >= capacity) {
+          throw new BookingError("This time is fully booked. Please pick another slot.", 409);
+        }
+      }
+
       // Consume a single-use / limited booking link atomically: only succeeds
       // while there are uses left and it hasn't expired.
       if (input.linkToken) {
@@ -257,6 +285,7 @@ export async function createBooking(
           endsAt: end,
           timezone: input.attendee.timezone,
           status: "confirmed",
+          isGroup,
           location: eventType.locationDetail,
           responses: input.responses,
           uid,
@@ -304,8 +333,11 @@ export async function createBooking(
 
   // Zoom event types: auto-create a real Zoom meeting when the host has Zoom
   // connected (falls back to any manual link otherwise). Best-effort.
+  // Group events share one link (the host's configured location) and are NOT
+  // written to the host calendar — a per-booking event would sync back as busy
+  // and wrongly close the shared slot, and per-booking Zoom links would differ.
   let zoomUrl: string | null = null;
-  if (eventType.location === "zoom") {
+  if (!isGroup && eventType.location === "zoom") {
     zoomUrl = await createZoomMeeting(host.id, {
       topic: eventType.title,
       startISO: start.toISOString(),
@@ -315,22 +347,25 @@ export async function createBooking(
   }
 
   // Write to the host's calendar (best-effort; booking stands without it).
+  // Skipped for group events (see above).
   let meetingUrl: string | undefined = zoomUrl ?? undefined;
   try {
-    const written = await writeBookingToCalendar(host.id, {
-      title: eventType.title,
-      description: input.notes,
-      start,
-      end,
-      timezone: input.attendee.timezone,
-      attendees: [
-        { email: input.attendee.email, name: input.attendee.name },
-        ...guests.map((email) => ({ email })),
-      ],
-      // Prefer the fresh Zoom link so the calendar invite carries it.
-      location: zoomUrl ?? eventType.locationDetail ?? undefined,
-      createConference: AUTO_CONFERENCE.includes(eventType.location),
-    });
+    const written = isGroup
+      ? null
+      : await writeBookingToCalendar(host.id, {
+          title: eventType.title,
+          description: input.notes,
+          start,
+          end,
+          timezone: input.attendee.timezone,
+          attendees: [
+            { email: input.attendee.email, name: input.attendee.name },
+            ...guests.map((email) => ({ email })),
+          ],
+          // Prefer the fresh Zoom link so the calendar invite carries it.
+          location: zoomUrl ?? eventType.locationDetail ?? undefined,
+          createConference: AUTO_CONFERENCE.includes(eventType.location),
+        });
     if (written) {
       // A provider conference (Google Meet / Teams) wins if one was created;
       // otherwise keep the Zoom link.

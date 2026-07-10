@@ -169,6 +169,13 @@
       "when": 1783642791983,
       "tag": "0023_daffy_lizard",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1783669193710,
+      "tag": "0024_boring_jean_grey",
+      "breakpoints": true
     }
   ]
 }

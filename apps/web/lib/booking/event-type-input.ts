@@ -115,6 +115,8 @@ export const eventTypeInputSchema = z
     dailyBookingLimit: z.number().int().min(1).max(100).nullable().default(null),
     /** Cap confirmed bookings per host-local week (null = unlimited). */
     weeklyBookingLimit: z.number().int().min(1).max(500).nullable().default(null),
+    /** Group event capacity: seats per slot (1 = a normal 1:1 event). */
+    maxAttendees: z.number().int().min(1).max(1000).default(1),
     /**
      * Access code the booker must enter before booking.
      * `undefined` = leave unchanged (edit), `null` = remove, string = set.

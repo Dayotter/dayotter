@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   jsonb,
@@ -11,8 +12,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { bookingStatus, calendarProvider, paymentStatus, timestamps } from "./_shared";
 import { calendars } from "./calendar";
-import { eventTypes } from "./scheduling";
 import { organizations, users } from "./orgs";
+import { eventTypes } from "./scheduling";
 
 /** A scheduled meeting instance. */
 export const bookings = pgTable(
@@ -46,6 +47,11 @@ export const bookings = pgTable(
     /** Stable public token used in reschedule/cancel links. */
     uid: text("uid").notNull(),
 
+    /** True for bookings on a group event type (capacity > 1). These share a
+     * slot, so they're EXEMPT from the per-host single-slot / no-overlap guards
+     * below; capacity is instead enforced transactionally in createBooking. */
+    isGroup: boolean("is_group").notNull().default(false),
+
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
     cancelReason: text("cancel_reason"),
 
@@ -70,7 +76,7 @@ export const bookings = pgTable(
     // OVERLAPS — it can't be expressed in the drizzle DSL, so it lives in raw SQL.
     uniqueIndex("bookings_host_slot_active_idx")
       .on(t.hostId, t.startsAt)
-      .where(sql`${t.status} = 'confirmed'`),
+      .where(sql`${t.status} = 'confirmed' AND ${t.isGroup} = false`),
   ],
 );
 

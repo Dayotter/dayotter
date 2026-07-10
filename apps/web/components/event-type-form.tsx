@@ -62,6 +62,7 @@ export interface EventTypeInitial {
   bookingWindowDays?: number;
   dailyBookingLimit?: number | null;
   weeklyBookingLimit?: number | null;
+  maxAttendees?: number;
   hasAccessCode?: boolean;
   isPrivate?: boolean;
   redirectUrl?: string | null;
@@ -117,6 +118,10 @@ export function EventTypeForm({
   const [weeklyLimit, setWeeklyLimit] = useState(initial?.weeklyBookingLimit ?? 20);
   const [accessCodeOn, setAccessCodeOn] = useState(initial?.hasAccessCode ?? false);
   const [accessCode, setAccessCode] = useState("");
+  const [groupOn, setGroupOn] = useState((initial?.maxAttendees ?? 1) > 1);
+  const [maxAttendees, setMaxAttendees] = useState(
+    initial?.maxAttendees && initial.maxAttendees > 1 ? initial.maxAttendees : 10,
+  );
   const [isPrivate, setIsPrivate] = useState(initial?.isPrivate ?? false);
   const [redirectUrl, setRedirectUrl] = useState(initial?.redirectUrl ?? "");
   const [color, setColor] = useState<EventColor>(
@@ -201,6 +206,7 @@ export function EventTypeForm({
       bookingWindowDays: bookingWindow,
       dailyBookingLimit: dailyLimitOn ? dailyLimit : null,
       weeklyBookingLimit: weeklyLimitOn ? weeklyLimit : null,
+      maxAttendees: groupOn ? maxAttendees : 1,
       // undefined (omitted) = keep existing code; null = clear; string = set new.
       accessCode: accessCodeOn ? accessCode.trim() || undefined : null,
       isPrivate,
@@ -545,6 +551,38 @@ export function EventTypeForm({
               ) : (
                 <p className="mt-1 text-xs text-[var(--color-faint)]">
                   Cap how many times this can be booked in a single week.
+                </p>
+              )}
+            </div>
+            <div className="mt-3 rounded-md border border-[var(--color-border)] p-3">
+              <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                <input
+                  type="checkbox"
+                  checked={groupOn}
+                  onChange={(e) => setGroupOn(e.target.checked)}
+                  className="accent-[var(--color-accent)]"
+                />
+                Group event (multiple bookers per slot)
+              </label>
+              {groupOn ? (
+                <div className="mt-2 flex items-center gap-1">
+                  <Input
+                    aria-label="Seats per slot"
+                    type="number"
+                    min={2}
+                    max={1000}
+                    value={maxAttendees}
+                    onChange={(e) => setMaxAttendees(Math.max(2, Number(e.target.value) || 2))}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-[var(--color-faint)]">
+                    seats per slot — the slot stays open until full
+                  </span>
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-[var(--color-faint)]">
+                  For webinars, classes, office hours — many people book the same time. Booked group
+                  events aren't written to your connected calendar.
                 </p>
               )}
             </div>

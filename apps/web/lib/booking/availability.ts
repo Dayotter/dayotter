@@ -4,9 +4,18 @@ import {
   computeAvailability,
   intersectAvailability,
 } from "@calsync/core";
-import { and, eq, getDb, gte, inArray, lte, ne, schema } from "@calsync/db";
+import { and, eq, getDb, gte, inArray, lte, ne, schema, sql } from "@calsync/db";
 import { DateTime } from "luxon";
 import { recommendedSlots } from "./rank-slots";
+
+/** Keep only group slots that still have a free seat. Pure — unit-tested. */
+export function filterOpenGroupSlots(
+  slots: Slot[],
+  counts: Map<number, number>,
+  capacity: number,
+): Slot[] {
+  return slots.filter((s) => (counts.get(s.start.getTime()) ?? 0) < capacity);
+}
 
 /**
  * Daily lunch-break intervals across [rangeStart, rangeEnd] at the given
@@ -99,6 +108,8 @@ export async function hostSlots(
   rangeEnd: Date,
   gapMinutes = 0,
   excludeBookingId?: string,
+  /** For a group event type: don't let its own shared-slot bookings self-block. */
+  ignoreGroupEventTypeId?: string,
 ): Promise<Slot[]> {
   const db = getDb();
 
@@ -127,7 +138,7 @@ export async function hostSlots(
 
   const [busyRows, existingBookings, blocks, prefs] = await Promise.all([
     calendarIds.length ? busyBlocksFor(calendarIds, rangeStart, rangeEnd) : Promise.resolve([]),
-    bookingsFor([userId], rangeStart, rangeEnd, excludeBookingId),
+    bookingsFor([userId], rangeStart, rangeEnd, excludeBookingId, ignoreGroupEventTypeId),
     timeBlocksFor(userId, rangeStart, rangeEnd),
     getDb().query.userPreferences.findFirst({
       where: eq(schema.userPreferences.userId, userId),
@@ -235,6 +246,7 @@ function bookingsFor(
   rangeStart: Date,
   rangeEnd: Date,
   excludeBookingId?: string,
+  ignoreGroupEventTypeId?: string,
 ) {
   return getDb().query.bookings.findMany({
     where: and(
@@ -245,9 +257,36 @@ function bookingsFor(
       // When re-validating a reschedule, the booking being moved must not count
       // itself as busy (it would falsely reject nearby/overlapping new slots).
       excludeBookingId ? ne(schema.bookings.id, excludeBookingId) : undefined,
+      // A group event type's own shared-slot bookings must not block its slots —
+      // capacity is what closes them (see filterOpenGroupSlots).
+      ignoreGroupEventTypeId
+        ? sql`NOT (${schema.bookings.eventTypeId} = ${ignoreGroupEventTypeId} AND ${schema.bookings.isGroup} = true)`
+        : undefined,
     ),
     columns: { hostId: true, startsAt: true, endsAt: true },
   });
+}
+
+/** Confirmed seat counts per group slot (keyed by start-instant ms). */
+async function groupSlotCounts(
+  eventTypeId: string,
+  rangeStart: Date,
+  rangeEnd: Date,
+): Promise<Map<number, number>> {
+  const rows = await getDb()
+    .select({ startsAt: schema.bookings.startsAt, n: sql<number>`count(*)::int` })
+    .from(schema.bookings)
+    .where(
+      and(
+        eq(schema.bookings.eventTypeId, eventTypeId),
+        eq(schema.bookings.status, "confirmed"),
+        eq(schema.bookings.isGroup, true),
+        gte(schema.bookings.startsAt, rangeStart),
+        lte(schema.bookings.startsAt, rangeEnd),
+      ),
+    )
+    .groupBy(schema.bookings.startsAt);
+  return new Map(rows.map((r) => [r.startsAt.getTime(), r.n]));
 }
 
 /** The user ids who host an event type (owner for individual; hosts for team). */
@@ -276,6 +315,8 @@ export async function eventTypeHostSlots(
   const gap = gapFor(eventType);
 
   if (eventType.ownerId) {
+    const capacity = eventType.maxAttendees ?? 1;
+    const isGroup = capacity > 1;
     const slots = await hostSlots(
       eventType.ownerId,
       eventType.scheduleId,
@@ -283,7 +324,16 @@ export async function eventTypeHostSlots(
       rangeStart,
       rangeEnd,
       gap,
+      undefined,
+      isGroup ? eventType.id : undefined,
     );
+    if (isGroup) {
+      const counts = await groupSlotCounts(eventType.id, rangeStart, rangeEnd);
+      return {
+        hostIds: [eventType.ownerId],
+        perHost: [filterOpenGroupSlots(slots, counts, capacity)],
+      };
+    }
     return { hostIds: [eventType.ownerId], perHost: [slots] };
   }
 

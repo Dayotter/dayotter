@@ -53,6 +53,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       bookingWindowDays: et.bookingWindowDays,
       dailyBookingLimit: et.dailyBookingLimit,
       weeklyBookingLimit: et.weeklyBookingLimit,
+      maxAttendees: et.maxAttendees,
       // Never leak the hash — only whether a code is required.
       hasAccessCode: et.accessCodeHash != null,
       isPrivate: et.isPrivate,
@@ -103,6 +104,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         bookingWindowDays: d.bookingWindowDays,
         dailyBookingLimit: d.dailyBookingLimit,
         weeklyBookingLimit: d.weeklyBookingLimit,
+        maxAttendees: d.maxAttendees,
         isPrivate: d.isPrivate,
         redirectUrl: d.redirectUrl,
         color: d.color,
