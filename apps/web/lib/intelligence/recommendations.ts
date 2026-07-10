@@ -148,5 +148,20 @@ export async function getRecommendations(params: {
     });
   }
 
+  // 5. Back-to-back: near-zero gaps → suggest a buffer between meetings.
+  let backToBack = 0;
+  for (let i = 1; i < meetings.length; i++) {
+    const gapMin = (meetings[i]!.start.getTime() - meetings[i - 1]!.end.getTime()) / 60_000;
+    if (gapMin >= 0 && gapMin < 5) backToBack++;
+  }
+  if (backToBack >= 4) {
+    recs.push({
+      id: "back-to-back",
+      icon: "shield",
+      title: "Meetings pile up back-to-back",
+      detail: `${backToBack} of your meetings started within 5 minutes of the one before. A buffer after each event (Event type → buffer after) gives you room to breathe.`,
+    });
+  }
+
   return recs.slice(0, 4);
 }
