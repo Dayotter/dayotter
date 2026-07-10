@@ -1,3 +1,4 @@
+import { ChangePasswordForm } from "@/components/change-password-form";
 import { ProfileForm } from "@/components/profile-form";
 import { getSession } from "@/lib/auth/session";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
@@ -24,14 +25,17 @@ export default async function ProfileSettingsPage() {
   ]);
 
   return (
-    <ProfileForm
-      initial={{
-        name: user?.name ?? "",
-        timezone: user?.timezone ?? "UTC",
-        handle: user?.handle ?? "",
-        brandColor: prefs?.brandColor ?? null,
-        welcomeMessage: prefs?.welcomeMessage ?? "",
-      }}
-    />
+    <>
+      <ProfileForm
+        initial={{
+          name: user?.name ?? "",
+          timezone: user?.timezone ?? "UTC",
+          handle: user?.handle ?? "",
+          brandColor: prefs?.brandColor ?? null,
+          welcomeMessage: prefs?.welcomeMessage ?? "",
+        }}
+      />
+      <ChangePasswordForm />
+    </>
   );
 }

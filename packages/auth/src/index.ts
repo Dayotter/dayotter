@@ -1,5 +1,6 @@
 import { expo } from "@better-auth/expo";
 import { getDb, schema } from "@calsync/db";
+import { sendEmail } from "@calsync/emails";
 import { type BetterAuthPlugin, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -32,6 +33,19 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    // Password reset via emailed capability link. Better Auth mints the token
+    // and hands us the URL (it routes through the API, then redirects to the
+    // `redirectTo` page with the token) — we just deliver it.
+    sendResetPassword: async ({ user, url }) => {
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your calSync password",
+        text: `Reset your calSync password: ${url}\n\nIf you didn't request this, you can ignore this email.`,
+        html: `<p>Someone requested a password reset for your calSync account.</p>
+<p><a href="${url}">Reset your password</a></p>
+<p style="color:#666;font-size:13px">If this wasn't you, you can safely ignore this email — your password won't change.</p>`,
+      });
+    },
   },
   // "Sign in with Google" — enabled only when Google OAuth creds are configured
   // (the same app used for calendar connect). Register

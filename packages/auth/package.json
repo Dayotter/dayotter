@@ -12,6 +12,7 @@
   "dependencies": {
     "@better-auth/expo": "1.6.23",
     "@calsync/db": "workspace:*",
+    "@calsync/emails": "workspace:*",
     "better-auth": "^1.2.7"
   },
   "devDependencies": {
