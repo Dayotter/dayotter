@@ -16,6 +16,9 @@ export const GET = withUser(async (u) => {
       startISO: i.start.toISOString(),
       endISO: i.end.toISOString(),
       organizerName: i.organizer?.name ?? i.organizer?.email ?? null,
+      organizerEmail: i.organizer?.email ?? null,
+      location: i.location ?? null,
+      meetingUrl: i.meetingUrl ?? null,
       hasConflict: i.hasConflict,
     })),
   });
