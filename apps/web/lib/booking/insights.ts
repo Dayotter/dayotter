@@ -1,5 +1,6 @@
 import { and, eq, getDb, gte, lt, schema } from "@calsync/db";
 import { DateTime } from "luxon";
+import { type FocusMetrics, computeFocusMetrics } from "./focus-insights";
 
 export interface InsightsData {
   /** Confirmed meetings in the next 30 days. */
@@ -16,6 +17,8 @@ export interface InsightsData {
   weekday: number[];
   /** Booked time grouped by event type over the last 30 days (top 6). */
   byType: { title: string; color: string | null; minutes: number }[];
+  /** Deep-work / fragmentation metrics over the last 30 days. */
+  focus: FocusMetrics;
 }
 
 /**
@@ -74,5 +77,9 @@ export async function computeInsights(params: {
     thisWeek,
     weekday,
     byType: [...byTypeMap.values()].sort((a, b) => b.minutes - a.minutes).slice(0, 6),
+    focus: computeFocusMetrics(
+      past30.map((b) => ({ start: b.startsAt, end: b.endsAt })),
+      params.tz,
+    ),
   };
 }

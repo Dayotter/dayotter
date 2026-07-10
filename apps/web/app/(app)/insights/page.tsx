@@ -71,6 +71,7 @@ export default async function InsightsPage() {
     thisWeek,
     weekday,
     byType: types,
+    focus,
   } = insights;
 
   const maxWeekday = Math.max(1, ...weekday);
@@ -199,6 +200,38 @@ export default async function InsightsPage() {
               </div>
             )}
           </Card>
+
+          {focus.busyDays > 0 ? (
+            <Card className="p-5">
+              <h3 className="mb-1 text-sm font-semibold">Focus &amp; fragmentation</h3>
+              <p className="mb-4 text-xs text-[var(--color-faint)]">
+                How broken-up your meeting days are — over {focus.busyDays} day
+                {focus.busyDays === 1 ? "" : "s"} with meetings.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <Stat
+                  value={String(focus.avgMeetingsPerBusyDay)}
+                  label="Meetings / busy day"
+                  sub="on days you meet"
+                />
+                <Stat
+                  value={`${focus.fragmentedDaysPct}%`}
+                  label="Fragmented days"
+                  sub="3+ meetings"
+                />
+                <Stat
+                  value={`${focus.backToBackPct}%`}
+                  label="Back-to-back"
+                  sub="under 15-min gaps"
+                />
+                <Stat
+                  value={fmtHours(focus.avgLongestGapMin)}
+                  label="Longest focus gap"
+                  sub="avg on busy days"
+                />
+              </div>
+            </Card>
+          ) : null}
         </div>
       )}
     </>
