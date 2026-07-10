@@ -20,6 +20,9 @@ export default async function PreferencesSettingsPage() {
         adaptiveAvailability: prefs?.adaptiveAvailability ?? false,
         maxMeetingsPerDay: prefs?.maxMeetingsPerDay ?? 5,
         travelBufferMinutes: prefs?.travelBufferMinutes ?? 0,
+        lunchEnabled: prefs?.lunchEnabled ?? false,
+        lunchStartMinute: prefs?.lunchStartMinute ?? 720,
+        lunchEndMinute: prefs?.lunchEndMinute ?? 780,
       }}
     />
   );

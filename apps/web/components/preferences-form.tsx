@@ -41,6 +41,13 @@ const WEEK_DAYS = [
   { value: 6, label: "Saturday" },
 ];
 
+const pad = (n: number) => String(n).padStart(2, "0");
+const minutesToHHMM = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+const hhmmToMinutes = (s: string) => {
+  const [h, m] = s.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+};
+
 export function PreferencesForm({
   initial,
 }: {
@@ -52,6 +59,9 @@ export function PreferencesForm({
     adaptiveAvailability?: boolean;
     maxMeetingsPerDay?: number;
     travelBufferMinutes?: number;
+    lunchEnabled?: boolean;
+    lunchStartMinute?: number;
+    lunchEndMinute?: number;
   };
 }) {
   const [timeFormat, setTimeFormat] = useState(initial.timeFormat);
@@ -61,6 +71,9 @@ export function PreferencesForm({
   const [adaptive, setAdaptive] = useState(initial.adaptiveAvailability ?? false);
   const [maxPerDay, setMaxPerDay] = useState(initial.maxMeetingsPerDay ?? 5);
   const [travelBuffer, setTravelBuffer] = useState(initial.travelBufferMinutes ?? 0);
+  const [lunchOn, setLunchOn] = useState(initial.lunchEnabled ?? false);
+  const [lunchStart, setLunchStart] = useState(initial.lunchStartMinute ?? 720);
+  const [lunchEnd, setLunchEnd] = useState(initial.lunchEndMinute ?? 780);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +114,9 @@ export function PreferencesForm({
         adaptiveAvailability: adaptive,
         maxMeetingsPerDay: maxPerDay,
         travelBufferMinutes: travelBuffer,
+        lunchEnabled: lunchOn,
+        lunchStartMinute: lunchStart,
+        lunchEndMinute: lunchEnd,
       }),
     });
     setSaving(false);
@@ -258,6 +274,57 @@ export function PreferencesForm({
               />
               <span className="text-sm text-[var(--color-muted)]">minutes each way</span>
             </div>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={lunchOn}
+                onChange={(e) => {
+                  setLunchOn(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Lunch break
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  Block this window every day so no one can book over your lunch (in your schedule's
+                  timezone).
+                </span>
+              </span>
+            </label>
+            {lunchOn ? (
+              <div className="mt-3 flex items-center gap-2">
+                <Input
+                  aria-label="Lunch start"
+                  type="time"
+                  value={minutesToHHMM(lunchStart)}
+                  onChange={(e) => {
+                    setLunchStart(hhmmToMinutes(e.target.value));
+                    setSaved(false);
+                  }}
+                  className="w-32"
+                />
+                <span className="text-sm text-[var(--color-muted)]">to</span>
+                <Input
+                  aria-label="Lunch end"
+                  type="time"
+                  value={minutesToHHMM(lunchEnd)}
+                  onChange={(e) => {
+                    setLunchEnd(hhmmToMinutes(e.target.value));
+                    setSaved(false);
+                  }}
+                  className="w-32"
+                />
+              </div>
+            ) : null}
+            {lunchOn && lunchEnd <= lunchStart ? (
+              <p className="mt-2 text-xs text-[var(--color-danger)]">
+                Lunch end must be after the start.
+              </p>
+            ) : null}
           </div>
 
           <FormError>{error}</FormError>

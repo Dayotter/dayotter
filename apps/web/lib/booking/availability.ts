@@ -5,7 +5,35 @@ import {
   intersectAvailability,
 } from "@calsync/core";
 import { and, eq, getDb, gte, inArray, lte, ne, schema } from "@calsync/db";
+import { DateTime } from "luxon";
 import { recommendedSlots } from "./rank-slots";
+
+/**
+ * Daily lunch-break intervals across [rangeStart, rangeEnd] at the given
+ * wall-clock minutes, in the schedule's timezone (DST-correct via `.set`).
+ */
+export function lunchIntervals(
+  startMinute: number,
+  endMinute: number,
+  tz: string,
+  rangeStart: Date,
+  rangeEnd: Date,
+): { start: Date; end: Date }[] {
+  if (endMinute <= startMinute) return [];
+  const set = { second: 0, millisecond: 0 } as const;
+  const out: { start: Date; end: Date }[] = [];
+  const last = DateTime.fromJSDate(rangeEnd).setZone(tz).endOf("day");
+  let day = DateTime.fromJSDate(rangeStart).setZone(tz).startOf("day");
+  for (; day <= last; day = day.plus({ days: 1 })) {
+    out.push({
+      start: day
+        .set({ hour: Math.floor(startMinute / 60), minute: startMinute % 60, ...set })
+        .toJSDate(),
+      end: day.set({ hour: Math.floor(endMinute / 60), minute: endMinute % 60, ...set }).toJSDate(),
+    });
+  }
+  return out;
+}
 
 type EventTypeRow = typeof schema.eventTypes.$inferSelect;
 
@@ -103,11 +131,27 @@ export async function hostSlots(
     timeBlocksFor(userId, rangeStart, rangeEnd),
     getDb().query.userPreferences.findFirst({
       where: eq(schema.userPreferences.userId, userId),
-      columns: { adaptiveAvailability: true, maxMeetingsPerDay: true },
+      columns: {
+        adaptiveAvailability: true,
+        maxMeetingsPerDay: true,
+        lunchEnabled: true,
+        lunchStartMinute: true,
+        lunchEndMinute: true,
+      },
     }),
   ]);
 
   const ownBookings = existingBookings.filter((b) => b.hostId === userId);
+  // A daily lunch break blocks time like any other busy interval.
+  const lunchBusy = prefs?.lunchEnabled
+    ? lunchIntervals(
+        prefs.lunchStartMinute,
+        prefs.lunchEndMinute,
+        schedule.timezone,
+        rangeStart,
+        rangeEnd,
+      )
+    : [];
   const slots = computeAvailability({
     schedule: {
       timezone: schedule.timezone,
@@ -132,6 +176,8 @@ export async function hostSlots(
         start: new Date(b.startsAt.getTime() - gapMinutes * 60_000),
         end: new Date(b.endsAt.getTime() + gapMinutes * 60_000),
       })),
+      // Daily lunch break.
+      ...lunchBusy,
     ],
     event,
     rangeStart,
