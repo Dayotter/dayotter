@@ -17,6 +17,13 @@ export const GET = withUser(async (u) => {
       weekStartsOn: prefs?.weekStartsOn ?? 0,
       theme: prefs?.theme ?? "system",
       defaultReminderOffsets: prefs?.defaultReminderOffsets ?? [...DEFAULT_REMINDER_OFFSETS],
+      adaptiveAvailability: prefs?.adaptiveAvailability ?? false,
+      maxMeetingsPerDay: prefs?.maxMeetingsPerDay ?? 5,
+      travelBufferMinutes: prefs?.travelBufferMinutes ?? 0,
+      reclaimCancelledTime: prefs?.reclaimCancelledTime ?? false,
+      lunchEnabled: prefs?.lunchEnabled ?? false,
+      lunchStartMinute: prefs?.lunchStartMinute ?? 720,
+      lunchEndMinute: prefs?.lunchEndMinute ?? 780,
     },
   });
 });
@@ -26,6 +33,13 @@ const bodySchema = z.object({
   weekStartsOn: z.number().int().min(0).max(6),
   theme: z.enum(["system", "light", "dark"]),
   defaultReminderOffsets: z.array(z.number().int().min(0).max(43_200)).max(5),
+  adaptiveAvailability: z.boolean().default(false),
+  maxMeetingsPerDay: z.number().int().min(1).max(20).default(5),
+  travelBufferMinutes: z.number().int().min(0).max(240).default(0),
+  reclaimCancelledTime: z.boolean().default(false),
+  lunchEnabled: z.boolean().default(false),
+  lunchStartMinute: z.number().int().min(0).max(1439).default(720),
+  lunchEndMinute: z.number().int().min(1).max(1440).default(780),
 });
 
 export const PATCH = withUser(async (u, request) => {
@@ -35,25 +49,27 @@ export const PATCH = withUser(async (u, request) => {
 
   // De-duplicate + sort reminder offsets (largest lead time first).
   const offsets = [...new Set(d.defaultReminderOffsets)].sort((a, b) => b - a);
+  // Guard against an inverted lunch window (end must be after start).
+  const lunchEnabled = d.lunchEnabled && d.lunchEndMinute > d.lunchStartMinute;
+
+  const fields = {
+    timeFormat: d.timeFormat,
+    weekStartsOn: d.weekStartsOn,
+    theme: d.theme,
+    defaultReminderOffsets: offsets,
+    adaptiveAvailability: d.adaptiveAvailability,
+    maxMeetingsPerDay: d.maxMeetingsPerDay,
+    travelBufferMinutes: d.travelBufferMinutes,
+    reclaimCancelledTime: d.reclaimCancelledTime,
+    lunchEnabled,
+    lunchStartMinute: d.lunchStartMinute,
+    lunchEndMinute: d.lunchEndMinute,
+  };
 
   await getDb()
     .insert(schema.userPreferences)
-    .values({
-      userId: u.id,
-      timeFormat: d.timeFormat,
-      weekStartsOn: d.weekStartsOn,
-      theme: d.theme,
-      defaultReminderOffsets: offsets,
-    })
-    .onConflictDoUpdate({
-      target: schema.userPreferences.userId,
-      set: {
-        timeFormat: d.timeFormat,
-        weekStartsOn: d.weekStartsOn,
-        theme: d.theme,
-        defaultReminderOffsets: offsets,
-      },
-    });
+    .values({ userId: u.id, ...fields })
+    .onConflictDoUpdate({ target: schema.userPreferences.userId, set: fields });
 
   return NextResponse.json({ ok: true });
 });

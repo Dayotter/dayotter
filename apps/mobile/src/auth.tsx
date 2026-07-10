@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, ApiError, clearToken, getToken, setToken } from "./api";
+import { ApiError, api, clearToken, hasSession, setToken } from "./api";
+import { authClient } from "./auth-client";
 import type { AppUser } from "./models";
 
 interface AuthState {
@@ -7,6 +8,7 @@ interface AuthState {
   initializing: boolean;
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (name: string, email: string, password: string) => Promise<string | null>;
+  signInWithGoogle: () => Promise<string | null>;
   signOut: () => Promise<void>;
 }
 
@@ -30,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        if (await getToken()) {
+        if (await hasSession()) {
           const { user } = await api.get<{ user: AppUser }>("/api/me");
           setUser(user);
         }
@@ -55,6 +57,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  /**
+   * Native Google sign-in via the Better Auth Expo bridge (opens the system
+   * browser, returns through the calsync:// deep link). We then mint a bearer
+   * token so the rest of the app keeps using the same api.ts auth path.
+   */
+  async function signInWithGoogle(): Promise<string | null> {
+    try {
+      const res = await authClient.signIn.social({ provider: "google", callbackURL: "/" });
+      if (res.error) return res.error.message ?? "Google sign-in failed";
+      // The Expo client now holds the session cookie; api.ts sends it. Confirm
+      // by loading the profile.
+      const { user: me } = await api.get<{ user: AppUser }>("/api/me");
+      setUser(me);
+      return null;
+    } catch (err) {
+      return err instanceof Error ? err.message : "Google sign-in failed";
+    }
+  }
+
   const value = useMemo<AuthState>(
     () => ({
       user,
@@ -62,7 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn: (email, password) => authenticate("/api/auth/sign-in/email", { email, password }),
       signUp: (name, email, password) =>
         authenticate("/api/auth/sign-up/email", { name, email, password }),
+      signInWithGoogle,
       signOut: async () => {
+        await authClient.signOut().catch(() => {});
         await clearToken();
         setUser(null);
       },

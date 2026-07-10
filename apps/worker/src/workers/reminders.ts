@@ -1,7 +1,15 @@
 import { and, eq, getDb, isNull, schema } from "@calsync/db";
-import { bookingReminder, sendEmail } from "@calsync/emails";
-import { connection, QUEUE_NAMES, type ReminderJob } from "@calsync/jobs";
+import {
+  bookingFollowUp,
+  bookingNoShowFollowUp,
+  bookingReminder,
+  sendEmail,
+  workflowEmail,
+} from "@calsync/emails";
+import { QUEUE_NAMES, type ReminderJob, connection } from "@calsync/jobs";
+import { deliverUserReminder } from "@calsync/notifications";
 import { Worker } from "bullmq";
+import { DateTime } from "luxon";
 
 /** Human label for how far out the meeting is, e.g. "in about 1 hour". */
 function leadLabel(start: Date): string {
@@ -33,9 +41,81 @@ export function startRemindersWorker(): Worker<ReminderJob> {
         where: eq(schema.bookings.id, job.data.bookingId),
         with: { attendees: true, host: true },
       });
-      if (!booking || booking.status !== "confirmed") return;
-
+      if (!booking) return;
       const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+
+      // Host-authored workflow message — render the workflow's own template.
+      // "reminder" (before_event) sends only for a still-confirmed booking;
+      // "followup" (after_event) sends unless the booking was cancelled/rejected.
+      if (reminder.workflowId) {
+        const workflow = await db.query.workflows.findFirst({
+          where: eq(schema.workflows.id, reminder.workflowId),
+        });
+        const beforeEvent = reminder.kind !== "followup";
+        const gate = beforeEvent
+          ? booking.status === "confirmed"
+          : booking.status !== "cancelled" && booking.status !== "rejected";
+        if (workflow?.isActive && workflow.action === "email" && gate) {
+          await Promise.all(
+            booking.attendees.map((a) =>
+              sendEmail({
+                ...workflowEmail({
+                  eventTitle: booking.title,
+                  start: booking.startsAt,
+                  end: booking.endsAt,
+                  timezone: a.timezone ?? booking.timezone,
+                  hostName: booking.host?.name ?? "your host",
+                  attendeeName: a.name ?? a.email,
+                  meetingUrl: booking.meetingUrl ?? undefined,
+                  location: booking.location ?? undefined,
+                  manageUrl: `${appUrl}/booking/${booking.uid}`,
+                  subjectTemplate: workflow.subjectTemplate ?? "",
+                  bodyTemplate: workflow.bodyTemplate ?? "",
+                  heading: workflow.name,
+                }),
+                to: a.email,
+              }),
+            ),
+          );
+        }
+        await db
+          .update(schema.scheduledReminders)
+          .set({ sentAt: new Date() })
+          .where(eq(schema.scheduledReminders.id, reminder.id));
+        return;
+      }
+
+      // Post-meeting follow-up — send unless the meeting was cancelled/rejected.
+      // Branch the copy on the outcome: a no-show gets a warm "let's rebook"
+      // note; a completed/confirmed meeting gets the usual "thanks for meeting".
+      if (reminder.kind === "followup") {
+        if (booking.status !== "cancelled" && booking.status !== "rejected") {
+          const render = booking.status === "no_show" ? bookingNoShowFollowUp : bookingFollowUp;
+          await Promise.all(
+            booking.attendees.map((a) =>
+              sendEmail({
+                ...render({
+                  eventTitle: booking.title,
+                  start: booking.startsAt,
+                  end: booking.endsAt,
+                  timezone: a.timezone ?? booking.timezone,
+                  hostName: booking.host?.name ?? "your host",
+                  attendeeName: a.name ?? a.email,
+                  manageUrl: `${appUrl}/booking/${booking.uid}`,
+                }),
+                to: a.email,
+              }),
+            ),
+          );
+        }
+        await db
+          .update(schema.scheduledReminders)
+          .set({ sentAt: new Date() })
+          .where(eq(schema.scheduledReminders.id, reminder.id));
+        return;
+      }
+
+      if (booking.status !== "confirmed") return;
       const label = leadLabel(booking.startsAt);
 
       await Promise.all(
@@ -57,6 +137,19 @@ export function startRemindersWorker(): Worker<ReminderJob> {
           }),
         ),
       );
+
+      // Also nudge the host on any extra channels they configured (Slack /
+      // WhatsApp / push). Best-effort — never blocks the attendee emails above.
+      if (booking.hostId) {
+        const when = DateTime.fromJSDate(booking.startsAt)
+          .setZone(booking.host?.timezone ?? booking.timezone)
+          .toFormat("ccc, LLL d 'at' h:mm a");
+        await deliverUserReminder(booking.hostId, {
+          title: `Upcoming: ${booking.title}`,
+          body: `Starts ${label} — ${when}.`,
+          url: `${appUrl}/booking/${booking.uid}`,
+        }).catch(() => 0);
+      }
 
       await db
         .update(schema.scheduledReminders)

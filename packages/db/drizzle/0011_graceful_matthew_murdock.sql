@@ -1,0 +1,1 @@
+ALTER TABLE "scheduled_reminders" ADD COLUMN "kind" text DEFAULT 'reminder' NOT NULL;

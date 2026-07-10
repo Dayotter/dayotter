@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { api, ApiError } from "@/api";
+import { ApiError, api } from "@/api";
 import { useAuth } from "@/auth";
 import { Loading } from "@/components/ui";
 import type { UserPreferences } from "@/models";
 import { colors, radius } from "@/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const TIME_FORMATS: { value: "12h" | "24h"; label: string }[] = [
   { value: "12h", label: "12-hour" },
@@ -24,8 +26,11 @@ const REMINDER_OPTIONS = [
   { value: 30, label: "30 min" },
   { value: 10, label: "10 min" },
 ];
+/** Booking-page accent presets (hex); null = the default theme. */
+const BRAND_PRESETS = ["#5b4be6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const { user, signOut } = useAuth();
   const [name, setName] = useState(user?.name ?? "");
   const [handle, setHandle] = useState(user?.handle ?? "");
@@ -33,6 +38,11 @@ export default function SettingsScreen() {
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const [weekStartsOn, setWeekStartsOn] = useState(0);
   const [reminders, setReminders] = useState<number[]>([1440, 60]);
+  const [adaptive, setAdaptive] = useState(false);
+  const [maxPerDay, setMaxPerDay] = useState(5);
+  const [travelBuffer, setTravelBuffer] = useState(0);
+  const [welcomeMessage, setWelcomeMessage] = useState("");
+  const [brandColor, setBrandColor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -40,13 +50,22 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     let active = true;
-    api
-      .get<{ preferences: UserPreferences }>("/api/settings/preferences")
-      .then(({ preferences: p }) => {
+    Promise.all([
+      api.get<{ preferences: UserPreferences }>("/api/settings/preferences"),
+      api
+        .get<{ branding: { brandColor: string | null; welcomeMessage: string | null } }>("/api/me")
+        .catch(() => null),
+    ])
+      .then(([{ preferences: p }, me]) => {
         if (!active) return;
         setTimeFormat(p.timeFormat);
         setWeekStartsOn(p.weekStartsOn);
         setReminders(p.defaultReminderOffsets);
+        setAdaptive(p.adaptiveAvailability ?? false);
+        setMaxPerDay(p.maxMeetingsPerDay ?? 5);
+        setTravelBuffer(p.travelBufferMinutes ?? 0);
+        setWelcomeMessage(me?.branding?.welcomeMessage ?? "");
+        setBrandColor(me?.branding?.brandColor ?? null);
       })
       .catch(() => {})
       .finally(() => active && setLoading(false));
@@ -65,12 +84,21 @@ export default function SettingsScreen() {
     setError(null);
     setSaved(false);
     try {
-      await api.patch("/api/settings/profile", { name, timezone, handle });
+      await api.patch("/api/settings/profile", {
+        name,
+        timezone,
+        handle,
+        brandColor,
+        welcomeMessage: welcomeMessage.trim() || null,
+      });
       await api.patch("/api/settings/preferences", {
         timeFormat,
         weekStartsOn,
         theme: "system",
         defaultReminderOffsets: reminders,
+        adaptiveAvailability: adaptive,
+        maxMeetingsPerDay: maxPerDay,
+        travelBufferMinutes: travelBuffer,
       });
       setSaved(true);
     } catch (e) {
@@ -97,6 +125,43 @@ export default function SettingsScreen() {
           hint={`Your public page: /${handle || "your-handle"}`}
         />
         <Field label="Timezone" value={timezone} onChange={setTimezone} placeholder="UTC" />
+
+        <Text style={styles.section}>Booking page</Text>
+        <Field
+          label="Welcome message"
+          value={welcomeMessage}
+          onChange={(v) => {
+            setWelcomeMessage(v);
+            setSaved(false);
+          }}
+          placeholder="A short intro shown on your booking page"
+        />
+        <Text style={styles.label}>Accent colour</Text>
+        <View style={styles.pills}>
+          <Pressable
+            onPress={() => {
+              setBrandColor(null);
+              setSaved(false);
+            }}
+            style={[styles.pill, brandColor === null && styles.pillOn]}
+          >
+            <Text style={[styles.pillText, brandColor === null && styles.pillTextOn]}>Default</Text>
+          </Pressable>
+          {BRAND_PRESETS.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => {
+                setBrandColor(c);
+                setSaved(false);
+              }}
+              style={[
+                styles.swatch,
+                { backgroundColor: c },
+                brandColor?.toLowerCase() === c && styles.swatchOn,
+              ]}
+            />
+          ))}
+        </View>
 
         <Text style={styles.section}>Preferences</Text>
         <Text style={styles.label}>Time format</Text>
@@ -150,12 +215,105 @@ export default function SettingsScreen() {
           ))}
         </View>
 
+        <Text style={styles.section}>Scheduling</Text>
+        <Pressable
+          style={styles.toggleRow}
+          onPress={() => {
+            setAdaptive((v) => !v);
+            setSaved(false);
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Adaptive availability</Text>
+            <Text style={styles.hint}>
+              On heavy days, stop offering slots once you hit your meeting cap.
+            </Text>
+          </View>
+          <View style={[styles.switch, adaptive && styles.switchOn]}>
+            <View style={[styles.knob, adaptive && styles.knobOn]} />
+          </View>
+        </Pressable>
+        {adaptive ? (
+          <View style={styles.inlineField}>
+            <Text style={styles.label}>Max meetings/day</Text>
+            <TextInput
+              style={styles.numInput}
+              value={String(maxPerDay)}
+              onChangeText={(v) => {
+                setMaxPerDay(Math.max(1, Math.min(20, Number(v.replace(/[^0-9]/g, "")) || 1)));
+                setSaved(false);
+              }}
+              keyboardType="number-pad"
+            />
+          </View>
+        ) : null}
+
+        <View style={styles.inlineField}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Travel time (in-person)</Text>
+            <Text style={styles.hint}>Minutes reserved each way. 0 = off.</Text>
+          </View>
+          <TextInput
+            style={styles.numInput}
+            value={String(travelBuffer)}
+            onChangeText={(v) => {
+              setTravelBuffer(Math.max(0, Math.min(240, Number(v.replace(/[^0-9]/g, "")) || 0)));
+              setSaved(false);
+            }}
+            keyboardType="number-pad"
+          />
+        </View>
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <Pressable style={styles.save} onPress={save} disabled={saving}>
           <Text style={styles.saveText}>{saving ? "Saving…" : "Save changes"}</Text>
         </Pressable>
         {saved ? <Text style={styles.savedText}>Saved ✓</Text> : null}
+
+        <Text style={styles.section}>Workspace</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/teams")}>
+          <Ionicons name="people-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Teams</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+
+        <Text style={styles.section}>Calendars</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/calendars")}>
+          <Ionicons name="calendar-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Connected calendars</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+
+        <Text style={styles.section}>Reminders</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/notifications")}>
+          <Ionicons name="notifications-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Notification channels</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+
+        <Text style={styles.section}>Advanced</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/automations")}>
+          <Ionicons name="flash-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Automations</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+        <Pressable
+          style={[styles.navRow, { marginTop: 10 }]}
+          onPress={() => router.push("/workflows")}
+        >
+          <Ionicons name="mail-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Workflows</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+        <Pressable
+          style={[styles.navRow, { marginTop: 10 }]}
+          onPress={() => router.push("/developer")}
+        >
+          <Ionicons name="code-slash-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Developer &amp; API keys</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
 
         <Pressable style={styles.signOut} onPress={signOut}>
           <Text style={styles.signOutText}>Sign out</Text>
@@ -231,8 +389,50 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
   },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 16,
+  },
+  switch: {
+    width: 46,
+    height: 28,
+    borderRadius: 999,
+    backgroundColor: colors.borderStrong,
+    padding: 3,
+    justifyContent: "center",
+  },
+  switchOn: { backgroundColor: colors.accent },
+  knob: {
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    backgroundColor: colors.white,
+  },
+  knobOn: { alignSelf: "flex-end" },
+  inlineField: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 18,
+  },
+  numInput: {
+    minWidth: 64,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    textAlign: "center",
+  },
   pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
   pillText: { color: colors.muted },
+  swatch: { width: 36, height: 36, borderRadius: 999 },
+  swatchOn: { borderWidth: 3, borderColor: colors.text },
   pillTextOn: { color: colors.text, fontWeight: "600" },
   error: { color: colors.danger, marginBottom: 12 },
   save: {
@@ -243,6 +443,17 @@ const styles = StyleSheet.create({
   },
   saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   savedText: { color: colors.success, textAlign: "center", marginTop: 10 },
+  navRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+  navText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
   signOut: { marginTop: 28, alignItems: "center" },
   signOutText: { color: colors.danger, fontWeight: "500" },
 });

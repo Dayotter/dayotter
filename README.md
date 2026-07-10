@@ -20,9 +20,10 @@ apps/
   web       Next.js — dashboard, public booking pages, REST API
   worker    Node — BullMQ workers: reminders + calendar sync
 packages/
-  core      availability engine, round-robin, token crypto (pure, unit-tested)
-  calendar  provider adapters: Google, Microsoft, Apple (CalDAV) behind one interface
-  db        Drizzle schema + Postgres client
+  core          availability engine, round-robin, token crypto (pure, unit-tested)
+  calendar      provider adapters: Google, Microsoft, Apple (CalDAV) behind one interface
+  db            Drizzle schema + Postgres client
+  notifications multi-channel delivery: Slack, WhatsApp/SMS (Twilio), mobile push (Expo)
 ```
 
 ## Stack
@@ -53,6 +54,52 @@ Generate secrets:
 openssl rand -base64 32       # AUTH_SECRET
 openssl rand -hex 32          # ENCRYPTION_KEY (32-byte token-encryption key)
 ```
+
+## Deploy to production (one-click)
+
+Want it live on your own server with HTTPS, not just localhost? The [`deploy/`](deploy/)
+directory has a production stack (web + worker + Postgres + Redis + Caddy for
+automatic TLS, with DB migrations applied on boot):
+
+- **AWS, one click** — a CloudFormation *Launch Stack* button spins up an EC2
+  instance that boots the whole thing. See [deploy/README.md](deploy/README.md).
+- **Any Ubuntu box, one command:**
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/OWNER/calsync/main/deploy/install.sh \
+    | sudo CALSYNC_DOMAIN=cal.example.com bash
+  ```
+
+The installer creates strong secrets on first run and brings everything up.
+Full guide, day-two ops, and backups: **[deploy/README.md](deploy/README.md)**.
+
+## Self-hosting (Docker, from a checkout)
+
+The full stack — web, worker, Postgres, and Redis — runs from one compose file.
+The `app` profile builds the web + worker images; without it you get just the
+datastores (the dev workflow above).
+
+```bash
+# 1. Configure — fill in secrets, OAuth creds, and any optional providers
+cp .env.example .env
+
+# 2. Create the schema on first run (fresh database)
+docker compose up -d postgres redis
+docker compose --profile app run --rm worker pnpm --filter @calsync/db migrate
+
+# 3. Build + start everything
+docker compose --profile app up -d --build
+```
+
+The web app is served on `http://localhost:3000`. Optional integrations are
+env-gated and no-op until configured:
+
+| Feature | Env vars |
+| --- | --- |
+| AI scheduling / drafts | `ANTHROPIC_API_KEY` |
+| WhatsApp + SMS reminders | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM`, `TWILIO_SMS_FROM` |
+| Slack + mobile push reminders | none — the destination travels with each channel's config |
+| Analytics | `NEXT_PUBLIC_MIXPANEL_TOKEN`, `NEXT_PUBLIC_GA_ID` |
+| Bot/abuse protection | `TURNSTILE_SECRET`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` |
 
 ## Testing
 

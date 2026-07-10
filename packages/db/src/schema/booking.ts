@@ -1,9 +1,19 @@
 import { relations, sql } from "drizzle-orm";
-import { index, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { bookingStatus, calendarProvider, timestamps } from "./_shared";
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { bookingStatus, calendarProvider, paymentStatus, timestamps } from "./_shared";
 import { calendars } from "./calendar";
-import { eventTypes } from "./scheduling";
 import { organizations, users } from "./orgs";
+import { eventTypes } from "./scheduling";
 
 /** A scheduled meeting instance. */
 export const bookings = pgTable(
@@ -37,8 +47,21 @@ export const bookings = pgTable(
     /** Stable public token used in reschedule/cancel links. */
     uid: text("uid").notNull(),
 
+    /** True for bookings on a group event type (capacity > 1). These share a
+     * slot, so they're EXEMPT from the per-host single-slot / no-overlap guards
+     * below; capacity is instead enforced transactionally in createBooking. */
+    isGroup: boolean("is_group").notNull().default(false),
+
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
     cancelReason: text("cancel_reason"),
+
+    // Payments (Stripe). paymentStatus="none" for free event types.
+    paymentStatus: paymentStatus("payment_status").notNull().default("none"),
+    /** Stripe PaymentIntent id — used to issue refunds on cancel. */
+    paymentIntentId: text("payment_intent_id"),
+    /** Amount actually charged, in the currency's minor units (cents). */
+    amountPaid: integer("amount_paid"),
+    paymentCurrency: text("payment_currency"),
     ...timestamps,
   },
   (t) => [
@@ -48,10 +71,12 @@ export const bookings = pgTable(
     index("bookings_starts_idx").on(t.startsAt),
     // Prevent a check-then-insert race from creating two confirmed bookings for
     // the same host at the same instant. Enforced only for live bookings so a
-    // cancelled slot can be re-booked.
+    // cancelled slot can be re-booked. NB: a stronger GiST EXCLUSION constraint
+    // (`bookings_no_overlap`, migration 0019) additionally rejects cross-duration
+    // OVERLAPS — it can't be expressed in the drizzle DSL, so it lives in raw SQL.
     uniqueIndex("bookings_host_slot_active_idx")
       .on(t.hostId, t.startsAt)
-      .where(sql`${t.status} = 'confirmed'`),
+      .where(sql`${t.status} = 'confirmed' AND ${t.isGroup} = false`),
   ],
 );
 

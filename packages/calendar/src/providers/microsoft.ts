@@ -1,14 +1,16 @@
 import { Client } from "@microsoft/microsoft-graph-client";
 import type {
-  BusyEvent,
   BusyInterval,
   CalendarAdapter,
+  CalendarInvite,
   CreatedEvent,
   ExternalCalendar,
+  InviteResponse,
   NewCalendarEvent,
   OAuthCredentials,
   ProviderOAuthConfig,
   SyncResult,
+  SyncedEvent,
   WatchResult,
 } from "../types";
 
@@ -158,7 +160,7 @@ export class MicrosoftCalendarAdapter implements CalendarAdapter {
     windowStart: Date,
     windowEnd: Date,
   ): Promise<SyncResult> {
-    const busy: BusyEvent[] = [];
+    const events: SyncedEvent[] = [];
     const deletedExternalIds: string[] = [];
     let next: string | null =
       cursor ??
@@ -176,21 +178,42 @@ export class MicrosoftCalendarAdapter implements CalendarAdapter {
       };
       for (const ev of res.value ?? []) {
         if (!ev.id) continue;
-        if (ev["@removed"]) {
+        if (ev["@removed"] || ev.isCancelled) {
           deletedExternalIds.push(ev.id);
           continue;
         }
-        if (ev.showAs === "free") {
-          deletedExternalIds.push(ev.id);
-          continue;
-        }
-        if (ev.start?.dateTime && ev.end?.dateTime) {
-          busy.push({
-            externalEventId: ev.id,
-            start: new Date(`${ev.start.dateTime}Z`),
-            end: new Date(`${ev.end.dateTime}Z`),
-          });
-        }
+        if (!ev.start?.dateTime || !ev.end?.dateTime) continue;
+        const sensitivity = ev.sensitivity ?? "";
+        events.push({
+          externalEventId: ev.id,
+          start: new Date(`${ev.start.dateTime}Z`),
+          end: new Date(`${ev.end.dateTime}Z`),
+          allDay: Boolean(ev.isAllDay),
+          title: ev.subject ?? undefined,
+          description: ev.bodyPreview ?? undefined,
+          location: ev.location?.displayName ?? undefined,
+          meetingUrl: ev.onlineMeeting?.joinUrl ?? undefined,
+          organizer: ev.organizer?.emailAddress
+            ? { email: ev.organizer.emailAddress.address, name: ev.organizer.emailAddress.name }
+            : undefined,
+          attendees: (ev.attendees ?? [])
+            .filter((a) => a.emailAddress?.address)
+            .map((a) => ({
+              email: a.emailAddress!.address as string,
+              name: a.emailAddress?.name,
+              responseStatus: a.status?.response,
+            })),
+          status: ev.showAs === "tentative" ? "tentative" : "confirmed",
+          visibility:
+            sensitivity === "private" ||
+            sensitivity === "confidential" ||
+            sensitivity === "personal"
+              ? "private"
+              : "default",
+          transparency: ev.showAs === "free" ? "transparent" : "opaque",
+          recurringEventId: ev.seriesMasterId ?? undefined,
+          isRecurring: Boolean(ev.seriesMasterId) || ev.type === "seriesMaster",
+        });
       }
       if (res["@odata.deltaLink"]) {
         nextCursor = res["@odata.deltaLink"];
@@ -200,7 +223,7 @@ export class MicrosoftCalendarAdapter implements CalendarAdapter {
       }
     }
 
-    return { busy, deletedExternalIds, nextCursor };
+    return { events, deletedExternalIds, nextCursor };
   }
 
   async watch(
@@ -222,6 +245,49 @@ export class MicrosoftCalendarAdapter implements CalendarAdapter {
 
   async unwatch(sub: { externalId: string }): Promise<void> {
     await this.client.api(`/subscriptions/${sub.externalId}`).delete();
+  }
+
+  async listInvites(calId: string, windowStart: Date, windowEnd: Date): Promise<CalendarInvite[]> {
+    const res = (await this.client
+      .api(`/me/calendars/${calId}/calendarView`)
+      .header("Prefer", 'outlook.timezone="UTC"')
+      .query({ startDateTime: windowStart.toISOString(), endDateTime: windowEnd.toISOString() })
+      .select("id,subject,start,end,location,organizer,responseStatus,onlineMeeting")
+      .top(250)
+      .get()) as { value: GraphInviteEvent[] };
+
+    const invites: CalendarInvite[] = [];
+    for (const ev of res.value ?? []) {
+      if (!ev.id) continue;
+      const r = ev.responseStatus?.response;
+      if (r !== "notResponded" && r !== "none") continue; // only un-answered
+      if (!ev.start?.dateTime || !ev.end?.dateTime) continue;
+      invites.push({
+        externalEventId: ev.id,
+        calendarExternalId: calId,
+        title: ev.subject ?? "(no title)",
+        start: new Date(`${ev.start.dateTime}Z`),
+        end: new Date(`${ev.end.dateTime}Z`),
+        organizer: ev.organizer?.emailAddress
+          ? { name: ev.organizer.emailAddress.name, email: ev.organizer.emailAddress.address }
+          : undefined,
+        location: ev.location?.displayName ?? undefined,
+        meetingUrl: ev.onlineMeeting?.joinUrl ?? undefined,
+        responseStatus: "needsAction",
+      });
+    }
+    return invites;
+  }
+
+  async respondToInvite(_calId: string, eventId: string, response: InviteResponse): Promise<void> {
+    const action =
+      response === "accepted"
+        ? "accept"
+        : response === "declined"
+          ? "decline"
+          : "tentativelyAccept";
+    // Graph's RSVP actions live on /me/events/{id}; sendResponse notifies the organizer.
+    await this.client.api(`/me/events/${eventId}/${action}`).post({ sendResponse: true });
   }
 
   private toGraphEvent(event: NewCalendarEvent): Record<string, unknown> {
@@ -259,6 +325,31 @@ interface GraphDeltaEvent {
   id?: string;
   "@removed"?: { reason?: string };
   showAs?: string;
+  subject?: string;
+  bodyPreview?: string;
+  isAllDay?: boolean;
+  isCancelled?: boolean;
+  sensitivity?: string;
+  type?: string;
+  seriesMasterId?: string;
+  location?: { displayName?: string };
+  onlineMeeting?: { joinUrl?: string };
+  organizer?: { emailAddress?: { name?: string; address?: string } };
+  attendees?: {
+    emailAddress?: { name?: string; address?: string };
+    status?: { response?: string };
+  }[];
   start?: { dateTime: string; timeZone: string };
   end?: { dateTime: string; timeZone: string };
+}
+
+interface GraphInviteEvent {
+  id?: string;
+  subject?: string;
+  start?: { dateTime: string; timeZone: string };
+  end?: { dateTime: string; timeZone: string };
+  location?: { displayName?: string };
+  organizer?: { emailAddress?: { name?: string; address?: string } };
+  responseStatus?: { response?: string; time?: string };
+  onlineMeeting?: { joinUrl?: string };
 }

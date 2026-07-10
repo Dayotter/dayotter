@@ -17,6 +17,13 @@ export default async function PreferencesSettingsPage() {
         weekStartsOn: prefs?.weekStartsOn ?? 0,
         theme: prefs?.theme ?? "system",
         defaultReminderOffsets: prefs?.defaultReminderOffsets ?? [1440, 60],
+        adaptiveAvailability: prefs?.adaptiveAvailability ?? false,
+        maxMeetingsPerDay: prefs?.maxMeetingsPerDay ?? 5,
+        travelBufferMinutes: prefs?.travelBufferMinutes ?? 0,
+        reclaimCancelledTime: prefs?.reclaimCancelledTime ?? false,
+        lunchEnabled: prefs?.lunchEnabled ?? false,
+        lunchStartMinute: prefs?.lunchStartMinute ?? 720,
+        lunchEndMinute: prefs?.lunchEndMinute ?? 780,
       }}
     />
   );

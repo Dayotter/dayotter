@@ -1,8 +1,17 @@
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { googleCalendarUrl } from "@/lib/booking/ics";
+import { formatMoney } from "@/lib/booking/money";
 import { eq, getDb, schema } from "@calsync/db";
-import { CalendarPlus, CalendarX2, CheckCircle2, Clock, Download, Video } from "lucide-react";
+import {
+  CalendarPlus,
+  CalendarX2,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Download,
+  Video,
+} from "lucide-react";
 import { DateTime } from "luxon";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -72,6 +81,13 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
                   >
                     Join the call
                   </a>
+                </p>
+              ) : null}
+              {booking.amountPaid && booking.paymentStatus !== "none" ? (
+                <p className="flex items-center gap-2">
+                  <CreditCard size={15} className="text-[var(--color-muted)]" />
+                  {booking.paymentStatus === "refunded" ? "Refunded " : "Paid "}
+                  {formatMoney(booking.amountPaid, booking.paymentCurrency ?? "usd")}
                 </p>
               ) : null}
             </div>

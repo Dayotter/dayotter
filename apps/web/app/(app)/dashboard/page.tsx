@@ -1,10 +1,17 @@
+import { AiQuickAdd } from "@/components/ai-quick-add";
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { MeetingAssistant } from "@/components/meeting-assistant";
+import { OverflowButton } from "@/components/overflow-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
+import { PendingInvites } from "@/components/pending-invites";
+import { RunningLateButton } from "@/components/running-late-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { aiEnabled } from "@/lib/ai/llm";
+import { eventColorVar } from "@/lib/booking/event-type-input";
 import { getSession } from "@/lib/auth/session";
-import { and, asc, eq, getDb, gte, schema } from "@calsync/db";
-import { CalendarClock, ExternalLink, Video } from "lucide-react";
+import { and, asc, eq, getDb, gt, gte, lte, schema } from "@calsync/db";
+import { CalendarClock, ExternalLink, Radio, Video } from "lucide-react";
 import { DateTime } from "luxon";
 import Link from "next/link";
 
@@ -16,7 +23,8 @@ export default async function DashboardPage() {
   const tz = (session!.user as { timezone?: string }).timezone ?? "UTC";
 
   const db = getDb();
-  const [user, upcoming] = await Promise.all([
+  const now = new Date();
+  const [user, upcoming, inProgress] = await Promise.all([
     db.query.users.findFirst({
       where: eq(schema.users.id, userId),
       columns: { handle: true },
@@ -25,16 +33,40 @@ export default async function DashboardPage() {
       where: and(
         eq(schema.bookings.hostId, userId),
         eq(schema.bookings.status, "confirmed"),
-        gte(schema.bookings.startsAt, new Date()),
+        gte(schema.bookings.startsAt, now),
       ),
       orderBy: asc(schema.bookings.startsAt),
       limit: 10,
-      with: { attendees: true },
+      with: { attendees: true, eventType: { columns: { color: true } } },
+    }),
+    // A meeting happening right now (started, not yet ended) — the overflow case.
+    db.query.bookings.findFirst({
+      where: and(
+        eq(schema.bookings.hostId, userId),
+        eq(schema.bookings.status, "confirmed"),
+        lte(schema.bookings.startsAt, now),
+        gt(schema.bookings.endsAt, now),
+      ),
+      orderBy: asc(schema.bookings.startsAt),
+      with: { eventType: { columns: { color: true } } },
     }),
   ]);
 
   const handle = user?.handle ?? null;
   const next = upcoming[0];
+  // Show the overflow nudge only when a back-to-back meeting follows the one in
+  // progress within 90 minutes of it ending.
+  const nextAfterInProgress =
+    inProgress &&
+    next &&
+    next.startsAt.getTime() > inProgress.endsAt.getTime() &&
+    next.startsAt.getTime() - inProgress.endsAt.getTime() < 90 * 60_000;
+  // Show the "running late" nudge when the next meeting is about to start (or just
+  // did) — the window where you'd realistically be running behind.
+  const nextIsImminent = next
+    ? next.startsAt.getTime() - Date.now() < 20 * 60_000 &&
+      next.startsAt.getTime() - Date.now() > -30 * 60_000
+    : false;
   const firstName = (session!.user.name ?? "there").split(" ")[0];
 
   return (
@@ -43,6 +75,10 @@ export default async function DashboardPage() {
         title={`Good to see you, ${firstName}`}
         description="Here's what's on your calendar."
       />
+
+      {aiEnabled ? <AiQuickAdd /> : null}
+
+      <PendingInvites aiEnabled={aiEnabled} />
 
       {handle ? (
         <Card className="mb-6 flex flex-wrap items-center justify-between gap-3 px-5 py-4">
@@ -65,6 +101,24 @@ export default async function DashboardPage() {
         </Card>
       ) : null}
 
+      {inProgress ? (
+        <Card className="mb-6 border-[var(--color-border-strong)] bg-gradient-to-br from-[var(--color-surface-2)] to-[var(--color-surface)]">
+          <div className="flex items-center justify-between gap-3 p-5">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-[var(--color-accent)]">
+                <Radio size={13} /> Happening now
+              </p>
+              <p className="mt-1 truncate text-lg font-semibold">{inProgress.title}</p>
+              <p className="mt-0.5 text-sm text-[var(--color-muted)]">
+                until {DateTime.fromJSDate(inProgress.endsAt).setZone(tz).toFormat("h:mm a")}
+                {nextAfterInProgress ? " · another meeting right after" : ""}
+              </p>
+            </div>
+            {nextAfterInProgress ? <OverflowButton uid={inProgress.uid} /> : null}
+          </div>
+        </Card>
+      ) : null}
+
       {next ? (
         <Card className="mb-6 border-[var(--color-border-strong)] bg-gradient-to-br from-[var(--color-surface-2)] to-[var(--color-surface)]">
           <div className="flex items-center justify-between p-5">
@@ -78,19 +132,24 @@ export default async function DashboardPage() {
                 {DateTime.fromJSDate(next.endsAt).setZone(tz).toFormat("h:mm a")}
               </p>
             </div>
-            {next.meetingUrl ? (
-              <a
-                href={next.meetingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={buttonVariants({ variant: "primary" })}
-              >
-                <Video size={16} /> Join
-              </a>
-            ) : null}
+            <div className="flex items-center gap-2">
+              {nextIsImminent ? <RunningLateButton uid={next.uid} /> : null}
+              {next.meetingUrl ? (
+                <a
+                  href={next.meetingUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={buttonVariants({ variant: "primary" })}
+                >
+                  <Video size={16} /> Join
+                </a>
+              ) : null}
+            </div>
           </div>
         </Card>
       ) : null}
+
+      {aiEnabled && next ? <MeetingAssistant uid={next.uid} title={next.title} /> : null}
 
       <h2 className="mb-3 text-sm font-semibold text-[var(--color-muted)]">Upcoming</h2>
       {upcoming.length === 0 ? (
@@ -107,7 +166,10 @@ export default async function DashboardPage() {
         <div className="space-y-2">
           {upcoming.map((b) => (
             <Card key={b.id} className="flex items-center gap-4 px-4 py-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--color-surface-2)] text-[var(--color-accent)]">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-md text-white"
+                style={{ backgroundColor: eventColorVar(b.eventType?.color) }}
+              >
                 <CalendarClock size={18} />
               </div>
               <div className="min-w-0 flex-1">

@@ -1,0 +1,1 @@
+ALTER TABLE "booking_page_views" ADD COLUMN "kind" text DEFAULT 'view' NOT NULL;

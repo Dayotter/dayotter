@@ -17,6 +17,8 @@ export interface OutboundEmail {
   subject: string;
   text: string;
   html?: string;
+  /** Reply-To header (e.g. a contact-form sender's address). */
+  replyTo?: string;
 }
 
 export async function sendEmail(email: OutboundEmail): Promise<void> {

@@ -3,7 +3,7 @@ import { FormError } from "@/components/ui/form";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
-import { Label } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/cn";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
@@ -41,6 +41,13 @@ const WEEK_DAYS = [
   { value: 6, label: "Saturday" },
 ];
 
+const pad = (n: number) => String(n).padStart(2, "0");
+const minutesToHHMM = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+const hhmmToMinutes = (s: string) => {
+  const [h, m] = s.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+};
+
 export function PreferencesForm({
   initial,
 }: {
@@ -49,12 +56,26 @@ export function PreferencesForm({
     weekStartsOn: number;
     theme: Theme;
     defaultReminderOffsets: number[];
+    adaptiveAvailability?: boolean;
+    maxMeetingsPerDay?: number;
+    travelBufferMinutes?: number;
+    reclaimCancelledTime?: boolean;
+    lunchEnabled?: boolean;
+    lunchStartMinute?: number;
+    lunchEndMinute?: number;
   };
 }) {
   const [timeFormat, setTimeFormat] = useState(initial.timeFormat);
   const [weekStartsOn, setWeekStartsOn] = useState(initial.weekStartsOn);
   const [theme, setTheme] = useState<Theme>(initial.theme);
   const [reminders, setReminders] = useState<number[]>(initial.defaultReminderOffsets);
+  const [adaptive, setAdaptive] = useState(initial.adaptiveAvailability ?? false);
+  const [maxPerDay, setMaxPerDay] = useState(initial.maxMeetingsPerDay ?? 5);
+  const [travelBuffer, setTravelBuffer] = useState(initial.travelBufferMinutes ?? 0);
+  const [reclaim, setReclaim] = useState(initial.reclaimCancelledTime ?? false);
+  const [lunchOn, setLunchOn] = useState(initial.lunchEnabled ?? false);
+  const [lunchStart, setLunchStart] = useState(initial.lunchStartMinute ?? 720);
+  const [lunchEnd, setLunchEnd] = useState(initial.lunchEndMinute ?? 780);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +108,19 @@ export function PreferencesForm({
     const res = await fetch("/api/settings/preferences", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ timeFormat, weekStartsOn, theme, defaultReminderOffsets: reminders }),
+      body: JSON.stringify({
+        timeFormat,
+        weekStartsOn,
+        theme,
+        defaultReminderOffsets: reminders,
+        adaptiveAvailability: adaptive,
+        maxMeetingsPerDay: maxPerDay,
+        travelBufferMinutes: travelBuffer,
+        reclaimCancelledTime: reclaim,
+        lunchEnabled: lunchOn,
+        lunchStartMinute: lunchStart,
+        lunchEndMinute: lunchEnd,
+      }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -182,6 +215,140 @@ export function PreferencesForm({
                 );
               })}
             </div>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={adaptive}
+                onChange={(e) => {
+                  setAdaptive(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Adaptive availability
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  On heavy days, stop offering booking slots once you hit your meeting cap — so a
+                  full day doesn't get fuller.
+                </span>
+              </span>
+            </label>
+            {adaptive ? (
+              <div className="mt-3 flex items-center gap-2">
+                <Label htmlFor="max-per-day">Max meetings/day</Label>
+                <Input
+                  id="max-per-day"
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={maxPerDay}
+                  onChange={(e) => {
+                    setMaxPerDay(Number(e.target.value) || 1);
+                    setSaved(false);
+                  }}
+                  className="w-20"
+                />
+              </div>
+            ) : null}
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <Label htmlFor="travel-buffer">Travel time for in-person meetings</Label>
+            <p className="mb-2 -mt-1 text-xs text-[var(--color-faint)]">
+              Reserve this much travel time before and after every in-person booking, so you're
+              never offered back-to-back slots with no room to get there. 0 = off.
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                id="travel-buffer"
+                type="number"
+                min={0}
+                max={240}
+                step={5}
+                value={travelBuffer}
+                onChange={(e) => {
+                  setTravelBuffer(Math.max(0, Number(e.target.value) || 0));
+                  setSaved(false);
+                }}
+                className="w-24"
+              />
+              <span className="text-sm text-[var(--color-muted)]">minutes each way</span>
+            </div>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={reclaim}
+                onChange={(e) => {
+                  setReclaim(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Reclaim cancelled time as focus
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  When an upcoming meeting is cancelled, hold onto that time as a focus block
+                  instead of re-opening it for booking. You can always remove the block.
+                </span>
+              </span>
+            </label>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={lunchOn}
+                onChange={(e) => {
+                  setLunchOn(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Lunch break
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  Block this window every day so no one can book over your lunch (in your schedule's
+                  timezone).
+                </span>
+              </span>
+            </label>
+            {lunchOn ? (
+              <div className="mt-3 flex items-center gap-2">
+                <Input
+                  aria-label="Lunch start"
+                  type="time"
+                  value={minutesToHHMM(lunchStart)}
+                  onChange={(e) => {
+                    setLunchStart(hhmmToMinutes(e.target.value));
+                    setSaved(false);
+                  }}
+                  className="w-32"
+                />
+                <span className="text-sm text-[var(--color-muted)]">to</span>
+                <Input
+                  aria-label="Lunch end"
+                  type="time"
+                  value={minutesToHHMM(lunchEnd)}
+                  onChange={(e) => {
+                    setLunchEnd(hhmmToMinutes(e.target.value));
+                    setSaved(false);
+                  }}
+                  className="w-32"
+                />
+              </div>
+            ) : null}
+            {lunchOn && lunchEnd <= lunchStart ? (
+              <p className="mt-2 text-xs text-[var(--color-danger)]">
+                Lunch end must be after the start.
+              </p>
+            ) : null}
           </div>
 
           <FormError>{error}</FormError>

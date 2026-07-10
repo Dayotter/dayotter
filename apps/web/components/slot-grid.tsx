@@ -1,6 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { t } from "@/lib/i18n/booking";
+import { useBookingLocale } from "@/lib/i18n/use-locale";
+import { Layers } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
 
@@ -22,24 +26,108 @@ export function useLocalZone() {
 export function SlotGrid({
   eventTypeId,
   onSelect,
+  duration,
 }: {
   eventTypeId: string;
   onSelect: (slot: Slot) => void;
+  /** Chosen duration for multi-duration event types (refetches when it changes). */
+  duration?: number;
 }) {
   const zone = useLocalZone();
+  const locale = useBookingLocale();
   const [slots, setSlots] = useState<Slot[]>([]);
+  const [recommended, setRecommended] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDay, setActiveDay] = useState<string | null>(null);
 
+  // SavvyCal-style overlay: the booker's own busy intervals (from a pasted ICS
+  // feed), used to grey out slots that clash with their calendar.
+  const [overlayShown, setOverlayShown] = useState(false);
+  const [overlayUrl, setOverlayUrl] = useState("");
+  const [overlayState, setOverlayState] = useState<"idle" | "loading" | "on" | "error">("idle");
+  const [overlayError, setOverlayError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<{ s: number; e: number }[]>([]);
+
   useEffect(() => {
+    setLoading(true);
     const from = new Date().toISOString();
     const to = new Date(Date.now() + 14 * 86_400_000).toISOString();
-    fetch(`/api/availability/${eventTypeId}?from=${from}&to=${to}`)
+    const durationParam = duration ? `&duration=${duration}` : "";
+    let active = true;
+    fetch(`/api/availability/${eventTypeId}?from=${from}&to=${to}${durationParam}`)
       .then((r) => r.json())
-      .then((data) => setSlots(data.slots ?? []))
-      .catch(() => setSlots([]))
-      .finally(() => setLoading(false));
-  }, [eventTypeId]);
+      .then((data) => {
+        if (!active) return;
+        setSlots(data.slots ?? []);
+        setRecommended(data.recommended ?? []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setSlots([]);
+        setRecommended([]);
+      })
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [eventTypeId, duration]);
+
+  async function applyOverlay() {
+    if (!overlayUrl.trim()) return;
+    setOverlayState("loading");
+    setOverlayError(null);
+    try {
+      const res = await fetch("/api/overlay", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          icsUrl: overlayUrl.trim(),
+          from: new Date().toISOString(),
+          to: new Date(Date.now() + 14 * 86_400_000).toISOString(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setOverlayState("error");
+        setOverlayError(
+          typeof data.error === "string" ? data.error : "Couldn't read that calendar.",
+        );
+        return;
+      }
+      setBusy(
+        (data.busy as { start: string; end: string }[]).map((b) => ({
+          s: new Date(b.start).getTime(),
+          e: new Date(b.end).getTime(),
+        })),
+      );
+      setOverlayState("on");
+    } catch {
+      setOverlayState("error");
+      setOverlayError("Couldn't read that calendar.");
+    }
+  }
+
+  function clearOverlay() {
+    setBusy([]);
+    setOverlayState("idle");
+    setOverlayError(null);
+  }
+
+  /** True if the booker's calendar has a commitment overlapping this slot. */
+  function hasConflict(slot: Slot): boolean {
+    if (busy.length === 0) return false;
+    const s = new Date(slot.start).getTime();
+    const e = new Date(slot.end).getTime();
+    return busy.some((b) => s < b.e && e > b.s);
+  }
+
+  const recommendedSet = useMemo(() => new Set(recommended), [recommended]);
+  // Resolve recommended ISO starts back to slot objects, in chronological order.
+  const recommendedSlots = useMemo(
+    () =>
+      recommended.map((iso) => slots.find((s) => s.start === iso)).filter((s): s is Slot => !!s),
+    [recommended, slots],
+  );
 
   const byDay = useMemo(() => {
     const map = new Map<string, Slot[]>();
@@ -54,16 +142,91 @@ export function SlotGrid({
   const currentDay = activeDay ?? days[0] ?? null;
   const daySlots = currentDay ? (byDay.get(currentDay) ?? []) : [];
 
-  if (loading) return <p className="text-sm text-[var(--color-muted)]">Loading availability…</p>;
+  if (loading) return <p className="text-sm text-[var(--color-muted)]">{t(locale, "loading")}</p>;
   if (days.length === 0) {
-    return (
-      <p className="text-sm text-[var(--color-muted)]">No times available in the next two weeks.</p>
-    );
+    return <p className="text-sm text-[var(--color-muted)]">{t(locale, "noTimes")}</p>;
   }
 
   return (
     <div>
-      <p className="mb-3 text-xs text-[var(--color-faint)]">Times shown in {zone}</p>
+      {recommendedSlots.length > 0 ? (
+        <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/[0.06] p-3">
+          <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-accent)]">
+            <Sparkles size={13} /> {t(locale, "recommended")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {recommendedSlots.map((s) => (
+              <button
+                key={s.start}
+                type="button"
+                onClick={() => onSelect(s)}
+                className="rounded-md border border-[var(--color-accent)]/40 bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
+              >
+                {DateTime.fromISO(s.start)
+                  .setZone(zone)
+                  .setLocale(locale)
+                  .toFormat("ccc, LLL d · h:mm a")}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="text-xs text-[var(--color-faint)]">{t(locale, "timesIn", { zone })}</p>
+        {!overlayShown ? (
+          <button
+            type="button"
+            onClick={() => setOverlayShown(true)}
+            className="inline-flex items-center gap-1 text-xs text-[var(--color-accent)] hover:underline"
+          >
+            <Layers size={12} /> {t(locale, "overlayCta")}
+          </button>
+        ) : null}
+      </div>
+
+      {overlayShown ? (
+        <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
+          <p className="mb-2 text-xs text-[var(--color-muted)]">{t(locale, "overlayHelp")}</p>
+          <div className="flex flex-wrap gap-2">
+            <input
+              type="url"
+              value={overlayUrl}
+              onChange={(e) => setOverlayUrl(e.target.value)}
+              placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"
+              className="min-w-0 flex-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-1.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+            />
+            <button
+              type="button"
+              onClick={applyOverlay}
+              disabled={overlayState === "loading" || !overlayUrl.trim()}
+              className="rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-accent-fg)] hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
+            >
+              {overlayState === "loading" ? t(locale, "overlayReading") : t(locale, "overlayApply")}
+            </button>
+            {overlayState === "on" ? (
+              <button
+                type="button"
+                onClick={clearOverlay}
+                className="rounded-md border border-[var(--color-border-strong)] px-3 py-1.5 text-sm text-[var(--color-muted)] hover:bg-[var(--color-surface)]"
+              >
+                {t(locale, "overlayClear")}
+              </button>
+            ) : null}
+          </div>
+          {overlayError ? (
+            <p className="mt-2 text-xs text-[var(--color-danger)]">{overlayError}</p>
+          ) : null}
+          {overlayState === "on" ? (
+            <p className="mt-2 text-xs text-[var(--color-muted)]">
+              {busy.length === 1
+                ? t(locale, "overlaySummaryOne")
+                : t(locale, "overlaySummaryMany", { n: busy.length })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="grid gap-5 sm:grid-cols-[220px_1fr] sm:gap-6">
         <div className="flex gap-1.5 overflow-x-auto pb-1 sm:max-h-80 sm:flex-col sm:overflow-x-visible sm:overflow-y-auto sm:pb-0 sm:pr-1">
           {days.map((d) => {
@@ -81,7 +244,9 @@ export function SlotGrid({
                     : "border-[var(--color-border)] hover:border-[var(--color-border-strong)]",
                 )}
               >
-                <span className="whitespace-nowrap">{dt.toFormat("ccc, LLL d")}</span>
+                <span className="whitespace-nowrap">
+                  {dt.setLocale(locale).toFormat("ccc, LLL d")}
+                </span>
                 <span className="text-xs text-[var(--color-muted)]">
                   {(byDay.get(d) ?? []).length}
                 </span>
@@ -91,16 +256,29 @@ export function SlotGrid({
         </div>
 
         <div className="grid max-h-80 grid-cols-4 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
-          {daySlots.map((s) => (
-            <button
-              key={s.start}
-              type="button"
-              onClick={() => onSelect(s)}
-              className="rounded-md border border-[var(--color-border-strong)] py-2 text-sm transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-            >
-              {DateTime.fromISO(s.start).setZone(zone).toFormat("h:mm a")}
-            </button>
-          ))}
+          {daySlots.map((s) => {
+            const isRecommended = recommendedSet.has(s.start);
+            const conflict = hasConflict(s);
+            return (
+              <button
+                key={s.start}
+                type="button"
+                onClick={() => onSelect(s)}
+                title={conflict ? t(locale, "busyTooltip") : undefined}
+                className={cn(
+                  "inline-flex items-center justify-center gap-1 rounded-md border py-2 text-sm transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+                  conflict
+                    ? "border-[var(--color-border)] text-[var(--color-faint)] line-through decoration-[var(--color-faint)]"
+                    : isRecommended
+                      ? "border-[var(--color-accent)]/50 text-[var(--color-accent)]"
+                      : "border-[var(--color-border-strong)]",
+                )}
+              >
+                {isRecommended && !conflict ? <Sparkles size={11} /> : null}
+                {DateTime.fromISO(s.start).setZone(zone).setLocale(locale).toFormat("h:mm a")}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

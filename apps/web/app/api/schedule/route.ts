@@ -14,16 +14,24 @@ export async function GET() {
 
   const schedule = await getDb().query.schedules.findFirst({
     where: and(eq(schema.schedules.userId, session.user.id), eq(schema.schedules.isDefault, true)),
-    with: { availabilityRules: true },
+    with: { availabilityRules: true, dateOverrides: true },
   });
   const days: { start: string; end: string }[][] = [[], [], [], [], [], [], []];
   for (const r of schedule?.availabilityRules ?? []) {
     days[r.dayOfWeek]!.push({ start: r.startTime.slice(0, 5), end: r.endTime.slice(0, 5) });
   }
-  return NextResponse.json({ timezone: schedule?.timezone ?? "UTC", days });
+  const overrides = (schedule?.dateOverrides ?? [])
+    .map((o) => ({
+      date: o.date,
+      start: o.startTime ? o.startTime.slice(0, 5) : null,
+      end: o.endTime ? o.endTime.slice(0, 5) : null,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  return NextResponse.json({ timezone: schedule?.timezone ?? "UTC", days, overrides });
 }
 
 const hhmm = z.string().regex(/^\d{2}:\d{2}$/);
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const bodySchema = z.object({
   timezone: z.string().min(1).max(64),
   days: z
@@ -34,6 +42,11 @@ const bodySchema = z.object({
       }),
     )
     .max(7),
+  // Date-specific overrides: null start/end = unavailable that day; else custom hours.
+  overrides: z
+    .array(z.object({ date: isoDate, start: hhmm.nullable(), end: hhmm.nullable() }))
+    .max(365)
+    .optional(),
 });
 
 export async function PUT(request: Request) {
@@ -59,6 +72,23 @@ export async function PUT(request: Request) {
       })),
   );
 
+  // De-dupe overrides by date (last wins), and only keep valid custom ranges.
+  const overrideRows = Object.values(
+    Object.fromEntries(
+      (parsed.data.overrides ?? [])
+        .filter((o) => !(o.start && o.end) || o.end > o.start)
+        .map((o) => [
+          o.date,
+          {
+            scheduleId,
+            date: o.date,
+            startTime: o.start ? `${o.start}:00` : null,
+            endTime: o.end ? `${o.end}:00` : null,
+          },
+        ]),
+    ),
+  );
+
   await db.transaction(async (tx) => {
     await tx
       .update(schema.schedules)
@@ -68,6 +98,8 @@ export async function PUT(request: Request) {
       .delete(schema.availabilityRules)
       .where(eq(schema.availabilityRules.scheduleId, scheduleId));
     if (rows.length) await tx.insert(schema.availabilityRules).values(rows);
+    await tx.delete(schema.dateOverrides).where(eq(schema.dateOverrides.scheduleId, scheduleId));
+    if (overrideRows.length) await tx.insert(schema.dateOverrides).values(overrideRows);
   });
 
   return NextResponse.json({ ok: true });

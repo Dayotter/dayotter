@@ -1,8 +1,11 @@
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { DuplicateEventTypeButton } from "@/components/duplicate-event-type-button";
+import { OneOffLinkButton } from "@/components/one-off-link-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
+import { eventColorVar } from "@/lib/booking/event-type-input";
 import { desc, eq, getDb, schema } from "@calsync/db";
 import { Clock, ExternalLink, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
@@ -46,11 +49,21 @@ export default async function EventTypesPage() {
           {eventTypes.map((et) => (
             <Card key={et.id} className="flex flex-col p-5">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-medium">
+                <h3 className="flex items-center gap-2 font-medium">
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: eventColorVar(et.color) }}
+                  />
                   {et.title}
                   {!et.isActive ? (
                     <span className="ml-2 rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[11px] font-normal text-[var(--color-muted)]">
                       hidden
+                    </span>
+                  ) : null}
+                  {et.isPrivate ? (
+                    <span className="ml-2 rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[11px] font-normal text-[var(--color-muted)]">
+                      private
                     </span>
                   ) : null}
                 </h3>
@@ -78,12 +91,16 @@ export default async function EventTypesPage() {
                 ) : (
                   <span />
                 )}
-                <Link
-                  href={`/event-types/${et.id}/edit`}
-                  className="inline-flex items-center gap-1 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
-                >
-                  <Pencil size={13} /> Edit
-                </Link>
+                <div className="flex items-center gap-3">
+                  <OneOffLinkButton id={et.id} />
+                  <DuplicateEventTypeButton id={et.id} />
+                  <Link
+                    href={`/event-types/${et.id}/edit`}
+                    className="inline-flex items-center gap-1 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                  >
+                    <Pencil size={13} /> Edit
+                  </Link>
+                </div>
               </div>
             </Card>
           ))}

@@ -1,16 +1,26 @@
 import { randomUUID } from "node:crypto";
-import { logger, roundRobinPick } from "@calsync/core";
-import { and, eq, getDb, inArray, schema, sql } from "@calsync/db";
+import { logger, roundRobinPick, safeEqual, sha256hex } from "@calsync/core";
+import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@calsync/db";
 import { bookingConfirmation, sendEmail } from "@calsync/emails";
+import { DateTime } from "luxon";
+import { applyBookingRules } from "../automation/apply-rules";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
+import { createZoomMeeting } from "../integrations/zoom";
+import { emitWebhook } from "../webhooks/emit";
 import {
   SLOT_REVALIDATION_WINDOW_MS,
   combineHostSlots,
   eventTypeHostSlots,
+  isAllowedDuration,
 } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
-import { reminderOffsetsForHost, scheduleBookingReminders } from "./reminders";
+import {
+  reminderOffsetsForHost,
+  scheduleBookingReminders,
+  scheduleWorkflowMessages,
+} from "./reminders";
+import { reserveTravelBlocks } from "./travel";
 
 export { BookingError } from "./booking-logic";
 
@@ -98,9 +108,19 @@ export interface CreateBookingInput {
   guests?: string[];
   notes?: string;
   responses?: Record<string, unknown>;
+  /** The booker's chosen duration for multi-duration event types (minutes). */
+  durationMinutes?: number;
+  /** Single-use booking-link token to consume atomically with the booking. */
+  linkToken?: string;
+  /** Access code, required when the event type is password-protected. */
+  accessCode?: string;
+  /** Set when the booking was paid via Stripe (created from the payment handler). */
+  payment?: { paymentIntentId: string; amountPaid: number; currency: string };
 }
 
-export async function createBooking(input: CreateBookingInput): Promise<{ uid: string }> {
+export async function createBooking(
+  input: CreateBookingInput,
+): Promise<{ uid: string; redirectUrl: string | null }> {
   const db = getDb();
 
   const eventType = await db.query.eventTypes.findFirst({
@@ -110,18 +130,40 @@ export async function createBooking(input: CreateBookingInput): Promise<{ uid: s
     throw new BookingError("Event type not found", 404);
   }
 
+  // Password-protected event type: require a matching access code before booking.
+  if (eventType.accessCodeHash) {
+    const supplied = input.accessCode?.trim();
+    if (!supplied || !safeEqual(sha256hex(supplied), eventType.accessCodeHash)) {
+      throw new BookingError("Enter the correct access code to book.", 403);
+    }
+  }
+
   validateResponses(eventType.questions, input.responses);
 
   const start = new Date(input.start);
   if (Number.isNaN(start.getTime())) throw new BookingError("Invalid start time", 400);
-  const end = new Date(start.getTime() + eventType.durationMinutes * 60_000);
+
+  // Multiple durations: honor the booker's chosen length only if the event type
+  // allows it; otherwise fall back to the default duration.
+  const duration =
+    input.durationMinutes && isAllowedDuration(eventType, input.durationMinutes)
+      ? input.durationMinutes
+      : eventType.durationMinutes;
+  const end = new Date(start.getTime() + duration * 60_000);
+
+  // Group event: many bookers share one slot (capacity = maxAttendees). Only
+  // meaningful for individual (owner) event types.
+  const capacity = eventType.maxAttendees ?? 1;
+  const isGroup = capacity > 1 && Boolean(eventType.ownerId);
 
   // Re-validate server-side (the picker may be stale / manipulated). Compute the
-  // per-host slots once and reuse them for both the check and host resolution.
+  // per-host slots once (for the chosen duration) and reuse them for the check
+  // and host resolution.
   const { hostIds, perHost } = await eventTypeHostSlots(
     eventType,
     new Date(start.getTime() - SLOT_REVALIDATION_WINDOW_MS),
     new Date(start.getTime() + SLOT_REVALIDATION_WINDOW_MS),
+    duration,
   );
   const combined = combineHostSlots(perHost, eventType.schedulingType);
   if (!combined.some((s) => s.start.getTime() === start.getTime())) {
@@ -142,6 +184,95 @@ export async function createBooking(input: CreateBookingInput): Promise<{ uid: s
   let booking: typeof schema.bookings.$inferSelect;
   try {
     booking = await db.transaction(async (tx) => {
+      // Daily cap: count this event type's confirmed bookings on the same
+      // host-local calendar day as the requested slot, inside the transaction so
+      // concurrent bookings can't both slip past the limit.
+      if (eventType.dailyBookingLimit != null) {
+        const zone = host.timezone || "UTC";
+        const day = DateTime.fromJSDate(start).setZone(zone);
+        const dayStart = day.startOf("day").toJSDate();
+        const nextDay = day.startOf("day").plus({ days: 1 }).toJSDate();
+        const [{ count } = { count: 0 }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.bookings)
+          .where(
+            and(
+              eq(schema.bookings.eventTypeId, eventType.id),
+              eq(schema.bookings.status, "confirmed"),
+              gte(schema.bookings.startsAt, dayStart),
+              lt(schema.bookings.startsAt, nextDay),
+            ),
+          );
+        if (count >= eventType.dailyBookingLimit) {
+          throw new BookingError("This day is fully booked. Please pick another day.", 409);
+        }
+      }
+
+      // Weekly cap: same idea over the host-local ISO week containing the slot.
+      if (eventType.weeklyBookingLimit != null) {
+        const zone = host.timezone || "UTC";
+        const week = DateTime.fromJSDate(start).setZone(zone);
+        const weekStart = week.startOf("week").toJSDate();
+        const nextWeek = week.startOf("week").plus({ weeks: 1 }).toJSDate();
+        const [{ count } = { count: 0 }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.bookings)
+          .where(
+            and(
+              eq(schema.bookings.eventTypeId, eventType.id),
+              eq(schema.bookings.status, "confirmed"),
+              gte(schema.bookings.startsAt, weekStart),
+              lt(schema.bookings.startsAt, nextWeek),
+            ),
+          );
+        if (count >= eventType.weeklyBookingLimit) {
+          throw new BookingError("This week is fully booked. Please pick another week.", 409);
+        }
+      }
+
+      // Group event capacity: these bookings share a slot and are exempt from the
+      // DB single-slot / no-overlap guards, so enforce the seat limit here. A
+      // per-slot advisory lock serializes concurrent bookings on the SAME slot so
+      // the count-then-insert can't overbook.
+      if (isGroup) {
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${eventType.id + start.toISOString()}))`,
+        );
+        const [{ count } = { count: 0 }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.bookings)
+          .where(
+            and(
+              eq(schema.bookings.eventTypeId, eventType.id),
+              eq(schema.bookings.status, "confirmed"),
+              eq(schema.bookings.startsAt, start),
+            ),
+          );
+        if (count >= capacity) {
+          throw new BookingError("This time is fully booked. Please pick another slot.", 409);
+        }
+      }
+
+      // Consume a single-use / limited booking link atomically: only succeeds
+      // while there are uses left and it hasn't expired.
+      if (input.linkToken) {
+        const consumed = await tx
+          .update(schema.bookingLinks)
+          .set({ usedCount: sql`${schema.bookingLinks.usedCount} + 1` })
+          .where(
+            and(
+              eq(schema.bookingLinks.token, input.linkToken),
+              eq(schema.bookingLinks.eventTypeId, eventType.id),
+              sql`${schema.bookingLinks.usedCount} < ${schema.bookingLinks.maxUses}`,
+              sql`(${schema.bookingLinks.expiresAt} IS NULL OR ${schema.bookingLinks.expiresAt} >= CURRENT_DATE)`,
+            ),
+          )
+          .returning({ id: schema.bookingLinks.id });
+        if (consumed.length === 0) {
+          throw new BookingError("This booking link is no longer valid.", 410);
+        }
+      }
+
       const [row] = await tx
         .insert(schema.bookings)
         .values({
@@ -154,9 +285,14 @@ export async function createBooking(input: CreateBookingInput): Promise<{ uid: s
           endsAt: end,
           timezone: input.attendee.timezone,
           status: "confirmed",
+          isGroup,
           location: eventType.locationDetail,
           responses: input.responses,
           uid,
+          paymentStatus: input.payment ? "paid" : "none",
+          paymentIntentId: input.payment?.paymentIntentId,
+          amountPaid: input.payment?.amountPaid,
+          paymentCurrency: input.payment?.currency,
         })
         .returning();
       if (!row) throw new BookingError("Failed to create booking", 500);
@@ -184,28 +320,56 @@ export async function createBooking(input: CreateBookingInput): Promise<{ uid: s
     hostId: host.id,
   });
 
-  // Write to the host's calendar (best-effort; booking stands without it).
-  let meetingUrl: string | undefined;
-  try {
-    const written = await writeBookingToCalendar(host.id, {
-      title: eventType.title,
-      description: input.notes,
-      start,
-      end,
+  // Fan out to the host's webhook endpoints (best-effort).
+  await emitWebhook(host.id, "booking.created", {
+    uid,
+    eventTypeId: eventType.id,
+    title: eventType.title,
+    startsAt: start.toISOString(),
+    endsAt: end.toISOString(),
+    status: booking.status,
+    attendee: { name: input.attendee.name, email: input.attendee.email },
+  });
+
+  // Zoom event types: auto-create a real Zoom meeting when the host has Zoom
+  // connected (falls back to any manual link otherwise). Best-effort.
+  // Group events share one link (the host's configured location) and are NOT
+  // written to the host calendar — a per-booking event would sync back as busy
+  // and wrongly close the shared slot, and per-booking Zoom links would differ.
+  let zoomUrl: string | null = null;
+  if (!isGroup && eventType.location === "zoom") {
+    zoomUrl = await createZoomMeeting(host.id, {
+      topic: eventType.title,
+      startISO: start.toISOString(),
+      durationMinutes: duration,
       timezone: input.attendee.timezone,
-      attendees: [
-        { email: input.attendee.email, name: input.attendee.name },
-        ...guests.map((email) => ({ email })),
-      ],
-      location: eventType.locationDetail ?? undefined,
-      createConference: AUTO_CONFERENCE.includes(eventType.location),
     });
+  }
+
+  // Write to the host's calendar (best-effort; booking stands without it).
+  // Skipped for group events (see above).
+  let meetingUrl: string | undefined = zoomUrl ?? undefined;
+  try {
+    const written = isGroup
+      ? null
+      : await writeBookingToCalendar(host.id, {
+          title: eventType.title,
+          description: input.notes,
+          start,
+          end,
+          timezone: input.attendee.timezone,
+          attendees: [
+            { email: input.attendee.email, name: input.attendee.name },
+            ...guests.map((email) => ({ email })),
+          ],
+          // Prefer the fresh Zoom link so the calendar invite carries it.
+          location: zoomUrl ?? eventType.locationDetail ?? undefined,
+          createConference: AUTO_CONFERENCE.includes(eventType.location),
+        });
     if (written) {
-      meetingUrl = written.meetingUrl;
-      await db
-        .update(schema.bookings)
-        .set({ meetingUrl })
-        .where(eq(schema.bookings.id, booking.id));
+      // A provider conference (Google Meet / Teams) wins if one was created;
+      // otherwise keep the Zoom link.
+      meetingUrl = written.meetingUrl ?? meetingUrl;
       await db.insert(schema.bookingReferences).values({
         bookingId: booking.id,
         calendarId: written.calendarId,
@@ -222,8 +386,35 @@ export async function createBooking(input: CreateBookingInput): Promise<{ uid: s
     });
   }
 
+  // Persist the resolved meeting URL (Zoom and/or a calendar conference).
+  if (meetingUrl) {
+    await db.update(schema.bookings).set({ meetingUrl }).where(eq(schema.bookings.id, booking.id));
+  }
+
   // Schedule reminders at the host's preferred lead times.
   await scheduleBookingReminders(booking.id, start, await reminderOffsetsForHost(host.id));
+
+  // Schedule the host's workflow messages (custom reminders / follow-ups).
+  await scheduleWorkflowMessages(booking.id, eventType.organizationId, eventType.id, start, end);
+
+  // Automation rules (prep blocks / buffers / follow-ups). Best-effort.
+  await applyBookingRules({
+    bookingId: booking.id,
+    hostId: host.id,
+    title: eventType.title,
+    startsAt: start,
+    endsAt: end,
+  });
+
+  // Travel-Aware Scheduling: reserve travel time around in-person meetings.
+  await reserveTravelBlocks({
+    hostId: host.id,
+    bookingId: booking.id,
+    location: eventType.location,
+    startsAt: start,
+    endsAt: end,
+    place: eventType.locationDetail,
+  });
 
   // Confirmation emails to attendee + host.
   try {
@@ -266,5 +457,5 @@ export async function createBooking(input: CreateBookingInput): Promise<{ uid: s
     });
   }
 
-  return { uid };
+  return { uid, redirectUrl: eventType.redirectUrl ?? null };
 }

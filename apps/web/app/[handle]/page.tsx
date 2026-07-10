@@ -1,4 +1,6 @@
+import { HostAvatar } from "@/components/host-avatar";
 import { Card } from "@/components/ui/card";
+import { brandStyle, getHostBranding } from "@/lib/booking/branding";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
 import { and, asc, eq, getDb, schema } from "@calsync/db";
 import { ArrowRight, Clock } from "lucide-react";
@@ -19,25 +21,31 @@ export default async function PublicProfilePage({
   const host = await db.query.users.findFirst({ where: eq(schema.users.handle, handle) });
   if (!host) notFound();
 
-  const eventTypes = await db.query.eventTypes.findMany({
-    where: and(
-      eq(schema.eventTypes.ownerId, host.id),
-      eq(schema.eventTypes.isActive, true),
-      eq(schema.eventTypes.isPrivate, false),
-    ),
-    orderBy: asc(schema.eventTypes.createdAt),
-  });
+  const [eventTypes, branding] = await Promise.all([
+    db.query.eventTypes.findMany({
+      where: and(
+        eq(schema.eventTypes.ownerId, host.id),
+        eq(schema.eventTypes.isActive, true),
+        eq(schema.eventTypes.isPrivate, false),
+      ),
+      orderBy: asc(schema.eventTypes.createdAt),
+    }),
+    getHostBranding(host.id),
+  ]);
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-10 sm:px-6 sm:py-16">
+    <main
+      style={brandStyle(branding.brandColor)}
+      className="mx-auto max-w-xl px-4 py-10 sm:px-6 sm:py-16"
+    >
       <div className="mb-8 flex flex-col items-center text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-accent)] text-2xl font-semibold text-white">
-          {(host.name ?? host.handle ?? "?").charAt(0).toUpperCase()}
-        </div>
+        <HostAvatar name={host.name ?? host.handle ?? "?"} image={host.image} size={64} />
         <h1 className="font-display mt-4 text-2xl tracking-[-0.01em]">
           {host.name ?? host.handle}
         </h1>
-        <p className="mt-1 text-sm text-[var(--color-muted)]">Pick a meeting to book.</p>
+        <p className="mt-1 text-sm text-[var(--color-muted)]">
+          {branding.welcomeMessage ?? "Pick a meeting to book."}
+        </p>
       </div>
 
       {eventTypes.length === 0 ? (

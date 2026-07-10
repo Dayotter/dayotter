@@ -1,4 +1,4 @@
-export type Provider = "google" | "microsoft" | "apple";
+export type Provider = "google" | "microsoft" | "apple" | "ics";
 
 export interface OAuthCredentials {
   accessToken: string;
@@ -48,23 +48,69 @@ export interface CreatedEvent {
   meetingUrl?: string;
 }
 
-/** A busy interval that carries its source event id (for incremental upserts). */
-export interface BusyEvent {
+/** An attendee on a synced event. */
+export interface SyncedAttendee {
+  email: string;
+  name?: string;
+  responseStatus?: string;
+}
+
+/**
+ * A full external event mapped into calSync's unified model. Times + id are
+ * always present; the rest is populated best-effort from what each provider
+ * exposes. `transparency: "transparent"` means the event doesn't block time.
+ */
+export interface SyncedEvent {
   externalEventId: string;
   start: Date;
   end: Date;
+  allDay?: boolean;
+  title?: string;
+  description?: string;
+  location?: string;
+  meetingUrl?: string;
+  organizer?: { email?: string; name?: string };
+  attendees?: SyncedAttendee[];
+  status?: "confirmed" | "tentative" | "cancelled";
+  visibility?: "default" | "public" | "private";
+  transparency?: "opaque" | "transparent";
+  recurringEventId?: string;
+  isRecurring?: boolean;
+  timezone?: string;
 }
+
+/** @deprecated use {@link SyncedEvent}. */
+export type BusyEvent = SyncedEvent;
 
 /** The result of an incremental change fetch. */
 export interface SyncResult {
-  /** Busy events created/updated since the last cursor. */
-  busy: BusyEvent[];
+  /** Full events created/updated since the last cursor. */
+  events: SyncedEvent[];
   /** Event ids removed/cancelled since the last cursor. */
   deletedExternalIds: string[];
   /** Opaque cursor to pass to the next syncEvents call (syncToken / deltaLink / ctag). */
   nextCursor?: string;
   /** true when the provider invalidated the cursor — caller should wipe + full-resync. */
   fullResync?: boolean;
+}
+
+/** How the user has responded to an invitation. */
+export type InviteResponseStatus = "needsAction" | "accepted" | "declined" | "tentative";
+
+/** The action a user can take on a pending invitation. */
+export type InviteResponse = "accepted" | "declined" | "tentative";
+
+/** An event the user has been invited to (their own attendance status). */
+export interface CalendarInvite {
+  externalEventId: string;
+  calendarExternalId: string;
+  title: string;
+  start: Date;
+  end: Date;
+  organizer?: { name?: string; email?: string };
+  location?: string;
+  meetingUrl?: string;
+  responseStatus: InviteResponseStatus;
 }
 
 /** A created push-notification subscription. */
@@ -115,6 +161,23 @@ export interface CalendarAdapter {
 
   /** Tear down a push subscription. */
   unwatch?(subscription: { externalId: string; resourceId?: string }): Promise<void>;
+
+  /**
+   * Events the user has been invited to but not yet responded to, within the
+   * window. Optional — providers without an RSVP concept (CalDAV) omit it.
+   */
+  listInvites?(
+    calendarExternalId: string,
+    windowStart: Date,
+    windowEnd: Date,
+  ): Promise<CalendarInvite[]>;
+
+  /** RSVP to an invitation (accept / decline / tentative), notifying the organizer. */
+  respondToInvite?(
+    calendarExternalId: string,
+    externalEventId: string,
+    response: InviteResponse,
+  ): Promise<void>;
 }
 
 export interface ProviderOAuthConfig {

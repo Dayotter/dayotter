@@ -89,6 +89,37 @@ export function bookingReminder(d: BookingEmailData & { leadLabel: string }): Re
   };
 }
 
+export function bookingFollowUp(d: BookingEmailData): Rendered {
+  return {
+    subject: `Thanks for meeting — ${d.eventTitle}`,
+    text: `Thanks for taking the time to meet about ${d.eventTitle} with ${d.hostName}. If anything came up or you'd like to follow up, just reply — or book another time: ${d.manageUrl}`,
+    html: shell(
+      "Thanks for meeting 🙌",
+      [
+        `Thanks for taking the time to meet about <strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)}.`,
+        "If anything came up, just reply to this email — or grab another time below.",
+      ],
+      { label: "Book another time", url: d.manageUrl },
+    ),
+  };
+}
+
+/** Sent after a meeting the attendee missed — warm, with a rebook link. */
+export function bookingNoShowFollowUp(d: BookingEmailData): Rendered {
+  return {
+    subject: `Sorry we missed you — ${d.eventTitle}`,
+    text: `We had ${d.eventTitle} with ${d.hostName} on the calendar but didn't get to connect. No worries — grab a new time whenever it suits you: ${d.manageUrl}`,
+    html: shell(
+      "Sorry we missed you",
+      [
+        `We had <strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} on the calendar but didn't get to connect.`,
+        "No worries at all — grab a new time whenever it suits you.",
+      ],
+      { label: "Pick a new time", url: d.manageUrl },
+    ),
+  };
+}
+
 export function bookingRescheduled(d: BookingEmailData): Rendered {
   const when = fmt(d.start, d.timezone);
   const where = d.meetingUrl
@@ -111,6 +142,36 @@ export function bookingRescheduled(d: BookingEmailData): Rendered {
   };
 }
 
+export function bookingRunningLate(d: BookingEmailData & { minutes?: number }): Rendered {
+  const late = d.minutes ? `about ${d.minutes} minutes late` : "running a few minutes late";
+  const when = fmt(d.start, d.timezone);
+  return {
+    subject: `Running late: ${d.eventTitle}`,
+    text: `Heads up — ${d.hostName} is ${late} for ${d.eventTitle} (${when}). Thanks for your patience.${d.meetingUrl ? `\nJoin: ${d.meetingUrl}` : ""}`,
+    html: shell(
+      "A quick heads-up ⏳",
+      [
+        `<strong>${esc(d.hostName)}</strong> is ${esc(late)} for <strong>${esc(d.eventTitle)}</strong>.`,
+        `🗓 ${when}`,
+        "Thanks for your patience — they'll be with you shortly.",
+      ],
+      d.meetingUrl ? { label: "Join call", url: d.meetingUrl } : undefined,
+    ),
+  };
+}
+
+export function bookingMessage(d: BookingEmailData & { body: string }): Rendered {
+  const when = fmt(d.start, d.timezone);
+  return {
+    subject: `Re: ${d.eventTitle}`,
+    text: `${d.body}\n\n— ${d.hostName}\n\n${d.eventTitle}\nWhen: ${when}\nManage or reschedule: ${d.manageUrl}`,
+    html: shell(`About ${esc(d.eventTitle)}`, [esc(d.body), `— ${esc(d.hostName)}`, `🗓 ${when}`], {
+      label: "View or reschedule",
+      url: d.manageUrl,
+    }),
+  };
+}
+
 export function bookingCancellation(d: BookingEmailData): Rendered {
   return {
     subject: `Cancelled: ${d.eventTitle} — ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
@@ -119,5 +180,58 @@ export function bookingCancellation(d: BookingEmailData): Rendered {
       `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} has been cancelled.`,
       `Was: ${fmt(d.start, d.timezone)}`,
     ]),
+  };
+}
+
+/**
+ * The placeholders a host may use in a workflow's subject/body. Kept here so the
+ * settings UI and the renderer agree on exactly one vocabulary.
+ */
+export const WORKFLOW_VARIABLES = [
+  "attendee_name",
+  "host_name",
+  "event_title",
+  "event_date",
+  "location",
+  "meeting_url",
+  "manage_url",
+] as const;
+
+/** Substitute `{{variable}}` tokens (case/space tolerant) from a value map. */
+export function applyTemplateVars(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (_m, key: string) => {
+    const v = vars[key.toLowerCase()];
+    return v ?? "";
+  });
+}
+
+/**
+ * A host-authored workflow email. `subjectTemplate`/`bodyTemplate` may contain
+ * `{{variable}}` placeholders (see WORKFLOW_VARIABLES); the body's blank-line
+ * separated paragraphs are rendered into the standard shell.
+ */
+export function workflowEmail(
+  d: BookingEmailData & { subjectTemplate: string; bodyTemplate: string; heading: string },
+): Rendered {
+  const vars: Record<string, string> = {
+    attendee_name: d.attendeeName,
+    host_name: d.hostName,
+    event_title: d.eventTitle,
+    event_date: fmt(d.start, d.timezone),
+    location: d.location ?? "",
+    meeting_url: d.meetingUrl ?? "",
+    manage_url: d.manageUrl,
+  };
+  const subject = applyTemplateVars(d.subjectTemplate, vars).trim() || `About ${d.eventTitle}`;
+  const bodyText = applyTemplateVars(d.bodyTemplate, vars).trim();
+  const paragraphs = bodyText.split(/\n{2,}/).map((p) => p.replace(/\n/g, " ").trim());
+  return {
+    subject,
+    text: `${bodyText}\n\n— ${d.hostName}\n\nView or reschedule: ${d.manageUrl}`,
+    html: shell(
+      esc(d.heading),
+      [...paragraphs.map((p) => esc(p)), `— ${esc(d.hostName)}`].filter(Boolean),
+      { label: "View or reschedule", url: d.manageUrl },
+    ),
   };
 }

@@ -1,17 +1,19 @@
 import { randomUUID } from "node:crypto";
-import { google, type calendar_v3 } from "googleapis";
 import type { Credentials, OAuth2Client } from "google-auth-library";
+import { type calendar_v3, google } from "googleapis";
 import type {
-  BusyEvent,
   BusyInterval,
   CalendarAdapter,
+  CalendarInvite,
   CreatedEvent,
   CredentialRefreshHandler,
   ExternalCalendar,
+  InviteResponse,
   NewCalendarEvent,
   OAuthCredentials,
   ProviderOAuthConfig,
   SyncResult,
+  SyncedEvent,
   WatchResult,
 } from "../types";
 
@@ -153,7 +155,7 @@ export class GoogleCalendarAdapter implements CalendarAdapter {
     windowStart: Date,
     windowEnd: Date,
   ): Promise<SyncResult> {
-    const busy: BusyEvent[] = [];
+    const events: SyncedEvent[] = [];
     const deletedExternalIds: string[] = [];
     let nextCursor: string | undefined;
     let pageToken: string | undefined;
@@ -172,16 +174,43 @@ export class GoogleCalendarAdapter implements CalendarAdapter {
         });
         for (const ev of data.items ?? []) {
           if (!ev.id) continue;
-          // Cancelled or free-time events must not count as busy (and are removed).
-          if (ev.status === "cancelled" || ev.transparency === "transparent") {
+          if (ev.status === "cancelled") {
             deletedExternalIds.push(ev.id);
             continue;
           }
-          const start = ev.start?.dateTime ?? ev.start?.date;
-          const end = ev.end?.dateTime ?? ev.end?.date;
-          if (start && end) {
-            busy.push({ externalEventId: ev.id, start: new Date(start), end: new Date(end) });
-          }
+          const startRaw = ev.start?.dateTime ?? ev.start?.date;
+          const endRaw = ev.end?.dateTime ?? ev.end?.date;
+          if (!startRaw || !endRaw) continue;
+          events.push({
+            externalEventId: ev.id,
+            start: new Date(startRaw),
+            end: new Date(endRaw),
+            allDay: Boolean(ev.start?.date && !ev.start?.dateTime),
+            title: ev.summary ?? undefined,
+            description: ev.description ?? undefined,
+            location: ev.location ?? undefined,
+            meetingUrl: ev.hangoutLink ?? ev.conferenceData?.entryPoints?.[0]?.uri ?? undefined,
+            organizer: ev.organizer
+              ? {
+                  email: ev.organizer.email ?? undefined,
+                  name: ev.organizer.displayName ?? undefined,
+                }
+              : undefined,
+            attendees: (ev.attendees ?? [])
+              .filter((a) => a.email)
+              .map((a) => ({
+                email: a.email as string,
+                name: a.displayName ?? undefined,
+                responseStatus: a.responseStatus ?? undefined,
+              })),
+            status: ev.status === "tentative" ? "tentative" : "confirmed",
+            visibility:
+              ev.visibility === "private" || ev.visibility === "public" ? ev.visibility : "default",
+            transparency: ev.transparency === "transparent" ? "transparent" : "opaque",
+            recurringEventId: ev.recurringEventId ?? undefined,
+            isRecurring: Boolean(ev.recurringEventId || (ev.recurrence?.length ?? 0) > 0),
+            timezone: ev.start?.timeZone ?? undefined,
+          });
         }
         pageToken = data.nextPageToken ?? undefined;
         if (data.nextSyncToken) nextCursor = data.nextSyncToken;
@@ -189,12 +218,12 @@ export class GoogleCalendarAdapter implements CalendarAdapter {
     } catch (err) {
       // 410 Gone → the syncToken expired; the caller should wipe and full-resync.
       if ((err as { code?: number }).code === 410) {
-        return { busy: [], deletedExternalIds: [], fullResync: true };
+        return { events: [], deletedExternalIds: [], fullResync: true };
       }
       throw err;
     }
 
-    return { busy, deletedExternalIds, nextCursor };
+    return { events, deletedExternalIds, nextCursor };
   }
 
   async watch(
@@ -225,6 +254,55 @@ export class GoogleCalendarAdapter implements CalendarAdapter {
   async unwatch(sub: { externalId: string; resourceId?: string }): Promise<void> {
     await this.api.channels.stop({
       requestBody: { id: sub.externalId, resourceId: sub.resourceId },
+    });
+  }
+
+  async listInvites(calId: string, windowStart: Date, windowEnd: Date): Promise<CalendarInvite[]> {
+    const { data } = await this.api.events.list({
+      calendarId: calId,
+      singleEvents: true,
+      orderBy: "startTime",
+      maxResults: 250,
+      timeMin: windowStart.toISOString(),
+      timeMax: windowEnd.toISOString(),
+    });
+    const invites: CalendarInvite[] = [];
+    for (const ev of data.items ?? []) {
+      if (!ev.id || ev.status === "cancelled") continue;
+      // Only events where THIS user is still on the fence.
+      const self = ev.attendees?.find((a) => a.self);
+      if (!self || self.responseStatus !== "needsAction") continue;
+      const start = ev.start?.dateTime ?? ev.start?.date;
+      const end = ev.end?.dateTime ?? ev.end?.date;
+      if (!start || !end) continue;
+      invites.push({
+        externalEventId: ev.id,
+        calendarExternalId: calId,
+        title: ev.summary ?? "(no title)",
+        start: new Date(start),
+        end: new Date(end),
+        organizer: ev.organizer
+          ? { name: ev.organizer.displayName ?? undefined, email: ev.organizer.email ?? undefined }
+          : undefined,
+        location: ev.location ?? undefined,
+        meetingUrl: ev.hangoutLink ?? ev.conferenceData?.entryPoints?.[0]?.uri ?? undefined,
+        responseStatus: "needsAction",
+      });
+    }
+    return invites;
+  }
+
+  async respondToInvite(calId: string, eventId: string, response: InviteResponse): Promise<void> {
+    // Google has no direct RSVP endpoint — patch the self attendee's status.
+    const { data: ev } = await this.api.events.get({ calendarId: calId, eventId });
+    const attendees = (ev.attendees ?? []).map((a) =>
+      a.self ? { ...a, responseStatus: response } : a,
+    );
+    await this.api.events.patch({
+      calendarId: calId,
+      eventId,
+      sendUpdates: "all",
+      requestBody: { attendees },
     });
   }
 

@@ -1,11 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "@/api";
 import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { Team } from "@/models";
 import { colors } from "@/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack } from "expo-router";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function TeamsScreen() {
   const { data, loading, error, reload } = useAsync<Team[]>(async () => {
@@ -14,8 +14,8 @@ export default function TeamsScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <Text style={styles.header}>Teams</Text>
+    <View style={styles.safe}>
+      <Stack.Screen options={{ headerShown: true, title: "Teams" }} />
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={reload} />}
@@ -47,20 +47,13 @@ export default function TeamsScreen() {
           ))
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: colors.text,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  scroll: { paddingHorizontal: 20, paddingBottom: 32 },
+  scroll: { padding: 20, paddingBottom: 32 },
   row: { flexDirection: "row", alignItems: "center" },
   iconBox: {
     height: 42,

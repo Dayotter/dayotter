@@ -1,6 +1,7 @@
 import { EventTypeForm } from "@/components/event-type-form";
 import { PageHeader } from "@/components/page-header";
 import { getSession } from "@/lib/auth/session";
+import { paymentsEnabled } from "@/lib/payments/stripe";
 import { and, eq, getDb, schema } from "@calsync/db";
 import { notFound } from "next/navigation";
 
@@ -24,6 +25,7 @@ export default async function EditEventTypePage({
       <PageHeader title="Edit event type" description="Update how this meeting is booked." />
       <EventTypeForm
         mode="edit"
+        paymentsEnabled={paymentsEnabled}
         initial={{
           id: eventType.id,
           title: eventType.title,
@@ -35,8 +37,22 @@ export default async function EditEventTypePage({
           bufferBeforeMinutes: eventType.bufferBeforeMinutes,
           bufferAfterMinutes: eventType.bufferAfterMinutes,
           minimumNoticeMinutes: eventType.minimumNoticeMinutes,
+          slotIntervalMinutes: eventType.slotIntervalMinutes,
+          minimumGapMinutes: eventType.minimumGapMinutes,
+          durationOptions: eventType.durationOptions,
           bookingWindowDays: eventType.bookingWindowDays ?? undefined,
+          dailyBookingLimit: eventType.dailyBookingLimit,
+          weeklyBookingLimit: eventType.weeklyBookingLimit,
+          maxAttendees: eventType.maxAttendees,
+          hasAccessCode: eventType.accessCodeHash != null,
+          isPrivate: eventType.isPrivate,
+          redirectUrl: eventType.redirectUrl,
+          color: eventType.color,
+          price: eventType.price,
+          currency: eventType.currency,
+          depositAmount: eventType.depositAmount,
           questions: eventType.questions,
+          scheduleId: eventType.scheduleId,
         }}
       />
     </>

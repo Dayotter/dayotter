@@ -1,5 +1,7 @@
+import { expo } from "@better-auth/expo";
 import { getDb, schema } from "@calsync/db";
-import { betterAuth } from "better-auth";
+import { sendEmail } from "@calsync/emails";
+import { type BetterAuthPlugin, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { bearer, organization } from "better-auth/plugins";
@@ -31,7 +33,31 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    // Password reset via emailed capability link. Better Auth mints the token
+    // and hands us the URL (it routes through the API, then redirects to the
+    // `redirectTo` page with the token) — we just deliver it.
+    sendResetPassword: async ({ user, url }) => {
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your calSync password",
+        text: `Reset your calSync password: ${url}\n\nIf you didn't request this, you can ignore this email.`,
+        html: `<p>Someone requested a password reset for your calSync account.</p>
+<p><a href="${url}">Reset your password</a></p>
+<p style="color:#666;font-size:13px">If this wasn't you, you can safely ignore this email — your password won't change.</p>`,
+      });
+    },
   },
+  // "Sign in with Google" — enabled only when Google OAuth creds are configured
+  // (the same app used for calendar connect). Register
+  // `${APP_URL}/api/auth/callback/google` as an authorized redirect URI.
+  socialProviders: process.env.GOOGLE_CLIENT_ID
+    ? {
+        google: {
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+        },
+      }
+    : undefined,
   user: {
     additionalFields: {
       handle: { type: "string", required: false, input: true },
@@ -44,9 +70,16 @@ export const auth = betterAuth({
       generateId: false,
     },
   },
-  // `bearer` enables token auth for native mobile clients; `nextCookies` must be
-  // last so cookies are set correctly from server actions.
-  plugins: [organization(), bearer(), nextCookies()],
+  // Trust the mobile app's deep-link scheme so the Expo OAuth callback is
+  // allowed (native Google sign-in redirects to calsync://).
+  trustedOrigins: ["calsync://"],
+  // `expo` bridges OAuth back to the native app; `bearer` enables token auth for
+  // native mobile clients; `nextCookies` must be last so cookies are set
+  // correctly from server actions.
+  // `expo()` is cast to the generic plugin type so the auth instance's inferred
+  // type stays portable (avoids TS2742 leaking a nested zod-v4 path); it still
+  // runs and registers its endpoints at runtime.
+  plugins: [organization(), expo() as BetterAuthPlugin, bearer(), nextCookies()],
 });
 
 export type Auth = typeof auth;

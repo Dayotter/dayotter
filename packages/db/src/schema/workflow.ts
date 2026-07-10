@@ -53,6 +53,8 @@ export const scheduledReminders = pgTable(
       .notNull()
       .references(() => bookings.id, { onDelete: "cascade" }),
     workflowId: uuid("workflow_id").references(() => workflows.id, { onDelete: "cascade" }),
+    /** "reminder" (before the meeting) | "followup" (after it). */
+    kind: text("kind").notNull().default("reminder"),
     scheduledFor: timestamp("scheduled_for", { withTimezone: true }).notNull(),
     jobId: text("job_id"),
     sentAt: timestamp("sent_at", { withTimezone: true }),

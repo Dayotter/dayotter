@@ -60,6 +60,10 @@ export const calendars = pgTable(
     checkForConflicts: boolean("check_for_conflicts").notNull().default(true),
     /** Is this the calendar that new bookings get written to? */
     isTargetForBookings: boolean("is_target_for_bookings").notNull().default(false),
+    /** Read-only source (ICS feed, or a calendar the user can't write): never a booking target. */
+    isReadOnly: boolean("is_read_only").notNull().default(false),
+    /** Hidden from the calendar list UI (still syncs if checkForConflicts). */
+    isHidden: boolean("is_hidden").notNull().default(false),
     /** Incremental-sync cursor: Google syncToken / MS deltaLink / CalDAV ctag. */
     syncToken: text("sync_token"),
     ...timestamps,
@@ -121,9 +125,65 @@ export const busyBlocks = pgTable(
   ],
 );
 
+/** One external attendee on a synced event. */
+export type SyncedAttendee = { email: string; name?: string; responseStatus?: string };
+
+/**
+ * The unified full event model — the single source of truth for external
+ * calendar data. Every provider maps into this shape. `busy_blocks` above is a
+ * lean availability-only projection of this table (written in the same sync pass).
+ */
+export const calendarEvents = pgTable(
+  "calendar_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    calendarId: uuid("calendar_id")
+      .notNull()
+      .references(() => calendars.id, { onDelete: "cascade" }),
+    externalEventId: text("external_event_id").notNull(),
+
+    title: text("title"),
+    description: text("description"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    allDay: boolean("all_day").notNull().default(false),
+    timezone: text("timezone"),
+
+    location: text("location"),
+    meetingUrl: text("meeting_url"),
+    organizerEmail: text("organizer_email"),
+    organizerName: text("organizer_name"),
+    attendees: jsonb("attendees").$type<SyncedAttendee[]>(),
+
+    /** confirmed | tentative | cancelled */
+    status: text("status"),
+    /** default | public | private */
+    visibility: text("visibility"),
+    /** opaque (counts as busy) | transparent (free) */
+    transparency: text("transparency"),
+    /** Series id linking recurring instances; set on recurring events. */
+    recurringEventId: text("recurring_event_id"),
+    isRecurring: boolean("is_recurring").notNull().default(false),
+
+    /** Provider-specific extras that don't map to a column. */
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("calendar_events_calendar_event_idx").on(t.calendarId, t.externalEventId),
+    index("calendar_events_calendar_range_idx").on(t.calendarId, t.startsAt, t.endsAt),
+    index("calendar_events_series_idx").on(t.recurringEventId),
+  ],
+);
+
 export const calendarConnectionsRelations = relations(calendarConnections, ({ one, many }) => ({
   user: one(users, { fields: [calendarConnections.userId], references: [users.id] }),
   calendars: many(calendars),
+}));
+
+export const calendarEventsRelations = relations(calendarEvents, ({ one }) => ({
+  calendar: one(calendars, { fields: [calendarEvents.calendarId], references: [calendars.id] }),
 }));
 
 export const calendarsRelations = relations(calendars, ({ one, many }) => ({
@@ -133,4 +193,5 @@ export const calendarsRelations = relations(calendars, ({ one, many }) => ({
   }),
   webhookSubscriptions: many(webhookSubscriptions),
   busyBlocks: many(busyBlocks),
+  events: many(calendarEvents),
 }));

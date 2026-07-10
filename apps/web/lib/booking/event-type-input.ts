@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CURRENCIES } from "./money";
 
 /** Location / meeting types a host can pick for an event type. */
 export const LOCATION_TYPES = [
@@ -35,6 +36,29 @@ export const LOCATION_DETAIL_PLACEHOLDER: Record<LocationTypeValue, string> = {
   in_person: "123 Main St, or a place to meet",
   custom: "How and where to meet",
 };
+
+/**
+ * Preset event colours — stored as token names (not hex) so they resolve through
+ * the design system's `--color-*` vars and adapt to light/dark automatically.
+ */
+export const EVENT_COLORS = ["violet", "mint", "amber", "coral", "sky"] as const;
+export type EventColor = (typeof EVENT_COLORS)[number];
+
+/** Token name → CSS variable for rendering an event colour anywhere in the app. */
+export const EVENT_COLOR_VAR: Record<EventColor, string> = {
+  violet: "var(--color-accent)",
+  mint: "var(--color-mint)",
+  amber: "var(--color-amber)",
+  coral: "var(--color-coral)",
+  sky: "var(--color-sky)",
+};
+
+/** Resolve a stored colour (possibly null/legacy) to a CSS variable, default violet. */
+export function eventColorVar(color: string | null | undefined): string {
+  return color && color in EVENT_COLOR_VAR
+    ? EVENT_COLOR_VAR[color as EventColor]
+    : EVENT_COLOR_VAR.violet;
+}
 
 /**
  * The full editable field set for an event type — shared by the create (`POST`)
@@ -80,8 +104,38 @@ export const eventTypeInputSchema = z
     bufferAfterMinutes: z.number().int().min(0).max(240).default(0),
     // 0 = no minimum; capped at 30 days.
     minimumNoticeMinutes: z.number().int().min(0).max(43_200).default(60),
+    /** Slot cadence (null = every `durationMinutes`). */
+    slotIntervalMinutes: z.number().int().min(5).max(240).nullable().default(null),
+    /** Minimum free time enforced around the host's own bookings. */
+    minimumGapMinutes: z.number().int().min(0).max(240).default(0),
+    /** Alternate durations the booker can choose (null/empty = fixed duration). */
+    durationOptions: z.array(z.number().int().min(5).max(480)).max(6).nullable().default(null),
     bookingWindowDays: z.number().int().min(1).max(730).default(60),
+    /** Cap confirmed bookings per day (null = unlimited). */
+    dailyBookingLimit: z.number().int().min(1).max(100).nullable().default(null),
+    /** Cap confirmed bookings per host-local week (null = unlimited). */
+    weeklyBookingLimit: z.number().int().min(1).max(500).nullable().default(null),
+    /** Group event capacity: seats per slot (1 = a normal 1:1 event). */
+    maxAttendees: z.number().int().min(1).max(1000).default(1),
+    /**
+     * Access code the booker must enter before booking.
+     * `undefined` = leave unchanged (edit), `null` = remove, string = set.
+     */
+    accessCode: z.string().trim().min(1).max(64).nullable().optional(),
+    /** Hidden from the public profile listing (still bookable by direct link). */
+    isPrivate: z.boolean().default(false),
+    /** Send the booker here after booking instead of the calSync confirmation. */
+    redirectUrl: z.string().url().max(500).nullable().default(null),
+    /** Colour token used to visually tag this event type across the app. */
+    color: z.enum(EVENT_COLORS).nullable().default(null),
+    /** Price to book, in the currency's minor units (cents). null/0 = free. */
+    price: z.number().int().min(0).max(100_000_000).nullable().default(null),
+    currency: z.enum(CURRENCIES).default("usd"),
+    /** Charge only this deposit (< price) to book. null = charge full price. */
+    depositAmount: z.number().int().min(0).max(100_000_000).nullable().default(null),
     questions: z.array(bookingQuestionSchema).max(20).default([]),
+    /** Which availability schedule this event type uses. null = the default. */
+    scheduleId: z.string().uuid().nullable().default(null),
   })
   .refine(
     (d) =>

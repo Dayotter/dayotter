@@ -23,6 +23,8 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().default(""),
   MICROSOFT_CLIENT_ID: z.string().default(""),
   MICROSOFT_CLIENT_SECRET: z.string().default(""),
+  ZOOM_CLIENT_ID: z.string().default(""),
+  ZOOM_CLIENT_SECRET: z.string().default(""),
 
   SMTP_URL: z.string().optional(),
   EMAIL_FROM: z.string().default("calSync <no-reply@example.com>"),
@@ -34,6 +36,14 @@ const schema = z.object({
   // Optional analytics — nothing loads unless set.
   NEXT_PUBLIC_MIXPANEL_TOKEN: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
+
+  // Optional AI scheduling (Claude). AI features are hidden unless set.
+  ANTHROPIC_API_KEY: z.string().optional(),
+
+  // Optional Stripe payments — paid bookings are disabled unless set.
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;

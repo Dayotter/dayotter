@@ -1,5 +1,7 @@
 import { getSession } from "@/lib/auth/session";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
+import { resolveScheduleId } from "@/lib/booking/schedule";
+import { sha256hex } from "@calsync/core";
 import { and, eq, getDb, schema, sql } from "@calsync/db";
 import { NextResponse } from "next/server";
 
@@ -45,8 +47,23 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       bufferBeforeMinutes: et.bufferBeforeMinutes,
       bufferAfterMinutes: et.bufferAfterMinutes,
       minimumNoticeMinutes: et.minimumNoticeMinutes,
+      slotIntervalMinutes: et.slotIntervalMinutes,
+      minimumGapMinutes: et.minimumGapMinutes,
+      durationOptions: et.durationOptions,
       bookingWindowDays: et.bookingWindowDays,
+      dailyBookingLimit: et.dailyBookingLimit,
+      weeklyBookingLimit: et.weeklyBookingLimit,
+      maxAttendees: et.maxAttendees,
+      // Never leak the hash — only whether a code is required.
+      hasAccessCode: et.accessCodeHash != null,
+      isPrivate: et.isPrivate,
+      redirectUrl: et.redirectUrl,
+      color: et.color,
+      price: et.price,
+      currency: et.currency,
+      depositAmount: et.depositAmount,
       questions: et.questions,
+      scheduleId: et.scheduleId,
       isActive: et.isActive,
     },
   });
@@ -64,10 +81,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   const d = parsed.data;
 
+  // Validate the chosen schedule belongs to this user (else fall back to default).
+  const scheduleId = await resolveScheduleId(session.user.id, d.scheduleId);
+
   try {
     await getDb()
       .update(schema.eventTypes)
       .set({
+        scheduleId,
         title: d.title,
         slug: d.slug,
         durationMinutes: d.durationMinutes,
@@ -77,8 +98,24 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         bufferBeforeMinutes: d.bufferBeforeMinutes,
         bufferAfterMinutes: d.bufferAfterMinutes,
         minimumNoticeMinutes: d.minimumNoticeMinutes,
+        slotIntervalMinutes: d.slotIntervalMinutes,
+        minimumGapMinutes: d.minimumGapMinutes,
+        durationOptions: d.durationOptions,
         bookingWindowDays: d.bookingWindowDays,
+        dailyBookingLimit: d.dailyBookingLimit,
+        weeklyBookingLimit: d.weeklyBookingLimit,
+        maxAttendees: d.maxAttendees,
+        isPrivate: d.isPrivate,
+        redirectUrl: d.redirectUrl,
+        color: d.color,
+        price: d.price,
+        currency: d.currency,
+        depositAmount: d.depositAmount,
         questions: d.questions,
+        // Access code: undefined = unchanged, null = remove, string = set.
+        ...(d.accessCode === undefined
+          ? {}
+          : { accessCodeHash: d.accessCode ? sha256hex(d.accessCode) : null }),
       })
       .where(eq(schema.eventTypes.id, id));
     return NextResponse.json({ ok: true });

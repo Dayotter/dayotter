@@ -1,0 +1,16 @@
+# calSync reverse proxy.
+#
+# CALSYNC_SITE_ADDRESS controls the front door:
+#   - a domain (e.g. cal.example.com)  → automatic HTTPS via Let's Encrypt
+#   - ":80"                            → plain HTTP (fine for a quick IP-based trial)
+#
+# It's set from the deploy .env; install.sh fills it in for you.
+{$CALSYNC_SITE_ADDRESS::80} {
+	encode gzip zstd
+	reverse_proxy web:3000 {
+		# Give slow first-byte pages (cold Next routes) room before erroring.
+		transport http {
+			read_timeout 120s
+		}
+	}
+}

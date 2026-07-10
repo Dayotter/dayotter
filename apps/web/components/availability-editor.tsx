@@ -11,6 +11,12 @@ interface Range {
   end: string;
 }
 
+interface Override {
+  date: string; // "YYYY-MM-DD"
+  start: string | null; // null = unavailable all day
+  end: string | null;
+}
+
 // Display Monday-first; values map to dayOfWeek 0=Sun..6=Sat.
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const DAY_LABELS: Record<number, string> = {
@@ -64,14 +70,38 @@ const timeInputClass =
 
 export function AvailabilityEditor({
   initial,
+  scheduleId,
 }: {
-  initial: { timezone: string; days: Range[][] };
+  initial: { timezone: string; days: Range[][]; overrides?: Override[] };
+  /** When set, save to this named schedule; otherwise the legacy default endpoint. */
+  scheduleId?: string;
 }) {
   const [timezone, setTimezone] = useState(initial.timezone);
   const [days, setDays] = useState<Range[][]>(initial.days);
+  const [overrides, setOverrides] = useState<Override[]>(initial.overrides ?? []);
+  const [newDate, setNewDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function addOverride() {
+    if (!newDate || overrides.some((o) => o.date === newDate)) return;
+    setOverrides((prev) =>
+      [...prev, { date: newDate, start: null, end: null }].sort((a, b) =>
+        a.date.localeCompare(b.date),
+      ),
+    );
+    setNewDate("");
+    setSaved(false);
+  }
+  function patchOverride(date: string, patch: Partial<Override>) {
+    setOverrides((prev) => prev.map((o) => (o.date === date ? { ...o, ...patch } : o)));
+    setSaved(false);
+  }
+  function removeOverride(date: string) {
+    setOverrides((prev) => prev.filter((o) => o.date !== date));
+    setSaved(false);
+  }
 
   const zones = useMemo(() => timezoneList(initial.timezone), [initial.timezone]);
 
@@ -83,12 +113,13 @@ export function AvailabilityEditor({
   async function save() {
     setSaving(true);
     setError(null);
-    const res = await fetch("/api/schedule", {
+    const res = await fetch(scheduleId ? `/api/schedules/${scheduleId}` : "/api/schedule", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         timezone,
         days: days.map((ranges, dayOfWeek) => ({ dayOfWeek, ranges })),
+        overrides,
       }),
     });
     setSaving(false);
@@ -102,8 +133,11 @@ export function AvailabilityEditor({
   return (
     <div>
       <div className="mb-6 max-w-sm">
-        <label className="mb-1.5 block text-sm font-medium">Timezone</label>
+        <label htmlFor="timezone" className="mb-1.5 block text-sm font-medium">
+          Timezone
+        </label>
         <select
+          id="timezone"
           value={timezone}
           onChange={(e) => {
             setTimezone(e.target.value);
@@ -195,6 +229,88 @@ export function AvailabilityEditor({
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-sm font-semibold">Date overrides</h3>
+        <p className="mt-0.5 mb-3 text-sm text-[var(--color-muted)]">
+          Block out holidays or set different hours for specific dates.
+        </p>
+
+        {overrides.length > 0 ? (
+          <div className="mb-3 divide-y divide-[var(--color-border)] rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+            {overrides.map((o) => {
+              const unavailable = o.start === null;
+              return (
+                <div
+                  key={o.date}
+                  className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center"
+                >
+                  <span className="w-32 shrink-0 text-sm font-medium">{o.date}</span>
+                  <div className="flex flex-1 items-center gap-3">
+                    <Toggle
+                      on={!unavailable}
+                      onClick={() =>
+                        patchOverride(
+                          o.date,
+                          unavailable
+                            ? { start: "09:00", end: "17:00" }
+                            : { start: null, end: null },
+                        )
+                      }
+                    />
+                    {unavailable ? (
+                      <span className="text-sm text-[var(--color-faint)]">Unavailable</span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="time"
+                          step={900}
+                          value={o.start ?? "09:00"}
+                          onChange={(e) => patchOverride(o.date, { start: e.target.value })}
+                          className={timeInputClass}
+                        />
+                        <span className="text-[var(--color-muted)]">–</span>
+                        <input
+                          type="time"
+                          step={900}
+                          value={o.end ?? "17:00"}
+                          onChange={(e) => patchOverride(o.date, { end: e.target.value })}
+                          className={timeInputClass}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Remove override"
+                    onClick={() => removeOverride(o.date)}
+                    className="rounded-md p-1.5 text-[var(--color-faint)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-danger)]"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={newDate}
+            onChange={(e) => setNewDate(e.target.value)}
+            className={timeInputClass}
+          />
+          <button
+            type="button"
+            onClick={addOverride}
+            disabled={!newDate}
+            className="inline-flex items-center gap-1 text-sm text-[var(--color-accent)] hover:underline disabled:opacity-50"
+          >
+            <Plus size={14} /> Add override
+          </button>
+        </div>
       </div>
 
       <div className="mt-5 flex items-center gap-3">

@@ -40,6 +40,29 @@ export const userPreferences = pgTable(
     /** Auto-notify the next meeting's attendees when a meeting overruns. */
     overflowNotifyEnabled: boolean("overflow_notify_enabled").notNull().default(false),
 
+    /** Adaptive availability: hide remaining slots on days already at the cap. */
+    adaptiveAvailability: boolean("adaptive_availability").notNull().default(false),
+    /** Max meetings/day before adaptive availability stops offering slots that day. */
+    maxMeetingsPerDay: smallint("max_meetings_per_day").notNull().default(5),
+    /** Travel-aware scheduling: minutes of travel time to reserve around
+     * in-person meetings (0 = off). Reserved as time_blocks before + after. */
+    travelBufferMinutes: smallint("travel_buffer_minutes").notNull().default(0),
+    /** Smart rescheduling: when a future meeting is cancelled, reserve the freed
+     * time as a focus block instead of just re-opening it for booking. */
+    reclaimCancelledTime: boolean("reclaim_cancelled_time").notNull().default(false),
+    /** Daily lunch break that blocks availability (in the schedule's timezone). */
+    lunchEnabled: boolean("lunch_enabled").notNull().default(false),
+    /** Lunch start as minutes from local midnight (720 = 12:00). */
+    lunchStartMinute: smallint("lunch_start_minute").notNull().default(720),
+    /** Lunch end as minutes from local midnight (780 = 13:00). */
+    lunchEndMinute: smallint("lunch_end_minute").notNull().default(780),
+
+    // Public booking-page branding.
+    /** Accent colour (hex, e.g. #5b4be6) themed onto the host's public pages. */
+    brandColor: text("brand_color"),
+    /** Short welcome / bio shown on the public profile + booking pages. */
+    welcomeMessage: text("welcome_message"),
+
     /** Encrypted JSON for sensitive / evolving preferences. */
     encryptedData: text("encrypted_data"),
     ...timestamps,

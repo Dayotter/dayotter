@@ -1,3 +1,4 @@
+import { ChangePasswordForm } from "@/components/change-password-form";
 import { ProfileForm } from "@/components/profile-form";
 import { getSession } from "@/lib/auth/session";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
@@ -11,18 +12,30 @@ export default async function ProfileSettingsPage() {
 
   // Make sure the user has a handle (assigned lazily on first workspace action).
   await ensureUserWorkspace(userId);
-  const user = await getDb().query.users.findFirst({
-    where: eq(schema.users.id, userId),
-    columns: { name: true, timezone: true, handle: true },
-  });
+  const db = getDb();
+  const [user, prefs] = await Promise.all([
+    db.query.users.findFirst({
+      where: eq(schema.users.id, userId),
+      columns: { name: true, timezone: true, handle: true },
+    }),
+    db.query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, userId),
+      columns: { brandColor: true, welcomeMessage: true },
+    }),
+  ]);
 
   return (
-    <ProfileForm
-      initial={{
-        name: user?.name ?? "",
-        timezone: user?.timezone ?? "UTC",
-        handle: user?.handle ?? "",
-      }}
-    />
+    <>
+      <ProfileForm
+        initial={{
+          name: user?.name ?? "",
+          timezone: user?.timezone ?? "UTC",
+          handle: user?.handle ?? "",
+          brandColor: prefs?.brandColor ?? null,
+          welcomeMessage: prefs?.welcomeMessage ?? "",
+        }}
+      />
+      <ChangePasswordForm />
+    </>
   );
 }

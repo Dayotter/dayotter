@@ -3,6 +3,7 @@
 import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import { BRAND, MARKETING_NAV } from "@/lib/marketing";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -32,17 +33,22 @@ export function MarketingNav() {
           <span className="text-[15px] font-semibold tracking-tight">calSync</span>
         </Link>
         <nav className="hidden items-center gap-7 text-sm text-[var(--color-muted)] md:flex">
-          <a href="#features" className="transition-colors hover:text-[var(--color-text)]">
-            Features
-          </a>
-          <a href="#how" className="transition-colors hover:text-[var(--color-text)]">
-            How it works
-          </a>
-          <a href="#mobile" className="transition-colors hover:text-[var(--color-text)]">
-            Mobile app
-          </a>
-          <a href="https://github.com" className="transition-colors hover:text-[var(--color-text)]">
-            Open source
+          {MARKETING_NAV.map((l) => (
+            <Link
+              key={l.label}
+              href={l.href}
+              className="transition-colors hover:text-[var(--color-text)]"
+            >
+              {l.label}
+            </Link>
+          ))}
+          <a
+            href={BRAND.github}
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-[var(--color-text)]"
+          >
+            GitHub
           </a>
         </nav>
         <div className="flex items-center gap-2 sm:gap-3">

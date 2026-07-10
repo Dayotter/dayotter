@@ -20,4 +20,8 @@ config.resolver.nodeModulesPaths = [
 // 3. pnpm uses symlinks; keep resolution predictable.
 config.resolver.disableHierarchicalLookup = true;
 
+// 4. Resolve packages' `exports` subpaths (e.g. `@better-auth/expo/client`).
+//    Default-on in Expo SDK 53; opt-in here on SDK 52.
+config.resolver.unstable_enablePackageExports = true;
+
 module.exports = config;

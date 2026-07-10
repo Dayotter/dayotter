@@ -1,0 +1,113 @@
+# Production self-host stack for calSync — everything behind one command.
+#
+#   cd deploy && docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+#
+# Or just run `bash deploy/install.sh`, which generates secrets and does this.
+#
+# What you get: Postgres + Redis (private), a one-shot DB migration, the web app,
+# the background worker, and Caddy in front for automatic HTTPS.
+name: calsync
+
+x-app-env: &app-env
+  DATABASE_URL: postgresql://calsync:${POSTGRES_PASSWORD}@postgres:5432/calsync
+  REDIS_URL: redis://redis:6379
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: calsync
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: calsync
+    volumes:
+      - calsync_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calsync"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No published port — only reachable from the other containers.
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - calsync_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot: apply committed DB migrations, then exit. web/worker wait for it to
+  # finish successfully before starting, so the schema is always current on boot.
+  migrate:
+    build:
+      context: ..
+      dockerfile: apps/worker/Dockerfile
+    image: calsync-app:local
+    env_file: .env
+    environment:
+      <<: *app-env
+    command: ["pnpm", "--filter", "@calsync/db", "migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    image: calsync-web:local
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      <<: *app-env
+      NODE_ENV: production
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    # No published port — Caddy fronts it on the calsync network.
+
+  worker:
+    build:
+      context: ..
+      dockerfile: apps/worker/Dockerfile
+    image: calsync-app:local
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      <<: *app-env
+      NODE_ENV: production
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # Reverse proxy with automatic HTTPS (Let's Encrypt) when CALSYNC_DOMAIN is a
+  # real domain that points at this server; plain HTTP on :80 otherwise.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      CALSYNC_SITE_ADDRESS: ${CALSYNC_SITE_ADDRESS:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  calsync_pgdata:
+  calsync_redisdata:
+  caddy_data:
+  caddy_config:

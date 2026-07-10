@@ -1,13 +1,8 @@
 import * as SecureStore from "expo-secure-store";
+import { authClient } from "./auth-client";
+import { BASE_URL } from "./config";
 
-/**
- * Backend base URL. Override at build/run time with:
- *   npx expo start --dart... (no) → set EXPO_PUBLIC_API_URL in env, e.g.
- *   EXPO_PUBLIC_API_URL=http://localhost:3000 npx expo start
- * iOS simulator can use http://localhost:3000; Android emulator uses
- * http://10.0.2.2:3000 to reach the host machine.
- */
-export const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
+export { BASE_URL };
 
 const TOKEN_KEY = "calsync_auth_token";
 
@@ -31,11 +26,21 @@ export async function clearToken(): Promise<void> {
 }
 
 async function headers(): Promise<Record<string, string>> {
+  // Email/password stores a bearer token; native Google sign-in leaves a session
+  // in the Better Auth Expo client, so fall back to its cookie when there's no
+  // bearer token. One of the two always carries the session.
   const token = await getToken();
-  return {
-    "content-type": "application/json",
-    ...(token ? { authorization: `Bearer ${token}` } : {}),
-  };
+  if (token) {
+    return { "content-type": "application/json", authorization: `Bearer ${token}` };
+  }
+  const cookie = authClient.getCookie();
+  return { "content-type": "application/json", ...(cookie ? { cookie } : {}) };
+}
+
+/** True when either auth mechanism holds a session (used on cold start). */
+export async function hasSession(): Promise<boolean> {
+  if (await getToken()) return true;
+  return Boolean(authClient.getCookie());
 }
 
 async function handle(res: Response): Promise<unknown> {

@@ -2,6 +2,7 @@
 
 import { Reveal } from "@/components/marketing/motion";
 import { buttonVariants } from "@/components/ui/button";
+import { BRAND, FOOTER_COLUMNS } from "@/lib/marketing";
 import { CalendarPlus, Clock, LinkIcon } from "lucide-react";
 import Link from "next/link";
 
@@ -103,61 +104,59 @@ export function CTA() {
 }
 
 export function Footer() {
-  const cols = [
-    {
-      title: "Product",
-      links: [
-        { label: "Features", href: "#features" },
-        { label: "How it works", href: "#how" },
-        { label: "iOS app · soon", href: "#mobile" },
-        { label: "Android app · soon", href: "#mobile" },
-      ],
-    },
-    {
-      title: "Open source",
-      links: [
-        { label: "GitHub", href: "https://github.com" },
-        { label: "Self-hosting", href: "#" },
-        { label: "Contributing", href: "#" },
-        { label: "License", href: "#" },
-      ],
-    },
-    {
-      title: "Company",
-      links: [
-        { label: "About", href: "#" },
-        { label: "Blog", href: "#" },
-        { label: "Privacy", href: "#" },
-        { label: "Contact", href: "#" },
-      ],
-    },
-  ];
   return (
     <footer className="border-t border-[var(--color-border)]">
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 sm:grid-cols-2 md:grid-cols-4">
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div>
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-[var(--color-accent)] text-sm font-bold text-white">
               c
             </span>
             <span className="text-[15px] font-semibold tracking-tight">calSync</span>
+          </Link>
+          <p className="mt-3 max-w-[240px] text-sm text-[var(--color-muted)]">{BRAND.tagline}</p>
+          <div className="mt-4 flex gap-3 text-sm text-[var(--color-muted)]">
+            <a
+              href={BRAND.github}
+              target="_blank"
+              rel="noreferrer"
+              className="transition-colors hover:text-[var(--color-text)]"
+            >
+              GitHub
+            </a>
+            <a
+              href={BRAND.x}
+              target="_blank"
+              rel="noreferrer"
+              className="transition-colors hover:text-[var(--color-text)]"
+            >
+              X
+            </a>
           </div>
-          <p className="mt-3 max-w-[220px] text-sm text-[var(--color-muted)]">
-            The open-source home for your time.
-          </p>
         </div>
-        {cols.map((c) => (
+        {FOOTER_COLUMNS.map((c) => (
           <div key={c.title}>
             <p className="eyebrow">{c.title}</p>
             <ul className="mt-4 space-y-2.5">
               {c.links.map((l) => (
                 <li key={l.label}>
-                  <a
-                    href={l.href}
-                    className="text-sm text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
-                  >
-                    {l.label}
-                  </a>
+                  {l.external ? (
+                    <a
+                      href={l.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+                    >
+                      {l.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={l.href}
+                      className="text-sm text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+                    >
+                      {l.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -166,7 +165,9 @@ export function Footer() {
       </div>
       <div className="border-t border-[var(--color-border)]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-6 text-xs text-[var(--color-faint)] sm:flex-row">
-          <span>© 2026 calSync · Apache-2.0</span>
+          <span>
+            © {BRAND.copyrightYear} {BRAND.name} · Apache-2.0
+          </span>
           <span>Made for people who value their time.</span>
         </div>
       </div>

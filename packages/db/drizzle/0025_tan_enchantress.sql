@@ -1,0 +1,1 @@
+ALTER TABLE "user_preferences" ADD COLUMN "reclaim_cancelled_time" boolean DEFAULT false NOT NULL;
