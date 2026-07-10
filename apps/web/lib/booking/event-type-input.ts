@@ -113,6 +113,13 @@ export const eventTypeInputSchema = z
     bookingWindowDays: z.number().int().min(1).max(730).default(60),
     /** Cap confirmed bookings per day (null = unlimited). */
     dailyBookingLimit: z.number().int().min(1).max(100).nullable().default(null),
+    /** Cap confirmed bookings per host-local week (null = unlimited). */
+    weeklyBookingLimit: z.number().int().min(1).max(500).nullable().default(null),
+    /**
+     * Access code the booker must enter before booking.
+     * `undefined` = leave unchanged (edit), `null` = remove, string = set.
+     */
+    accessCode: z.string().trim().min(1).max(64).nullable().optional(),
     /** Hidden from the public profile listing (still bookable by direct link). */
     isPrivate: z.boolean().default(false),
     /** Send the booker here after booking instead of the calSync confirmation. */

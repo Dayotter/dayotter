@@ -8,9 +8,9 @@ import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { track } from "@/lib/analytics";
 import type { BookingQuestionInput } from "@/lib/booking/event-type-input";
-import { t } from "@/lib/i18n/booking";
+import { type Locale, t } from "@/lib/i18n/booking";
 import { useBookingLocale } from "@/lib/i18n/use-locale";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -22,6 +22,7 @@ export function SlotPicker({
   defaultDuration,
   durationOptions = [],
   linkToken,
+  requiresCode = false,
 }: {
   eventTypeId: string;
   questions?: BookingQuestionInput[];
@@ -30,11 +31,14 @@ export function SlotPicker({
   durationOptions?: number[];
   /** When booking through a single-use link, carried so the server consumes it. */
   linkToken?: string;
+  /** Event type is password-protected — gate the flow behind an access code. */
+  requiresCode?: boolean;
 }) {
   const router = useRouter();
   const zone = useLocalZone();
   const locale = useBookingLocale();
   const hasDurations = durationOptions.length > 0;
+  const [accessCode, setAccessCode] = useState<string | null>(requiresCode ? null : "");
   const [duration, setDuration] = useState(defaultDuration);
   const [selected, setSelected] = useState<Slot | null>(null);
   const [name, setName] = useState("");
@@ -89,6 +93,7 @@ export function SlotPicker({
         durationMinutes: hasDurations ? duration : undefined,
         captchaToken: captchaToken || undefined,
         linkToken: linkToken || undefined,
+        accessCode: accessCode || undefined,
         returnPath: typeof window !== "undefined" ? window.location.pathname : undefined,
       }),
     });
@@ -136,6 +141,11 @@ export function SlotPicker({
       </div>
     </div>
   ) : null;
+
+  // Password-protected event type: gate everything behind the access code.
+  if (requiresCode && accessCode === null) {
+    return <AccessGate eventTypeId={eventTypeId} locale={locale} onVerified={setAccessCode} />;
+  }
 
   if (!selected) {
     return (
@@ -310,6 +320,61 @@ export function SlotPicker({
               : t(locale, "confirmBooking")}
         </Button>
       </div>
+    </form>
+  );
+}
+
+/**
+ * Access-code gate for a password-protected event type. Verifies the code
+ * server-side, then hands it back so the booking request can re-present it.
+ */
+function AccessGate({
+  eventTypeId,
+  locale,
+  onVerified,
+}: {
+  eventTypeId: string;
+  locale: Locale;
+  onVerified: (code: string) => void;
+}) {
+  const [code, setCode] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    const res = await fetch(`/api/event-types/${eventTypeId}/verify-code`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ code: code.trim() }),
+    });
+    const data = await res.json().catch(() => ({ ok: false }));
+    setSubmitting(false);
+    if (res.ok && data.ok) onVerified(code.trim());
+    else setError(t(locale, "accessWrong"));
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-3">
+      <p className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+        <Lock size={15} /> {t(locale, "accessHint")}
+      </p>
+      <div>
+        <Label htmlFor="access-code">{t(locale, "accessRequired")}</Label>
+        <Input
+          id="access-code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          autoFocus
+          autoComplete="off"
+        />
+      </div>
+      <FormError>{error}</FormError>
+      <Button type="submit" className="w-full" disabled={submitting || !code.trim()}>
+        {submitting ? t(locale, "confirming") : t(locale, "accessSubmit")}
+      </Button>
     </form>
   );
 }

@@ -45,7 +45,12 @@ export type BookingKey =
   | "pleaseAnswer"
   | "bookingFailed"
   | "minutes"
-  | "deposit";
+  | "deposit"
+  // Access-code gate (password-protected event types)
+  | "accessHint"
+  | "accessRequired"
+  | "accessSubmit"
+  | "accessWrong";
 
 const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
   en: {
@@ -80,6 +85,10 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     bookingFailed: "Could not confirm booking",
     minutes: "{n} minutes",
     deposit: "deposit",
+    accessHint: "This booking page is protected.",
+    accessRequired: "Access code",
+    accessSubmit: "Continue",
+    accessWrong: "That code isn't right.",
   },
   es: {
     selectTime: "Elige una hora",
@@ -114,6 +123,10 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     bookingFailed: "No se pudo confirmar la reserva",
     minutes: "{n} minutos",
     deposit: "depósito",
+    accessHint: "Esta página de reserva está protegida.",
+    accessRequired: "Código de acceso",
+    accessSubmit: "Continuar",
+    accessWrong: "Ese código no es correcto.",
   },
   fr: {
     selectTime: "Choisissez un horaire",
@@ -149,6 +162,10 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     bookingFailed: "Impossible de confirmer la réservation",
     minutes: "{n} minutes",
     deposit: "acompte",
+    accessHint: "Cette page de réservation est protégée.",
+    accessRequired: "Code d’accès",
+    accessSubmit: "Continuer",
+    accessWrong: "Ce code est incorrect.",
   },
   de: {
     selectTime: "Wähle eine Uhrzeit",
@@ -184,6 +201,10 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     bookingFailed: "Buchung konnte nicht bestätigt werden",
     minutes: "{n} Minuten",
     deposit: "Anzahlung",
+    accessHint: "Diese Buchungsseite ist geschützt.",
+    accessRequired: "Zugangscode",
+    accessSubmit: "Weiter",
+    accessWrong: "Dieser Code stimmt nicht.",
   },
   pt: {
     selectTime: "Escolha um horário",
@@ -219,6 +240,10 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     bookingFailed: "Não foi possível confirmar o agendamento",
     minutes: "{n} minutos",
     deposit: "sinal",
+    accessHint: "Esta página de agendamento é protegida.",
+    accessRequired: "Código de acesso",
+    accessSubmit: "Continuar",
+    accessWrong: "Esse código não está correto.",
   },
 };
 

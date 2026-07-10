@@ -61,6 +61,8 @@ export interface EventTypeInitial {
   durationOptions?: number[] | null;
   bookingWindowDays?: number;
   dailyBookingLimit?: number | null;
+  weeklyBookingLimit?: number | null;
+  hasAccessCode?: boolean;
   isPrivate?: boolean;
   redirectUrl?: string | null;
   color?: string | null;
@@ -109,6 +111,12 @@ export function EventTypeForm({
     initial?.dailyBookingLimit != null && initial.dailyBookingLimit > 0,
   );
   const [dailyLimit, setDailyLimit] = useState(initial?.dailyBookingLimit ?? 5);
+  const [weeklyLimitOn, setWeeklyLimitOn] = useState(
+    initial?.weeklyBookingLimit != null && initial.weeklyBookingLimit > 0,
+  );
+  const [weeklyLimit, setWeeklyLimit] = useState(initial?.weeklyBookingLimit ?? 20);
+  const [accessCodeOn, setAccessCodeOn] = useState(initial?.hasAccessCode ?? false);
+  const [accessCode, setAccessCode] = useState("");
   const [isPrivate, setIsPrivate] = useState(initial?.isPrivate ?? false);
   const [redirectUrl, setRedirectUrl] = useState(initial?.redirectUrl ?? "");
   const [color, setColor] = useState<EventColor>(
@@ -192,6 +200,9 @@ export function EventTypeForm({
         durationOptions.length > 0 ? [...durationOptions].sort((a, b) => a - b) : null,
       bookingWindowDays: bookingWindow,
       dailyBookingLimit: dailyLimitOn ? dailyLimit : null,
+      weeklyBookingLimit: weeklyLimitOn ? weeklyLimit : null,
+      // undefined (omitted) = keep existing code; null = clear; string = set new.
+      accessCode: accessCodeOn ? accessCode.trim() || undefined : null,
       isPrivate,
       redirectUrl: redirectUrl.trim() || null,
       scheduleId: scheduleId || null,
@@ -508,12 +519,75 @@ export function EventTypeForm({
                 </p>
               )}
             </div>
+            <div className="mt-3 rounded-md border border-[var(--color-border)] p-3">
+              <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                <input
+                  type="checkbox"
+                  checked={weeklyLimitOn}
+                  onChange={(e) => setWeeklyLimitOn(e.target.checked)}
+                  className="accent-[var(--color-accent)]"
+                />
+                Limit bookings per week
+              </label>
+              {weeklyLimitOn ? (
+                <div className="mt-2 flex items-center gap-1">
+                  <Input
+                    aria-label="Maximum bookings per week"
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={weeklyLimit}
+                    onChange={(e) => setWeeklyLimit(Number(e.target.value) || 1)}
+                    className="w-20"
+                  />
+                  <span className="text-sm text-[var(--color-faint)]">bookings max per week</span>
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-[var(--color-faint)]">
+                  Cap how many times this can be booked in a single week.
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="border-t border-[var(--color-border)] pt-4">
             <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[var(--color-faint)]">
               Advanced
             </p>
+            <div className="mb-3 rounded-md border border-[var(--color-border)] p-3">
+              <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                <input
+                  type="checkbox"
+                  checked={accessCodeOn}
+                  onChange={(e) => setAccessCodeOn(e.target.checked)}
+                  className="accent-[var(--color-accent)]"
+                />
+                Require an access code to book
+              </label>
+              {accessCodeOn ? (
+                <div className="mt-2">
+                  <Input
+                    aria-label="Access code"
+                    type="text"
+                    value={accessCode}
+                    onChange={(e) => setAccessCode(e.target.value)}
+                    placeholder={
+                      mode === "edit" && initial?.hasAccessCode
+                        ? "Leave blank to keep the current code"
+                        : "Set an access code"
+                    }
+                    className="max-w-xs"
+                  />
+                  <p className="mt-1 text-xs text-[var(--color-faint)]">
+                    Bookers must enter this code before they can pick a time. Share it privately.
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-[var(--color-faint)]">
+                  Gate this page behind a password (a private / secret booking link).
+                </p>
+              )}
+            </div>
             <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
               <input
                 type="checkbox"

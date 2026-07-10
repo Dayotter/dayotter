@@ -103,6 +103,7 @@ export default async function PublicBookingPage({
               priceLabel={priceLabel}
               defaultDuration={eventType.durationMinutes}
               durationOptions={eventType.durationOptions ?? []}
+              requiresCode={eventType.accessCodeHash != null}
             />
           </CardBody>
         </div>

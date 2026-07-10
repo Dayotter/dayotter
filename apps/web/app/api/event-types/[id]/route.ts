@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth/session";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { resolveScheduleId } from "@/lib/booking/schedule";
+import { sha256hex } from "@calsync/core";
 import { and, eq, getDb, schema, sql } from "@calsync/db";
 import { NextResponse } from "next/server";
 
@@ -51,6 +52,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       durationOptions: et.durationOptions,
       bookingWindowDays: et.bookingWindowDays,
       dailyBookingLimit: et.dailyBookingLimit,
+      weeklyBookingLimit: et.weeklyBookingLimit,
+      // Never leak the hash — only whether a code is required.
+      hasAccessCode: et.accessCodeHash != null,
       isPrivate: et.isPrivate,
       redirectUrl: et.redirectUrl,
       color: et.color,
@@ -98,6 +102,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         durationOptions: d.durationOptions,
         bookingWindowDays: d.bookingWindowDays,
         dailyBookingLimit: d.dailyBookingLimit,
+        weeklyBookingLimit: d.weeklyBookingLimit,
         isPrivate: d.isPrivate,
         redirectUrl: d.redirectUrl,
         color: d.color,
@@ -105,6 +110,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         currency: d.currency,
         depositAmount: d.depositAmount,
         questions: d.questions,
+        // Access code: undefined = unchanged, null = remove, string = set.
+        ...(d.accessCode === undefined
+          ? {}
+          : { accessCodeHash: d.accessCode ? sha256hex(d.accessCode) : null }),
       })
       .where(eq(schema.eventTypes.id, id));
     return NextResponse.json({ ok: true });

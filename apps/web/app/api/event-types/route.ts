@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth/session";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
+import { sha256hex } from "@calsync/core";
 import { desc, eq, getDb, schema } from "@calsync/db";
 import { NextResponse } from "next/server";
 
@@ -73,6 +74,9 @@ export async function POST(request: Request) {
         durationOptions: d.durationOptions,
         bookingWindowDays: d.bookingWindowDays,
         dailyBookingLimit: d.dailyBookingLimit,
+        weeklyBookingLimit: d.weeklyBookingLimit,
+        // On create, a code is only set when a non-empty value is supplied.
+        accessCodeHash: d.accessCode ? sha256hex(d.accessCode) : null,
         isPrivate: d.isPrivate,
         redirectUrl: d.redirectUrl,
         color: d.color,

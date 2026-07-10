@@ -42,6 +42,8 @@ export default async function EditEventTypePage({
           durationOptions: eventType.durationOptions,
           bookingWindowDays: eventType.bookingWindowDays ?? undefined,
           dailyBookingLimit: eventType.dailyBookingLimit,
+          weeklyBookingLimit: eventType.weeklyBookingLimit,
+          hasAccessCode: eventType.accessCodeHash != null,
           isPrivate: eventType.isPrivate,
           redirectUrl: eventType.redirectUrl,
           color: eventType.color,

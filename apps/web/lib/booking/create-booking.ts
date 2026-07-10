@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { logger, roundRobinPick } from "@calsync/core";
+import { logger, roundRobinPick, safeEqual, sha256hex } from "@calsync/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@calsync/db";
 import { bookingConfirmation, sendEmail } from "@calsync/emails";
 import { DateTime } from "luxon";
@@ -112,6 +112,8 @@ export interface CreateBookingInput {
   durationMinutes?: number;
   /** Single-use booking-link token to consume atomically with the booking. */
   linkToken?: string;
+  /** Access code, required when the event type is password-protected. */
+  accessCode?: string;
   /** Set when the booking was paid via Stripe (created from the payment handler). */
   payment?: { paymentIntentId: string; amountPaid: number; currency: string };
 }
@@ -126,6 +128,14 @@ export async function createBooking(
   });
   if (!eventType || !eventType.isActive) {
     throw new BookingError("Event type not found", 404);
+  }
+
+  // Password-protected event type: require a matching access code before booking.
+  if (eventType.accessCodeHash) {
+    const supplied = input.accessCode?.trim();
+    if (!supplied || !safeEqual(sha256hex(supplied), eventType.accessCodeHash)) {
+      throw new BookingError("Enter the correct access code to book.", 403);
+    }
   }
 
   validateResponses(eventType.questions, input.responses);
@@ -190,6 +200,28 @@ export async function createBooking(
           );
         if (count >= eventType.dailyBookingLimit) {
           throw new BookingError("This day is fully booked. Please pick another day.", 409);
+        }
+      }
+
+      // Weekly cap: same idea over the host-local ISO week containing the slot.
+      if (eventType.weeklyBookingLimit != null) {
+        const zone = host.timezone || "UTC";
+        const week = DateTime.fromJSDate(start).setZone(zone);
+        const weekStart = week.startOf("week").toJSDate();
+        const nextWeek = week.startOf("week").plus({ weeks: 1 }).toJSDate();
+        const [{ count } = { count: 0 }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.bookings)
+          .where(
+            and(
+              eq(schema.bookings.eventTypeId, eventType.id),
+              eq(schema.bookings.status, "confirmed"),
+              gte(schema.bookings.startsAt, weekStart),
+              lt(schema.bookings.startsAt, nextWeek),
+            ),
+          );
+        if (count >= eventType.weeklyBookingLimit) {
+          throw new BookingError("This week is fully booked. Please pick another week.", 409);
         }
       }
 
