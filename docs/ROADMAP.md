@@ -19,10 +19,10 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 |---|---|---|
 | Email/password, Google, Microsoft sign-in | ✅ | Better Auth; **Google social sign-in now enabled** (env-gated `NEXT_PUBLIC_GOOGLE_AUTH`). MS social ⬜. |
 | Sessions, multi-device, bearer (mobile) | ✅ | |
-| Account recovery (password reset) | ⬜ | no reset-email flow yet |
+| Account recovery (password reset) | ✅ | Better Auth `sendResetPassword` → emailed link; /forgot-password + /reset-password; change-password in Settings |
 | Profile: name, photo, timezone, locale | 🟡 | photo = `image` URL only (no upload); working-location + language ⬜ |
 | Preferences (encrypted): hours, days, reminders, channels, time format | ✅ | AES-256-GCM `encryptedData` |
-| Lunch hours / calendar defaults | ⬜ | |
+| Lunch hours / calendar defaults | ✅ | daily lunch-break preference blocks availability (DST-correct); other calendar defaults ⬜ |
 | Postgres, Redis, job queue, background workers | ✅ | BullMQ |
 | **Object storage** (avatars/attachments) | ⬜ | **NEW** — needed for photo upload + attachments |
 | **Audit logs** | ⬜ | **NEW** |
@@ -33,18 +33,18 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Capability | Status | Notes |
 |---|---|---|
 | Google / Microsoft / Apple(CalDAV) providers | ✅ | adapters behind one interface |
-| Generic CalDAV (Fastmail/Nextcloud) | 🟡 | adapter takes `serverUrl`, no UI |
-| **ICS feed import / .ics upload** | ⬜ | **NEW** — only ICS *export* exists |
+| Generic CalDAV (Fastmail/Nextcloud) | 🟡 | adapter takes `serverUrl`, no UI (ICS-feed import now covers many of these) |
+| **ICS feed import** | ✅ | subscribe an external ICS/webcal URL as a read-only busy source (SSRF-guarded, recurrence-aware, poll-synced). Raw `.ics` file upload ⬜ |
 | Initial / incremental / webhook sync + reconciliation | ✅ | syncToken/delta + maintenance job |
 | Duplicate detection | ✅ | busy_blocks upsert on `(calendarId, externalEventId)` |
 | Deleted-event handling | ✅ | `deletedExternalIds` |
 | Sync retries | ✅ | BullMQ |
 | **Conflict resolution (bidirectional edits)** | 🟡 | last-writer-wins on our writes; no merge policy |
-| Connect / disconnect calendars | ✅ | |
+| Connect / disconnect calendars | ✅ | disconnect now has UI (cascade-removes calendars/events/busy/subs) |
 | Pick conflict-check calendars / write-target | ✅ | `checkForConflicts` |
-| **Rename calendars, visibility, read-only/writable controls** | ⬜ | **NEW** — `color`/`name` stored, no UI |
+| **Rename calendars, visibility, read-only/writable controls** | ✅ | per-calendar manager: rename, hide, toggle availability, pick booking write-target (read-only guarded) |
 | **Unified full event model** (title, guests, recurrence, location, privacy, metadata) | ✅ | `calendar_events` table (migration 0008); adapters ingest full events; `busy_blocks` is now its lean availability projection. Attachments field TBD. |
-| Calendar health: last sync, OAuth expiry, errors | 🟡 | `lastError`/`lastSyncedAt` shown; **timezone-inconsistency / missing-event / duplicate detection ⬜ (NEW)** |
+| Calendar health: last sync, OAuth expiry, errors | ✅ | reconnect alerts + **duplicate-event detection** (same meeting on 2+ calendars) + **timezone-mismatch** (write-target tz ≠ schedule) in the Inbox; missing-event ⬜ |
 | Timezone Engine (DST, organizer/viewer/device) | ✅ | Luxon, DST-tested |
 | **Floating events / traveling-user timezone** | ⬜ | **NEW** |
 
@@ -54,14 +54,14 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Availability engine (working hours, buffers, focus, holidays, limits, tz) | ✅ | pure + unit-tested |
 | **Ranked availability / suggested slots** | ✅ | **recommended times** — `rank-slots.ts` scores by consolidation (back-to-back), preferred hour, recency; top-3 surfaced on the booking page + starred in the grid. Conflict-reason strings ⬜ |
 | Booking links: 1:1, collective, round-robin | ✅ | |
-| **Group events** (many bookers, one slot) | ⬜ | **NEW** |
+| **Group events** (many bookers, one slot) | ⬜ | **NEW** (deferred — capacity model) |
 | Unlimited event types (duration/buffer/questions/platform/notifications) | ✅ | |
 | Multiple durations · slot interval · min-gap · daily limit | ✅ | |
-| **Expiring / password-protected / one-off links** | 🟡 | one-off ✅, expiring ✅ (`booking_links.expires_at`), **password ⬜** |
+| **Expiring / password-protected / one-off links** | ✅ | one-off ✅, expiring ✅, **password ✅** (SHA-256 access code gates the public page + book-time verify) |
 | Private/secret event types · redirect · color · duplicate | ✅ | |
 | Booking pages: public profile, team, mobile-friendly | ✅ | |
 | **Branded booking pages · embedded widget** | ✅ | embed `/embed.js` (inline+popup) + **per-host branding** (accent colour + welcome message + avatar, re-themes the whole page) + **i18n** (en/es/fr/de/pt) + **SavvyCal overlay** (booker pastes ICS → clashing slots grey out) |
-| Scheduling policies: min notice, daily/weekly limits, window | ✅ / 🟡 | weekly limit ⬜ |
+| Scheduling policies: min notice, daily/weekly limits, window | ✅ | **weekly limit ✅** (per host-local ISO week, enforced in the booking txn) |
 | **No-meeting windows · preferred weekdays** | 🟡 | date-overrides support it in engine; no dedicated UI |
 | **Date-specific overrides UI · multiple named schedules** | ✅ | date-overrides editor + **multiple named schedules** (CRUD + switcher + per-event-type picker; engine honours the pinned `scheduleId`) |
 | Payments: require payment, deposits, refunds, multi-currency | ✅ | Stripe |
@@ -83,7 +83,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Channels: email, push, Slack, WhatsApp, SMS | ✅ | desktop ⬜ |
 | Reminder engine: 1d, 1h, custom | ✅ | recurring reminders 🟡 |
 | Delay management (overflow → notify next meeting) | ✅ | ⭐ shipped; auto-detection of overrun ⬜ |
-| Invitation inbox: accept / decline / tentative | ✅ | **suggest-another-time · delegate ⬜ (NEW)** |
+| Invitation inbox: accept / decline / tentative | ✅ | **suggest-another-time ✅** (emails organizer + tentative RSVP) · **delegate ✅** (forwards to a teammate) |
 
 ## Phase 5 — Automation Engine
 | Capability | Status | Notes |
