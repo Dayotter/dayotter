@@ -53,6 +53,31 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
     .where(eq(schema.timeBlocks.bookingId, booking.id))
     .catch(() => {});
 
+  // Smart rescheduling: if the host opted in, reclaim a cancelled FUTURE 1:1's
+  // freed time as a focus block rather than re-opening it for booking. Group
+  // events are skipped (other attendees may still hold the slot). Standalone
+  // block (no bookingId) so the host can drop it from the block manager.
+  if (booking.hostId && !booking.isGroup && booking.startsAt.getTime() > Date.now()) {
+    const prefs = await db.query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, booking.hostId),
+      columns: { reclaimCancelledTime: true },
+    });
+    if (prefs?.reclaimCancelledTime) {
+      await db
+        .insert(schema.timeBlocks)
+        .values({
+          userId: booking.hostId,
+          title: "Focus (freed up)",
+          kind: "focus",
+          startsAt: booking.startsAt,
+          endsAt: booking.endsAt,
+        })
+        .catch((err) =>
+          logger.warn("reclaim focus block failed", { event: "reclaim_failed", err }),
+        );
+    }
+  }
+
   if (booking.hostId) {
     await emitWebhook(booking.hostId, "booking.cancelled", {
       uid,

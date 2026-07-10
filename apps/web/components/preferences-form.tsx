@@ -59,6 +59,7 @@ export function PreferencesForm({
     adaptiveAvailability?: boolean;
     maxMeetingsPerDay?: number;
     travelBufferMinutes?: number;
+    reclaimCancelledTime?: boolean;
     lunchEnabled?: boolean;
     lunchStartMinute?: number;
     lunchEndMinute?: number;
@@ -71,6 +72,7 @@ export function PreferencesForm({
   const [adaptive, setAdaptive] = useState(initial.adaptiveAvailability ?? false);
   const [maxPerDay, setMaxPerDay] = useState(initial.maxMeetingsPerDay ?? 5);
   const [travelBuffer, setTravelBuffer] = useState(initial.travelBufferMinutes ?? 0);
+  const [reclaim, setReclaim] = useState(initial.reclaimCancelledTime ?? false);
   const [lunchOn, setLunchOn] = useState(initial.lunchEnabled ?? false);
   const [lunchStart, setLunchStart] = useState(initial.lunchStartMinute ?? 720);
   const [lunchEnd, setLunchEnd] = useState(initial.lunchEndMinute ?? 780);
@@ -114,6 +116,7 @@ export function PreferencesForm({
         adaptiveAvailability: adaptive,
         maxMeetingsPerDay: maxPerDay,
         travelBufferMinutes: travelBuffer,
+        reclaimCancelledTime: reclaim,
         lunchEnabled: lunchOn,
         lunchStartMinute: lunchStart,
         lunchEndMinute: lunchEnd,
@@ -274,6 +277,27 @@ export function PreferencesForm({
               />
               <span className="text-sm text-[var(--color-muted)]">minutes each way</span>
             </div>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={reclaim}
+                onChange={(e) => {
+                  setReclaim(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Reclaim cancelled time as focus
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  When an upcoming meeting is cancelled, hold onto that time as a focus block
+                  instead of re-opening it for booking. You can always remove the block.
+                </span>
+              </span>
+            </label>
           </div>
 
           <div className="border-t border-[var(--color-border)] pt-4">

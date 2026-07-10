@@ -47,6 +47,9 @@ export const userPreferences = pgTable(
     /** Travel-aware scheduling: minutes of travel time to reserve around
      * in-person meetings (0 = off). Reserved as time_blocks before + after. */
     travelBufferMinutes: smallint("travel_buffer_minutes").notNull().default(0),
+    /** Smart rescheduling: when a future meeting is cancelled, reserve the freed
+     * time as a focus block instead of just re-opening it for booking. */
+    reclaimCancelledTime: boolean("reclaim_cancelled_time").notNull().default(false),
     /** Daily lunch break that blocks availability (in the schedule's timezone). */
     lunchEnabled: boolean("lunch_enabled").notNull().default(false),
     /** Lunch start as minutes from local midnight (720 = 12:00). */

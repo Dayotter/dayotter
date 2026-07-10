@@ -176,6 +176,13 @@
       "when": 1783669193710,
       "tag": "0024_boring_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1783675348745,
+      "tag": "0025_tan_enchantress",
+      "breakpoints": true
     }
   ]
 }
