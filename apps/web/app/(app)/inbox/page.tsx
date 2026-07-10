@@ -7,7 +7,7 @@ import { aiEnabled } from "@/lib/ai/llm";
 import { getSession } from "@/lib/auth/session";
 import { inboxData } from "@/lib/calendar/inbox";
 import { getRecommendations } from "@/lib/intelligence/recommendations";
-import { AlertTriangle, PlugZap, Sparkles } from "lucide-react";
+import { AlertTriangle, CopyX, Globe, PlugZap, Sparkles } from "lucide-react";
 import { DateTime } from "luxon";
 import Link from "next/link";
 
@@ -17,16 +17,15 @@ const PROVIDER_LABEL: Record<string, string> = {
   google: "Google Calendar",
   microsoft: "Microsoft 365",
   apple: "Apple iCloud",
+  ics: "Calendar feed",
 };
 
 export default async function InboxPage() {
   const session = await getSession();
   const userId = session!.user.id;
   const tz = (session!.user as { timezone?: string }).timezone ?? "UTC";
-  const [{ reconnect, conflicts }, recommendations] = await Promise.all([
-    inboxData(userId),
-    getRecommendations({ userId, tz }),
-  ]);
+  const [{ reconnect, conflicts, duplicates, timezoneMismatches }, recommendations] =
+    await Promise.all([inboxData(userId), getRecommendations({ userId, tz })]);
 
   return (
     <>
@@ -95,6 +94,64 @@ export default async function InboxPage() {
         </div>
       ) : null}
 
+      {/* Duplicate events — the same meeting on multiple calendars, blocking time twice */}
+      {duplicates.length > 0 ? (
+        <div className="mb-4 space-y-2">
+          {duplicates.map((d) => (
+            <Card
+              key={`${d.title}-${d.startsAt}`}
+              className="flex flex-wrap items-center justify-between gap-3 border-[var(--color-amber)]/40 px-5 py-4"
+            >
+              <div className="flex items-start gap-3">
+                <CopyX size={18} className="mt-0.5 text-[var(--color-amber)]" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Duplicate: {d.title}</p>
+                  <p className="text-xs text-[var(--color-muted)]">
+                    {DateTime.fromISO(d.startsAt).setZone(tz).toFormat("ccc, LLL d · h:mm a")}{" "}
+                    appears on {d.calendars.join(" + ")} — it blocks your availability twice.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/settings/calendars"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                Manage calendars
+              </Link>
+            </Card>
+          ))}
+        </div>
+      ) : null}
+
+      {/* Timezone health — booking write-target calendar in a different timezone */}
+      {timezoneMismatches.length > 0 ? (
+        <div className="mb-4 space-y-2">
+          {timezoneMismatches.map((t) => (
+            <Card
+              key={t.calendarName}
+              className="flex flex-wrap items-center justify-between gap-3 border-[var(--color-amber)]/40 px-5 py-4"
+            >
+              <div className="flex items-start gap-3">
+                <Globe size={18} className="mt-0.5 text-[var(--color-amber)]" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Timezone mismatch: {t.calendarName}</p>
+                  <p className="text-xs text-[var(--color-muted)]">
+                    Bookings write to a calendar in {t.calendarTz}, but your schedule is in{" "}
+                    {t.userTz}. Confirm times land where you expect.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/settings/calendars"
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+              >
+                Manage calendars
+              </Link>
+            </Card>
+          ))}
+        </div>
+      ) : null}
+
       {/* Pending calendar invitations (lazy, client-fetched) */}
       <PendingInvites aiEnabled={aiEnabled} />
 
@@ -119,7 +176,11 @@ export default async function InboxPage() {
         </Card>
       ) : null}
 
-      {reconnect.length === 0 && conflicts.length === 0 && recommendations.length === 0 ? (
+      {reconnect.length === 0 &&
+      conflicts.length === 0 &&
+      duplicates.length === 0 &&
+      timezoneMismatches.length === 0 &&
+      recommendations.length === 0 ? (
         <p className="mt-2 text-sm text-[var(--color-muted)]">
           No sync problems or double-bookings right now. Pending invites and focus suggestions, if
           any, appear above.
