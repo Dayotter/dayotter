@@ -70,7 +70,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Capability | Status | Notes |
 |---|---|---|
 | Manual time blocks / focus blocks | ✅ | first-class `time_blocks` (focus/personal/travel/other); block the availability engine; manager on the Availability page |
-| **Recurring / flexible / protected blocks** | ⬜ | **NEW** |
+| **Recurring / protected blocks** | ✅ | manual blocks repeat weekly (4/8/12/26w), DST-correct, series-aware delete |
 | Deep work: focus sessions, **targets, auto-protection, weekly goals** | 🟡 | suggestions only; targets/goals ⬜ |
 | Planning views: daily / weekly / monthly / agenda | ✅ | calendar views shipped this session |
 | **Timeline view** | ⬜ | **NEW** |
@@ -91,7 +91,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 | Natural-language scheduling (create / reschedule / cancel) | ✅ | confirm-first, singular LLM layer |
 | **Automation rules** (trigger → action) | ✅ | `automation_rules`: booking-created triggers (prep block before / buffer after / **follow-up email**) fire in `createBooking`; **weekly time-based triggers** ("every Friday, block 13:00–17:00") materialize focus `time_blocks` across a 14-day horizon on the maintenance tick (tz-correct, idempotent). Settings → Automations. |
 | **Event templates** (duration, buffers, reminders, links, follow-up) | ⬜ | **NEW** (email templates exist for workflows, not event templates) |
-| **Smart rescheduling** (cancelled → focus; delayed → shift downstream) | ⬜ | **NEW** |
+| **Smart rescheduling** (cancelled → focus) | 🟡 | cancelled future 1:1 → freed time held as a focus block (pref-gated). Delayed→shift-downstream ⬜ |
 
 ## Phase 6 — Intelligence Engine
 | Capability | Status | Notes |
