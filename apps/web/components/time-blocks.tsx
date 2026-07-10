@@ -6,7 +6,7 @@ import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { track } from "@/lib/analytics";
-import { Brain, MapPin, Trash2, User } from "lucide-react";
+import { Brain, MapPin, Repeat, Trash2, User } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 
@@ -17,6 +17,7 @@ interface Block {
   kind: string;
   startsAt: string;
   endsAt: string;
+  seriesId?: string | null;
 }
 
 const KIND_ICON: Record<string, typeof Brain> = {
@@ -35,15 +36,17 @@ export function TimeBlocks() {
   const [kind, setKind] = useState<Kind>("focus");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [repeatWeeks, setRepeatWeeks] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
+  function load() {
     fetch("/api/time-blocks")
       .then((r) => r.json())
       .then((d) => setBlocks(d.blocks ?? []))
       .catch(() => {});
-  }, []);
+  }
+  useEffect(load, []);
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
@@ -58,7 +61,14 @@ export function TimeBlocks() {
     const res = await fetch("/api/time-blocks", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ title, kind, startsAt: startISO, endsAt: endISO }),
+      body: JSON.stringify({
+        title,
+        kind,
+        startsAt: startISO,
+        endsAt: endISO,
+        repeatWeeks,
+        timezone: DateTime.local().zoneName ?? "UTC",
+      }),
     });
     setSaving(false);
     const data = await res.json().catch(() => ({}));
@@ -66,16 +76,38 @@ export function TimeBlocks() {
       setError(typeof data.error === "string" ? data.error : "Couldn't add that block");
       return;
     }
-    track("Time Block Created", { kind });
-    setBlocks((prev) => [...prev, data.block].sort((a, b) => a.startsAt.localeCompare(b.startsAt)));
+    track("Time Block Created", { kind, recurring: repeatWeeks > 0 });
+    // A recurring block creates several rows — reload to show the collapsed series.
+    if (repeatWeeks > 0) load();
+    else
+      setBlocks((prev) =>
+        [...prev, data.block].sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+      );
     setTitle("");
     setStart("");
     setEnd("");
+    setRepeatWeeks(0);
   }
 
-  async function remove(id: string) {
-    setBlocks((prev) => prev.filter((b) => b.id !== id));
-    await fetch(`/api/time-blocks/${id}`, { method: "DELETE" });
+  async function remove(b: Block) {
+    if (b.seriesId) {
+      setBlocks((prev) => prev.filter((x) => x.seriesId !== b.seriesId));
+      await fetch(`/api/time-blocks/${b.id}?series=1`, { method: "DELETE" });
+    } else {
+      setBlocks((prev) => prev.filter((x) => x.id !== b.id));
+      await fetch(`/api/time-blocks/${b.id}`, { method: "DELETE" });
+    }
+  }
+
+  // Collapse a recurring series to a single row (its earliest upcoming occurrence).
+  const displayed: Block[] = [];
+  const seenSeries = new Set<string>();
+  for (const b of blocks) {
+    if (b.seriesId) {
+      if (seenSeries.has(b.seriesId)) continue;
+      seenSeries.add(b.seriesId);
+    }
+    displayed.push(b);
   }
 
   return (
@@ -85,10 +117,11 @@ export function TimeBlocks() {
         description="Protect time on your calendar — bookers can't schedule over these."
       />
       <CardBody className="space-y-4">
-        {blocks.length > 0 ? (
+        {displayed.length > 0 ? (
           <ul className="space-y-2">
-            {blocks.map((b) => {
+            {displayed.map((b) => {
               const Icon = KIND_ICON[b.kind] ?? User;
+              const recurring = Boolean(b.seriesId);
               return (
                 <li
                   key={b.id}
@@ -96,16 +129,24 @@ export function TimeBlocks() {
                 >
                   <Icon size={16} className="text-[var(--color-accent)]" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{b.title}</p>
+                    <p className="flex items-center gap-2 truncate text-sm font-medium">
+                      {b.title}
+                      {recurring ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-accent-soft)] px-1.5 py-0.5 text-[10px] font-normal text-[var(--color-accent)]">
+                          <Repeat size={10} /> Weekly
+                        </span>
+                      ) : null}
+                    </p>
                     <p className="text-xs text-[var(--color-muted)]">
-                      {DateTime.fromISO(b.startsAt).toFormat("ccc, LLL d · h:mm a")} –{" "}
-                      {DateTime.fromISO(b.endsAt).toFormat("h:mm a")}
+                      {recurring
+                        ? `${DateTime.fromISO(b.startsAt).toFormat("cccc")} · ${DateTime.fromISO(b.startsAt).toFormat("h:mm a")} – ${DateTime.fromISO(b.endsAt).toFormat("h:mm a")}`
+                        : `${DateTime.fromISO(b.startsAt).toFormat("ccc, LLL d · h:mm a")} – ${DateTime.fromISO(b.endsAt).toFormat("h:mm a")}`}
                     </p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => remove(b.id)}
-                    aria-label="Remove block"
+                    onClick={() => remove(b)}
+                    aria-label={recurring ? "Remove recurring block" : "Remove block"}
                     className="rounded-md p-1.5 text-[var(--color-faint)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-danger)]"
                   >
                     <Trash2 size={15} />
@@ -164,6 +205,21 @@ export function TimeBlocks() {
                 required
               />
             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="tb-repeat">Repeat weekly</Label>
+            <Select
+              id="tb-repeat"
+              value={repeatWeeks}
+              onChange={(e) => setRepeatWeeks(Number(e.target.value))}
+              className="w-40"
+            >
+              <option value={0}>No — one-off</option>
+              <option value={3}>for 4 weeks</option>
+              <option value={7}>for 8 weeks</option>
+              <option value={11}>for 12 weeks</option>
+              <option value={25}>for 26 weeks</option>
+            </Select>
           </div>
           <FormError>{error}</FormError>
           <Button type="submit" size="sm" disabled={saving}>

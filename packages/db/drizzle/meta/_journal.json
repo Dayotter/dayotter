@@ -183,6 +183,13 @@
       "when": 1783675348745,
       "tag": "0025_tan_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1783675735806,
+      "tag": "0026_silly_smasher",
+      "breakpoints": true
     }
   ]
 }
