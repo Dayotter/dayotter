@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  calSync — one-click self-host on a single EC2 instance. Provisions an Ubuntu
+  server with Docker, a security group, and a stable public IP, then boots the
+  full stack (Postgres, Redis, web, worker, Caddy/HTTPS) via deploy/install.sh.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label: { default: "calSync" }
+        Parameters: [DomainName, RepoUrl]
+      - Label: { default: "Server" }
+        Parameters: [InstanceType, VolumeSize, KeyName, SSHLocation, LatestAmiId]
+    ParameterLabels:
+      DomainName: { default: "Domain (optional — enables automatic HTTPS)" }
+      InstanceType: { default: "EC2 instance type" }
+      KeyName: { default: "SSH key pair (optional)" }
+      SSHLocation: { default: "Allow SSH from (CIDR)" }
+
+Parameters:
+  DomainName:
+    Type: String
+    Default: ""
+    Description: >
+      A domain you'll point at this server (e.g. cal.example.com) for automatic
+      HTTPS. Leave blank to start on plain HTTP at the server's public IP.
+  RepoUrl:
+    Type: String
+    Default: "https://github.com/OWNER/calsync.git"
+    Description: Git repository to deploy (your fork, if you have one).
+  InstanceType:
+    Type: String
+    Default: t3.small
+    AllowedValues: [t3.small, t3.medium, t3.large, t4g.medium, m7i-flex.large]
+    Description: t3.small is the cheapest that works (swap is added for the build). t3.medium builds faster.
+  VolumeSize:
+    Type: Number
+    Default: 20
+    MinValue: 12
+    Description: Root disk size in GB (holds the database).
+  KeyName:
+    Type: String
+    Default: ""
+    Description: Optional EC2 key pair for SSH. You can also connect keyless via SSM Session Manager.
+  SSHLocation:
+    Type: String
+    Default: 0.0.0.0/0
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    Description: CIDR allowed to SSH (port 22). Tighten to your IP for safety.
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id
+    Description: Latest Ubuntu 24.04 LTS AMI (resolved automatically).
+
+Conditions:
+  HasKeyName: !Not [!Equals [!Ref KeyName, ""]]
+  HasDomain: !Not [!Equals [!Ref DomainName, ""]]
+
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: calSync — web (80/443) and SSH
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: 0.0.0.0/0, Description: HTTP }
+        - { IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0, Description: HTTPS }
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHLocation
+          Description: SSH
+
+  # IAM role so you can open a shell via SSM Session Manager without an SSH key.
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ec2.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref InstanceRole]
+
+  Instance:
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal: { Timeout: PT20M }
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref LatestAmiId
+      IamInstanceProfile: !Ref InstanceProfile
+      SecurityGroupIds: [!Ref SecurityGroup]
+      KeyName: !If [HasKeyName, !Ref KeyName, !Ref "AWS::NoValue"]
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs: { VolumeSize: !Ref VolumeSize, VolumeType: gp3, DeleteOnTermination: true }
+      Tags: [{ Key: Name, Value: calsync }]
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+
+          # Swap keeps the Docker/Next build alive on small instances.
+          if ! swapon --show | grep -q /swapfile; then
+            fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+            echo '/swapfile none swap sw 0 0' >> /etc/fstab
+          fi
+
+          apt-get update -y
+          apt-get install -y git curl python3-pip
+          pip3 install --quiet https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz || true
+
+          git clone --depth 1 "${RepoUrl}" /opt/calsync
+          cd /opt/calsync
+          CALSYNC_DOMAIN="${DomainName}" bash deploy/install.sh 2>&1 | tee /var/log/calsync-install.log
+
+          # Tell CloudFormation the boot finished (or failed).
+          cfn-signal -e $? --stack "${AWS::StackName}" --resource Instance --region "${AWS::Region}" || true
+
+  ElasticIP:
+    Type: AWS::EC2::EIP
+    Properties: { Domain: vpc, InstanceId: !Ref Instance }
+
+Outputs:
+  URL:
+    Description: Open calSync here (allow a few minutes on first boot for the build)
+    Value: !If [HasDomain, !Sub "https://${DomainName}", !Sub "http://${ElasticIP}"]
+  PublicIP:
+    Description: Point your domain's A record at this IP, then re-run install.sh with the domain for HTTPS
+    Value: !Ref ElasticIP
+  SSMSession:
+    Description: Open a keyless shell on the server
+    Value: !Sub "aws ssm start-session --target ${Instance} --region ${AWS::Region}"

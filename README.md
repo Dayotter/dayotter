@@ -55,7 +55,24 @@ openssl rand -base64 32       # AUTH_SECRET
 openssl rand -hex 32          # ENCRYPTION_KEY (32-byte token-encryption key)
 ```
 
-## Self-hosting (Docker)
+## Deploy to production (one-click)
+
+Want it live on your own server with HTTPS, not just localhost? The [`deploy/`](deploy/)
+directory has a production stack (web + worker + Postgres + Redis + Caddy for
+automatic TLS, with DB migrations applied on boot):
+
+- **AWS, one click** — a CloudFormation *Launch Stack* button spins up an EC2
+  instance that boots the whole thing. See [deploy/README.md](deploy/README.md).
+- **Any Ubuntu box, one command:**
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/OWNER/calsync/main/deploy/install.sh \
+    | sudo CALSYNC_DOMAIN=cal.example.com bash
+  ```
+
+The installer creates strong secrets on first run and brings everything up.
+Full guide, day-two ops, and backups: **[deploy/README.md](deploy/README.md)**.
+
+## Self-hosting (Docker, from a checkout)
 
 The full stack — web, worker, Postgres, and Redis — runs from one compose file.
 The `app` profile builds the web + worker images; without it you get just the
