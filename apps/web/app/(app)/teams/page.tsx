@@ -20,7 +20,7 @@ export default async function TeamsPage() {
     <>
       <PageHeader
         title="Teams"
-        description="Shared availability for your founders and teammates."
+        description="Shared availability for your whole raft — every founder and teammate's free time in one place."
         action={<CreateTeamButton />}
       />
       {teams.length === 0 ? (

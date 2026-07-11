@@ -26,6 +26,7 @@ export const metadata: Metadata = {
   title: "DayOtter — scheduling that respects every calendar you own",
   description:
     "The open-source home for your time. Sync every calendar, share availability across your team, and let people book you — beautifully.",
+  icons: { icon: "/brand/dayotter-icon.svg", apple: "/brand/dayotter-icon.svg" },
 };
 
 // Set the theme class before first paint to avoid a flash of the wrong theme.
