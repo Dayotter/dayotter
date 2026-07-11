@@ -22,7 +22,7 @@ export default async function EditEventTypePage({
 
   return (
     <>
-      <PageHeader title="Edit event type" description="Update how this meeting is booked." />
+      <PageHeader title="Edit booking type" description="Update how this meeting is booked." />
       <EventTypeForm
         mode="edit"
         paymentsEnabled={paymentsEnabled}
