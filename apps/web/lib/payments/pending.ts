@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { connection } from "@calsync/jobs";
+import { connection } from "@dayotter/jobs";
 import type { CreateBookingInput } from "../booking/create-booking";
 
 const PREFIX = "calsync:pendingbooking:";

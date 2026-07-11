@@ -2,7 +2,7 @@ import { EmptyState, PageHeader } from "@/components/page-header";
 import { CreateTeamButton } from "@/components/team-forms";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import { Users } from "lucide-react";
 import Link from "next/link";
 

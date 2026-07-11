@@ -1,12 +1,9 @@
-import { logger } from "@calsync/core";
-import { and, eq, getDb, isNull, schema } from "@calsync/db";
-import { enqueueWebhook } from "@calsync/jobs";
+import { logger } from "@dayotter/core";
+import { and, eq, getDb, isNull, schema } from "@dayotter/db";
+import { enqueueWebhook } from "@dayotter/jobs";
 
 /** Events the platform emits. Consumers subscribe to `["*"]` or a subset. */
-export type WebhookEvent =
-  | "booking.created"
-  | "booking.cancelled"
-  | "booking.rescheduled";
+export type WebhookEvent = "booking.created" | "booking.cancelled" | "booking.rescheduled";
 
 /**
  * Fan out an event to a user's enabled webhook endpoints: persist a delivery
@@ -26,9 +23,7 @@ export async function emitWebhook(
         isNull(schema.webhookEndpoints.disabledAt),
       ),
     });
-    const targets = endpoints.filter(
-      (e) => e.events.includes("*") || e.events.includes(event),
-    );
+    const targets = endpoints.filter((e) => e.events.includes("*") || e.events.includes(event));
     if (targets.length === 0) return;
 
     const payload = { event, createdAt: new Date().toISOString(), data };

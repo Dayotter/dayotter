@@ -56,7 +56,7 @@ export interface SyncedAttendee {
 }
 
 /**
- * A full external event mapped into calSync's unified model. Times + id are
+ * A full external event mapped into dayotter's unified model. Times + id are
  * always present; the rest is populated best-effort from what each provider
  * exposes. `transparency: "transparent"` means the event doesn't block time.
  */

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { logger, roundRobinPick, safeEqual, sha256hex } from "@calsync/core";
-import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@calsync/db";
-import { bookingConfirmation, sendEmail } from "@calsync/emails";
+import { logger, roundRobinPick, safeEqual, sha256hex } from "@dayotter/core";
+import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
+import { bookingConfirmation, sendEmail } from "@dayotter/emails";
 import { DateTime } from "luxon";
 import { applyBookingRules } from "../automation/apply-rules";
 import { writeBookingToCalendar } from "../calendar/host-calendar";

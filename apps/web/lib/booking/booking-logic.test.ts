@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 
-const q = (id: string, type: string, required: boolean) => ({ id, label: `Q ${id}`, type, required });
+const q = (id: string, type: string, required: boolean) => ({
+  id,
+  label: `Q ${id}`,
+  type,
+  required,
+});
 
 describe("validateResponses", () => {
   it("passes when there are no questions", () => {
@@ -29,8 +34,12 @@ describe("validateResponses", () => {
   });
 
   it("requires a required checkbox to be exactly true", () => {
-    expect(() => validateResponses([q("1", "checkbox", true)], { "1": false })).toThrow(BookingError);
-    expect(() => validateResponses([q("1", "checkbox", true)], { "1": "true" })).toThrow(BookingError);
+    expect(() => validateResponses([q("1", "checkbox", true)], { "1": false })).toThrow(
+      BookingError,
+    );
+    expect(() => validateResponses([q("1", "checkbox", true)], { "1": "true" })).toThrow(
+      BookingError,
+    );
     expect(() => validateResponses([q("1", "checkbox", true)], { "1": true })).not.toThrow();
   });
 

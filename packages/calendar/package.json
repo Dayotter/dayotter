@@ -1,5 +1,5 @@
 {
-  "name": "@calsync/calendar",
+  "name": "@dayotter/calendar",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@calsync/core": "workspace:*",
+    "@dayotter/core": "workspace:*",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "google-auth-library": "^9.15.0",
     "googleapis": "^144.0.0",

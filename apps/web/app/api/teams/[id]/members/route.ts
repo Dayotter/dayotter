@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth/session";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -32,7 +32,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   });
   if (!user) {
     return NextResponse.json(
-      { error: "No calSync account with that email yet. They need to sign up first." },
+      { error: "No dayotter account with that email yet. They need to sign up first." },
       { status: 404 },
     );
   }

@@ -28,7 +28,7 @@ importers:
       '@better-auth/expo':
         specifier: 1.6.23
         version: 1.6.23(ddedc16596efee9c036711cfda87c303)
-      '@calsync/core':
+      '@dayotter/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@expo/metro-runtime':
@@ -101,28 +101,28 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.110.0
         version: 0.110.0(zod@3.25.76)
-      '@calsync/auth':
+      '@dayotter/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@calsync/calendar':
+      '@dayotter/calendar':
         specifier: workspace:*
         version: link:../../packages/calendar
-      '@calsync/core':
+      '@dayotter/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@calsync/db':
+      '@dayotter/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@calsync/emails':
+      '@dayotter/emails':
         specifier: workspace:*
         version: link:../../packages/emails
-      '@calsync/integrations':
+      '@dayotter/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations
-      '@calsync/jobs':
+      '@dayotter/jobs':
         specifier: workspace:*
         version: link:../../packages/jobs
-      '@calsync/notifications':
+      '@dayotter/notifications':
         specifier: workspace:*
         version: link:../../packages/notifications
       better-auth:
@@ -192,25 +192,25 @@ importers:
 
   apps/worker:
     dependencies:
-      '@calsync/calendar':
+      '@dayotter/calendar':
         specifier: workspace:*
         version: link:../../packages/calendar
-      '@calsync/core':
+      '@dayotter/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@calsync/db':
+      '@dayotter/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@calsync/emails':
+      '@dayotter/emails':
         specifier: workspace:*
         version: link:../../packages/emails
-      '@calsync/integrations':
+      '@dayotter/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations
-      '@calsync/jobs':
+      '@dayotter/jobs':
         specifier: workspace:*
         version: link:../../packages/jobs
-      '@calsync/notifications':
+      '@dayotter/notifications':
         specifier: workspace:*
         version: link:../../packages/notifications
       bullmq:
@@ -247,10 +247,10 @@ importers:
       '@better-auth/expo':
         specifier: 1.6.23
         version: 1.6.23(d73f50ef1db4bccdaa3e0cd6aeb4bca6)
-      '@calsync/db':
+      '@dayotter/db':
         specifier: workspace:*
         version: link:../db
-      '@calsync/emails':
+      '@dayotter/emails':
         specifier: workspace:*
         version: link:../emails
       better-auth:
@@ -266,7 +266,7 @@ importers:
 
   packages/calendar:
     dependencies:
-      '@calsync/core':
+      '@dayotter/core':
         specifier: workspace:*
         version: link:../core
       '@microsoft/microsoft-graph-client':
@@ -363,13 +363,13 @@ importers:
 
   packages/integrations:
     dependencies:
-      '@calsync/calendar':
+      '@dayotter/calendar':
         specifier: workspace:*
         version: link:../calendar
-      '@calsync/core':
+      '@dayotter/core':
         specifier: workspace:*
         version: link:../core
-      '@calsync/db':
+      '@dayotter/db':
         specifier: workspace:*
         version: link:../db
     devDependencies:
@@ -398,10 +398,10 @@ importers:
 
   packages/notifications:
     dependencies:
-      '@calsync/core':
+      '@dayotter/core':
         specifier: workspace:*
         version: link:../core
-      '@calsync/db':
+      '@dayotter/db':
         specifier: workspace:*
         version: link:../db
     devDependencies:
@@ -1893,7 +1893,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@0.22.28':
     resolution: {integrity: sha512-lvt72KNitGuixYD2l3SZmRKVu2G4zJpmg5V7WfUBNpmUU5oODBw/6qmiJ6kSLAlfDozscUk+BBGknBBzxUrwrA==}

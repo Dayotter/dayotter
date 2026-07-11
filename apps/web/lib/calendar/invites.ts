@@ -1,7 +1,7 @@
-import type { CalendarInvite, InviteResponse } from "@calsync/calendar";
-import { logger } from "@calsync/core";
-import { and, eq, getDb, gte, inArray, lte, schema } from "@calsync/db";
-import { adapterForConnection } from "@calsync/integrations";
+import type { CalendarInvite, InviteResponse } from "@dayotter/calendar";
+import { logger } from "@dayotter/core";
+import { and, eq, getDb, gte, inArray, lte, schema } from "@dayotter/db";
+import { adapterForConnection } from "@dayotter/integrations";
 
 export interface PendingInvite extends CalendarInvite {
   connectionId: string;

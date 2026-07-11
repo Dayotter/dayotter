@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { jsonError, withUser } from "@/lib/server/http";
-import { and, asc, eq, getDb, gte, schema } from "@calsync/db";
+import { and, asc, eq, getDb, gte, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 import { z } from "zod";

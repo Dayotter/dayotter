@@ -1,6 +1,6 @@
 import { enforceRateLimit } from "@/lib/server/rate-limit";
-import { safeEqual, sha256hex } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
+import { safeEqual, sha256hex } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

@@ -1,13 +1,13 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >
-  calSync — one-click self-host on a single EC2 instance. Provisions an Ubuntu
+  dayotter — one-click self-host on a single EC2 instance. Provisions an Ubuntu
   server with Docker, a security group, and a stable public IP, then boots the
   full stack (Postgres, Redis, web, worker, Caddy/HTTPS) via deploy/install.sh.
 
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-      - Label: { default: "calSync" }
+      - Label: { default: "dayotter" }
         Parameters: [DomainName, RepoUrl]
       - Label: { default: "Server" }
         Parameters: [InstanceType, VolumeSize, KeyName, SSHLocation, LatestAmiId]
@@ -26,7 +26,7 @@ Parameters:
       HTTPS. Leave blank to start on plain HTTP at the server's public IP.
   RepoUrl:
     Type: String
-    Default: "https://github.com/OWNER/calsync.git"
+    Default: "https://github.com/OWNER/dayotter.git"
     Description: Git repository to deploy (your fork, if you have one).
   InstanceType:
     Type: String
@@ -60,7 +60,7 @@ Resources:
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: calSync — web (80/443) and SSH
+      GroupDescription: dayotter — web (80/443) and SSH
       SecurityGroupIngress:
         - { IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: 0.0.0.0/0, Description: HTTP }
         - { IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0, Description: HTTPS }
@@ -101,7 +101,7 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs: { VolumeSize: !Ref VolumeSize, VolumeType: gp3, DeleteOnTermination: true }
-      Tags: [{ Key: Name, Value: calsync }]
+      Tags: [{ Key: Name, Value: dayotter }]
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
@@ -118,8 +118,8 @@ Resources:
           apt-get install -y git curl python3-pip
           pip3 install --quiet https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz || true
 
-          git clone --depth 1 "${RepoUrl}" /opt/calsync
-          cd /opt/calsync
+          git clone --depth 1 "${RepoUrl}" /opt/dayotter
+          cd /opt/dayotter
           CALSYNC_DOMAIN="${DomainName}" bash deploy/install.sh 2>&1 | tee /var/log/calsync-install.log
 
           # Tell CloudFormation the boot finished (or failed).
@@ -131,7 +131,7 @@ Resources:
 
 Outputs:
   URL:
-    Description: Open calSync here (allow a few minutes on first boot for the build)
+    Description: Open dayotter here (allow a few minutes on first boot for the build)
     Value: !If [HasDomain, !Sub "https://${DomainName}", !Sub "http://${ElasticIP}"]
   PublicIP:
     Description: Point your domain's A record at this IP, then re-run install.sh with the domain for HTTPS

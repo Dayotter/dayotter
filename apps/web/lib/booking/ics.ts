@@ -34,7 +34,7 @@ export function buildIcs(e: CalendarEventData): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//calSync//Booking//EN",
+    "PRODID:-//dayotter//Booking//EN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
     `UID:${e.uid}@calsync`,

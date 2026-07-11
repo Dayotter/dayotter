@@ -19,8 +19,7 @@ export function MarketingHeader({
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-64 opacity-[0.12]"
         style={{
-          background:
-            "radial-gradient(50% 60% at 50% 0%, var(--color-accent) 0%, transparent 65%)",
+          background: "radial-gradient(50% 60% at 50% 0%, var(--color-accent) 0%, transparent 65%)",
         }}
       />
       <div className="relative mx-auto max-w-3xl px-6 py-20 text-center sm:py-24">

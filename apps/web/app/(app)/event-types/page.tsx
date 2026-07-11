@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
-import { desc, eq, getDb, schema } from "@calsync/db";
+import { desc, eq, getDb, schema } from "@dayotter/db";
 import { Clock, ExternalLink, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 

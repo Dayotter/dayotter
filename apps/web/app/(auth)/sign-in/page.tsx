@@ -38,7 +38,7 @@ export default function SignInPage() {
   return (
     <div>
       <h1 className="font-display text-3xl leading-tight tracking-[-0.01em]">Welcome back</h1>
-      <p className="mt-2 text-sm text-[var(--color-muted)]">Sign in to your calSync account.</p>
+      <p className="mt-2 text-sm text-[var(--color-muted)]">Sign in to your dayotter account.</p>
 
       <div className="mt-7">
         <GoogleAuthButton label="Continue with Google" />
@@ -84,7 +84,7 @@ export default function SignInPage() {
       </form>
 
       <p className="mt-6 text-center text-sm text-[var(--color-muted)]">
-        New to calSync?{" "}
+        New to dayotter?{" "}
         <Link href="/sign-up" className="font-medium text-[var(--color-accent)] hover:underline">
           Create an account
         </Link>

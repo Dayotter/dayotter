@@ -205,7 +205,9 @@ export default function AutomationsScreen() {
                       onPress={() => setDayOfWeek(i)}
                       style={[styles.dayPill, i === dayOfWeek && styles.pillOn]}
                     >
-                      <Text style={[styles.dayText, i === dayOfWeek && styles.pillTextOn]}>{d}</Text>
+                      <Text style={[styles.dayText, i === dayOfWeek && styles.pillTextOn]}>
+                        {d}
+                      </Text>
                     </Pressable>
                   ))}
                 </View>

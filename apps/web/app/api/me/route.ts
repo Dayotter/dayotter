@@ -2,7 +2,7 @@ import { aiEnabled } from "@/lib/ai/llm";
 import { getEntitlements } from "@/lib/billing/entitlements";
 import { paymentsEnabled } from "@/lib/payments/stripe";
 import { jsonError, withUser } from "@/lib/server/http";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

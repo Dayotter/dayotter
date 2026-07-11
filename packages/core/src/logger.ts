@@ -20,8 +20,7 @@ function threshold(): number {
 function normalize(ctx: LogContext): LogContext {
   const out: LogContext = {};
   for (const [k, v] of Object.entries(ctx)) {
-    out[k] =
-      v instanceof Error ? { name: v.name, message: v.message, stack: v.stack } : v;
+    out[k] = v instanceof Error ? { name: v.name, message: v.message, stack: v.stack } : v;
   }
   return out;
 }

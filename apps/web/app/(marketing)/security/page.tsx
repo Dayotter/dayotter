@@ -3,8 +3,8 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Security — calSync",
-  description: "How calSync protects your data.",
+  title: "Security — dayotter",
+  description: "How dayotter protects your data.",
 };
 
 export default function SecurityPage() {
@@ -45,8 +45,8 @@ export default function SecurityPage() {
 
         <h2>Self-hosting</h2>
         <p>
-          Prefer full control? Self-host {BRAND.name} and your data never leaves your infrastructure.
-          See the <a href="/self-hosting">self-hosting guide</a>.
+          Prefer full control? Self-host {BRAND.name} and your data never leaves your
+          infrastructure. See the <a href="/self-hosting">self-hosting guide</a>.
         </p>
 
         <h2>Reporting a vulnerability</h2>

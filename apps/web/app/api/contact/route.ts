@@ -1,6 +1,6 @@
 import { enforceRateLimit } from "@/lib/server/rate-limit";
-import { logger } from "@calsync/core";
-import { sendEmail } from "@calsync/emails";
+import { logger } from "@dayotter/core";
+import { sendEmail } from "@dayotter/emails";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -12,7 +12,7 @@ const body = z.object({
   message: z.string().min(1).max(5000),
 });
 
-const SUPPORT = process.env.CONTACT_EMAIL ?? "hello@calsync.com";
+const SUPPORT = process.env.CONTACT_EMAIL ?? "hello@dayotter.com";
 
 /** Public contact form. Rate-limited; emails the team (best-effort). */
 export async function POST(request: Request) {

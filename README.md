@@ -1,4 +1,4 @@
-# calSync
+# dayotter
 
 Open-source team scheduling & calendar platform. Sync every calendar (Google,
 Microsoft 365, Apple), share availability across your team, let people book you,
@@ -9,7 +9,7 @@ Apache-2.0 licensed — self-host it, or use the hosted cloud.
 ## Why
 
 Founders and teams overpay for scheduling tools that still can't handle multiple
-calendars or shared team availability well. calSync treats **shared team
+calendars or shared team availability well. dayotter treats **shared team
 availability as a first-class primitive** (collective + round-robin, no paywall)
 and unifies all your calendars into one source of truth.
 
@@ -65,7 +65,7 @@ automatic TLS, with DB migrations applied on boot):
   instance that boots the whole thing. See [deploy/README.md](deploy/README.md).
 - **Any Ubuntu box, one command:**
   ```bash
-  curl -fsSL https://raw.githubusercontent.com/OWNER/calsync/main/deploy/install.sh \
+  curl -fsSL https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/install.sh \
     | sudo CALSYNC_DOMAIN=cal.example.com bash
   ```
 
@@ -84,7 +84,7 @@ cp .env.example .env
 
 # 2. Create the schema on first run (fresh database)
 docker compose up -d postgres redis
-docker compose --profile app run --rm worker pnpm --filter @calsync/db migrate
+docker compose --profile app run --rm worker pnpm --filter @dayotter/db migrate
 
 # 3. Build + start everything
 docker compose --profile app up -d --build

@@ -1,6 +1,6 @@
 import { respondToInvite } from "@/lib/calendar/invites";
 import { jsonError, withUser } from "@/lib/server/http";
-import { logger } from "@calsync/core";
+import { logger } from "@dayotter/core";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

@@ -1,4 +1,4 @@
-import { rateLimit } from "@calsync/jobs";
+import { rateLimit } from "@dayotter/jobs";
 import { NextResponse } from "next/server";
 import { env } from "./env";
 

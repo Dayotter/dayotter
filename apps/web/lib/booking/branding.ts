@@ -1,4 +1,4 @@
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import type { CSSProperties } from "react";
 
 export interface HostBranding {

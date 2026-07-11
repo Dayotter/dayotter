@@ -10,8 +10,8 @@ WORKDIR /app
 FROM base AS deps
 COPY . .
 # Install the worker and its workspace deps (includes tsx from devDependencies).
-RUN pnpm install --frozen-lockfile --filter "@calsync/worker..."
+RUN pnpm install --frozen-lockfile --filter "@dayotter/worker..."
 
 FROM deps AS runner
 ENV NODE_ENV=production
-CMD ["pnpm", "--filter", "@calsync/worker", "start"]
+CMD ["pnpm", "--filter", "@dayotter/worker", "start"]

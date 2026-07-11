@@ -1,4 +1,4 @@
-import { and, eq, getDb, schema } from "@calsync/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 
 function slugify(input: string): string {
   return (

@@ -1,6 +1,6 @@
-import { logger, safeEqual } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
-import { enqueueSync } from "@calsync/jobs";
+import { logger, safeEqual } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
+import { enqueueSync } from "@dayotter/jobs";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

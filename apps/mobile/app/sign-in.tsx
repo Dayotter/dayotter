@@ -1,3 +1,7 @@
+import { useAuth } from "@/auth";
+import { googleAuthEnabled } from "@/auth-client";
+import { colors, radius } from "@/theme";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -11,10 +15,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth } from "@/auth";
-import { googleAuthEnabled } from "@/auth-client";
-import { colors, radius } from "@/theme";
-import { Ionicons } from "@expo/vector-icons";
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -59,7 +59,7 @@ export default function SignInScreen() {
           </View>
           <Text style={styles.heading}>{isSignUp ? "Create your account" : "Welcome back"}</Text>
           <Text style={styles.sub}>
-            {isSignUp ? "Start scheduling in minutes." : "Sign in to your calSync account."}
+            {isSignUp ? "Start scheduling in minutes." : "Sign in to your dayotter account."}
           </Text>
 
           <View style={styles.form}>

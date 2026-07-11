@@ -1,4 +1,4 @@
-import { asc, eq, getDb, schema } from "@calsync/db";
+import { asc, eq, getDb, schema } from "@dayotter/db";
 import { isCloud } from "./edition";
 import { ALL_FEATURES, type Feature, hasFeature } from "./features";
 
@@ -36,9 +36,10 @@ export async function getEntitlements(userId: string): Promise<Entitlements> {
   const isPro = isCloud ? Boolean(paid) : true;
 
   const ctx = { isCloud, isPro };
-  const features = Object.fromEntries(
-    ALL_FEATURES.map((f) => [f, hasFeature(f, ctx)]),
-  ) as Record<Feature, boolean>;
+  const features = Object.fromEntries(ALL_FEATURES.map((f) => [f, hasFeature(f, ctx)])) as Record<
+    Feature,
+    boolean
+  >;
 
   return {
     edition: isCloud ? "cloud" : "self-hosted",

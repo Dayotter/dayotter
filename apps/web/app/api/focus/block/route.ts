@@ -1,7 +1,7 @@
 import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
 import { jsonError, withUser } from "@/lib/server/http";
-import { logger } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
+import { logger } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

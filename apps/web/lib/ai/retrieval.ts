@@ -1,4 +1,4 @@
-import { and, asc, eq, getDb, gte, schema } from "@calsync/db";
+import { and, asc, eq, getDb, gte, schema } from "@dayotter/db";
 
 /**
  * Lightweight retrieval ("RAG-lite") for the scheduling assistant. Rather than

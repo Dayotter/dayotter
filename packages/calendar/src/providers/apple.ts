@@ -123,7 +123,7 @@ export class AppleCalendarAdapter implements CalendarAdapter {
     if (!calendar) throw new Error(`Unknown calendar ${calendarExternalId}`);
 
     const uid = `calsync-${event.start.getTime()}@calsync`;
-    const cal = icalGenerator({ name: "calSync" });
+    const cal = icalGenerator({ name: "dayotter" });
     cal.createEvent({
       id: uid,
       start: event.start,
@@ -151,7 +151,7 @@ export class AppleCalendarAdapter implements CalendarAdapter {
     const calendar = this.calendars.find((c) => c.url === calendarExternalId);
     if (!calendar) throw new Error(`Unknown calendar ${calendarExternalId}`);
 
-    const cal = icalGenerator({ name: "calSync" });
+    const cal = icalGenerator({ name: "dayotter" });
     cal.createEvent({
       id: externalEventId,
       start: event.start,

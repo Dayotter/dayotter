@@ -1,9 +1,9 @@
-import { sha256hex } from "@calsync/core";
-import { and, eq, getDb, isNull, schema } from "@calsync/db";
+import { sha256hex } from "@dayotter/core";
+import { and, eq, getDb, isNull, schema } from "@dayotter/db";
 import { jsonError } from "./http";
 import { enforceRateLimit } from "./rate-limit";
 
-/** Prefix that marks a calSync API key; the rest is 32 random bytes (base64url). */
+/** Prefix that marks a dayotter API key; the rest is 32 random bytes (base64url). */
 export const API_KEY_PREFIX = "csk_live_";
 
 export interface ApiCaller {

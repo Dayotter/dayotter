@@ -4,7 +4,7 @@ import { SchedulesManager } from "@/components/schedules-manager";
 import { TimeBlocks } from "@/components/time-blocks";
 import { getSession } from "@/lib/auth/session";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
-import { asc, eq, getDb, schema, sql } from "@calsync/db";
+import { asc, eq, getDb, schema, sql } from "@dayotter/db";
 
 export const dynamic = "force-dynamic";
 

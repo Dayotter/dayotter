@@ -1,8 +1,8 @@
 "use client";
 
 import { GA_ID, MIXPANEL_TOKEN, pageview } from "@/lib/analytics";
-import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
+import Script from "next/script";
 import { Suspense, useEffect } from "react";
 
 function RouteTracker() {

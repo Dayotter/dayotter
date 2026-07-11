@@ -247,8 +247,8 @@ export function DeveloperSettings({ appUrl, handle }: { appUrl: string; handle: 
 
   const bookingUrl = `${appUrl}/${handle}/intro`;
   const embedSnippet = `<script src="${appUrl}/embed.js" async></script>
-<div data-calsync-embed data-url="/${handle}/intro" data-height="720"></div>`;
-  const popupSnippet = `<button data-calsync-popup data-url="/${handle}/intro">Book a call</button>`;
+<div data-dayotter-embed data-url="/${handle}/intro" data-height="720"></div>`;
+  const popupSnippet = `<button data-dayotter-popup data-url="/${handle}/intro">Book a call</button>`;
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -309,7 +309,10 @@ export function DeveloperSettings({ appUrl, handle }: { appUrl: string; handle: 
             <p className="text-sm text-[var(--color-muted)]">No API keys yet.</p>
           )}
 
-          <form onSubmit={createKey} className="flex gap-2 border-t border-[var(--color-border)] pt-4">
+          <form
+            onSubmit={createKey}
+            className="flex gap-2 border-t border-[var(--color-border)] pt-4"
+          >
             <Input
               value={keyName}
               onChange={(e) => setKeyName(e.target.value)}
@@ -327,7 +330,7 @@ export function DeveloperSettings({ appUrl, handle }: { appUrl: string; handle: 
       <Card>
         <CardHeader
           title="Webhooks"
-          description="POSTed on booking.created / cancelled / rescheduled, signed with X-CalSync-Signature (HMAC-SHA-256 of the raw body)."
+          description="POSTed on booking.created / cancelled / rescheduled, signed with X-dayotter-Signature (HMAC-SHA-256 of the raw body)."
         />
         <CardBody className="space-y-4">
           {newHookSecret ? (
@@ -361,12 +364,15 @@ export function DeveloperSettings({ appUrl, handle }: { appUrl: string; handle: 
             <p className="text-sm text-[var(--color-muted)]">No endpoints yet.</p>
           )}
 
-          <form onSubmit={createHook} className="flex gap-2 border-t border-[var(--color-border)] pt-4">
+          <form
+            onSubmit={createHook}
+            className="flex gap-2 border-t border-[var(--color-border)] pt-4"
+          >
             <Input
               type="url"
               value={hookUrl}
               onChange={(e) => setHookUrl(e.target.value)}
-              placeholder="https://example.com/webhooks/calsync"
+              placeholder="https://example.com/webhooks/dayotter"
               required
             />
             <Button type="submit" size="sm" disabled={!hookUrl.trim()}>

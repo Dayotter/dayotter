@@ -1,7 +1,13 @@
 import https from "node:https";
-import { assertPublicHttpUrl, decrypt, hmacSha256hex, logger, resolvePublicIp } from "@calsync/core";
-import { eq, getDb, schema, sql } from "@calsync/db";
-import { QUEUE_NAMES, type WebhookJob, connection } from "@calsync/jobs";
+import {
+  assertPublicHttpUrl,
+  decrypt,
+  hmacSha256hex,
+  logger,
+  resolvePublicIp,
+} from "@dayotter/core";
+import { eq, getDb, schema, sql } from "@dayotter/db";
+import { QUEUE_NAMES, type WebhookJob, connection } from "@dayotter/jobs";
 import { Worker } from "bullmq";
 
 const TIMEOUT_MS = 10_000;
@@ -80,11 +86,11 @@ export function startWebhooksWorker(): Worker<WebhookJob> {
           endpoint.url,
           {
             "content-type": "application/json",
-            "user-agent": "calSync-Webhooks/1.0",
-            "x-calsync-event": delivery.event,
-            "x-calsync-delivery": delivery.id,
-            "x-calsync-timestamp": String(timestamp),
-            "x-calsync-signature": `t=${timestamp},v1=${signature}`,
+            "user-agent": "dayotter-Webhooks/1.0",
+            "x-dayotter-event": delivery.event,
+            "x-dayotter-delivery": delivery.id,
+            "x-dayotter-timestamp": String(timestamp),
+            "x-dayotter-signature": `t=${timestamp},v1=${signature}`,
           },
           body,
         );

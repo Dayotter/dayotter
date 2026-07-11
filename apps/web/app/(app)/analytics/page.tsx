@@ -3,7 +3,7 @@ import { InsightsTabs } from "@/components/insights-tabs";
 import { PageHeader } from "@/components/page-header";
 import { ProGate } from "@/components/upgrade-prompt";
 
-export const metadata = { title: "Analytics — calSync" };
+export const metadata = { title: "Analytics — dayotter" };
 
 export default function AnalyticsPage() {
   return (

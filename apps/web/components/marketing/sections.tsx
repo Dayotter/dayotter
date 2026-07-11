@@ -10,7 +10,7 @@ const STEPS = [
   {
     icon: CalendarPlus,
     title: "Connect your calendars",
-    body: "Link Google, Outlook or iCloud in a click. calSync learns when you're actually free.",
+    body: "Link Google, Outlook or iCloud in a click. dayotter learns when you're actually free.",
   },
   {
     icon: Clock,
@@ -56,12 +56,12 @@ export function Manifesto() {
     <section className="mx-auto max-w-4xl px-6 py-20 text-center">
       <Reveal>
         <p className="font-display text-3xl leading-[1.3] tracking-[-0.01em] sm:text-[2.6rem]">
-          We built calSync because your time is the one thing you can't get back.{" "}
+          We built dayotter because your time is the one thing you can't get back.{" "}
           <em className="text-[var(--color-accent)]">
             It deserves software that treats it that way.
           </em>
         </p>
-        <p className="eyebrow mt-8">The calSync team</p>
+        <p className="eyebrow mt-8">The dayotter team</p>
       </Reveal>
     </section>
   );
@@ -112,7 +112,7 @@ export function Footer() {
             <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-[var(--color-accent)] text-sm font-bold text-white">
               c
             </span>
-            <span className="text-[15px] font-semibold tracking-tight">calSync</span>
+            <span className="text-[15px] font-semibold tracking-tight">dayotter</span>
           </Link>
           <p className="mt-3 max-w-[240px] text-sm text-[var(--color-muted)]">{BRAND.tagline}</p>
           <div className="mt-4 flex gap-3 text-sm text-[var(--color-muted)]">

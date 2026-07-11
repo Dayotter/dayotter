@@ -1,6 +1,6 @@
 import { clientIp } from "@/lib/server/rate-limit";
-import { rateLimit } from "@calsync/jobs";
-import { getDb, schema } from "@calsync/db";
+import { getDb, schema } from "@dayotter/db";
+import { rateLimit } from "@dayotter/jobs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

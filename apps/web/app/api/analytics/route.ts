@@ -1,5 +1,5 @@
-import { computeAnalytics } from "@/lib/booking/analytics";
 import { requireFeature } from "@/lib/billing/require-feature";
+import { computeAnalytics } from "@/lib/booking/analytics";
 import { withUser } from "@/lib/server/http";
 import { NextResponse } from "next/server";
 

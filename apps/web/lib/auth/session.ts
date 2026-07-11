@@ -1,4 +1,4 @@
-import { auth } from "@calsync/auth";
+import { auth } from "@dayotter/auth";
 import { headers } from "next/headers";
 
 /** Resolve the current session (or null) in a Server Component / route handler. */

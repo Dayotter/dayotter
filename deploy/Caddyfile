@@ -1,4 +1,4 @@
-# calSync reverse proxy.
+# dayotter reverse proxy.
 #
 # CALSYNC_SITE_ADDRESS controls the front door:
 #   - a domain (e.g. cal.example.com)  → automatic HTTPS via Let's Encrypt

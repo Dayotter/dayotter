@@ -1,7 +1,7 @@
 import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
-import { SsrfError, assertPublicHttpUrl, encrypt, randomToken } from "@calsync/core";
-import { asc, eq, getDb, schema } from "@calsync/db";
+import { SsrfError, assertPublicHttpUrl, encrypt, randomToken } from "@dayotter/core";
+import { asc, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -42,7 +42,10 @@ const body = z.object({
         });
       }
     }),
-  events: z.array(z.enum(["*", ...EVENTS])).min(1).default(["*"]),
+  events: z
+    .array(z.enum(["*", ...EVENTS]))
+    .min(1)
+    .default(["*"]),
 });
 
 /** Create a webhook endpoint. Returns the signing secret ONCE. */

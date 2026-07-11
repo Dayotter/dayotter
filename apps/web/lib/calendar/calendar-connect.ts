@@ -9,10 +9,10 @@ import {
   MicrosoftCalendarAdapter,
   type OAuthCredentials,
   fetchIcsFeed,
-} from "@calsync/calendar";
-import { SsrfError, encryptJson } from "@calsync/core";
-import { getDb, schema } from "@calsync/db";
-import { enqueueSync } from "@calsync/jobs";
+} from "@dayotter/calendar";
+import { SsrfError, encryptJson } from "@dayotter/core";
+import { getDb, schema } from "@dayotter/db";
+import { enqueueSync } from "@dayotter/jobs";
 import { providerConfig } from "./providers";
 
 type Provider = "google" | "microsoft" | "apple" | "ics";

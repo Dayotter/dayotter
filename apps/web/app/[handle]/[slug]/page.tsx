@@ -9,7 +9,7 @@ import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { brandingHidden } from "@/lib/ee/white-label";
 import { resolveLocale, t } from "@/lib/i18n/booking";
 import { paymentsEnabled } from "@/lib/payments/stripe";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { Clock, CreditCard, Video } from "lucide-react";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -36,7 +36,7 @@ export default async function PublicBookingPage({
   });
   if (!eventType) notFound();
 
-  // White-label (cloud + Pro): the host can hide the calSync mark.
+  // White-label (cloud + Pro): the host can hide the dayotter mark.
   const hostEnt = await getEntitlements(host.id);
   const hideBranding = brandingHidden({ isPro: hostEnt.isPro });
   const branding = await getHostBranding(host.id);
@@ -110,7 +110,7 @@ export default async function PublicBookingPage({
       </Card>
       {hideBranding ? null : (
         <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
-          Powered by <span className="text-[var(--color-muted)]">calSync</span>
+          Powered by <span className="text-[var(--color-muted)]">dayotter</span>
         </p>
       )}
     </main>

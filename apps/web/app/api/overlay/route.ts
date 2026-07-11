@@ -1,6 +1,6 @@
 import { fetchBookerBusy } from "@/lib/booking/overlay";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
-import { SsrfError } from "@calsync/core";
+import { SsrfError } from "@dayotter/core";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

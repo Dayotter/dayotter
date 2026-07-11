@@ -4,8 +4,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Blog — calSync",
-  description: "Notes on time, calendars, and building calSync in the open.",
+  title: "Blog — dayotter",
+  description: "Notes on time, calendars, and building dayotter in the open.",
 };
 
 export default function BlogPage() {
@@ -15,7 +15,7 @@ export default function BlogPage() {
       <MarketingHeader
         eyebrow="Blog"
         title="Notes on time"
-        subtitle="Thoughts on calendars, focus, and building calSync in the open."
+        subtitle="Thoughts on calendars, focus, and building dayotter in the open."
       />
       <section className="mx-auto max-w-2xl px-6 py-16">
         <div className="space-y-2">

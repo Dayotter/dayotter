@@ -1,11 +1,11 @@
 export const dynamic = "force-dynamic";
 
 /**
- * The calSync embed SDK — a tiny, dependency-free script sites drop in to embed
+ * The dayotter embed SDK — a tiny, dependency-free script sites drop in to embed
  * a booking page. Two modes:
  *
- *   Inline:  <div data-calsync-embed data-url="/ada/intro" data-height="720"></div>
- *   Popup:   <button data-calsync-popup data-url="/ada/intro">Book a call</button>
+ *   Inline:  <div data-dayotter-embed data-url="/ada/intro" data-height="720"></div>
+ *   Popup:   <button data-dayotter-popup data-url="/ada/intro">Book a call</button>
  *
  *   <script src="https://APP/embed.js" async></script>
  *
@@ -34,7 +34,7 @@ export function GET(): Response {
   }
   function openModal(url){
     var ov = document.createElement("div");
-    ov.setAttribute("data-calsync-overlay","");
+    ov.setAttribute("data-dayotter-overlay","");
     ov.style.cssText = "position:fixed;inset:0;z-index:2147483647;background:rgba(15,15,20,.55);display:flex;align-items:center;justify-content:center;padding:16px";
     var box = document.createElement("div");
     box.style.cssText = "position:relative;background:#fff;border-radius:14px;overflow:hidden;width:100%;max-width:820px;height:88vh;box-shadow:0 20px 60px rgba(0,0,0,.3)";
@@ -57,12 +57,12 @@ export function GET(): Response {
     el.addEventListener("click", function(e){ e.preventDefault(); openModal(resolve(url)); });
   }
   function scan(){
-    document.querySelectorAll("[data-calsync-embed]").forEach(inline);
-    document.querySelectorAll("[data-calsync-popup]").forEach(popup);
+    document.querySelectorAll("[data-dayotter-embed]").forEach(inline);
+    document.querySelectorAll("[data-dayotter-popup]").forEach(popup);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", scan);
   else scan();
-  window.calSync = { scan: scan, open: function(u){ openModal(resolve(u)); } };
+  window.dayotter = { scan: scan, open: function(u){ openModal(resolve(u)); } };
 })();`;
 
   return new Response(script, {

@@ -1,7 +1,7 @@
-import { logger } from "@calsync/core";
-import { and, eq, getDb, schema } from "@calsync/db";
-import { sendEmail } from "@calsync/emails";
-import { adapterForConnection } from "@calsync/integrations";
+import { logger } from "@dayotter/core";
+import { and, eq, getDb, schema } from "@dayotter/db";
+import { sendEmail } from "@dayotter/emails";
+import { adapterForConnection } from "@dayotter/integrations";
 import { DateTime } from "luxon";
 
 /** Human-friendly "Wed, Jul 15 at 2:00 PM UTC" for an ISO instant. */

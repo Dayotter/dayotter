@@ -3,8 +3,8 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — calSync",
-  description: "How calSync collects, uses, and protects your data.",
+  title: "Privacy Policy — dayotter",
+  description: "How dayotter collects, uses, and protects your data.",
 };
 
 export default function PrivacyPage() {
@@ -89,8 +89,7 @@ export default function PrivacyPage() {
 
         <h2>Contact</h2>
         <p>
-          Privacy questions or requests? Email{" "}
-          <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>.
+          Privacy questions or requests? Email <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>.
         </p>
 
         <hr />

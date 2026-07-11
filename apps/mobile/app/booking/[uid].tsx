@@ -54,7 +54,10 @@ export default function BookingDetailScreen() {
     setNotifying("late");
     try {
       await api.post(`/api/bookings/${uid}/running-late`, {});
-      Alert.alert("Attendees notified", "We let this meeting's attendees know you're running late.");
+      Alert.alert(
+        "Attendees notified",
+        "We let this meeting's attendees know you're running late.",
+      );
     } catch {
       Alert.alert("Couldn't notify", "Please try again.");
     } finally {
@@ -66,7 +69,10 @@ export default function BookingDetailScreen() {
     setNotifying("next");
     try {
       await api.post(`/api/bookings/${uid}/notify-next`, {});
-      Alert.alert("Next meeting notified", "We let your back-to-back meeting know you may be late.");
+      Alert.alert(
+        "Next meeting notified",
+        "We let your back-to-back meeting know you may be late.",
+      );
     } catch (e) {
       const msg =
         e instanceof ApiError && e.status === 409
@@ -151,7 +157,10 @@ export default function BookingDetailScreen() {
           {data.hostName ? <Text style={styles.host}>with {data.hostName}</Text> : null}
 
           <View style={styles.card}>
-            <Row icon="time-outline" text={`${formatDateTime(data.startsAt)}  (${data.timezone})`} />
+            <Row
+              icon="time-outline"
+              text={`${formatDateTime(data.startsAt)}  (${data.timezone})`}
+            />
             {data.attendees.length > 0 ? (
               <Row
                 icon="people-outline"
@@ -169,7 +178,11 @@ export default function BookingDetailScreen() {
           {data.status === "confirmed" && !isPast ? (
             <>
               <View style={styles.actions}>
-                <Pressable style={styles.action} onPress={runningLate} disabled={notifying !== null}>
+                <Pressable
+                  style={styles.action}
+                  onPress={runningLate}
+                  disabled={notifying !== null}
+                >
                   <Ionicons name="time-outline" size={16} color={colors.text} />
                   <Text style={styles.actionText}>
                     {notifying === "late" ? "Notifying…" : "I'm running late"}
@@ -214,7 +227,9 @@ export default function BookingDetailScreen() {
               )}
 
               <Pressable style={styles.cancel} onPress={confirmCancel} disabled={cancelling}>
-                <Text style={styles.cancelText}>{cancelling ? "Cancelling…" : "Cancel booking"}</Text>
+                <Text style={styles.cancelText}>
+                  {cancelling ? "Cancelling…" : "Cancel booking"}
+                </Text>
               </Pressable>
             </>
           ) : null}

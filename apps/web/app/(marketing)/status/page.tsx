@@ -3,11 +3,17 @@ import { CheckCircle2 } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Status — calSync",
-  description: "calSync system status.",
+  title: "Status — dayotter",
+  description: "dayotter system status.",
 };
 
-const SYSTEMS = ["Web app", "Booking API", "Calendar sync", "Reminders & notifications", "Payments"];
+const SYSTEMS = [
+  "Web app",
+  "Booking API",
+  "Calendar sync",
+  "Reminders & notifications",
+  "Payments",
+];
 
 export default function StatusPage() {
   return (
@@ -29,7 +35,7 @@ export default function StatusPage() {
           ))}
         </ul>
         <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
-          Self-hosting calSync? This page reflects the hosted cloud only.
+          Self-hosting dayotter? This page reflects the hosted cloud only.
         </p>
       </section>
     </>

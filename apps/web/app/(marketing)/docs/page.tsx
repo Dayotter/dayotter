@@ -5,8 +5,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Documentation — calSync",
-  description: "Guides for using, self-hosting, and building on calSync.",
+  title: "Documentation — dayotter",
+  description: "Guides for using, self-hosting, and building on dayotter.",
 };
 
 const GUIDES = [
@@ -19,7 +19,7 @@ const GUIDES = [
   {
     icon: Server,
     title: "Self-hosting",
-    body: "Run calSync on your own infrastructure with Docker — every feature, free.",
+    body: "Run dayotter on your own infrastructure with Docker — every feature, free.",
     href: "/self-hosting",
   },
   {
@@ -44,7 +44,7 @@ export default function DocsPage() {
       <MarketingHeader
         eyebrow="Docs"
         title="Documentation"
-        subtitle="Everything you need to use, self-host, and build on calSync."
+        subtitle="Everything you need to use, self-host, and build on dayotter."
       />
       <section className="mx-auto max-w-4xl px-6 py-16">
         <div className="grid gap-5 sm:grid-cols-2">

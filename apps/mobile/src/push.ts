@@ -35,8 +35,7 @@ export async function registerPushChannel(): Promise<PushResult> {
 
   let token: string;
   try {
-    const projectId =
-      Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
     const res = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
     token = res.data;
   } catch (e) {

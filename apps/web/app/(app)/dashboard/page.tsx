@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { aiEnabled } from "@/lib/ai/llm";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
-import { and, asc, eq, getDb, gt, gte, lte, schema } from "@calsync/db";
+import { and, asc, eq, getDb, gt, gte, lte, schema } from "@dayotter/db";
 import { CalendarClock, ExternalLink, Radio, Video } from "lucide-react";
 import { DateTime } from "luxon";
 import Link from "next/link";

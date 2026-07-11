@@ -10,7 +10,16 @@ import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
-import { Linking, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, View } from "react-native";
+import {
+  Linking,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Me {
@@ -60,7 +69,7 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.brand}>calSync</Text>
+        <Text style={styles.brand}>dayotter</Text>
         <View style={styles.headerActions}>
           <Pressable onPress={() => router.push("/inbox")} hitSlop={10}>
             <Ionicons name="file-tray-outline" size={21} color={colors.muted} />

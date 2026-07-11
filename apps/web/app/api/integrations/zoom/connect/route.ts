@@ -1,8 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { getSession } from "@/lib/auth/session";
 import { createState } from "@/lib/calendar/oauth-state";
 import { zoomAuthUrl, zoomEnabled } from "@/lib/integrations/zoom";
 import { env } from "@/lib/server/env";
-import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

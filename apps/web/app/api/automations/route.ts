@@ -1,6 +1,6 @@
 import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
-import { asc, eq, getDb, schema } from "@calsync/db";
+import { asc, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

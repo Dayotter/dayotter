@@ -1,9 +1,9 @@
-import { and, eq, getDb, gte, inArray, lte, schema } from "@calsync/db";
+import { and, eq, getDb, gte, inArray, lte, schema } from "@dayotter/db";
 
 export interface BusyInterval {
   start: Date;
   end: Date;
-  /** A calSync booking title, or undefined for an external calendar block. */
+  /** A dayotter booking title, or undefined for an external calendar block. */
   title?: string;
 }
 
@@ -16,7 +16,7 @@ export interface MemberSchedule {
 
 /**
  * The combined busy schedule for a set of team members over a window — the data
- * behind the shared team calendar. Merges each member's calSync bookings (they
+ * behind the shared team calendar. Merges each member's dayotter bookings (they
  * host) with their connected calendars' busy blocks, so you can see when the
  * whole team is occupied. Privacy-preserving: external blocks carry no title.
  */

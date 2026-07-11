@@ -1,8 +1,8 @@
 import { relations } from "drizzle-orm";
 import { index, integer, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { membershipRole, timestamps } from "./_shared";
-import { eventTypes } from "./scheduling";
 import { organizations, users } from "./orgs";
+import { eventTypes } from "./scheduling";
 
 /** A group within an org used for collective / round-robin scheduling. */
 export const teams = pgTable(

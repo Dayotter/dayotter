@@ -1,5 +1,5 @@
 import { jsonError, withUser } from "@/lib/server/http";
-import { eq, getDb, inArray, schema } from "@calsync/db";
+import { eq, getDb, inArray, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

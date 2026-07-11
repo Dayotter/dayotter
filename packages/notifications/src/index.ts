@@ -1,5 +1,5 @@
-import { decryptJson, logger } from "@calsync/core";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { decryptJson, logger } from "@dayotter/core";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { sendPush } from "./providers/push";
 import { sendSlack } from "./providers/slack";
 import { sendSms, sendWhatsApp, twilioConfigured } from "./providers/twilio";
@@ -56,7 +56,7 @@ export async function dispatchToChannel(
 /**
  * Deliver a notification to every one of a user's reminder-enabled, verified
  * channels. Best-effort: a failing channel never blocks the others. Returns how
- * many channels accepted the message. Email is handled separately (@calsync/emails).
+ * many channels accepted the message. Email is handled separately (@dayotter/emails).
  */
 export async function deliverUserReminder(
   userId: string,
@@ -74,7 +74,7 @@ export async function deliverUserReminder(
   let delivered = 0;
   await Promise.all(
     channels.map(async (ch) => {
-      if (ch.type === "email") return; // email reminders go through @calsync/emails
+      if (ch.type === "email") return; // email reminders go through @dayotter/emails
       let config: ChannelConfig;
       try {
         config = decryptJson<ChannelConfig>(ch.encryptedConfig);

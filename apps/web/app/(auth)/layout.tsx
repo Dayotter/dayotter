@@ -34,7 +34,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-white/15 text-base font-bold backdrop-blur">
               c
             </span>
-            <span className="text-lg font-semibold tracking-tight">calSync</span>
+            <span className="text-lg font-semibold tracking-tight">dayotter</span>
           </Link>
         </div>
 
@@ -68,7 +68,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[var(--color-accent)] text-base font-bold text-white">
               c
             </span>
-            <span className="text-lg font-semibold tracking-tight">calSync</span>
+            <span className="text-lg font-semibold tracking-tight">dayotter</span>
           </Link>
           <ThemeToggle />
         </div>

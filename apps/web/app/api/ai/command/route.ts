@@ -4,7 +4,7 @@ import { retrieveCalendarContext } from "@/lib/ai/retrieval";
 import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
-import { logger } from "@calsync/core";
+import { logger } from "@dayotter/core";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 import { z } from "zod";

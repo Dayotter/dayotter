@@ -1,5 +1,5 @@
 import { buildIcs } from "@/lib/booking/ics";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 
 export const dynamic = "force-dynamic";
 

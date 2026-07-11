@@ -53,7 +53,10 @@ describe("eventTypeInputSchema", () => {
       questions: [{ id: "q1", label: "Topic?", type: "text", required: true }],
     };
     expect(eventTypeInputSchema.safeParse(withQ).success).toBe(true);
-    const badType = { ...valid, questions: [{ id: "q1", label: "x", type: "nope", required: true }] };
+    const badType = {
+      ...valid,
+      questions: [{ id: "q1", label: "x", type: "nope", required: true }],
+    };
     expect(eventTypeInputSchema.safeParse(badType).success).toBe(false);
   });
 });

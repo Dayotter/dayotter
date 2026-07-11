@@ -1,4 +1,4 @@
-import { parseIcsEvents } from "@calsync/calendar";
+import { parseIcsEvents } from "@dayotter/calendar";
 import { describe, expect, it } from "vitest";
 
 const FROM = new Date("2026-07-10T00:00:00Z");
@@ -6,7 +6,7 @@ const TO = new Date("2026-07-20T00:00:00Z");
 
 const ICS = `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//calSync test//EN
+PRODID:-//dayotter test//EN
 BEGIN:VEVENT
 UID:single@test
 DTSTART:20260710T130000Z
@@ -37,7 +37,7 @@ SUMMARY:Standup
 END:VEVENT
 END:VCALENDAR`;
 
-describe("parseIcsEvents (@calsync/calendar)", () => {
+describe("parseIcsEvents (@dayotter/calendar)", () => {
   it("maps a plain VEVENT with a stable UID id and metadata", () => {
     const single = parseIcsEvents(ICS, FROM, TO).find((e) => e.externalEventId === "single@test");
     expect(single).toBeDefined();

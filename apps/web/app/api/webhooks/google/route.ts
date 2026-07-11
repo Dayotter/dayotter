@@ -1,6 +1,6 @@
-import { logger, safeEqual } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
-import { enqueueSync } from "@calsync/jobs";
+import { logger, safeEqual } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
+import { enqueueSync } from "@dayotter/jobs";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,11 @@ export async function POST(request: Request) {
     where: eq(schema.webhookSubscriptions.externalId, channelId),
   });
   if (!sub) {
-    logger.warn("google webhook: unknown channel", { event: "webhook_rejected", reason: "unknown_sub", channelId });
+    logger.warn("google webhook: unknown channel", {
+      event: "webhook_rejected",
+      reason: "unknown_sub",
+      channelId,
+    });
     return new NextResponse(null, { status: 200 });
   }
 
@@ -33,7 +37,11 @@ export async function POST(request: Request) {
   // Reject forged notifications: the channel token must match the secret we
   // registered. Always 200 so we don't leak which channel ids exist.
   if (!meta?.clientState || !safeEqual(token, meta.clientState)) {
-    logger.warn("google webhook: token mismatch", { event: "webhook_rejected", reason: "token_mismatch", channelId });
+    logger.warn("google webhook: token mismatch", {
+      event: "webhook_rejected",
+      reason: "token_mismatch",
+      channelId,
+    });
     return new NextResponse(null, { status: 200 });
   }
 

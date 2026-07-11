@@ -1,9 +1,9 @@
-import { draftMeetingReply } from "@/lib/ai/meeting-actions";
 import { aiEnabled } from "@/lib/ai/llm";
-import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { draftMeetingReply } from "@/lib/ai/meeting-actions";
 import { jsonError, withUser } from "@/lib/server/http";
-import { logger } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { logger } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -50,7 +50,11 @@ export const POST = withUser(async (u, request, ctx: { params: Promise<{ uid: st
     });
     return NextResponse.json({ reply });
   } catch (err) {
-    logger.error("ai meeting draft failed", { event: "ai_meeting_draft_failed", userId: u.id, err });
+    logger.error("ai meeting draft failed", {
+      event: "ai_meeting_draft_failed",
+      userId: u.id,
+      err,
+    });
     return jsonError("Couldn't draft that. Try rephrasing.", 502);
   }
 });

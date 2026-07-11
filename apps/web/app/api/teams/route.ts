@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth/session";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { slugify, uniqueSlug } from "@/lib/slug";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

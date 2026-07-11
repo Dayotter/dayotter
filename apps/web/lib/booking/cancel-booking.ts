@@ -1,6 +1,6 @@
-import { logger } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
-import { bookingCancellation, sendEmail } from "@calsync/emails";
+import { logger } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
+import { bookingCancellation, sendEmail } from "@dayotter/emails";
 import { deleteBookingFromCalendar } from "../calendar/host-calendar";
 import { paymentsEnabled, refundPayment } from "../payments/stripe";
 import { emitWebhook } from "../webhooks/emit";

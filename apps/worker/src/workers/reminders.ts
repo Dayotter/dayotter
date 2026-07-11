@@ -1,13 +1,13 @@
-import { and, eq, getDb, isNull, schema } from "@calsync/db";
+import { and, eq, getDb, isNull, schema } from "@dayotter/db";
 import {
   bookingFollowUp,
   bookingNoShowFollowUp,
   bookingReminder,
   sendEmail,
   workflowEmail,
-} from "@calsync/emails";
-import { QUEUE_NAMES, type ReminderJob, connection } from "@calsync/jobs";
-import { deliverUserReminder } from "@calsync/notifications";
+} from "@dayotter/emails";
+import { QUEUE_NAMES, type ReminderJob, connection } from "@dayotter/jobs";
+import { deliverUserReminder } from "@dayotter/notifications";
 import { Worker } from "bullmq";
 import { DateTime } from "luxon";
 

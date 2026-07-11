@@ -675,7 +675,7 @@ export function EventTypeForm({
                     placeholder="https://example.com/thanks"
                   />
                   <p className="mt-1 text-xs text-[var(--color-faint)]">
-                    Send bookers here instead of the calSync confirmation page.
+                    Send bookers here instead of the dayotter confirmation page.
                   </p>
                 </div>
                 <div className="mt-4">

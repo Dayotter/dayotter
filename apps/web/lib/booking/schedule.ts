@@ -1,4 +1,4 @@
-import { and, eq, getDb, schema } from "@calsync/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 
 /**
  * Resolve the schedule an event type should use: the requested one if it belongs

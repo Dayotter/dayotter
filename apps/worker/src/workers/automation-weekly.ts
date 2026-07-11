@@ -1,5 +1,5 @@
-import { logger } from "@calsync/core";
-import { and, eq, getDb, gte, inArray, lt, schema } from "@calsync/db";
+import { logger } from "@dayotter/core";
+import { and, eq, getDb, gte, inArray, lt, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 
 /** How far ahead we materialize recurring weekly blocks. */

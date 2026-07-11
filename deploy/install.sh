@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# One-command calSync self-host installer.
+# One-command dayotter self-host installer.
 #
-#   curl -fsSL https://raw.githubusercontent.com/OWNER/calsync/main/deploy/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/install.sh | bash
 #   — or, from a checkout —
 #   bash deploy/install.sh
 #
@@ -17,7 +17,7 @@
 set -euo pipefail
 
 CALSYNC_DIR="${CALSYNC_DIR:-/opt/calsync}"
-CALSYNC_REPO_URL="${CALSYNC_REPO_URL:-https://github.com/OWNER/calsync.git}"
+CALSYNC_REPO_URL="${CALSYNC_REPO_URL:-https://github.com/OWNER/dayotter.git}"
 CALSYNC_DOMAIN="${CALSYNC_DOMAIN:-}"
 
 log() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
@@ -90,7 +90,7 @@ POSTGRES_PASSWORD=$(openssl rand -hex 24)
 AUTH_SECRET=$(openssl rand -base64 32)
 BETTER_AUTH_SECRET=$(openssl rand -base64 32)
 ENCRYPTION_KEY=$(openssl rand -hex 32)
-EMAIL_FROM="calSync <no-reply@example.com>"
+EMAIL_FROM="dayotter <no-reply@example.com>"
 EOF
   $SUDO chmod 600 "$ENV_FILE"
   log "Wrote secrets. Add optional keys (Google, SMTP, Anthropic…) to $ENV_FILE later, then re-run."
@@ -102,7 +102,7 @@ fi
 log "Building and starting the stack (first run pulls images and can take a few minutes)…"
 $SUDO docker compose -f "$DEPLOY_DIR/docker-compose.prod.yml" --env-file "$ENV_FILE" up -d --build
 
-log "Done. calSync is starting at: $APP_URL"
+log "Done. dayotter is starting at: $APP_URL"
 [ "$SITE_ADDRESS" = ":80" ] && log "Point a domain here and re-run with CALSYNC_DOMAIN=your.domain for automatic HTTPS."
 log "Logs:   $SUDO docker compose -f $DEPLOY_DIR/docker-compose.prod.yml logs -f"
 log "Update: cd $REPO_ROOT && git pull && bash deploy/install.sh"

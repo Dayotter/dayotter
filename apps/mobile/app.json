@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "calSync",
+    "name": "dayotter",
     "slug": "calsync",
     "scheme": "calsync",
     "version": "0.1.0",
@@ -27,8 +27,8 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "calSync uses the microphone so you can speak scheduling commands.",
-          "speechRecognitionPermission": "calSync turns your spoken commands into scheduling actions.",
+          "microphonePermission": "dayotter uses the microphone so you can speak scheduling commands.",
+          "speechRecognitionPermission": "dayotter turns your spoken commands into scheduling actions.",
           "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
         }
       ]

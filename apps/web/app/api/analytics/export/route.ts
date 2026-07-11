@@ -1,6 +1,6 @@
 import { requireFeature } from "@/lib/billing/require-feature";
 import { withUser } from "@/lib/server/http";
-import { and, eq, getDb, gte, lt, schema } from "@calsync/db";
+import { and, eq, getDb, gte, lt, schema } from "@dayotter/db";
 
 export const dynamic = "force-dynamic";
 
@@ -78,7 +78,7 @@ export const GET = withUser(async (u, request) => {
   return new Response(`${lines.join("\r\n")}\r\n`, {
     headers: {
       "content-type": "text/csv; charset=utf-8",
-      "content-disposition": `attachment; filename="calsync-bookings-${stamp}.csv"`,
+      "content-disposition": `attachment; filename="dayotter-bookings-${stamp}.csv"`,
     },
   });
 });

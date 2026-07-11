@@ -1,5 +1,5 @@
 /** Channel kinds that can receive a notification (mirrors the DB enum, minus email
- *  which is delivered through @calsync/emails). */
+ *  which is delivered through @dayotter/emails). */
 export type DeliverableChannel = "slack" | "whatsapp" | "sms" | "push";
 
 /** A short, calendar-scoped notification. `url` deep-links to the booking. */

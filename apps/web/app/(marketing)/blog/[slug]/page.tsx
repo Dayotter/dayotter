@@ -15,8 +15,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const post = getPost((await params).slug);
-  if (!post) return { title: "Blog — calSync" };
-  return { title: `${post.title} — calSync`, description: post.excerpt };
+  if (!post) return { title: "Blog — dayotter" };
+  return { title: `${post.title} — dayotter`, description: post.excerpt };
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -30,7 +30,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-56 opacity-[0.1]"
           style={{
-            background: "radial-gradient(50% 60% at 50% 0%, var(--color-accent) 0%, transparent 65%)",
+            background:
+              "radial-gradient(50% 60% at 50% 0%, var(--color-accent) 0%, transparent 65%)",
           }}
         />
         <div className="relative mx-auto max-w-2xl px-6 py-16">
@@ -60,8 +61,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         ))}
         <hr />
         <p>
-          Ready to try it?{" "}
-          <Link href="/sign-up">Get started free</Link> or{" "}
+          Ready to try it? <Link href="/sign-up">Get started free</Link> or{" "}
           <Link href="/pricing">see pricing</Link>.
         </p>
       </Prose>

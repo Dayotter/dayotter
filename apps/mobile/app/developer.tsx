@@ -7,7 +7,16 @@ import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 interface Endpoint {
   id: string;

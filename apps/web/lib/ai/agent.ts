@@ -1,5 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { logger } from "@calsync/core";
+import { logger } from "@dayotter/core";
 import { DateTime } from "luxon";
 import { hostSlots } from "../booking/availability";
 import {

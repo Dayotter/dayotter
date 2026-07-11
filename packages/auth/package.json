@@ -1,5 +1,5 @@
 {
-  "name": "@calsync/auth",
+  "name": "@dayotter/auth",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@better-auth/expo": "1.6.23",
-    "@calsync/db": "workspace:*",
-    "@calsync/emails": "workspace:*",
+    "@dayotter/db": "workspace:*",
+    "@dayotter/emails": "workspace:*",
     "better-auth": "^1.2.7"
   },
   "devDependencies": {

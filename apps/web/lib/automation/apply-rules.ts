@@ -1,5 +1,5 @@
-import { logger } from "@calsync/core";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { logger } from "@dayotter/core";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { scheduleBookingFollowUp } from "../booking/reminders";
 
 interface BookingContext {

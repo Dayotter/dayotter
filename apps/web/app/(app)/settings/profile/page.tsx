@@ -2,7 +2,7 @@ import { ChangePasswordForm } from "@/components/change-password-form";
 import { ProfileForm } from "@/components/profile-form";
 import { getSession } from "@/lib/auth/session";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 
 export const dynamic = "force-dynamic";
 

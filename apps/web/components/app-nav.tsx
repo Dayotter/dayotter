@@ -18,7 +18,7 @@ export function AppNav({ user }: { user: { name?: string | null; email: string }
         <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-[var(--color-accent)] text-sm font-bold text-white">
           c
         </span>
-        <span className="text-[15px] font-semibold tracking-tight">calSync</span>
+        <span className="text-[15px] font-semibold tracking-tight">dayotter</span>
       </Link>
 
       <nav className="mt-3 flex flex-1 flex-col gap-0.5">

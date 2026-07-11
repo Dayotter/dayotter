@@ -1,4 +1,4 @@
-import { api, BASE_URL } from "@/api";
+import { BASE_URL, api } from "@/api";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -22,7 +22,8 @@ export function useFeature(feature: string): { loading: boolean; allowed: boolea
     api
       .get<{ entitlements?: { features?: Record<string, boolean> } }>("/api/me")
       .then((d) => {
-        if (active) setState({ loading: false, allowed: d.entitlements?.features?.[feature] ?? true });
+        if (active)
+          setState({ loading: false, allowed: d.entitlements?.features?.[feature] ?? true });
       })
       .catch(() => active && setState({ loading: false, allowed: true }));
     return () => {
@@ -41,12 +42,9 @@ export function ProLock({ feature }: { feature: string }) {
       </View>
       <Text style={styles.title}>{LABELS[feature] ?? "This"} is a Pro feature</Text>
       <Text style={styles.body}>
-        Upgrade to Pro ($9/seat/mo) to unlock it and every other calSync differentiator.
+        Upgrade to Pro ($9/seat/mo) to unlock it and every other dayotter differentiator.
       </Text>
-      <Pressable
-        style={styles.btn}
-        onPress={() => Linking.openURL(`${BASE_URL}/settings/billing`)}
-      >
+      <Pressable style={styles.btn} onPress={() => Linking.openURL(`${BASE_URL}/settings/billing`)}>
         <Text style={styles.btnText}>Upgrade on the web</Text>
       </Pressable>
     </View>

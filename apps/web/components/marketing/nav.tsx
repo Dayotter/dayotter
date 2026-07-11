@@ -30,7 +30,7 @@ export function MarketingNav() {
           <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-[var(--color-accent)] text-sm font-bold text-white">
             c
           </span>
-          <span className="text-[15px] font-semibold tracking-tight">calSync</span>
+          <span className="text-[15px] font-semibold tracking-tight">dayotter</span>
         </Link>
         <nav className="hidden items-center gap-7 text-sm text-[var(--color-muted)] md:flex">
           {MARKETING_NAV.map((l) => (

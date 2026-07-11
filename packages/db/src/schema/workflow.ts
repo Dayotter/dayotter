@@ -2,8 +2,8 @@ import { relations } from "drizzle-orm";
 import { boolean, index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { timestamps, workflowAction, workflowTrigger } from "./_shared";
 import { bookings } from "./booking";
-import { eventTypes } from "./scheduling";
 import { organizations } from "./orgs";
+import { eventTypes } from "./scheduling";
 
 /** An automation: "1 hour before the event, email the attendee." */
 export const workflows = pgTable(

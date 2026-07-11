@@ -48,7 +48,7 @@ function shell(heading: string, lines: string[], cta?: { label: string; url: str
   return `<div style="max-width:520px;margin:0 auto;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif">
     <h2 style="font-size:18px;color:#0c0e14;margin:0 0 14px">${heading}</h2>
     ${body}${button}
-    <p style="margin:24px 0 0;color:#98a0ae;font-size:12px">Sent by calSync</p>
+    <p style="margin:24px 0 0;color:#98a0ae;font-size:12px">Sent by dayotter</p>
   </div>`;
 }
 

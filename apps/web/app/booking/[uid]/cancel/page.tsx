@@ -1,7 +1,7 @@
 import { CancelButton } from "@/components/cancel-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
