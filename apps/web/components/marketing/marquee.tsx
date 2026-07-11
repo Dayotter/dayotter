@@ -22,13 +22,15 @@ export function Marquee() {
           WebkitMaskImage: "linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent)",
         }}
       >
-        <div className="flex w-max animate-marquee gap-10">
+        <div className="flex w-max animate-marquee items-center gap-6">
           {row.map((name, i) => (
-            <span
-              key={i}
-              className="whitespace-nowrap text-lg font-medium text-[var(--color-faint)]"
-            >
-              {name}
+            <span key={i} className="flex items-center gap-6">
+              <span className="whitespace-nowrap text-lg font-medium text-[var(--color-faint)]">
+                {name}
+              </span>
+              <span aria-hidden className="text-[var(--color-border-strong)]">
+                &bull;
+              </span>
             </span>
           ))}
         </div>

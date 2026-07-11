@@ -33,7 +33,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <div className="relative">
           <Link href="/" className="flex items-center gap-2">
             <BrandMark size={32} />
-            <span className="text-lg font-semibold tracking-tight">DayOtter</span>
+            <span className="text-lg font-semibold tracking-tight">Day{" "}Otter</span>
           </Link>
         </div>
 
@@ -66,7 +66,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           {/* Logo shown on mobile (the brand panel carries it on desktop). */}
           <Link href="/" className="flex items-center gap-2 lg:invisible">
             <BrandMark size={32} />
-            <span className="text-lg font-semibold tracking-tight">DayOtter</span>
+            <span className="text-lg font-semibold tracking-tight">Day{" "}Otter</span>
           </Link>
           <ThemeToggle />
         </div>

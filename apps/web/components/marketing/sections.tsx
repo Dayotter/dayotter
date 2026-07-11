@@ -111,7 +111,7 @@ export function Footer() {
         <div>
           <Link href="/" className="flex items-center gap-2">
             <BrandMark size={28} />
-            <span className="text-[15px] font-semibold tracking-tight">DayOtter</span>
+            <span className="text-[15px] font-semibold tracking-tight">Day{" "}Otter</span>
           </Link>
           <p className="mt-3 max-w-[240px] text-sm text-[var(--color-muted)]">{BRAND.tagline}</p>
           <div className="mt-4 flex gap-3 text-sm text-[var(--color-muted)]">

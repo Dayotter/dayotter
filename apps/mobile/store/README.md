@@ -52,6 +52,32 @@ iCloud, share one booking link, and let people grab a time you're actually free
   drafts a proposal and never touches your calendar until you say so.
 - **Yours to run.** Self-host the whole thing for free, or use the cloud.
 
+## Building the Android app bundle (.aab) for Play Store
+
+The binary is built in the cloud with EAS (no local Android SDK needed). The
+build config lives in [`../eas.json`](../eas.json) (→ `production` profile emits
+an **app-bundle**); the app id is `com.dayotter.app`, versioned by
+`android.versionCode` in [`../app.json`](../app.json).
+
+One-time setup, then build:
+
+```bash
+npm i -g eas-cli          # or: npx eas-cli@latest
+eas login                 # your Expo account
+cd apps/mobile
+eas init                  # links the project (writes extra.eas.projectId)
+eas build -p android --profile production
+```
+
+EAS generates and stores the upload keystore for you (or run
+`eas credentials` to supply your own). When the build finishes it prints a URL
+to download the signed **.aab** — upload that in Play Console → Production →
+Create release. Bump `versionCode` (or rely on `autoIncrement`) for each
+subsequent upload.
+
+To push straight to Play from CI later: `eas submit -p android` (needs a Play
+service-account JSON configured under `submit.production`).
+
 ## Screenshots (capture from the app — not generated here)
 
 Stores require real device screenshots; generate them from the running app:

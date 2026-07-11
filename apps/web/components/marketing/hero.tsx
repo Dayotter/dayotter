@@ -3,6 +3,7 @@
 import { BookingMock, CalendarMock, ReminderMock } from "@/components/marketing/mocks";
 import { FadeUp, Float } from "@/components/marketing/motion";
 import { buttonVariants } from "@/components/ui/button";
+import { BRAND } from "@/lib/marketing";
 import { motion } from "framer-motion";
 import { ArrowRight, Smartphone, Star } from "lucide-react";
 import Link from "next/link";
@@ -42,7 +43,9 @@ export function Hero() {
               Get started free <ArrowRight size={17} />
             </Link>
             <a
-              href="https://github.com"
+              href={BRAND.github}
+              target="_blank"
+              rel="noreferrer"
               className={buttonVariants({ variant: "outline", size: "lg" })}
             >
               <Star size={16} /> Star on GitHub
