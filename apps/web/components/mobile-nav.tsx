@@ -20,7 +20,7 @@ export function MobileNav() {
       <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)]/85 px-4 backdrop-blur lg:hidden">
         <Link href="/dashboard" className="flex items-center gap-2">
           <BrandMark size={28} />
-          <span className="text-[15px] font-semibold tracking-tight">dayotter</span>
+          <span className="text-[15px] font-semibold tracking-tight">DayOtter</span>
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />

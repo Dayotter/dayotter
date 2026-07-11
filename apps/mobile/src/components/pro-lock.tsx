@@ -42,7 +42,7 @@ export function ProLock({ feature }: { feature: string }) {
       </View>
       <Text style={styles.title}>{LABELS[feature] ?? "This"} is a Pro feature</Text>
       <Text style={styles.body}>
-        Upgrade to Pro ($9/seat/mo) to unlock it and every other dayotter differentiator.
+        Upgrade to Pro ($9/seat/mo) to unlock it and every other DayOtter differentiator.
       </Text>
       <Pressable style={styles.btn} onPress={() => Linking.openURL(`${BASE_URL}/settings/billing`)}>
         <Text style={styles.btnText}>Upgrade on the web</Text>

@@ -27,7 +27,7 @@ const schema = z.object({
   ZOOM_CLIENT_SECRET: z.string().default(""),
 
   SMTP_URL: z.string().optional(),
-  EMAIL_FROM: z.string().default("dayotter <no-reply@example.com>"),
+  EMAIL_FROM: z.string().default("DayOtter <no-reply@example.com>"),
 
   // Optional Cloudflare Turnstile captcha on the public booking form.
   TURNSTILE_SECRET: z.string().optional(),

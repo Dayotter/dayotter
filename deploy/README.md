@@ -12,7 +12,7 @@ automatic HTTPS — on one server. Three ways in, easiest first.
 
 Launches a single EC2 instance that boots the full stack automatically.
 
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/quickcreate?templateURL=https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/aws/cloudformation.yaml&stackName=calsync)
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/quickcreate?templateURL=https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/aws/cloudformation.yaml&stackName=dayotter)
 
 1. Click **Launch Stack** (defaults are fine).
 2. Optionally set **Domain** to a hostname you control for automatic HTTPS —
@@ -25,7 +25,7 @@ Launches a single EC2 instance that boots the full stack automatically.
 
 ```bash
 aws ssm start-session --target <instance-id>      # keyless shell (or SSH)
-cd /opt/calsync && sudo CALSYNC_DOMAIN=cal.example.com bash deploy/install.sh
+cd /opt/dayotter && sudo DAYOTTER_DOMAIN=cal.example.com bash deploy/install.sh
 ```
 
 Cost: runs comfortably on a `t3.small` (~US$15/mo) plus the disk. The template
@@ -39,10 +39,10 @@ On a fresh box (a VPS, a home server, anything with Docker-able Linux):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/install.sh \
-  | sudo CALSYNC_DOMAIN=cal.example.com bash
+  | sudo DAYOTTER_DOMAIN=cal.example.com bash
 ```
 
-Omit `CALSYNC_DOMAIN` to start on HTTP at the server's public IP. The installer
+Omit `DAYOTTER_DOMAIN` to start on HTTP at the server's public IP. The installer
 installs Docker, generates secrets once, and starts everything.
 
 ---
@@ -51,7 +51,7 @@ installs Docker, generates secrets once, and starts everything.
 
 ```bash
 cp deploy/.env.prod.example deploy/.env
-# edit deploy/.env — set APP_URL, CALSYNC_SITE_ADDRESS, POSTGRES_PASSWORD,
+# edit deploy/.env — set APP_URL, DAYOTTER_SITE_ADDRESS, POSTGRES_PASSWORD,
 # AUTH_SECRET, BETTER_AUTH_SECRET, ENCRYPTION_KEY (generators are in the file)
 
 cd deploy
@@ -68,8 +68,8 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 | `web`      | Next.js app (booking pages, dashboard, API)                     |
 | `worker`   | BullMQ worker — reminders, calendar sync, webhooks              |
 | `migrate`  | One-shot: applies DB migrations on boot, then exits             |
-| `postgres` | Database (persisted in the `calsync_pgdata` volume)             |
-| `redis`    | Queues + cache (persisted in `calsync_redisdata`)               |
+| `postgres` | Database (persisted in the `dayotter_pgdata` volume)             |
+| `redis`    | Queues + cache (persisted in `dayotter_redisdata`)               |
 
 Only Caddy is exposed to the internet; everything else talks over the private
 Compose network.
@@ -82,7 +82,7 @@ docker compose -f docker-compose.prod.yml logs -f            # tail logs
 docker compose -f docker-compose.prod.yml ps                 # status
 git -C .. pull && bash install.sh                            # update to latest
 docker compose -f docker-compose.prod.yml exec postgres \
-  pg_dump -U calsync calsync > backup-$(date +%F).sql        # back up the DB
+  pg_dump -U dayotter dayotter > backup-$(date +%F).sql        # back up the DB
 ```
 
 ## Turning on integrations

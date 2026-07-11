@@ -18,7 +18,7 @@ export const QUEUE_NAMES = {
 } as const;
 
 /** Liveness key the worker refreshes so the web /health can confirm it's alive. */
-export const WORKER_HEARTBEAT_KEY = "calsync:worker:heartbeat";
+export const WORKER_HEARTBEAT_KEY = "dayotter:worker:heartbeat";
 
 /** Worker: record that it's alive (short TTL so a dead worker goes stale fast). */
 export async function writeHeartbeat(): Promise<void> {

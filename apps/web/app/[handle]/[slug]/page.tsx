@@ -36,7 +36,7 @@ export default async function PublicBookingPage({
   });
   if (!eventType) notFound();
 
-  // White-label (cloud + Pro): the host can hide the dayotter mark.
+  // White-label (cloud + Pro): the host can hide the DayOtter mark.
   const hostEnt = await getEntitlements(host.id);
   const hideBranding = brandingHidden({ isPro: hostEnt.isPro });
   const branding = await getHostBranding(host.id);
@@ -110,7 +110,7 @@ export default async function PublicBookingPage({
       </Card>
       {hideBranding ? null : (
         <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
-          Powered by <span className="text-[var(--color-muted)]">dayotter</span>
+          Powered by <span className="text-[var(--color-muted)]">DayOtter</span>
         </p>
       )}
     </main>

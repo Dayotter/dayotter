@@ -120,7 +120,7 @@ Resources:
 
           git clone --depth 1 "${RepoUrl}" /opt/dayotter
           cd /opt/dayotter
-          CALSYNC_DOMAIN="${DomainName}" bash deploy/install.sh 2>&1 | tee /var/log/calsync-install.log
+          DAYOTTER_DOMAIN="${DomainName}" bash deploy/install.sh 2>&1 | tee /var/log/dayotter-install.log
 
           # Tell CloudFormation the boot finished (or failed).
           cfn-signal -e $? --stack "${AWS::StackName}" --resource Instance --region "${AWS::Region}" || true

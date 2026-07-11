@@ -18,7 +18,7 @@ interface Meeting {
 
 /**
  * The Intelligence engine's calendar-health + habit ("Calendar Memory") analysis.
- * Looks at the host's real meeting history — BOTH dayotter bookings and external
+ * Looks at the host's real meeting history — BOTH DayOtter bookings and external
  * events from the unified event model — over the last 30 days and returns soft,
  * advisory recommendations (never hard rules; respects the confirm-first ethos).
  */

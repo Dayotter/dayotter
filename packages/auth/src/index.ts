@@ -71,8 +71,8 @@ export const auth = betterAuth({
     },
   },
   // Trust the mobile app's deep-link scheme so the Expo OAuth callback is
-  // allowed (native Google sign-in redirects to calsync://).
-  trustedOrigins: ["calsync://"],
+  // allowed (native Google sign-in redirects to dayotter://).
+  trustedOrigins: ["dayotter://"],
   // `expo` bridges OAuth back to the native app; `bearer` enables token auth for
   // native mobile clients; `nextCookies` must be last so cookies are set
   // correctly from server actions.

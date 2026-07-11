@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Native Google sign-in via the Better Auth Expo bridge (opens the system
-   * browser, returns through the calsync:// deep link). We then mint a bearer
+   * browser, returns through the dayotter:// deep link). We then mint a bearer
    * token so the rest of the app keeps using the same api.ts auth path.
    */
   async function signInWithGoogle(): Promise<string | null> {

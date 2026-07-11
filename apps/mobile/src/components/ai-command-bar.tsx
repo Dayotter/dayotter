@@ -27,7 +27,7 @@ interface Target {
 }
 
 /**
- * "Ask dayotter" — natural-language command bar (create / reschedule / cancel),
+ * "Ask DayOtter" — natural-language command bar (create / reschedule / cancel),
  * confirm-first. Renders nothing unless the server has AI enabled. The AI only
  * proposes; the user confirms before anything happens.
  */
@@ -196,7 +196,7 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
     <View style={styles.wrap}>
       <View style={styles.titleRow}>
         <Ionicons name="sparkles" size={15} color={colors.accent} />
-        <Text style={styles.title}>Ask dayotter</Text>
+        <Text style={styles.title}>Ask DayOtter</Text>
         <Text style={styles.hint}>you confirm first</Text>
       </View>
       <View style={styles.inputRow}>

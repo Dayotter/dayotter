@@ -69,7 +69,7 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.brand}>dayotter</Text>
+        <Text style={styles.brand}>DayOtter</Text>
         <View style={styles.headerActions}>
           <Pressable onPress={() => router.push("/inbox")} hitSlop={10}>
             <Ionicons name="file-tray-outline" size={21} color={colors.muted} />

@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "dayotter",
-    "slug": "calsync",
-    "scheme": "calsync",
+    "name": "DayOtter",
+    "slug": "dayotter",
+    "scheme": "dayotter",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -12,10 +12,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.calsync.app"
+      "bundleIdentifier": "com.dayotter.app"
     },
     "android": {
-      "package": "com.calsync.app",
+      "package": "com.dayotter.app",
       "adaptiveIcon": {
         "backgroundColor": "#5B4BE6"
       }
@@ -27,8 +27,8 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "dayotter uses the microphone so you can speak scheduling commands.",
-          "speechRecognitionPermission": "dayotter turns your spoken commands into scheduling actions.",
+          "microphonePermission": "DayOtter uses the microphone so you can speak scheduling commands.",
+          "speechRecognitionPermission": "DayOtter turns your spoken commands into scheduling actions.",
           "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
         }
       ]

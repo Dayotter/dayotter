@@ -32,7 +32,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   });
   if (!user) {
     return NextResponse.json(
-      { error: "No dayotter account with that email yet. They need to sign up first." },
+      { error: "No DayOtter account with that email yet. They need to sign up first." },
       { status: 404 },
     );
   }

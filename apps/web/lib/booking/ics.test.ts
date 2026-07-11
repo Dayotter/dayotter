@@ -18,7 +18,7 @@ describe("buildIcs", () => {
     expect(ics.trimEnd().endsWith("END:VCALENDAR")).toBe(true);
     expect(ics).toContain("DTSTART:20260708T090000Z");
     expect(ics).toContain("DTEND:20260708T093000Z");
-    expect(ics).toContain("UID:abc-123@calsync");
+    expect(ics).toContain("UID:abc-123@dayotter");
     expect(ics.endsWith("\r\n")).toBe(true);
   });
 

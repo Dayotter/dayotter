@@ -152,7 +152,7 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
         </CardBody>
       </Card>
       <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
-        Powered by <span className="text-[var(--color-muted)]">dayotter</span>
+        Powered by <span className="text-[var(--color-muted)]">DayOtter</span>
       </p>
     </main>
   );

@@ -45,7 +45,7 @@ export function UpgradePrompt({ feature }: { feature: Feature }) {
         <h2 className="text-lg font-semibold">{FEATURE_LABEL[feature]} is a Pro feature</h2>
         <p className="text-sm text-[var(--color-muted)]">
           Upgrade to Pro ($9/seat/mo) to unlock {FEATURE_LABEL[feature].toLowerCase()} and every
-          other dayotter differentiator.
+          other DayOtter differentiator.
         </p>
         <Link href="/settings/billing" className="mt-1">
           <Button>Upgrade to Pro</Button>

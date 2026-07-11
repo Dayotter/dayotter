@@ -82,7 +82,7 @@ export default async function PublicProfilePage({
       )}
 
       <p className="mt-10 text-center text-xs text-[var(--color-faint)]">
-        Powered by <span className="text-[var(--color-muted)]">dayotter</span>
+        Powered by <span className="text-[var(--color-muted)]">DayOtter</span>
       </p>
     </main>
   );

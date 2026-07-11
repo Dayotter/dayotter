@@ -10,15 +10,15 @@
 # Re-running it pulls the latest changes and restarts — your data and secrets are
 # kept. Configure via environment variables:
 #
-#   CALSYNC_DOMAIN     a domain pointing at this server → automatic HTTPS
+#   DAYOTTER_DOMAIN     a domain pointing at this server → automatic HTTPS
 #                      (unset → serves plain HTTP on the server's public IP)
-#   CALSYNC_REPO_URL   git repo to clone when run standalone (default: this repo)
-#   CALSYNC_DIR        install location (default: /opt/calsync)
+#   DAYOTTER_REPO_URL   git repo to clone when run standalone (default: this repo)
+#   DAYOTTER_DIR        install location (default: /opt/dayotter)
 set -euo pipefail
 
-CALSYNC_DIR="${CALSYNC_DIR:-/opt/calsync}"
-CALSYNC_REPO_URL="${CALSYNC_REPO_URL:-https://github.com/OWNER/dayotter.git}"
-CALSYNC_DOMAIN="${CALSYNC_DOMAIN:-}"
+DAYOTTER_DIR="${DAYOTTER_DIR:-/opt/dayotter}"
+DAYOTTER_REPO_URL="${DAYOTTER_REPO_URL:-https://github.com/OWNER/dayotter.git}"
+DAYOTTER_DOMAIN="${DAYOTTER_DOMAIN:-}"
 
 log() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 err() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -32,14 +32,14 @@ if [ -f "$(dirname "$0")/docker-compose.prod.yml" ]; then
   REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 else
   command -v git >/dev/null || { log "Installing git"; $SUDO apt-get update -y && $SUDO apt-get install -y git; }
-  if [ ! -d "$CALSYNC_DIR/.git" ]; then
-    log "Cloning $CALSYNC_REPO_URL → $CALSYNC_DIR"
-    $SUDO git clone --depth 1 "$CALSYNC_REPO_URL" "$CALSYNC_DIR"
+  if [ ! -d "$DAYOTTER_DIR/.git" ]; then
+    log "Cloning $DAYOTTER_REPO_URL → $DAYOTTER_DIR"
+    $SUDO git clone --depth 1 "$DAYOTTER_REPO_URL" "$DAYOTTER_DIR"
   else
-    log "Updating existing checkout at $CALSYNC_DIR"
-    $SUDO git -C "$CALSYNC_DIR" pull --ff-only
+    log "Updating existing checkout at $DAYOTTER_DIR"
+    $SUDO git -C "$DAYOTTER_DIR" pull --ff-only
   fi
-  REPO_ROOT="$CALSYNC_DIR"
+  REPO_ROOT="$DAYOTTER_DIR"
 fi
 DEPLOY_DIR="$REPO_ROOT/deploy"
 ENV_FILE="$DEPLOY_DIR/.env"
@@ -67,15 +67,15 @@ public_ip() {
   echo "${ip:-}"
 }
 
-if [ -n "$CALSYNC_DOMAIN" ]; then
-  SITE_ADDRESS="$CALSYNC_DOMAIN"
-  APP_URL="https://$CALSYNC_DOMAIN"
+if [ -n "$DAYOTTER_DOMAIN" ]; then
+  SITE_ADDRESS="$DAYOTTER_DOMAIN"
+  APP_URL="https://$DAYOTTER_DOMAIN"
 else
   IP="$(public_ip)"
-  [ -n "$IP" ] || err "Could not determine a public IP — set CALSYNC_DOMAIN instead"
+  [ -n "$IP" ] || err "Could not determine a public IP — set DAYOTTER_DOMAIN instead"
   SITE_ADDRESS=":80"
   APP_URL="http://$IP"
-  log "No CALSYNC_DOMAIN set — serving plain HTTP at $APP_URL (set a domain later for HTTPS)"
+  log "No DAYOTTER_DOMAIN set — serving plain HTTP at $APP_URL (set a domain later for HTTPS)"
 fi
 
 # --- 4. Generate deploy/.env once (keeps secrets stable across re-runs) --------
@@ -85,7 +85,7 @@ if [ ! -f "$ENV_FILE" ]; then
 NODE_ENV=production
 APP_URL=$APP_URL
 BETTER_AUTH_URL=$APP_URL
-CALSYNC_SITE_ADDRESS=$SITE_ADDRESS
+DAYOTTER_SITE_ADDRESS=$SITE_ADDRESS
 POSTGRES_PASSWORD=$(openssl rand -hex 24)
 AUTH_SECRET=$(openssl rand -base64 32)
 BETTER_AUTH_SECRET=$(openssl rand -base64 32)
@@ -103,6 +103,6 @@ log "Building and starting the stack (first run pulls images and can take a few 
 $SUDO docker compose -f "$DEPLOY_DIR/docker-compose.prod.yml" --env-file "$ENV_FILE" up -d --build
 
 log "Done. dayotter is starting at: $APP_URL"
-[ "$SITE_ADDRESS" = ":80" ] && log "Point a domain here and re-run with CALSYNC_DOMAIN=your.domain for automatic HTTPS."
+[ "$SITE_ADDRESS" = ":80" ] && log "Point a domain here and re-run with DAYOTTER_DOMAIN=your.domain for automatic HTTPS."
 log "Logs:   $SUDO docker compose -f $DEPLOY_DIR/docker-compose.prod.yml logs -f"
 log "Update: cd $REPO_ROOT && git pull && bash deploy/install.sh"

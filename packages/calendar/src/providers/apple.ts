@@ -122,7 +122,7 @@ export class AppleCalendarAdapter implements CalendarAdapter {
     const calendar = this.calendars.find((c) => c.url === calendarExternalId);
     if (!calendar) throw new Error(`Unknown calendar ${calendarExternalId}`);
 
-    const uid = `calsync-${event.start.getTime()}@calsync`;
+    const uid = `dayotter-${event.start.getTime()}@dayotter`;
     const cal = icalGenerator({ name: "dayotter" });
     cal.createEvent({
       id: uid,

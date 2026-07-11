@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /** Start a Pro subscription checkout for the caller's org (owner/admin only). */
 export const POST = withUser(async (u) => {
-  if (!isCloud) return jsonError("Billing is only available on dayotter Cloud.", 400);
+  if (!isCloud) return jsonError("Billing is only available on DayOtter Cloud.", 400);
   if (!subscriptionsEnabled) return jsonError("Billing is not configured.", 400);
 
   const org = await primaryOrg(u.id);

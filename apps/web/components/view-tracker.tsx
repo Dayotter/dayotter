@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const VISITOR_KEY = "calsync_visitor_id";
+const VISITOR_KEY = "dayotter_visitor_id";
 
 /** Stable per-browser visitor id (for unique-visitor counts; no PII). */
 function visitorId(): string | undefined {

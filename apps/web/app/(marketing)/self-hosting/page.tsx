@@ -3,8 +3,8 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Self-hosting — dayotter",
-  description: "Run dayotter on your own infrastructure. Every feature, free forever.",
+  title: "Self-hosting — DayOtter",
+  description: "Run DayOtter on your own infrastructure. Every feature, free forever.",
 };
 
 export default function SelfHostingPage() {
@@ -12,7 +12,7 @@ export default function SelfHostingPage() {
     <>
       <MarketingHeader
         eyebrow="Open source"
-        title="Self-host dayotter"
+        title="Self-host DayOtter"
         subtitle="Your data, your servers, every feature unlocked — free forever under Apache-2.0."
       />
       <Prose>

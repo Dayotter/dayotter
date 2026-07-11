@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { connection } from "@dayotter/jobs";
 import type { CreateBookingInput } from "../booking/create-booking";
 
-const PREFIX = "calsync:pendingbooking:";
+const PREFIX = "dayotter:pendingbooking:";
 const TTL_SECONDS = 3600; // a checkout session lives ~1h
 
 /** Stash the intended booking while the booker completes Stripe Checkout. */

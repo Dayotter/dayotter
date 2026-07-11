@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 
 /**
- * The dayotter brand mark — an otter glyph on the accent square.
+ * The DayOtter brand mark — an otter glyph on the accent square.
  *
  * ▶ To drop in the final logo: replace ONLY the inner <svg>…</svg> below with
  *   the supplied artwork (keep `fill="currentColor"` so it inherits white, or

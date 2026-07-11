@@ -12,7 +12,7 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@dayotter/web", "dev"],
       "port": 3000,
-      "env": { "CALSYNC_CLOUD": "1" }
+      "env": { "DAYOTTER_CLOUD": "1" }
     }
   ]
 }

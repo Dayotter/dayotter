@@ -14,14 +14,14 @@ export function createDatabase(connectionString?: string) {
 /**
  * Shared singleton for app processes. Reuses one pool across hot reloads in dev.
  */
-const globalForDb = globalThis as unknown as { __calsyncDb?: Database };
+const globalForDb = globalThis as unknown as { __dayotterDb?: Database };
 
 export function getDb(): Database {
-  if (!globalForDb.__calsyncDb) {
+  if (!globalForDb.__dayotterDb) {
     if (!process.env.DATABASE_URL) {
       console.warn("[db] DATABASE_URL is not set — queries will fail until it is configured");
     }
-    globalForDb.__calsyncDb = createDatabase(process.env.DATABASE_URL);
+    globalForDb.__dayotterDb = createDatabase(process.env.DATABASE_URL);
   }
-  return globalForDb.__calsyncDb;
+  return globalForDb.__dayotterDb;
 }
