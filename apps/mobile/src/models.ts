@@ -1,6 +1,6 @@
-// DTOs mirroring the calSync REST API. `Slot` is re-exported from the shared
+// DTOs mirroring the dayotter REST API. `Slot` is re-exported from the shared
 // core package — the exact same type the web app + availability engine use.
-export type { Slot } from "@calsync/core/availability";
+export type { Slot } from "@dayotter/core/availability";
 
 export interface AppUser {
   id: string;

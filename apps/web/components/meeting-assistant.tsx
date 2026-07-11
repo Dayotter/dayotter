@@ -100,8 +100,16 @@ export function MeetingAssistant({ uid, title }: { uid: string; title: string })
           </Button>
         </form>
 
-        {error ? <div className="mt-3"><FormError>{error}</FormError></div> : null}
-        {sent ? <div className="mt-3"><FormSuccess>Message sent to attendees.</FormSuccess></div> : null}
+        {error ? (
+          <div className="mt-3">
+            <FormError>{error}</FormError>
+          </div>
+        ) : null}
+        {sent ? (
+          <div className="mt-3">
+            <FormSuccess>Message sent to attendees.</FormSuccess>
+          </div>
+        ) : null}
 
         {message ? (
           <div className="mt-4 space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4">

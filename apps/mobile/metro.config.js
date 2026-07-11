@@ -1,5 +1,5 @@
 // Metro config for a pnpm monorepo so the app can import workspace packages
-// (e.g. @calsync/core). See https://docs.expo.dev/guides/monorepos/
+// (e.g. @dayotter/core). See https://docs.expo.dev/guides/monorepos/
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
 

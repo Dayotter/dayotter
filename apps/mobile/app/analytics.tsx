@@ -100,7 +100,7 @@ export default function AnalyticsScreen() {
               <Bar label="Confirmed" value={t.confirmed} max={funnelMax} />
               <Bar label="Completed" value={t.completed} max={funnelMax} muted />
               <Text style={styles.subtle}>
-                Cancelled: {t.cancelled}   No-shows: {t.noShow}
+                Cancelled: {t.cancelled} No-shows: {t.noShow}
               </Text>
             </View>
 

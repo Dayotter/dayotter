@@ -1,4 +1,4 @@
-# calSync — Feature Plan
+# dayotter — Feature Plan
 
 > Open-source (permissive, Apache-2.0) team scheduling & calendar platform.
 > Superset of Calendly / Cal.com / SavvyCal / Reclaim / Motion / Clockwise, with

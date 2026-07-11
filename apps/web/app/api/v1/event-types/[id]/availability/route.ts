@@ -1,6 +1,6 @@
 import { getEventTypeAvailability } from "@/lib/booking/availability";
 import { withApiKey } from "@/lib/server/api-key";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,8 @@ export const GET = withApiKey(async (caller, request, ctx: { params: Promise<{ i
   const duration = Number.isFinite(durationRaw) && durationRaw > 0 ? durationRaw : undefined;
 
   const from = url.searchParams.get("from") ? new Date(url.searchParams.get("from")!) : new Date();
-  if (Number.isNaN(from.getTime())) return NextResponse.json({ error: "Invalid from" }, { status: 400 });
+  if (Number.isNaN(from.getTime()))
+    return NextResponse.json({ error: "Invalid from" }, { status: 400 });
   const requestedTo = url.searchParams.get("to")
     ? new Date(url.searchParams.get("to")!)
     : new Date(from.getTime() + 14 * 86_400_000);

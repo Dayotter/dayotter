@@ -1,6 +1,6 @@
-import { logger } from "@calsync/core";
-import { and, eq, getDb, lt, schema } from "@calsync/db";
-import { connection, enqueueSync, QUEUE_NAMES } from "@calsync/jobs";
+import { logger } from "@dayotter/core";
+import { and, eq, getDb, lt, schema } from "@dayotter/db";
+import { QUEUE_NAMES, connection, enqueueSync } from "@dayotter/jobs";
 import { Worker } from "bullmq";
 import { materializeWeeklyBlocks } from "./automation-weekly";
 

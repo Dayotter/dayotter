@@ -2,7 +2,7 @@ import { EventTypeForm } from "@/components/event-type-form";
 import { PageHeader } from "@/components/page-header";
 import { getSession } from "@/lib/auth/session";
 import { paymentsEnabled } from "@/lib/payments/stripe";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export default async function EditEventTypePage({
 
   return (
     <>
-      <PageHeader title="Edit event type" description="Update how this meeting is booked." />
+      <PageHeader title="Edit booking type" description="Update how this meeting is booked." />
       <EventTypeForm
         mode="edit"
         paymentsEnabled={paymentsEnabled}

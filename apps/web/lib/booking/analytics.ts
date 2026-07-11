@@ -1,4 +1,4 @@
-import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@calsync/db";
+import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
 
 export interface FunnelRow {
   eventTypeId: string;
@@ -161,8 +161,7 @@ export async function computeAnalytics(params: {
   // Sort by activity (views + bookings) so the busiest events lead.
   byEventType.sort((a, b) => b.views + b.bookings - (a.views + a.bookings));
 
-  const sum = (k: keyof FunnelRow) =>
-    byEventType.reduce((s, r) => s + (r[k] as number), 0);
+  const sum = (k: keyof FunnelRow) => byEventType.reduce((s, r) => s + (r[k] as number), 0);
   const totalConfirmed = sum("confirmed");
   const totalUnique = sum("uniqueVisitors");
 

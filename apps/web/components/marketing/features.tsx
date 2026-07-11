@@ -123,7 +123,7 @@ export function Features() {
         <Card
           className="md:col-span-3"
           title="Scheduling, with a little AI"
-          body="Say it in plain words. calSync drafts the event — you confirm. It never touches your calendar on its own."
+          body="Say it in plain words. dayotter drafts the event — you confirm. It never touches your calendar on its own."
         >
           <AIMock />
         </Card>

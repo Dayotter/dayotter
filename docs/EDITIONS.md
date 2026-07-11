@@ -1,10 +1,10 @@
-# calSync editions & pricing
+# dayotter editions & pricing
 
-calSync is **open-core**, following the same model as Cal.com:
+dayotter is **open-core**, following the same model as Cal.com:
 
 ## Self-hosted (open source)
 
-Run calSync on your own infrastructure and **every scheduling feature is free,
+Run dayotter on your own infrastructure and **every scheduling feature is free,
 forever** — including the differentiators (AI scheduling, automations, analytics,
 multi-channel reminders, adaptive/travel/deep-work, accept-payments, developer
 platform). There is no license key and no billing. Just don't set `CALSYNC_CLOUD`.
@@ -13,9 +13,9 @@ The only things a self-hoster doesn't get are the **cloud-only** features (below
 which live in `apps/web/lib/ee/` under a separate commercial license and are
 inert unless `CALSYNC_CLOUD=1`.
 
-## calSync Cloud (hosted)
+## dayotter Cloud (hosted)
 
-The hosted product at calsync.com has:
+The hosted product at dayotter.com has:
 
 - **Free tier** — all core scheduling: unlimited event types, availability,
   Google/Microsoft/Apple calendar sync, booking management, email reminders,
@@ -26,7 +26,7 @@ The hosted product at calsync.com has:
   defense, accept-payments, and the developer platform.
 - **Cloud-only** (commercial `ee/`, Pro): **Managed AI** (no API key to
   configure), **SSO** (SAML / Google Workspace), **White-label** (remove branding
-  + custom booking domain), and **Hosted messaging** (SMS/WhatsApp on calSync's
+  + custom booking domain), and **Hosted messaging** (SMS/WhatsApp on dayotter's
   Twilio with included credits).
 
 ## How it works in code

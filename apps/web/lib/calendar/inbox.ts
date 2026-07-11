@@ -1,4 +1,4 @@
-import { and, eq, getDb, gte, ne, schema } from "@calsync/db";
+import { and, eq, getDb, gte, ne, schema } from "@dayotter/db";
 
 export interface ReconnectItem {
   connectionId: string;

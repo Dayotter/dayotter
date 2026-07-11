@@ -7,7 +7,7 @@ import { ZoomConnect } from "@/components/zoom-connect";
 import { getSession } from "@/lib/auth/session";
 import { cn } from "@/lib/cn";
 import { zoomEnabled } from "@/lib/integrations/zoom";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import { CheckCircle2, Plus } from "lucide-react";
 import Link from "next/link";
 

@@ -1,6 +1,6 @@
 import { jsonError, withUser } from "@/lib/server/http";
-import { and, eq, getDb, schema } from "@calsync/db";
-import { enqueueWebhook } from "@calsync/jobs";
+import { and, eq, getDb, schema } from "@dayotter/db";
+import { enqueueWebhook } from "@dayotter/jobs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

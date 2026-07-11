@@ -1,8 +1,8 @@
-import { aiEnabled } from "@/lib/ai/llm";
 import { suggestInviteResponse } from "@/lib/ai/invite-triage";
-import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { aiEnabled } from "@/lib/ai/llm";
 import { jsonError, withUser } from "@/lib/server/http";
-import { logger } from "@calsync/core";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { logger } from "@dayotter/core";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -33,7 +33,11 @@ export const POST = withUser(async (u, request) => {
     const triage = await suggestInviteResponse(parsed.data);
     return NextResponse.json({ triage });
   } catch (err) {
-    logger.error("ai invite suggest failed", { event: "ai_invite_suggest_failed", userId: u.id, err });
+    logger.error("ai invite suggest failed", {
+      event: "ai_invite_suggest_failed",
+      userId: u.id,
+      err,
+    });
     return jsonError("Couldn't get a suggestion right now.", 502);
   }
 });

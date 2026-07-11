@@ -1,4 +1,4 @@
-import type { Slot } from "@calsync/core";
+import type { Slot } from "@dayotter/core";
 import { describe, expect, it } from "vitest";
 import { filterOpenGroupSlots } from "./availability";
 

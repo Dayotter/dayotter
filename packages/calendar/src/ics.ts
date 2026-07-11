@@ -1,5 +1,5 @@
 import https from "node:https";
-import { assertPublicHttpUrl, resolvePublicIp } from "@calsync/core";
+import { assertPublicHttpUrl, resolvePublicIp } from "@dayotter/core";
 import ical from "node-ical";
 import type { BusyInterval, SyncedEvent } from "./types";
 

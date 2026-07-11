@@ -1,5 +1,5 @@
 {
-  "name": "@calsync/notifications",
+  "name": "@dayotter/notifications",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@calsync/core": "workspace:*",
-    "@calsync/db": "workspace:*"
+    "@dayotter/core": "workspace:*",
+    "@dayotter/db": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

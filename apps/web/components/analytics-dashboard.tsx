@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardBody } from "@/components/ui/card";
-import { formatMoney } from "@/lib/booking/money";
 import type { AnalyticsData } from "@/lib/booking/analytics";
+import { formatMoney } from "@/lib/booking/money";
 import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -98,12 +98,7 @@ export function AnalyticsDashboard() {
             ) : null}
             <FunnelBar label="Bookings made" value={t.bookings} max={t.uniqueVisitors} />
             <FunnelBar label="Confirmed" value={t.confirmed} max={t.uniqueVisitors} />
-            <FunnelBar
-              label="Completed"
-              value={t.completed}
-              max={t.uniqueVisitors}
-              muted
-            />
+            <FunnelBar label="Completed" value={t.completed} max={t.uniqueVisitors} muted />
             <div className="flex gap-4 pt-1 text-xs text-[var(--color-faint)]">
               <span>Cancelled: {t.cancelled}</span>
               <span>No-shows: {t.noShow}</span>

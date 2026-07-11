@@ -1,5 +1,14 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { membershipRole, timestamps } from "./_shared";
 
 /**
@@ -26,7 +35,7 @@ export const organizations = pgTable("organizations", {
   ...timestamps,
 });
 
-/** The Better Auth `user` model, extended with calSync fields (handle, timezone). */
+/** The Better Auth `user` model, extended with dayotter fields (handle, timezone). */
 export const users = pgTable(
   "users",
   {

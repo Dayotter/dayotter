@@ -199,7 +199,7 @@ export function AiQuickAdd() {
       <CardBody className="p-5">
         <div className="mb-3 flex items-center gap-2">
           <Sparkles size={16} className="text-[var(--color-accent)]" />
-          <p className="text-sm font-medium">Ask calSync</p>
+          <p className="text-sm font-medium">Ask dayotter</p>
           <span className="text-xs text-[var(--color-faint)]">
             — you confirm before anything changes
           </span>

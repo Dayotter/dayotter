@@ -1,5 +1,5 @@
 import { withApiKey } from "@/lib/server/api-key";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

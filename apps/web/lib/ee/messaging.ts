@@ -1,8 +1,8 @@
 import { isCloud } from "../billing/edition";
 
 /**
- * Hosted messaging — cloud-only. calSync Cloud sends SMS/WhatsApp reminders
- * through calSync's own Twilio account (with included credits) so Pro customers
+ * Hosted messaging — cloud-only. dayotter Cloud sends SMS/WhatsApp reminders
+ * through dayotter's own Twilio account (with included credits) so Pro customers
  * don't wire up their own. Self-hosters set their own `TWILIO_*` env.
  */
 export const hostedTwilioCreds = isCloud

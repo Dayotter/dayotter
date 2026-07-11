@@ -3,14 +3,18 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — calSync",
-  description: "The terms that govern your use of calSync.",
+  title: "Terms of Service — dayotter",
+  description: "The terms that govern your use of dayotter.",
 };
 
 export default function TermsPage() {
   return (
     <>
-      <MarketingHeader eyebrow="Legal" title="Terms of Service" subtitle="Last updated July 9, 2026" />
+      <MarketingHeader
+        eyebrow="Legal"
+        title="Terms of Service"
+        subtitle="Last updated July 9, 2026"
+      />
       <Prose>
         <p>
           These Terms of Service ("Terms") govern your access to and use of {BRAND.name} (the
@@ -29,8 +33,8 @@ export default function TermsPage() {
         <h2>2. Accounts</h2>
         <p>
           You are responsible for your account, for keeping your credentials secure, and for all
-          activity under it. You must be at least 16 years old, provide accurate information, and not
-          share your account. Notify us promptly of any unauthorized use.
+          activity under it. You must be at least 16 years old, provide accurate information, and
+          not share your account. Notify us promptly of any unauthorized use.
         </p>
 
         <h2>3. Plans and billing</h2>
@@ -88,8 +92,7 @@ export default function TermsPage() {
 
         <h2>10. Contact</h2>
         <p>
-          Questions about these Terms? Email{" "}
-          <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>.
+          Questions about these Terms? Email <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>.
         </p>
 
         <hr />

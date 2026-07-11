@@ -6,7 +6,7 @@ const TO = new Date("2026-07-20T00:00:00Z");
 
 const ICS = `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//calSync test//EN
+PRODID:-//dayotter test//EN
 BEGIN:VEVENT
 UID:single@test
 DTSTART:20260710T130000Z

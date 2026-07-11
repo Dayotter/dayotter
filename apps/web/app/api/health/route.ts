@@ -1,5 +1,5 @@
-import { getDb, sql } from "@calsync/db";
-import { pingRedis, readHeartbeat } from "@calsync/jobs";
+import { getDb, sql } from "@dayotter/db";
+import { pingRedis, readHeartbeat } from "@dayotter/jobs";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +30,7 @@ export async function GET() {
   return NextResponse.json(
     {
       status: ready ? "ok" : "degraded",
-      service: "calsync-web",
+      service: "dayotter-web",
       db,
       redis,
       worker,

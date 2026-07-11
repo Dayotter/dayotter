@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth/session";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
-import { asc, eq, getDb, schema, sql } from "@calsync/db";
+import { asc, eq, getDb, schema, sql } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

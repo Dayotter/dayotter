@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Pricing — calSync",
+  title: "Pricing — dayotter",
   description:
     "Free forever for individuals. Pro is $9/seat/mo for the whole team. Or self-host every feature for free.",
 };
@@ -59,7 +59,7 @@ const TIERS: Tier[] = [
     name: "Self-hosted",
     price: "Free",
     cadence: "open source",
-    tagline: "Run calSync on your own infrastructure — every feature, unlocked.",
+    tagline: "Run dayotter on your own infrastructure — every feature, unlocked.",
     features: [
       "Every Pro feature, free forever",
       "Your data on your servers",
@@ -73,7 +73,7 @@ const TIERS: Tier[] = [
 
 const FAQ = [
   {
-    q: "Is calSync really free?",
+    q: "Is dayotter really free?",
     a: "Yes. Individuals get a genuinely useful free plan on the cloud, and if you self-host, every feature — including the Pro ones — is free forever. You only pay for Pro on our hosted product.",
   },
   {

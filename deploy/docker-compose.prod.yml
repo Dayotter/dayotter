@@ -1,4 +1,4 @@
-# Production self-host stack for calSync — everything behind one command.
+# Production self-host stack for dayotter — everything behind one command.
 #
 #   cd deploy && docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 #
@@ -6,7 +6,7 @@
 #
 # What you get: Postgres + Redis (private), a one-shot DB migration, the web app,
 # the background worker, and Caddy in front for automatic HTTPS.
-name: calsync
+name: dayotter
 
 x-app-env: &app-env
   DATABASE_URL: postgresql://calsync:${POSTGRES_PASSWORD}@postgres:5432/calsync
@@ -46,11 +46,11 @@ services:
     build:
       context: ..
       dockerfile: apps/worker/Dockerfile
-    image: calsync-app:local
+    image: dayotter-app:local
     env_file: .env
     environment:
       <<: *app-env
-    command: ["pnpm", "--filter", "@calsync/db", "migrate"]
+    command: ["pnpm", "--filter", "@dayotter/db", "migrate"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -60,7 +60,7 @@ services:
     build:
       context: ..
       dockerfile: apps/web/Dockerfile
-    image: calsync-web:local
+    image: dayotter-web:local
     restart: unless-stopped
     env_file: .env
     environment:
@@ -71,13 +71,13 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
-    # No published port — Caddy fronts it on the calsync network.
+    # No published port — Caddy fronts it on the dayotter network.
 
   worker:
     build:
       context: ..
       dockerfile: apps/worker/Dockerfile
-    image: calsync-app:local
+    image: dayotter-app:local
     restart: unless-stopped
     env_file: .env
     environment:

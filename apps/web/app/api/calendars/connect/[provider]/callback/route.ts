@@ -1,7 +1,7 @@
 import { connectCalendarAccount } from "@/lib/calendar/calendar-connect";
 import { verifyState } from "@/lib/calendar/oauth-state";
 import { providerConfig } from "@/lib/calendar/providers";
-import { GoogleCalendarAdapter, MicrosoftCalendarAdapter } from "@calsync/calendar";
+import { GoogleCalendarAdapter, MicrosoftCalendarAdapter } from "@dayotter/calendar";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

@@ -1,5 +1,5 @@
-import { logger } from "@calsync/core";
-import { type SyncJob, connection, scheduleMaintenance, writeHeartbeat } from "@calsync/jobs";
+import { logger } from "@dayotter/core";
+import { type SyncJob, connection, scheduleMaintenance, writeHeartbeat } from "@dayotter/jobs";
 import { startMaintenanceWorker } from "./workers/maintenance";
 import { startRemindersWorker } from "./workers/reminders";
 import { startSyncWorker } from "./workers/sync";
@@ -7,7 +7,7 @@ import { startWebhooksWorker } from "./workers/webhooks";
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
 
-/** Boots all background workers for calSync. */
+/** Boots all background workers for dayotter. */
 async function main(): Promise<void> {
   logger.info("worker starting", { event: "worker_starting" });
 
@@ -24,7 +24,9 @@ async function main(): Promise<void> {
   ] as const;
 
   for (const [name, worker] of workers) {
-    worker.on("ready", () => logger.info(`${name} worker ready`, { event: "worker_ready", worker: name }));
+    worker.on("ready", () =>
+      logger.info(`${name} worker ready`, { event: "worker_ready", worker: name }),
+    );
     worker.on("failed", (job, err) => {
       // Sync jobs carry rich context — surface it so an operator can see which
       // connection/provider/reason failed without cross-referencing job ids.

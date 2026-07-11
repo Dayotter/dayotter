@@ -1,4 +1,4 @@
-# calSync — Architecture Decisions
+# dayotter — Architecture Decisions
 
 Load-bearing principles. Violating these gets expensive to undo, so they're
 recorded here and enforced in review.
@@ -59,7 +59,7 @@ The AI never silently mutates the calendar.
 - Sensitive/free-form user preferences and all notification-channel destinations
   (phone, Slack id, push token) are **AES-256-GCM encrypted** (`user_preferences.
   encrypted_data`, `notification_channels.encrypted_config`) via
-  `@calsync/core` crypto with `ENCRYPTION_KEY`.
+  `@dayotter/core` crypto with `ENCRYPTION_KEY`.
 - OAuth tokens are already encrypted the same way. Plaintext secrets never hit
   the database or logs.
 

@@ -27,7 +27,7 @@ const schema = z.object({
   ZOOM_CLIENT_SECRET: z.string().default(""),
 
   SMTP_URL: z.string().optional(),
-  EMAIL_FROM: z.string().default("calSync <no-reply@example.com>"),
+  EMAIL_FROM: z.string().default("dayotter <no-reply@example.com>"),
 
   // Optional Cloudflare Turnstile captcha on the public booking form.
   TURNSTILE_SECRET: z.string().optional(),
@@ -72,7 +72,9 @@ export function assertSecrets(): void {
   }
   const key = env.ENCRYPTION_KEY ?? "";
   if (key.length !== 64 || !/^[0-9a-fA-F]+$/.test(key) || ALL_ZERO_KEY.test(key)) {
-    problems.push("ENCRYPTION_KEY must be a random 64-hex-char (32-byte) value, not the placeholder");
+    problems.push(
+      "ENCRYPTION_KEY must be a random 64-hex-char (32-byte) value, not the placeholder",
+    );
   }
   if (env.APP_URL.startsWith("http://")) {
     problems.push("APP_URL must be https in production");

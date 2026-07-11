@@ -1,5 +1,5 @@
 {
-  "name": "calsync",
+  "name": "dayotter",
   "version": "0.0.0",
   "private": true,
   "description": "Open-source team scheduling & calendar platform",
@@ -16,10 +16,10 @@
     "check": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "db:generate": "pnpm --filter @calsync/db generate",
-    "db:migrate": "pnpm --filter @calsync/db migrate",
-    "db:push": "pnpm --filter @calsync/db push",
-    "db:studio": "pnpm --filter @calsync/db studio"
+    "db:generate": "pnpm --filter @dayotter/db generate",
+    "db:migrate": "pnpm --filter @dayotter/db migrate",
+    "db:push": "pnpm --filter @dayotter/db push",
+    "db:studio": "pnpm --filter @dayotter/db studio"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import type { CalendarAdapter } from "@calsync/calendar";
-import { logger } from "@calsync/core";
-import { and, eq, getDb, inArray, schema, sql } from "@calsync/db";
-import { adapterForConnection } from "@calsync/integrations";
-import { QUEUE_NAMES, type SyncJob, connection } from "@calsync/jobs";
+import type { CalendarAdapter } from "@dayotter/calendar";
+import { logger } from "@dayotter/core";
+import { and, eq, getDb, inArray, schema, sql } from "@dayotter/db";
+import { adapterForConnection } from "@dayotter/integrations";
+import { QUEUE_NAMES, type SyncJob, connection } from "@dayotter/jobs";
 import { Worker } from "bullmq";
 
 /** Rolling window we keep the free/busy cache warm for. */

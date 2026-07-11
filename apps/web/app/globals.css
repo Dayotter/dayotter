@@ -4,7 +4,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * calSync design language — "editorial calm meets a living calendar."
+ * dayotter design language — "editorial calm meets a living calendar."
  * Warm ivory neutrals, rich ink text, a premium violet accent, an editorial
  * serif display (Fraunces) + Inter body + mono labels. Light is default.
  */

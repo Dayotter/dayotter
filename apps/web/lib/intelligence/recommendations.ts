@@ -1,4 +1,4 @@
-import { and, eq, getDb, gte, inArray, lt, ne, schema } from "@calsync/db";
+import { and, eq, getDb, gte, inArray, lt, ne, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 
 export interface Recommendation {
@@ -18,7 +18,7 @@ interface Meeting {
 
 /**
  * The Intelligence engine's calendar-health + habit ("Calendar Memory") analysis.
- * Looks at the host's real meeting history — BOTH calSync bookings and external
+ * Looks at the host's real meeting history — BOTH dayotter bookings and external
  * events from the unified event model — over the last 30 days and returns soft,
  * advisory recommendations (never hard rules; respects the confirm-first ethos).
  */

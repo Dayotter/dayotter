@@ -7,9 +7,9 @@ import {
   MicrosoftCalendarAdapter,
   type OAuthCredentials,
   type ProviderOAuthConfig,
-} from "@calsync/calendar";
-import { decryptJson, encryptJson } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
+} from "@dayotter/calendar";
+import { decryptJson, encryptJson } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
 
 type ConnectionRow = typeof schema.calendarConnections.$inferSelect;
 

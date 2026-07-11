@@ -1,7 +1,7 @@
 import { proposeInviteTime } from "@/lib/calendar/invite-actions";
 import { jsonError, withUser } from "@/lib/server/http";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
-import { logger } from "@calsync/core";
+import { logger } from "@dayotter/core";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

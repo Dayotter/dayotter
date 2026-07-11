@@ -1,4 +1,4 @@
-import { logger } from "@calsync/core";
+import { logger } from "@dayotter/core";
 import Stripe from "stripe";
 
 /**

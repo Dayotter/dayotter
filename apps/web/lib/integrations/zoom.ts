@@ -1,6 +1,6 @@
-import { logger } from "@calsync/core";
-import { decryptJson, encryptJson } from "@calsync/core";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { logger } from "@dayotter/core";
+import { decryptJson, encryptJson } from "@dayotter/core";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { env } from "../server/env";
 
 /**

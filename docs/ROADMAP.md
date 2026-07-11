@@ -1,4 +1,4 @@
-# calSync Roadmap & Build Tracker
+# dayotter Roadmap & Build Tracker
 
 > The single source of truth for **what's built, what's partial, and what's next**.
 > Organized by the layered **Time-OS engine model**: every feature builds on an

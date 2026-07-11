@@ -1,5 +1,5 @@
-import { logger } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
+import { logger } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
 
 interface TravelContext {
   hostId: string;

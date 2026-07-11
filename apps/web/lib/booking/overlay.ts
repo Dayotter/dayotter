@@ -1,4 +1,4 @@
-import { eventsToBusy, fetchIcsFeed, parseIcsEvents } from "@calsync/calendar";
+import { eventsToBusy, fetchIcsFeed, parseIcsEvents } from "@dayotter/calendar";
 
 /**
  * SavvyCal-style calendar overlay: given a booker-supplied calendar feed URL,
@@ -6,7 +6,7 @@ import { eventsToBusy, fetchIcsFeed, parseIcsEvents } from "@calsync/calendar";
  * slots that clash with the booker's OWN commitments. The feed is fetched
  * per-request and never stored; only busy/free times are derived from it.
  *
- * The actual fetch + ICS parse lives in `@calsync/calendar` (shared with the
+ * The actual fetch + ICS parse lives in `@dayotter/calendar` (shared with the
  * ICS-feed calendar provider); this module just adapts it to the public
  * booking-page contract (ISO-string intervals).
  */

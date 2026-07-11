@@ -15,7 +15,7 @@ import { users } from "./orgs";
 /**
  * Per-user preferences. Non-sensitive display prefs are plain columns (so we can
  * query/render them cheaply); anything sensitive or free-form lives in
- * `encryptedData` — an AES-256-GCM blob (see @calsync/core crypto). Decrypt only
+ * `encryptedData` — an AES-256-GCM blob (see @dayotter/core crypto). Decrypt only
  * where needed (e.g. the worker when composing a reminder).
  */
 export const userPreferences = pgTable(

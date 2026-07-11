@@ -1,5 +1,5 @@
-import { logger } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
+import { logger } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
 import { BookingError, createBooking } from "../booking/create-booking";
 import { claimPendingBooking } from "./pending";
 import { refundPayment, retrieveSession } from "./stripe";

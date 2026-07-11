@@ -1,6 +1,6 @@
 import { SlotPicker } from "@/components/slot-picker";
 import { Card, CardBody } from "@/components/ui/card";
-import { and, eq, getDb, schema } from "@calsync/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { Clock, Users, Video } from "lucide-react";
 import { notFound } from "next/navigation";
 
@@ -86,7 +86,7 @@ export default async function TeamBookingPage({
         </div>
       </Card>
       <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
-        Powered by <span className="text-[var(--color-muted)]">calSync</span>
+        Powered by <span className="text-[var(--color-muted)]">dayotter</span>
       </p>
     </main>
   );

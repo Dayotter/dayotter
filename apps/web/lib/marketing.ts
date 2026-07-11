@@ -1,13 +1,13 @@
 /** Brand + marketing constants. One place for links, contact, and footer nav. */
 
 export const BRAND = {
-  name: "calSync",
+  name: "dayotter",
   tagline: "The open-source home for your time.",
-  email: "hello@calsync.com",
-  github: "https://github.com/calsync/calsync",
-  githubLicense: "https://github.com/calsync/calsync/blob/main/LICENSE",
-  githubContributing: "https://github.com/calsync/calsync/blob/main/CONTRIBUTING.md",
-  x: "https://x.com/calsync",
+  email: "hello@dayotter.com",
+  github: "https://github.com/nometria/dayotter",
+  githubLicense: "https://github.com/nometria/dayotter/blob/main/LICENSE",
+  githubContributing: "https://github.com/nometria/dayotter/blob/main/CONTRIBUTING.md",
+  x: "https://x.com/dayotter",
   copyrightYear: 2026,
 };
 

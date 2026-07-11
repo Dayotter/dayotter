@@ -45,7 +45,9 @@ export default function SignUpPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl leading-tight tracking-[-0.01em]">Create your account</h1>
+      <h1 className="font-display text-3xl leading-tight tracking-[-0.01em]">
+        Create your account
+      </h1>
       <p className="mt-2 text-sm text-[var(--color-muted)]">
         Start scheduling in minutes. Free and open-source.
       </p>
@@ -103,7 +105,10 @@ export default function SignUpPage() {
 
       <p className="mt-6 text-center text-sm text-[var(--color-muted)]">
         By continuing you agree to our{" "}
-        <Link href="/terms" className="text-[var(--color-muted)] underline hover:text-[var(--color-text)]">
+        <Link
+          href="/terms"
+          className="text-[var(--color-muted)] underline hover:text-[var(--color-text)]"
+        >
           Terms
         </Link>{" "}
         &{" "}

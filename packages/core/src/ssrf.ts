@@ -61,7 +61,9 @@ export function isPrivateIp(ip: string): boolean {
  * otherwise. Returns one validated address so the caller can pin the connection
  * to it (defeating DNS-rebinding between check and connect).
  */
-export async function resolvePublicIp(hostname: string): Promise<{ address: string; family: number }> {
+export async function resolvePublicIp(
+  hostname: string,
+): Promise<{ address: string; family: number }> {
   let results: { address: string; family: number }[];
   try {
     results = await lookup(hostname, { all: true });

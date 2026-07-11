@@ -3,7 +3,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { paymentsEnabled } from "@/lib/payments/stripe";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import { Clock, CreditCard, Video } from "lucide-react";
 
 export const dynamic = "force-dynamic";

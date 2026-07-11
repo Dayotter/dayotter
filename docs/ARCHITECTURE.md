@@ -1,4 +1,4 @@
-# calSync — Architecture
+# dayotter — Architecture
 
 ## The three core systems
 

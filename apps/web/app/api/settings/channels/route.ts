@@ -1,14 +1,14 @@
+import { requireFeature } from "@/lib/billing/require-feature";
 import {
   channelInputSchema,
   configFromInput,
   maskChannel,
 } from "@/lib/notifications/channel-input";
-import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
-import { decryptJson, encryptJson, logger } from "@calsync/core";
-import { asc, eq, getDb, schema } from "@calsync/db";
-import type { ChannelConfig, DeliverableChannel } from "@calsync/notifications";
-import { availableChannels, dispatchToChannel } from "@calsync/notifications";
+import { decryptJson, encryptJson, logger } from "@dayotter/core";
+import { asc, eq, getDb, schema } from "@dayotter/db";
+import type { ChannelConfig, DeliverableChannel } from "@dayotter/notifications";
+import { availableChannels, dispatchToChannel } from "@dayotter/notifications";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +65,7 @@ export const POST = withUser(async (u, request) => {
 
   // Verify by delivering a real test message before we trust the channel.
   const test = await dispatchToChannel(input.type, config, {
-    title: "calSync connected",
+    title: "dayotter connected",
     body: "This channel will now receive your meeting reminders.",
     url: `${appUrl}/settings/notifications`,
   });

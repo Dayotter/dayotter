@@ -1,6 +1,6 @@
-import { DEFAULT_REMINDER_OFFSETS, logger } from "@calsync/core";
-import { and, eq, getDb, inArray, schema } from "@calsync/db";
-import { cancelReminder, scheduleReminder } from "@calsync/jobs";
+import { DEFAULT_REMINDER_OFFSETS, logger } from "@dayotter/core";
+import { and, eq, getDb, inArray, schema } from "@dayotter/db";
+import { cancelReminder, scheduleReminder } from "@dayotter/jobs";
 
 /**
  * The reminder lead times (minutes before the event) to use for a host — their

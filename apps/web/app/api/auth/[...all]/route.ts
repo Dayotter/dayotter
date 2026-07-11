@@ -1,4 +1,4 @@
-import { auth } from "@calsync/auth";
+import { auth } from "@dayotter/auth";
 import { toNextJsHandler } from "better-auth/next-js";
 
 // Mounts all Better Auth endpoints: /api/auth/sign-up, /sign-in, /sign-out,

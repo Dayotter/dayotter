@@ -1,4 +1,4 @@
-# Self-host stack for calSync.
+# Self-host stack for dayotter.
 #
 #   Datastores only (local dev — run the app with `pnpm dev`):
 #       docker compose up -d

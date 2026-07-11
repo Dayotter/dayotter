@@ -1,8 +1,8 @@
 import { requireFeature } from "@/lib/billing/require-feature";
 import { API_KEY_PREFIX } from "@/lib/server/api-key";
 import { jsonError, withUser } from "@/lib/server/http";
-import { randomToken, sha256hex } from "@calsync/core";
-import { asc, eq, getDb, schema } from "@calsync/db";
+import { randomToken, sha256hex } from "@dayotter/core";
+import { asc, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

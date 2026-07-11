@@ -1,4 +1,4 @@
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import { hostSlots } from "./availability";
 
 export interface FocusSuggestion {
@@ -47,7 +47,12 @@ export async function deepWorkSuggestions(
   const seenDays = new Set<string>();
   const suggestions: FocusSuggestion[] = [];
   const dayKey = (d: Date) =>
-    new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
 
   for (const s of slots) {
     const key = dayKey(s.start);

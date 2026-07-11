@@ -3,8 +3,8 @@ import {
   type Slot,
   computeAvailability,
   intersectAvailability,
-} from "@calsync/core";
-import { and, eq, getDb, gte, inArray, lte, ne, schema, sql } from "@calsync/db";
+} from "@dayotter/core";
+import { and, eq, getDb, gte, inArray, lte, ne, schema, sql } from "@dayotter/db";
 import { DateTime } from "luxon";
 import { recommendedSlots } from "./rank-slots";
 

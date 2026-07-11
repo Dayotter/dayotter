@@ -1,4 +1,4 @@
-import type { ProviderOAuthConfig } from "@calsync/calendar";
+import type { ProviderOAuthConfig } from "@dayotter/calendar";
 import { env } from "../server/env";
 
 /** OAuth app config per provider, from env. Redirect URIs must match the connect routes. */

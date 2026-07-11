@@ -2,7 +2,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { googleCalendarUrl } from "@/lib/booking/ics";
 import { formatMoney } from "@/lib/booking/money";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import {
   CalendarPlus,
   CalendarX2,
@@ -152,7 +152,7 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
         </CardBody>
       </Card>
       <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
-        Powered by <span className="text-[var(--color-muted)]">calSync</span>
+        Powered by <span className="text-[var(--color-muted)]">dayotter</span>
       </p>
     </main>
   );

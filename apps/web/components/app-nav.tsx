@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/brand-mark";
 import { NAV } from "@/components/nav-items";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "@/lib/auth/auth-client";
@@ -15,10 +16,8 @@ export function AppNav({ user }: { user: { name?: string | null; email: string }
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] p-3 lg:flex">
       <Link href="/dashboard" className="flex items-center gap-2 px-2 py-3">
-        <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-[var(--color-accent)] text-sm font-bold text-white">
-          c
-        </span>
-        <span className="text-[15px] font-semibold tracking-tight">calSync</span>
+        <BrandMark size={28} />
+        <span className="text-[15px] font-semibold tracking-tight">dayotter</span>
       </Link>
 
       <nav className="mt-3 flex flex-1 flex-col gap-0.5">

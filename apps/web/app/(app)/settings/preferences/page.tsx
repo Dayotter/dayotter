@@ -1,6 +1,6 @@
 import { PreferencesForm } from "@/components/preferences-form";
 import { getSession } from "@/lib/auth/session";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 
 export const dynamic = "force-dynamic";
 

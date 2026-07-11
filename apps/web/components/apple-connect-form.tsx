@@ -58,7 +58,10 @@ export function AppleConnectForm({ name, color }: { name: string; color: string 
       </div>
 
       {open ? (
-        <form onSubmit={connect} className="mt-4 space-y-3 border-t border-[var(--color-border)] pt-4">
+        <form
+          onSubmit={connect}
+          className="mt-4 space-y-3 border-t border-[var(--color-border)] pt-4"
+        >
           <div>
             <Label htmlFor="apple-id">Apple ID</Label>
             <Input

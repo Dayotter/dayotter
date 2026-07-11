@@ -1,6 +1,6 @@
 import { expo } from "@better-auth/expo";
-import { getDb, schema } from "@calsync/db";
-import { sendEmail } from "@calsync/emails";
+import { getDb, schema } from "@dayotter/db";
+import { sendEmail } from "@dayotter/emails";
 import { type BetterAuthPlugin, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -16,7 +16,7 @@ import { bearer, organization } from "better-auth/plugins";
  * so Better Auth defers id creation to Postgres `defaultRandom()`.
  */
 export const auth = betterAuth({
-  appName: "calSync",
+  appName: "dayotter",
   secret: process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.APP_URL,
   database: drizzleAdapter(getDb(), {
@@ -39,9 +39,9 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, url }) => {
       await sendEmail({
         to: user.email,
-        subject: "Reset your calSync password",
-        text: `Reset your calSync password: ${url}\n\nIf you didn't request this, you can ignore this email.`,
-        html: `<p>Someone requested a password reset for your calSync account.</p>
+        subject: "Reset your dayotter password",
+        text: `Reset your dayotter password: ${url}\n\nIf you didn't request this, you can ignore this email.`,
+        html: `<p>Someone requested a password reset for your dayotter account.</p>
 <p><a href="${url}">Reset your password</a></p>
 <p style="color:#666;font-size:13px">If this wasn't you, you can safely ignore this email — your password won't change.</p>`,
       });

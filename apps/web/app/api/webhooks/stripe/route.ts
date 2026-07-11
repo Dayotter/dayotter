@@ -1,7 +1,7 @@
 import { syncOrgSubscription, syncSubscriptionById } from "@/lib/billing/subscription";
 import { fulfillCheckout } from "@/lib/payments/fulfill";
 import { constructWebhookEvent, paymentsEnabled } from "@/lib/payments/stripe";
-import { logger } from "@calsync/core";
+import { logger } from "@dayotter/core";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { logger } from "@calsync/core";
+import { logger } from "@dayotter/core";
 import { managedAnthropicKey } from "../ee/managed-ai";
 
 /**
@@ -13,7 +13,7 @@ import { managedAnthropicKey } from "../ee/managed-ai";
 
 /**
  * The key the platform uses. Self-host: the operator's own `ANTHROPIC_API_KEY`.
- * Cloud: falls back to calSync's managed key (the cloud-only "Managed AI"
+ * Cloud: falls back to dayotter's managed key (the cloud-only "Managed AI"
  * feature) so Pro customers don't bring their own.
  */
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || managedAnthropicKey;

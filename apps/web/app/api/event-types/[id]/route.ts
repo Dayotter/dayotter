@@ -1,8 +1,8 @@
 import { getSession } from "@/lib/auth/session";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { resolveScheduleId } from "@/lib/booking/schedule";
-import { sha256hex } from "@calsync/core";
-import { and, eq, getDb, schema, sql } from "@calsync/db";
+import { sha256hex } from "@dayotter/core";
+import { and, eq, getDb, schema, sql } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

@@ -1,10 +1,10 @@
 import { NotificationChannelsForm } from "@/components/notification-channels-form";
 import { getSession } from "@/lib/auth/session";
 import { maskChannel } from "@/lib/notifications/channel-input";
-import { decryptJson } from "@calsync/core";
-import { asc, eq, getDb, schema } from "@calsync/db";
-import type { ChannelConfig, DeliverableChannel } from "@calsync/notifications";
-import { availableChannels } from "@calsync/notifications";
+import { decryptJson } from "@dayotter/core";
+import { asc, eq, getDb, schema } from "@dayotter/db";
+import type { ChannelConfig, DeliverableChannel } from "@dayotter/notifications";
+import { availableChannels } from "@dayotter/notifications";
 
 export const dynamic = "force-dynamic";
 

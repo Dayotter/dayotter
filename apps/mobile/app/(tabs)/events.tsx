@@ -22,7 +22,7 @@ export default function EventsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.headerRow}>
-        <Text style={styles.header}>Event Types</Text>
+        <Text style={styles.header}>Booking Types</Text>
         <Pressable style={styles.newBtn} onPress={() => router.push("/event-type")}>
           <Ionicons name="add" size={18} color={colors.white} />
           <Text style={styles.newBtnText}>New</Text>
@@ -38,7 +38,7 @@ export default function EventsScreen() {
           <ErrorText message={error} />
         ) : !data || data.length === 0 ? (
           <EmptyState
-            title="No event types yet"
+            title="No booking types yet"
             body="Create bookable meetings from the web app — they show up here."
           />
         ) : (

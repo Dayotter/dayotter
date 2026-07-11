@@ -1,6 +1,6 @@
-import { logger } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
-import { bookingMessage, sendEmail } from "@calsync/emails";
+import { logger } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
+import { bookingMessage, sendEmail } from "@dayotter/emails";
 
 export type MessageResult = "ok" | "not_found" | "forbidden";
 

@@ -1,6 +1,6 @@
-import { logger } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
-import { bookingRescheduled, sendEmail } from "@calsync/emails";
+import { logger } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
+import { bookingRescheduled, sendEmail } from "@dayotter/emails";
 import { reserveRuleBlocks } from "../automation/apply-rules";
 import { updateBookingCalendarEvent } from "../calendar/host-calendar";
 import { emitWebhook } from "../webhooks/emit";

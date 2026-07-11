@@ -84,7 +84,10 @@ export default function CalendarsScreen() {
                     </Text>
                   </View>
                   <View
-                    style={[styles.dot, { backgroundColor: c.status === "active" ? colors.success : colors.danger }]}
+                    style={[
+                      styles.dot,
+                      { backgroundColor: c.status === "active" ? colors.success : colors.danger },
+                    ]}
                   />
                 </View>
               ))

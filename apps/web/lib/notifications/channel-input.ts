@@ -1,4 +1,4 @@
-import type { ChannelConfig, DeliverableChannel } from "@calsync/notifications";
+import type { ChannelConfig, DeliverableChannel } from "@dayotter/notifications";
 import { z } from "zod";
 
 const E164 = /^\+[1-9]\d{6,14}$/;

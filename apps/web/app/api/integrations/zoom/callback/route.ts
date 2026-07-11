@@ -1,7 +1,7 @@
 import { verifyState } from "@/lib/calendar/oauth-state";
 import { connectZoom, exchangeZoomCode, zoomEnabled } from "@/lib/integrations/zoom";
 import { env } from "@/lib/server/env";
-import { logger } from "@calsync/core";
+import { logger } from "@dayotter/core";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

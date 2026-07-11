@@ -1,6 +1,6 @@
 import { fulfillCheckout } from "@/lib/payments/fulfill";
 import { paymentsEnabled } from "@/lib/payments/stripe";
-import { logger } from "@calsync/core";
+import { logger } from "@dayotter/core";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

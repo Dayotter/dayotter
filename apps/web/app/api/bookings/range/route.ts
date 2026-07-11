@@ -1,5 +1,5 @@
 import { jsonError, withUser } from "@/lib/server/http";
-import { and, asc, eq, getDb, gte, lt, ne, schema } from "@calsync/db";
+import { and, asc, eq, getDb, gte, lt, ne, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

@@ -3,7 +3,7 @@ import { chargeFor } from "@/lib/booking/money";
 import { stashPendingBooking } from "@/lib/payments/pending";
 import { createCheckoutSession, paymentsEnabled } from "@/lib/payments/stripe";
 import { clientIp, enforceRateLimit, verifyCaptcha } from "@/lib/server/rate-limit";
-import { schema as db, eq, getDb } from "@calsync/db";
+import { schema as db, eq, getDb } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

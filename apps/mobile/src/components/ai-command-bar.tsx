@@ -3,10 +3,7 @@ import { formatDateTime } from "@/format";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from "expo-speech-recognition";
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -30,7 +27,7 @@ interface Target {
 }
 
 /**
- * "Ask calSync" — natural-language command bar (create / reschedule / cancel),
+ * "Ask dayotter" — natural-language command bar (create / reschedule / cancel),
  * confirm-first. Renders nothing unless the server has AI enabled. The AI only
  * proposes; the user confirms before anything happens.
  */
@@ -199,7 +196,7 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
     <View style={styles.wrap}>
       <View style={styles.titleRow}>
         <Ionicons name="sparkles" size={15} color={colors.accent} />
-        <Text style={styles.title}>Ask calSync</Text>
+        <Text style={styles.title}>Ask dayotter</Text>
         <Text style={styles.hint}>you confirm first</Text>
       </View>
       <View style={styles.inputRow}>
@@ -296,11 +293,7 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
           </View>
 
           {picker ? (
-            <DateTimePicker
-              value={pickedStart ?? new Date()}
-              mode={picker}
-              onChange={onPick}
-            />
+            <DateTimePicker value={pickedStart ?? new Date()} mode={picker} onChange={onPick} />
           ) : null}
         </View>
       ) : null}

@@ -420,7 +420,7 @@ export default function EventTypeForm() {
           value={redirectUrl}
           onChange={setRedirectUrl}
           placeholder="https://example.com/thanks"
-          hint="Send bookers here instead of the calSync confirmation."
+          hint="Send bookers here instead of the dayotter confirmation."
         />
 
         <Text style={styles.label}>Colour</Text>

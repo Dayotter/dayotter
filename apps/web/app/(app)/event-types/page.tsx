@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
-import { desc, eq, getDb, schema } from "@calsync/db";
+import { desc, eq, getDb, schema } from "@dayotter/db";
 import { Clock, ExternalLink, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -25,22 +25,22 @@ export default async function EventTypesPage() {
   return (
     <>
       <PageHeader
-        title="Event Types"
+        title="Booking Types"
         description="The meetings people can book with you."
         action={
           <Link href="/event-types/new" className={buttonVariants({ variant: "primary" })}>
-            <Plus size={16} /> New event type
+            <Plus size={16} /> New booking type
           </Link>
         }
       />
 
       {eventTypes.length === 0 ? (
         <EmptyState
-          title="No event types yet"
+          title="No booking types yet"
           description="Create your first bookable meeting — like a 30-minute intro call — and share the link."
           action={
             <Link href="/event-types/new" className={buttonVariants({ variant: "primary" })}>
-              <Plus size={16} /> New event type
+              <Plus size={16} /> New booking type
             </Link>
           }
         />

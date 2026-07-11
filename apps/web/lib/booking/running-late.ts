@@ -1,6 +1,6 @@
-import { logger } from "@calsync/core";
-import { and, asc, eq, getDb, gt, lt, schema } from "@calsync/db";
-import { bookingRunningLate, sendEmail } from "@calsync/emails";
+import { logger } from "@dayotter/core";
+import { and, asc, eq, getDb, gt, lt, schema } from "@dayotter/db";
+import { bookingRunningLate, sendEmail } from "@dayotter/emails";
 
 export type RunningLateResult = "ok" | "not_found" | "forbidden";
 export type OverflowResult = RunningLateResult | "no_next";

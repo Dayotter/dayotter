@@ -2,7 +2,7 @@ import { HostAvatar } from "@/components/host-avatar";
 import { Card } from "@/components/ui/card";
 import { brandStyle, getHostBranding } from "@/lib/booking/branding";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
-import { and, asc, eq, getDb, schema } from "@calsync/db";
+import { and, asc, eq, getDb, schema } from "@dayotter/db";
 import { ArrowRight, Clock } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -82,7 +82,7 @@ export default async function PublicProfilePage({
       )}
 
       <p className="mt-10 text-center text-xs text-[var(--color-faint)]">
-        Powered by <span className="text-[var(--color-muted)]">calSync</span>
+        Powered by <span className="text-[var(--color-muted)]">dayotter</span>
       </p>
     </main>
   );

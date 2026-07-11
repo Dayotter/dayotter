@@ -83,7 +83,9 @@ describe("computeAvailability", () => {
 describe("computeAvailability — constraints", () => {
   it("applies bufferBefore (guards the lead-in of a slot)", () => {
     // Busy 10:00–10:30 EST (15:00–15:30Z). Without a buffer the 10:30 slot is free.
-    const busy = [{ start: new Date("2026-01-05T15:00:00Z"), end: new Date("2026-01-05T15:30:00Z") }];
+    const busy = [
+      { start: new Date("2026-01-05T15:00:00Z"), end: new Date("2026-01-05T15:30:00Z") },
+    ];
     const noBuffer = computeAvailability({ ...base, busy }).map((s) => s.start.toISOString());
     expect(noBuffer).toContain("2026-01-05T15:30:00.000Z"); // 10:30 free without buffer
 

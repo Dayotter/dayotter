@@ -8,14 +8,14 @@ const config: NextConfig = {
   outputFileTracingRoot: join(import.meta.dirname, "../../"),
   // Workspace packages ship TS source; let Next transpile them.
   transpilePackages: [
-    "@calsync/core",
-    "@calsync/db",
-    "@calsync/calendar",
-    "@calsync/auth",
-    "@calsync/jobs",
-    "@calsync/emails",
-    "@calsync/integrations",
-    "@calsync/notifications",
+    "@dayotter/core",
+    "@dayotter/db",
+    "@dayotter/calendar",
+    "@dayotter/auth",
+    "@dayotter/jobs",
+    "@dayotter/emails",
+    "@dayotter/integrations",
+    "@dayotter/notifications",
   ],
   serverExternalPackages: [
     "pg",

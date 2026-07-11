@@ -41,7 +41,9 @@ export async function pingRedis(): Promise<boolean> {
 }
 
 /** Pending/active/failed counts per queue, for health/metrics. */
-export async function queueDepths(): Promise<Record<string, Awaited<ReturnType<Queue["getJobCounts"]>>>> {
+export async function queueDepths(): Promise<
+  Record<string, Awaited<ReturnType<Queue["getJobCounts"]>>>
+> {
   const [reminders, sync, maintenance] = await Promise.all([
     remindersQueue.getJobCounts(),
     syncQueue.getJobCounts(),
@@ -160,7 +162,11 @@ export async function rateLimit(
       `rl:${key}`,
       String(windowSec),
     )) as [number, number];
-    return { ok: count <= limit, remaining: Math.max(0, limit - count), resetSec: ttl < 0 ? windowSec : ttl };
+    return {
+      ok: count <= limit,
+      remaining: Math.max(0, limit - count),
+      resetSec: ttl < 0 ? windowSec : ttl,
+    };
   } catch {
     return { ok: true, remaining: limit, resetSec: 0 };
   }

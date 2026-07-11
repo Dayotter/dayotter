@@ -23,7 +23,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "calSync — scheduling that respects every calendar you own",
+  title: "dayotter — scheduling that respects every calendar you own",
   description:
     "The open-source home for your time. Sync every calendar, share availability across your team, and let people book you — beautifully.",
 };

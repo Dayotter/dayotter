@@ -1,7 +1,7 @@
 import { BookingsWorkspace, type HistoryBooking } from "@/components/bookings-workspace";
 import { PageHeader } from "@/components/page-header";
 import { getSession } from "@/lib/auth/session";
-import { desc, eq, getDb, schema } from "@calsync/db";
+import { desc, eq, getDb, schema } from "@dayotter/db";
 
 export const dynamic = "force-dynamic";
 

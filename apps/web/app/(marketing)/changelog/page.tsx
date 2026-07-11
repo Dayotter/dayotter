@@ -2,8 +2,8 @@ import { MarketingHeader } from "@/components/marketing/page-shell";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Changelog — calSync",
-  description: "What's new in calSync.",
+  title: "Changelog — dayotter",
+  description: "What's new in dayotter.",
 };
 
 const ENTRIES = [

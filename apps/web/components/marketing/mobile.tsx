@@ -62,7 +62,7 @@ const TABS = [
   { icon: Settings, active: false },
 ];
 
-/** A phone-framed mockup of the calSync mobile app. */
+/** A phone-framed mockup of the dayotter mobile app. */
 function PhoneMock() {
   return (
     <div className="relative mx-auto w-[264px]">

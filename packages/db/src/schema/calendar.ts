@@ -14,7 +14,7 @@ import { users } from "./orgs";
 
 /**
  * A connected external account (one Google/Microsoft/Apple login).
- * OAuth tokens are stored encrypted (see @calsync/core crypto) in `credentials`.
+ * OAuth tokens are stored encrypted (see @dayotter/core crypto) in `credentials`.
  */
 export const calendarConnections = pgTable(
   "calendar_connections",

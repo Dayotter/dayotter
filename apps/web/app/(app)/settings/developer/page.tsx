@@ -1,7 +1,7 @@
 import { DeveloperSettings } from "@/components/developer-settings";
 import { ProGate } from "@/components/upgrade-prompt";
 import { getSession } from "@/lib/auth/session";
-import { eq, getDb, schema } from "@calsync/db";
+import { eq, getDb, schema } from "@dayotter/db";
 
 export const dynamic = "force-dynamic";
 

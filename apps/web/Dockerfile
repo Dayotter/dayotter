@@ -9,12 +9,12 @@ WORKDIR /app
 # --- Install only the web app and its workspace dependencies (skips Expo/mobile) ---
 FROM base AS deps
 COPY . .
-RUN pnpm install --frozen-lockfile --filter "@calsync/web..."
+RUN pnpm install --frozen-lockfile --filter "@dayotter/web..."
 
 # --- Build the Next.js standalone bundle ---
 FROM deps AS build
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm --filter @calsync/web build
+RUN pnpm --filter @dayotter/web build
 
 # --- Minimal runtime image ---
 FROM node:22-slim AS runner

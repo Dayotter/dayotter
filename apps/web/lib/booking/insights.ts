@@ -1,4 +1,4 @@
-import { and, eq, getDb, gte, lt, schema } from "@calsync/db";
+import { and, eq, getDb, gte, lt, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 import { type FocusMetrics, computeFocusMetrics } from "./focus-insights";
 

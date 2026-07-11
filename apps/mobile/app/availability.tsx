@@ -1,11 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { api } from "@/api";
 import { ErrorText, Loading } from "@/components/ui";
 import type { Schedule } from "@/models";
 import { colors, radius } from "@/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack } from "expo-router";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 const LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -30,6 +30,31 @@ export default function AvailabilityScreen() {
 
   function update(dow: number, ranges: Range[]) {
     setDays((prev) => (prev ? prev.map((r, i) => (i === dow ? ranges : r)) : prev));
+    setSaved(false);
+  }
+
+  /** One-tap presets — mirrors the web editor so nobody sets seven days by hand. */
+  function applyPreset(preset: "weekdays" | "everyday" | "clear") {
+    const nineToFive: Range[] = [{ start: "09:00", end: "17:00" }];
+    setDays((prev) =>
+      prev
+        ? prev.map((_, dow) => {
+            if (preset === "clear") return [];
+            if (preset === "everyday") return nineToFive.map((r) => ({ ...r }));
+            return dow >= 1 && dow <= 5 ? nineToFive.map((r) => ({ ...r })) : [];
+          })
+        : prev,
+    );
+    setSaved(false);
+  }
+
+  /** Copy one day's hours onto every day. */
+  function copyToAll(dow: number) {
+    setDays((prev) => {
+      if (!prev) return prev;
+      const src = prev[dow] ?? [];
+      return prev.map(() => src.map((r) => ({ ...r })));
+    });
     setSaved(false);
   }
 
@@ -69,6 +94,20 @@ export default function AvailabilityScreen() {
           placeholder="e.g. America/New_York"
           placeholderTextColor={colors.faint}
         />
+
+        <View style={styles.presets}>
+          {(
+            [
+              { key: "weekdays", label: "Weekdays 9–5" },
+              { key: "everyday", label: "Every day 9–5" },
+              { key: "clear", label: "Clear all" },
+            ] as const
+          ).map((p) => (
+            <Pressable key={p.key} style={styles.presetChip} onPress={() => applyPreset(p.key)}>
+              <Text style={styles.presetText}>{p.label}</Text>
+            </Pressable>
+          ))}
+        </View>
 
         {ORDER.map((dow) => {
           const ranges = days[dow] ?? [];
@@ -119,11 +158,16 @@ export default function AvailabilityScreen() {
                       </Pressable>
                     </View>
                   ))}
-                  <Pressable
-                    onPress={() => update(dow, [...ranges, { start: "09:00", end: "17:00" }])}
-                  >
-                    <Text style={styles.add}>+ Add time</Text>
-                  </Pressable>
+                  <View style={styles.rangeActions}>
+                    <Pressable
+                      onPress={() => update(dow, [...ranges, { start: "09:00", end: "17:00" }])}
+                    >
+                      <Text style={styles.add}>+ Add time</Text>
+                    </Pressable>
+                    <Pressable onPress={() => copyToAll(dow)}>
+                      <Text style={styles.copyAll}>Copy to all days</Text>
+                    </Pressable>
+                  </View>
                 </View>
               ) : (
                 <Text style={styles.unavailable}>Unavailable</Text>
@@ -189,7 +233,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   dash: { color: colors.muted },
-  add: { color: colors.accent, marginTop: 2 },
+  presets: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 4 },
+  presetChip: {
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  presetText: { color: colors.text, fontSize: 13, fontWeight: "500" },
+  rangeActions: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 2 },
+  add: { color: colors.accent },
+  copyAll: { color: colors.muted },
   unavailable: { color: colors.faint, marginTop: 8, marginLeft: 4 },
   error: { color: colors.danger, marginTop: 12 },
   save: {

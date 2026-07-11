@@ -5,8 +5,8 @@ import { Github, Mail, MessageSquare } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact — calSync",
-  description: "Get in touch with the calSync team.",
+  title: "Contact — dayotter",
+  description: "Get in touch with the dayotter team.",
 };
 
 export default function ContactPage() {
@@ -30,7 +30,7 @@ export default function ContactPage() {
           <Item
             icon={MessageSquare}
             title="Sales & teams"
-            body="Rolling calSync out to your team? We'll help."
+            body="Rolling dayotter out to your team? We'll help."
             href={`mailto:${BRAND.email}`}
           />
         </div>

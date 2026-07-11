@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/brand-mark";
 import { NAV } from "@/components/nav-items";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "@/lib/auth/auth-client";
@@ -18,10 +19,8 @@ export function MobileNav() {
       {/* Top bar */}
       <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)]/85 px-4 backdrop-blur lg:hidden">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-[var(--color-accent)] text-sm font-bold text-white">
-            c
-          </span>
-          <span className="text-[15px] font-semibold tracking-tight">calSync</span>
+          <BrandMark size={28} />
+          <span className="text-[15px] font-semibold tracking-tight">dayotter</span>
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />

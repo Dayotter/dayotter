@@ -112,7 +112,7 @@ export function SlotPicker({
       return;
     }
     track("Booking Confirmed", { eventTypeId });
-    // Honor a host-configured redirect (external URL) over the calSync confirmation.
+    // Honor a host-configured redirect (external URL) over the dayotter confirmation.
     if (typeof data.redirectUrl === "string" && /^https?:\/\//.test(data.redirectUrl)) {
       window.location.href = data.redirectUrl;
       return;

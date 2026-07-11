@@ -1,6 +1,6 @@
 import { BookingError, type CreateBookingInput, createBooking } from "@/lib/booking/create-booking";
 import { withApiKey } from "@/lib/server/api-key";
-import { and, desc, eq, getDb, schema } from "@calsync/db";
+import { and, desc, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -71,7 +71,10 @@ const body = z.object({
 export const POST = withApiKey(async (caller, request) => {
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid" }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid" },
+      { status: 400 },
+    );
   }
 
   // Only the caller's own event types can be booked via their key.

@@ -1,6 +1,6 @@
-import type { NewCalendarEvent } from "@calsync/calendar";
-import { and, eq, getDb, schema } from "@calsync/db";
-import { adapterForConnection } from "@calsync/integrations";
+import type { NewCalendarEvent } from "@dayotter/calendar";
+import { and, eq, getDb, schema } from "@dayotter/db";
+import { adapterForConnection } from "@dayotter/integrations";
 
 /** The calendar new bookings should be written to for a host, if any. */
 async function targetCalendar(userId: string) {
@@ -90,7 +90,7 @@ export async function deleteBookingFromCalendar(bookingId: string): Promise<void
       const adapter = await adapterForConnection(ref.calendar.connection);
       await adapter.deleteEvent(ref.calendar.externalId, ref.externalEventId);
     } catch {
-      // Non-fatal: the booking is cancelled in calSync regardless.
+      // Non-fatal: the booking is cancelled in dayotter regardless.
     }
   }
 }

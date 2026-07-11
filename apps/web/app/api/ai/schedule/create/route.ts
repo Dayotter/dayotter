@@ -1,8 +1,8 @@
 import { aiEnabled } from "@/lib/ai/schedule-parse";
 import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
 import { jsonError, withUser } from "@/lib/server/http";
-import { logger } from "@calsync/core";
-import { eq, getDb, schema } from "@calsync/db";
+import { logger } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -13,7 +13,10 @@ const body = z.object({
   startISO: z.string().datetime(),
   durationMinutes: z.number().int().min(5).max(1440),
   notes: z.string().max(2000).optional(),
-  attendees: z.array(z.object({ name: z.string(), email: z.string() })).max(20).default([]),
+  attendees: z
+    .array(z.object({ name: z.string(), email: z.string() }))
+    .max(20)
+    .default([]),
 });
 
 /**

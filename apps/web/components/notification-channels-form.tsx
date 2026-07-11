@@ -221,7 +221,7 @@ export function NotificationChannelsForm({
                 placeholder="ExponentPushToken[…]"
               />
               <p className="mt-1 text-xs text-[var(--color-faint)]">
-                The calSync mobile app registers this for you automatically.
+                The dayotter mobile app registers this for you automatically.
               </p>
             </div>
           ) : null}

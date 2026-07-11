@@ -1,5 +1,5 @@
-import { logger } from "@calsync/core";
-import { eq, getDb, schema, sql } from "@calsync/db";
+import { logger } from "@dayotter/core";
+import { eq, getDb, schema, sql } from "@dayotter/db";
 import type Stripe from "stripe";
 import { retrieveSubscription } from "../payments/stripe";
 
