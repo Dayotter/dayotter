@@ -9,8 +9,10 @@
 name: dayotter
 
 x-app-env: &app-env
-  DATABASE_URL: postgresql://dayotter:${POSTGRES_PASSWORD}@postgres:5432/dayotter
-  REDIS_URL: redis://redis:6379
+  # Default to the bundled Postgres/Redis. To use an external (managed) instance,
+  # set DATABASE_URL and/or REDIS_URL in deploy/.env and they take precedence.
+  DATABASE_URL: ${DATABASE_URL:-postgresql://dayotter:${POSTGRES_PASSWORD}@postgres:5432/dayotter}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379}
 
 services:
   postgres:
