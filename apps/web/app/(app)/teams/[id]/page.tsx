@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { AddMemberForm, CreateTeamEventForm } from "@/components/team-forms";
+import { TeamRules } from "@/components/team-rules";
 import { TeamScheduleView } from "@/components/team-schedule-view";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
@@ -31,6 +32,10 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
   const events = await db.query.eventTypes.findMany({
     where: eq(schema.eventTypes.teamId, id),
   });
+
+  const rules = await db.query.teamRules.findMany({ where: eq(schema.teamRules.teamId, id) });
+  const myRole = team.members.find((m) => m.userId === session!.user.id)?.role;
+  const canManage = myRole === "owner" || myRole === "admin";
 
   // Shared team calendar — everyone's busy times for the next 7 days.
   const viewerTz = (session!.user as { timezone?: string }).timezone ?? "UTC";
@@ -120,6 +125,28 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
             <div className="border-t border-[var(--color-border)] pt-5">
               <CreateTeamEventForm teamId={team.id} />
             </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Scheduling rules"
+            description="Company holidays and meeting-free windows that block bookings for every member."
+          />
+          <CardBody>
+            <TeamRules
+              teamId={team.id}
+              canManage={canManage}
+              initial={rules.map((r) => ({
+                id: r.id,
+                kind: r.kind,
+                label: r.label,
+                theDate: r.theDate,
+                dayOfWeek: r.dayOfWeek,
+                startMinute: r.startMinute,
+                endMinute: r.endMinute,
+              }))}
+            />
           </CardBody>
         </Card>
       </div>
