@@ -1,16 +1,22 @@
-import { api } from "@/api";
+import { BASE_URL, api } from "@/api";
 import { useAuth } from "@/auth";
 import { AiCommandBar } from "@/components/ai-command-bar";
+import { SetupChecklist } from "@/components/setup-checklist";
 import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
 import { useAsync } from "@/hooks";
 import type { Booking, Recommendation } from "@/models";
-import { colors } from "@/theme";
+import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+interface Me {
+  user?: { handle?: string | null };
+  setup?: { hasCalendar: boolean; hasHours: boolean; hasEventType: boolean };
+}
 
 /** Maps the Intelligence engine's icon names to Ionicons. */
 const REC_ICON: Record<Recommendation["icon"], keyof typeof Ionicons.glyphMap> = {
@@ -39,11 +45,16 @@ export default function DashboardScreen() {
     return res.recommendations;
   });
 
+  const { data: me, reload: reloadMe } = useAsync<Me>(async () => api.get<Me>("/api/me"));
+  const handle = me?.user?.handle ?? null;
+  const bookingUrl = handle ? `${BASE_URL}/${handle}` : null;
+
   useFocusEffect(
     useCallback(() => {
       reload();
       reloadRecs();
-    }, [reload, reloadRecs]),
+      reloadMe();
+    }, [reload, reloadRecs, reloadMe]),
   );
 
   return (
@@ -74,6 +85,30 @@ export default function DashboardScreen() {
       >
         <Text style={styles.hi}>Good to see you,</Text>
         <Text style={styles.name}>{firstName}</Text>
+
+        <SetupChecklist setup={me?.setup} />
+
+        {bookingUrl ? (
+          <Pressable style={styles.linkCard} onPress={() => Share.share({ message: bookingUrl })}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.linkLabel}>YOUR BOOKING LINK</Text>
+              <Text style={styles.linkUrl} numberOfLines={1}>
+                {bookingUrl.replace(/^https?:\/\//, "")}
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => Linking.openURL(bookingUrl)}
+              hitSlop={8}
+              style={styles.linkView}
+            >
+              <Ionicons name="open-outline" size={18} color={colors.muted} />
+            </Pressable>
+            <View style={styles.shareBtn}>
+              <Ionicons name="share-outline" size={15} color="#fff" />
+              <Text style={styles.shareText}>Share</Text>
+            </View>
+          </Pressable>
+        ) : null}
 
         <View style={{ marginTop: 18 }}>
           <AiCommandBar onDone={reload} />
@@ -143,6 +178,37 @@ const styles = StyleSheet.create({
   hi: { fontSize: 22, color: colors.muted, fontWeight: "500" },
   name: { fontSize: 30, fontWeight: "700", color: colors.text },
   section: { marginTop: 20, marginBottom: 12, fontWeight: "600", color: colors.muted },
+  linkCard: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.accentSoft,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  linkLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    color: colors.accent,
+    textTransform: "uppercase",
+  },
+  linkUrl: { marginTop: 2, fontSize: 15, fontWeight: "600", color: colors.text },
+  linkView: { padding: 4 },
+  shareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  shareText: { color: "#fff", fontWeight: "600", fontSize: 13 },
   row: { flexDirection: "row", alignItems: "center" },
   iconBox: {
     height: 40,
