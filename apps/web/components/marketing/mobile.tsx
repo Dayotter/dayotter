@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/brand-mark";
 import { Float, Reveal } from "@/components/marketing/motion";
 import { CalendarClock, CalendarDays, LayoutDashboard, Settings, Users } from "lucide-react";
 
@@ -74,9 +75,12 @@ function PhoneMock() {
           <div className="px-4 pb-3 pt-11">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <div>
-                <p className="font-display text-xl leading-none">Today</p>
-                <p className="mt-1 text-[11px] text-[var(--color-muted)]">Thursday, Jul 3</p>
+              <div className="flex items-center gap-2">
+                <BrandMark size={26} />
+                <div>
+                  <p className="font-display text-lg leading-none">Day{" "}Otter</p>
+                  <p className="mt-1 text-[11px] text-[var(--color-muted)]">Thursday, Jul 3</p>
+                </div>
               </div>
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent)] text-xs font-semibold text-white">
                 A

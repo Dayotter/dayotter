@@ -14,7 +14,7 @@ export function Marquee() {
   const row = [...WORKS_WITH, ...WORKS_WITH];
   return (
     <div className="relative overflow-hidden py-6">
-      <p className="eyebrow mb-6 text-center">Works with the calendars you already use</p>
+      <p className="eyebrow mb-6 text-center">Plays nice with the calendars you already use</p>
       <div
         className="relative"
         style={{

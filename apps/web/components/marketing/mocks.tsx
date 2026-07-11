@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/brand-mark";
 import { Check, Video } from "lucide-react";
 
 /*
@@ -53,9 +54,8 @@ export function CalendarMock({ className }: { className?: string }) {
     >
       <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: HUES.coral }} />
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: HUES.amber }} />
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: HUES.mint }} />
+          <BrandMark size={18} />
+          <span className="text-sm font-semibold tracking-tight">Day{" "}Otter</span>
         </div>
         <span className="text-sm font-medium">This week</span>
         <span className="text-xs text-[var(--color-muted)]">Jul 7 – 11</span>
@@ -157,7 +157,10 @@ export function TeamAvailabilityMock({ className }: { className?: string }) {
       className={`rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-raise)] ${className ?? ""}`}
     >
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium">Team availability</span>
+        <span className="flex items-center gap-2 text-sm font-medium">
+          <BrandMark size={18} />
+          Team availability
+        </span>
         <span className="rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-accent)]">
           All free · 2:00 PM
         </span>
@@ -200,9 +203,7 @@ export function BookingMock({ className }: { className?: string }) {
       className={`rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-raise)] ${className ?? ""}`}
     >
       <div className="flex items-center gap-3 border-b border-[var(--color-border)] pb-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent)] text-xs font-semibold text-white">
-          A
-        </div>
+        <BrandMark size={34} />
         <div className="flex-1">
           <p className="text-sm font-semibold">Intro Call</p>
           <p className="text-xs text-[var(--color-muted)]">30 min</p>
