@@ -3,7 +3,7 @@ import { FormError } from "@/components/ui/form";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
-import { Check, Plus, X } from "lucide-react";
+import { Check, Copy, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 interface Range {
@@ -110,6 +110,28 @@ export function AvailabilityEditor({
     setSaved(false);
   }
 
+  /** One-tap presets — the common cases, so nobody sets seven days by hand. */
+  function applyPreset(preset: "weekdays" | "everyday" | "clear") {
+    const nineToFive: Range[] = [{ start: "09:00", end: "17:00" }];
+    setDays((prev) =>
+      prev.map((_, dow) => {
+        if (preset === "clear") return [];
+        if (preset === "everyday") return nineToFive.map((r) => ({ ...r }));
+        return dow >= 1 && dow <= 5 ? nineToFive.map((r) => ({ ...r })) : []; // weekdays = Mon–Fri
+      }),
+    );
+    setSaved(false);
+  }
+
+  /** Copy one day's hours onto every day — the other "I do the same thing daily" shortcut. */
+  function copyToAll(dow: number) {
+    setDays((prev) => {
+      const src = prev[dow] ?? [];
+      return prev.map(() => src.map((r) => ({ ...r })));
+    });
+    setSaved(false);
+  }
+
   async function save() {
     setSaving(true);
     setError(null);
@@ -151,6 +173,26 @@ export function AvailabilityEditor({
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-sm text-[var(--color-muted)]">Quick set</span>
+        {(
+          [
+            { key: "weekdays", label: "Weekdays 9–5" },
+            { key: "everyday", label: "Every day 9–5" },
+            { key: "clear", label: "Clear all" },
+          ] as const
+        ).map((p) => (
+          <button
+            key={p.key}
+            type="button"
+            onClick={() => applyPreset(p.key)}
+            className="rounded-full border border-[var(--color-border-strong)] px-3 py-1 text-sm text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+          >
+            {p.label}
+          </button>
+        ))}
       </div>
 
       <div className="divide-y divide-[var(--color-border)] rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -216,13 +258,22 @@ export function AvailabilityEditor({
                         </button>
                       </div>
                     ))}
-                    <button
-                      type="button"
-                      onClick={() => update(dow, [...ranges, { start: "09:00", end: "17:00" }])}
-                      className="inline-flex items-center gap-1 text-sm text-[var(--color-accent)] hover:underline"
-                    >
-                      <Plus size={14} /> Add time
-                    </button>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                      <button
+                        type="button"
+                        onClick={() => update(dow, [...ranges, { start: "09:00", end: "17:00" }])}
+                        className="inline-flex items-center gap-1 text-sm text-[var(--color-accent)] hover:underline"
+                      >
+                        <Plus size={14} /> Add time
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyToAll(dow)}
+                        className="inline-flex items-center gap-1 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                      >
+                        <Copy size={13} /> Copy to all days
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
