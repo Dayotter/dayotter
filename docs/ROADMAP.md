@@ -108,7 +108,7 @@ truth: **Timezone**, **Sync**, **Availability**, **Notification**, **LLM**,
 |---|---|---|
 | Shared team calendar view · collective · round-robin · team event types | ✅ | the wedge |
 | **Shared booking links** | ⬜ | **NEW** |
-| **Team scheduling rules** (meeting-free afternoons, working agreements, company holidays, shared focus blocks) | ⬜ | **NEW** |
+| **Team scheduling rules** (company holidays, meeting-free windows) | ✅ | team_rules block every member's availability (individual + team pages), applied per-member in their tz; admin-managed on the team page. Shared team focus blocks ⬜ |
 
 ## Phase 8 — Mobile (companion, not reduced web)
 | Capability | Status | Notes |

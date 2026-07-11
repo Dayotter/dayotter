@@ -17,6 +17,63 @@ export function filterOpenGroupSlots(
   return slots.filter((s) => (counts.get(s.start.getTime()) ?? 0) < capacity);
 }
 
+/** A team scheduling rule as the availability engine needs it. */
+export interface TeamRule {
+  kind: string; // 'holiday' | 'no_meeting'
+  theDate: string | null;
+  dayOfWeek: number | null; // 0=Sun..6=Sat; null = every day
+  startMinute: number | null;
+  endMinute: number | null;
+}
+
+/**
+ * Busy intervals a team's working-agreement rules impose on a member across
+ * [rangeStart, rangeEnd], in that member's schedule timezone (DST-correct):
+ *  - `holiday`    → the whole local day is blocked.
+ *  - `no_meeting` → the [start,end] window on matching weekdays is blocked.
+ * Pure — unit-tested.
+ */
+export function teamRuleIntervals(
+  rules: TeamRule[],
+  tz: string,
+  rangeStart: Date,
+  rangeEnd: Date,
+): { start: Date; end: Date }[] {
+  const out: { start: Date; end: Date }[] = [];
+  const set = { second: 0, millisecond: 0 } as const;
+  const lastDay = DateTime.fromJSDate(rangeEnd).setZone(tz).endOf("day");
+
+  for (const r of rules) {
+    if (r.kind === "holiday" && r.theDate) {
+      const day = DateTime.fromISO(r.theDate, { zone: tz }).startOf("day");
+      const next = day.plus({ days: 1 });
+      if (day.isValid && day.toJSDate() < rangeEnd && next.toJSDate() > rangeStart) {
+        out.push({ start: day.toJSDate(), end: next.toJSDate() });
+      }
+    } else if (
+      r.kind === "no_meeting" &&
+      r.startMinute != null &&
+      r.endMinute != null &&
+      r.endMinute > r.startMinute
+    ) {
+      let day = DateTime.fromJSDate(rangeStart).setZone(tz).startOf("day");
+      for (; day <= lastDay; day = day.plus({ days: 1 })) {
+        // Luxon weekday 1=Mon..7=Sun → %7 gives 0=Sun..6=Sat.
+        if (r.dayOfWeek != null && day.weekday % 7 !== r.dayOfWeek) continue;
+        out.push({
+          start: day
+            .set({ hour: Math.floor(r.startMinute / 60), minute: r.startMinute % 60, ...set })
+            .toJSDate(),
+          end: day
+            .set({ hour: Math.floor(r.endMinute / 60), minute: r.endMinute % 60, ...set })
+            .toJSDate(),
+        });
+      }
+    }
+  }
+  return out;
+}
+
 /**
  * Daily lunch-break intervals across [rangeStart, rangeEnd] at the given
  * wall-clock minutes, in the schedule's timezone (DST-correct via `.set`).
@@ -136,7 +193,7 @@ export async function hostSlots(
     .filter((cal) => cal.checkForConflicts)
     .map((cal) => cal.id);
 
-  const [busyRows, existingBookings, blocks, prefs] = await Promise.all([
+  const [busyRows, existingBookings, blocks, prefs, teamRuleRows] = await Promise.all([
     calendarIds.length ? busyBlocksFor(calendarIds, rangeStart, rangeEnd) : Promise.resolve([]),
     bookingsFor([userId], rangeStart, rangeEnd, excludeBookingId, ignoreGroupEventTypeId),
     timeBlocksFor(userId, rangeStart, rangeEnd),
@@ -150,9 +207,15 @@ export async function hostSlots(
         lunchEndMinute: true,
       },
     }),
+    teamRulesFor(userId),
   ]);
 
   const ownBookings = existingBookings.filter((b) => b.hostId === userId);
+  // Team working-agreement rules (holidays, meeting-free windows) block time for
+  // every member — applied in this host's schedule timezone.
+  const teamBusy = teamRuleRows.length
+    ? teamRuleIntervals(teamRuleRows, schedule.timezone, rangeStart, rangeEnd)
+    : [];
   // A daily lunch break blocks time like any other busy interval.
   const lunchBusy = prefs?.lunchEnabled
     ? lunchIntervals(
@@ -189,6 +252,8 @@ export async function hostSlots(
       })),
       // Daily lunch break.
       ...lunchBusy,
+      // Team holidays / meeting-free windows.
+      ...teamBusy,
     ],
     event,
     rangeStart,
@@ -226,6 +291,21 @@ function timeBlocksFor(userId: string, rangeStart: Date, rangeEnd: Date) {
     ),
     columns: { startsAt: true, endsAt: true },
   });
+}
+
+/** Team scheduling rules that apply to a user, across all teams they belong to. */
+function teamRulesFor(userId: string): Promise<TeamRule[]> {
+  return getDb()
+    .select({
+      kind: schema.teamRules.kind,
+      theDate: schema.teamRules.theDate,
+      dayOfWeek: schema.teamRules.dayOfWeek,
+      startMinute: schema.teamRules.startMinute,
+      endMinute: schema.teamRules.endMinute,
+    })
+    .from(schema.teamRules)
+    .innerJoin(schema.teamMembers, eq(schema.teamRules.teamId, schema.teamMembers.teamId))
+    .where(eq(schema.teamMembers.userId, userId));
 }
 
 /** Busy blocks that OVERLAP the window (not just those that start inside it — a

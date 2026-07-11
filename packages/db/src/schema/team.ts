@@ -1,8 +1,17 @@
 import { relations } from "drizzle-orm";
-import { index, integer, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  date,
+  index,
+  integer,
+  pgTable,
+  smallint,
+  text,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { membershipRole, timestamps } from "./_shared";
-import { eventTypes } from "./scheduling";
 import { organizations, users } from "./orgs";
+import { eventTypes } from "./scheduling";
 
 /** A group within an org used for collective / round-robin scheduling. */
 export const teams = pgTable(
@@ -59,12 +68,44 @@ export const eventTypeHosts = pgTable(
   (t) => [uniqueIndex("event_type_hosts_idx").on(t.eventTypeId, t.userId)],
 );
 
+/**
+ * Team-wide scheduling rules that block bookable time for every member — the
+ * "working agreements" layer. Two kinds:
+ *  - `holiday`     — a whole day off (company holiday), given by `theDate`.
+ *  - `no_meeting`  — a recurring weekly window (e.g. Friday afternoons), given
+ *                    by `dayOfWeek` (0=Sun..6=Sat; null = every day) + the
+ *                    `startMinute`/`endMinute` range (minutes from local midnight).
+ * Applied in each member's schedule timezone by the availability engine.
+ */
+export const teamRules = pgTable(
+  "team_rules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(), // 'holiday' | 'no_meeting'
+    label: text("label"),
+    theDate: date("the_date"),
+    dayOfWeek: smallint("day_of_week"),
+    startMinute: smallint("start_minute"),
+    endMinute: smallint("end_minute"),
+    ...timestamps,
+  },
+  (t) => [index("team_rules_team_idx").on(t.teamId)],
+);
+
 export const teamsRelations = relations(teams, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [teams.organizationId],
     references: [organizations.id],
   }),
   members: many(teamMembers),
+  rules: many(teamRules),
+}));
+
+export const teamRulesRelations = relations(teamRules, ({ one }) => ({
+  team: one(teams, { fields: [teamRules.teamId], references: [teams.id] }),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
