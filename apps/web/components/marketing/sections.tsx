@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandMark } from "@/components/brand-mark";
 import { Reveal } from "@/components/marketing/motion";
 import { buttonVariants } from "@/components/ui/button";
 import { BRAND, FOOTER_COLUMNS } from "@/lib/marketing";
@@ -109,9 +110,7 @@ export function Footer() {
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div>
           <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-[var(--color-accent)] text-sm font-bold text-white">
-              c
-            </span>
+            <BrandMark size={28} />
             <span className="text-[15px] font-semibold tracking-tight">dayotter</span>
           </Link>
           <p className="mt-3 max-w-[240px] text-sm text-[var(--color-muted)]">{BRAND.tagline}</p>

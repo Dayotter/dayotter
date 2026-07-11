@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/brand-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BRAND } from "@/lib/marketing";
 import { CalendarCheck, Sparkles, Users } from "lucide-react";
@@ -31,9 +32,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         />
         <div className="relative">
           <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-white/15 text-base font-bold backdrop-blur">
-              c
-            </span>
+            <BrandMark size={32} rounded="rounded-[9px]" className="bg-white/15 backdrop-blur" />
             <span className="text-lg font-semibold tracking-tight">dayotter</span>
           </Link>
         </div>
@@ -65,9 +64,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center justify-between">
           {/* Logo shown on mobile (the brand panel carries it on desktop). */}
           <Link href="/" className="flex items-center gap-2 lg:invisible">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[var(--color-accent)] text-base font-bold text-white">
-              c
-            </span>
+            <BrandMark size={32} rounded="rounded-[9px]" />
             <span className="text-lg font-semibold tracking-tight">dayotter</span>
           </Link>
           <ThemeToggle />
