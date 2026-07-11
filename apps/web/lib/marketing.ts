@@ -1,7 +1,7 @@
 /** Brand + marketing constants. One place for links, contact, and footer nav. */
 
 export const BRAND = {
-  name: "dayotter",
+  name: "DayOtter",
   tagline: "The open-source home for your time.",
   email: "hello@dayotter.com",
   github: "https://github.com/nometria/dayotter",

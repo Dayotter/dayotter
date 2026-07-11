@@ -3,8 +3,8 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About — dayotter",
-  description: "Why we built dayotter — the open-source home for your time.",
+  title: "About — DayOtter",
+  description: "Why we built DayOtter — the open-source home for your time.",
 };
 
 export default function AboutPage() {
@@ -13,7 +13,7 @@ export default function AboutPage() {
       <MarketingHeader
         eyebrow="About"
         title="Software that respects your time"
-        subtitle="dayotter is the open-source home for your calendar — built for people who guard their hours."
+        subtitle="DayOtter is the open-source home for your calendar — built for people who guard their hours."
       />
       <Prose>
         <p>

@@ -124,7 +124,7 @@ export const eventTypeInputSchema = z
     accessCode: z.string().trim().min(1).max(64).nullable().optional(),
     /** Hidden from the public profile listing (still bookable by direct link). */
     isPrivate: z.boolean().default(false),
-    /** Send the booker here after booking instead of the dayotter confirmation. */
+    /** Send the booker here after booking instead of the DayOtter confirmation. */
     redirectUrl: z.string().url().max(500).nullable().default(null),
     /** Colour token used to visually tag this event type across the app. */
     color: z.enum(EVENT_COLORS).nullable().default(null),

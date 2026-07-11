@@ -65,7 +65,7 @@ export const POST = withUser(async (u, request) => {
 
   // Verify by delivering a real test message before we trust the channel.
   const test = await dispatchToChannel(input.type, config, {
-    title: "dayotter connected",
+    title: "DayOtter connected",
     body: "This channel will now receive your meeting reminders.",
     url: `${appUrl}/settings/notifications`,
   });

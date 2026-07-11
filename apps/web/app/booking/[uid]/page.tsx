@@ -151,8 +151,17 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
           ) : null}
         </CardBody>
       </Card>
-      <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
-        Powered by <span className="text-[var(--color-muted)]">dayotter</span>
+      <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-[var(--color-faint)]">
+        <span className="relative inline-block h-3.5 w-3.5 shrink-0 overflow-hidden rounded-[3px]">
+          <img
+            src="/brand/dayotter-icon.svg"
+            alt=""
+            width={21}
+            height={21}
+            className="absolute -left-[3px] -top-[3px] max-w-none"
+          />
+        </span>
+        Powered by <span className="text-[var(--color-muted)]">DayOtter</span>
       </p>
     </main>
   );

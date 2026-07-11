@@ -61,7 +61,7 @@ export function BookingsWorkspace({ tz, history }: { tz: string; history: Histor
       ) : history.length === 0 ? (
         <EmptyState
           title="No bookings yet"
-          description="When someone books one of your event types, it appears here."
+          description="Calm waters for now — when someone books one of your booking types, it surfaces here."
         />
       ) : (
         <div className="space-y-2">

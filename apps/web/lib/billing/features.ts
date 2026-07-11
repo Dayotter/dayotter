@@ -24,10 +24,10 @@ export type Feature =
   | "accept_payments" // charge attendees for bookings
   | "developer" // API keys, webhooks, embed
   // Cloud-only (ee/, commercial license)
-  | "managed_ai" // AI with dayotter's key — no BYO key
+  | "managed_ai" // AI with DayOtter's key — no BYO key
   | "sso" // SAML / Google Workspace sign-in
   | "white_label" // remove branding + custom booking domain
-  | "hosted_messaging"; // SMS/WhatsApp via dayotter's Twilio credits
+  | "hosted_messaging"; // SMS/WhatsApp via DayOtter's Twilio credits
 
 export const FEATURE_TIER: Record<Feature, FeatureTier> = {
   ai: "pro",

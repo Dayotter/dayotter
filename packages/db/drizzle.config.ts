@@ -5,7 +5,7 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? "postgresql://calsync:calsync@localhost:5432/calsync",
+    url: process.env.DATABASE_URL ?? "postgresql://dayotter:dayotter@localhost:5432/dayotter",
   },
   casing: "snake_case",
   verbose: true,

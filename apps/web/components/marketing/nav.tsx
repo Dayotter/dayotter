@@ -29,7 +29,7 @@ export function MarketingNav() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
         <Link href="/" className="flex items-center gap-2">
           <BrandMark size={28} />
-          <span className="text-[15px] font-semibold tracking-tight">dayotter</span>
+          <span className="text-[15px] font-semibold tracking-tight">DayOtter</span>
         </Link>
         <nav className="hidden items-center gap-7 text-sm text-[var(--color-muted)] md:flex">
           {MARKETING_NAV.map((l) => (

@@ -37,7 +37,7 @@ export function buildIcs(e: CalendarEventData): string {
     "PRODID:-//dayotter//Booking//EN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:${e.uid}@calsync`,
+    `UID:${e.uid}@dayotter`,
     `DTSTAMP:${now}`,
     `DTSTART:${utc(e.start)}`,
     `DTEND:${utc(e.end)}`,

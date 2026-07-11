@@ -22,7 +22,7 @@ export interface OutboundEmail {
 }
 
 export async function sendEmail(email: OutboundEmail): Promise<void> {
-  const from = process.env.EMAIL_FROM ?? "dayotter <no-reply@example.com>";
+  const from = process.env.EMAIL_FROM ?? "DayOtter <no-reply@example.com>";
   const info = await getTransporter().sendMail({ from, ...email });
   if (!process.env.SMTP_URL) {
     console.log(`[emails] (no SMTP) → ${JSON.stringify(email.to)}: ${email.subject}`);

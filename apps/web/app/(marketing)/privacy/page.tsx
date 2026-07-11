@@ -3,8 +3,8 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — dayotter",
-  description: "How dayotter collects, uses, and protects your data.",
+  title: "Privacy Policy — DayOtter",
+  description: "How DayOtter collects, uses, and protects your data.",
 };
 
 export default function PrivacyPage() {

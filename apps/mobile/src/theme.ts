@@ -1,4 +1,4 @@
-/** Design tokens mirroring the dayotter web app (warm ivory, premium violet). */
+/** Design tokens mirroring the DayOtter web app (warm ivory, premium violet). */
 export const colors = {
   bg: "#FAF9F6",
   surface: "#FFFFFF",

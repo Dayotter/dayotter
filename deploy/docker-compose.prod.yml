@@ -9,7 +9,7 @@
 name: dayotter
 
 x-app-env: &app-env
-  DATABASE_URL: postgresql://calsync:${POSTGRES_PASSWORD}@postgres:5432/calsync
+  DATABASE_URL: postgresql://dayotter:${POSTGRES_PASSWORD}@postgres:5432/dayotter
   REDIS_URL: redis://redis:6379
 
 services:
@@ -17,13 +17,13 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: calsync
+      POSTGRES_USER: dayotter
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: calsync
+      POSTGRES_DB: dayotter
     volumes:
-      - calsync_pgdata:/var/lib/postgresql/data
+      - dayotter_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U calsync"]
+      test: ["CMD-SHELL", "pg_isready -U dayotter"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -33,7 +33,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
-      - calsync_redisdata:/data
+      - dayotter_redisdata:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -89,7 +89,7 @@ services:
       redis:
         condition: service_healthy
 
-  # Reverse proxy with automatic HTTPS (Let's Encrypt) when CALSYNC_DOMAIN is a
+  # Reverse proxy with automatic HTTPS (Let's Encrypt) when DAYOTTER_DOMAIN is a
   # real domain that points at this server; plain HTTP on :80 otherwise.
   caddy:
     image: caddy:2-alpine
@@ -98,7 +98,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      CALSYNC_SITE_ADDRESS: ${CALSYNC_SITE_ADDRESS:-:80}
+      DAYOTTER_SITE_ADDRESS: ${DAYOTTER_SITE_ADDRESS:-:80}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -107,7 +107,7 @@ services:
       - web
 
 volumes:
-  calsync_pgdata:
-  calsync_redisdata:
+  dayotter_pgdata:
+  dayotter_redisdata:
   caddy_data:
   caddy_config:

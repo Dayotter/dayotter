@@ -3,8 +3,8 @@ import { CheckCircle2 } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Status — dayotter",
-  description: "dayotter system status.",
+  title: "Status — DayOtter",
+  description: "DayOtter system status.",
 };
 
 const SYSTEMS = [
@@ -35,7 +35,7 @@ export default function StatusPage() {
           ))}
         </ul>
         <p className="mt-6 text-center text-xs text-[var(--color-faint)]">
-          Self-hosting dayotter? This page reflects the hosted cloud only.
+          Self-hosting DayOtter? This page reflects the hosted cloud only.
         </p>
       </section>
     </>

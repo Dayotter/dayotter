@@ -62,7 +62,7 @@ export default function NotificationsScreen() {
       res.reason === "simulator"
         ? "Push needs a real device (not a simulator)."
         : res.reason === "denied"
-          ? "Enable notifications for dayotter in your device settings."
+          ? "Enable notifications for DayOtter in your device settings."
           : res.reason === "token"
             ? "Couldn't get a push token — this needs a dev build, not Expo Go."
             : (res.message ?? "Couldn't verify the device. Please try again.");

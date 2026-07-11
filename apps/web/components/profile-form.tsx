@@ -20,7 +20,7 @@ function timezones(): string[] {
   }
 }
 
-/** Preset booking-page accent colours (hex). `null` = the default dayotter theme. */
+/** Preset booking-page accent colours (hex). `null` = the default DayOtter theme. */
 const BRAND_PRESETS = ["#5b4be6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
 
 export function ProfileForm({

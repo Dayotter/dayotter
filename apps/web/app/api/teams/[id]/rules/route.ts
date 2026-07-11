@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth/session";
-import { and, asc, eq, getDb, schema } from "@calsync/db";
+import { and, asc, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 

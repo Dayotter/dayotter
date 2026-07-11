@@ -14,8 +14,8 @@ export const authClient = createAuthClient({
   baseURL: BASE_URL,
   plugins: [
     expoClient({
-      scheme: "calsync",
-      storagePrefix: "calsync",
+      scheme: "dayotter",
+      storagePrefix: "dayotter",
       storage: SecureStore,
     }),
   ],

@@ -4,7 +4,7 @@ import { BASE_URL } from "./config";
 
 export { BASE_URL };
 
-const TOKEN_KEY = "calsync_auth_token";
+const TOKEN_KEY = "dayotter_auth_token";
 
 export class ApiError extends Error {
   constructor(

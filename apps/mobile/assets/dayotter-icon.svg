@@ -1,0 +1,238 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+<title id="title">DayOtter premium app icon</title>
+<desc id="desc">A polished otter mascot holding a three-row calendar inside a deep blue rounded app tile.</desc>
+
+<defs>
+  <!-- BACKGROUND -->
+  <linearGradient id="bg" x1="185" y1="135" x2="835" y2="875" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#244C91"/>
+    <stop offset=".38" stop-color="#183D7B"/>
+    <stop offset=".72" stop-color="#112F61"/>
+    <stop offset="1" stop-color="#081B3E"/>
+  </linearGradient>
+  <linearGradient id="bgRim" x1="160" y1="130" x2="860" y2="900" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#6486C3"/>
+    <stop offset=".35" stop-color="#2E579E"/>
+    <stop offset=".72" stop-color="#15346D"/>
+    <stop offset="1" stop-color="#071A3D"/>
+  </linearGradient>
+  <radialGradient id="bgGlow" cx=".48" cy=".28" r=".72">
+    <stop stop-color="#4E72B2" stop-opacity=".28"/>
+    <stop offset=".45" stop-color="#365F9C" stop-opacity=".08"/>
+    <stop offset="1" stop-color="#18335F" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="topGloss" x1="215" y1="160" x2="805" y2="270" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#FFFFFF" stop-opacity=".24"/>
+    <stop offset=".5" stop-color="#E1ECFF" stop-opacity=".07"/>
+    <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+  </linearGradient>
+
+  <!-- OTTER -->
+  <radialGradient id="fur" cx=".46" cy=".18" r=".84">
+    <stop stop-color="#EFB17D"/>
+    <stop offset=".28" stop-color="#D99861"/>
+    <stop offset=".62" stop-color="#C57C48"/>
+    <stop offset="1" stop-color="#9A532C"/>
+  </radialGradient>
+  <linearGradient id="furShade" x1="0" y1="0" x2="0" y2="1">
+    <stop stop-color="#FFFFFF" stop-opacity=".12"/>
+    <stop offset=".55" stop-color="#FFFFFF" stop-opacity="0"/>
+    <stop offset="1" stop-color="#6A341A" stop-opacity=".20"/>
+  </linearGradient>
+  <linearGradient id="ear" x1="0" y1="0" x2="1" y2="1">
+    <stop stop-color="#F4BD8E"/>
+    <stop offset=".6" stop-color="#CF8555"/>
+    <stop offset="1" stop-color="#92512D"/>
+  </linearGradient>
+  <linearGradient id="paw" x1="0" y1="0" x2=".82" y2="1">
+    <stop stop-color="#D89A70"/>
+    <stop offset=".55" stop-color="#BA754D"/>
+    <stop offset="1" stop-color="#81482B"/>
+  </linearGradient>
+  <radialGradient id="muzzle" cx=".44" cy=".24" r=".78">
+    <stop stop-color="#FFF4E2"/>
+    <stop offset=".52" stop-color="#F3D6B5"/>
+    <stop offset="1" stop-color="#D4A579"/>
+  </radialGradient>
+  <radialGradient id="eye" cx=".34" cy=".20" r=".9">
+    <stop stop-color="#4B596D"/>
+    <stop offset=".3" stop-color="#151A22"/>
+    <stop offset=".75" stop-color="#040507"/>
+    <stop offset="1" stop-color="#000"/>
+  </radialGradient>
+  <radialGradient id="nose" cx=".34" cy=".18" r=".9">
+    <stop stop-color="#8B6856"/>
+    <stop offset=".48" stop-color="#42251B"/>
+    <stop offset="1" stop-color="#150A07"/>
+  </radialGradient>
+
+  <!-- CALENDAR -->
+  <linearGradient id="calTop" x1="270" y1="488" x2="760" y2="590" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#345EB6"/>
+    <stop offset=".42" stop-color="#2A55A9"/>
+    <stop offset="1" stop-color="#214A95"/>
+  </linearGradient>
+  <linearGradient id="calTopGloss" x1="295" y1="500" x2="720" y2="548" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#FFFFFF" stop-opacity=".34"/>
+    <stop offset=".48" stop-color="#DCEAFF" stop-opacity=".08"/>
+    <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="paper" x1="280" y1="560" x2="744" y2="825" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#FFFFFF"/>
+    <stop offset=".55" stop-color="#F8F9FC"/>
+    <stop offset="1" stop-color="#E9ECF3"/>
+  </linearGradient>
+  <linearGradient id="paperEdge" x1="272" y1="490" x2="752" y2="810" gradientUnits="userSpaceOnUse">
+    <stop stop-color="#FFFFFF"/>
+    <stop offset=".48" stop-color="#DEE5F0"/>
+    <stop offset="1" stop-color="#AEB9CC"/>
+  </linearGradient>
+  <linearGradient id="selected" x1="0" y1="0" x2="1" y2="1">
+    <stop stop-color="#2F83F2"/>
+    <stop offset=".55" stop-color="#236AD8"/>
+    <stop offset="1" stop-color="#1B54C0"/>
+  </linearGradient>
+  <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+    <stop stop-color="#18386F"/>
+    <stop offset=".5" stop-color="#091C49"/>
+    <stop offset="1" stop-color="#040B1F"/>
+  </linearGradient>
+
+
+  <clipPath id="calendarClip">
+    <rect x="272" y="491" width="480" height="316" rx="60"/>
+  </clipPath>
+
+  <!-- EFFECTS -->
+  <filter id="tileShadow" x="-25%" y="-25%" width="150%" height="165%">
+    <feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#07142D" flood-opacity=".34"/>
+  </filter>
+  <filter id="faceShadow" x="-25%" y="-25%" width="150%" height="160%">
+    <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#4B2718" flood-opacity=".18"/>
+  </filter>
+  <filter id="calendarShadow" x="-25%" y="-25%" width="150%" height="170%">
+    <feDropShadow dx="0" dy="15" stdDeviation="15" flood-color="#07142F" flood-opacity=".36"/>
+  </filter>
+  <filter id="smallShadow" x="-30%" y="-30%" width="160%" height="170%">
+    <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#2F170D" flood-opacity=".20"/>
+  </filter>
+</defs>
+
+<!-- transparent canvas -->
+<g filter="url(#tileShadow)">
+  <rect x="164" y="148" width="696" height="706" rx="168" fill="url(#bg)"/>
+  <rect x="170" y="154" width="684" height="694" rx="162" fill="none" stroke="url(#bgRim)" stroke-width="12"/>
+  <rect x="175" y="159" width="674" height="684" rx="157" fill="url(#bgGlow)"/>
+</g>
+
+<!-- EARS -->
+<g filter="url(#faceShadow)">
+  <circle cx="350" cy="279" r="49" fill="url(#ear)"/>
+  <circle cx="674" cy="279" r="49" fill="url(#ear)"/>
+  <circle cx="350" cy="279" r="28" fill="#5D301B"/>
+  <circle cx="674" cy="279" r="28" fill="#5D301B"/>
+</g>
+
+<!-- HEAD -->
+<g filter="url(#faceShadow)">
+  <path d="M512 202C391 202 318 278 320 386C321 463 379 514 512 524C645 514 703 463 704 386C706 278 633 202 512 202Z" fill="url(#fur)"/>
+  <path d="M512 202C391 202 318 278 320 386C321 463 379 514 512 524C645 514 703 463 704 386C706 278 633 202 512 202Z" fill="url(#furShade)"/>
+  <path d="M484 221C496 196 520 181 548 185C537 194 529 205 525 217C543 204 563 205 579 216C562 222 546 227 529 229C520 230 511 231 500 230Z" fill="#D69159"/>
+  <path d="M521 215C536 203 552 201 569 208C558 213 548 218 539 224C532 225 526 225 520 224Z" fill="#C57C48"/>
+  <path d="M500 220C510 205 524 197 540 199C531 207 526 214 523 222C515 224 507 224 500 220Z" fill="#E0A16D"/>
+</g>
+
+<!-- MUZZLE -->
+<path d="M320 381C354 349 403 346 448 369C475 383 491 409 494 439C467 470 421 484 374 468C335 455 313 420 320 381Z" fill="url(#muzzle)"/>
+<path d="M704 381C670 349 621 346 576 369C549 383 533 409 530 439C557 470 603 484 650 468C689 455 711 420 704 381Z" fill="url(#muzzle)"/>
+
+<!-- EYES -->
+<g>
+  <ellipse cx="421" cy="337" rx="28" ry="39" fill="url(#eye)"/>
+  <ellipse cx="603" cy="337" rx="28" ry="39" fill="url(#eye)"/>
+  <circle cx="430" cy="322" r="10" fill="#FFFFFF"/>
+  <circle cx="612" cy="322" r="10" fill="#FFFFFF"/>
+  <ellipse cx="416" cy="361" rx="11" ry="5" fill="#5C7497" opacity=".22"/>
+  <ellipse cx="598" cy="361" rx="11" ry="5" fill="#5C7497" opacity=".22"/>
+</g>
+
+<!-- BROWS -->
+<path d="M394 287C409 277 425 277 439 283" fill="none" stroke="#FFE8C5" stroke-width="9" stroke-linecap="round"/>
+<path d="M585 283C599 277 615 277 630 287" fill="none" stroke="#FFE8C5" stroke-width="9" stroke-linecap="round"/>
+
+<!-- NOSE + SMILE -->
+<path d="M466 371C466 343 558 343 558 371C558 399 533 418 512 418C491 418 466 399 466 371Z" fill="url(#nose)"/>
+<ellipse cx="492" cy="361" rx="13" ry="7" fill="#B38976" opacity=".48"/>
+<path d="M512 411C512 441 478 456 446 430" fill="none" stroke="#3A1C13" stroke-width="7" stroke-linecap="round"/>
+<path d="M512 411C512 441 546 456 578 430" fill="none" stroke="#3A1C13" stroke-width="7" stroke-linecap="round"/>
+<path d="M480 443 C489 451 499 455 512 455 C525 455 535 451 544 443 C542 462 531 474 512 474 C493 474 482 462 480 443Z" fill="#4B1D19"/>
+<path d="M489 455 C497 449 506 448 512 452 C518 448 527 449 535 455 C532 466 524 471 512 471 C500 471 492 466 489 455Z" fill="#EF766F"/>
+<path d="M512 452C511 458 511 464 512 470" fill="none" stroke="#C94F4A" stroke-width="2.5" stroke-linecap="round" opacity=".75"/>
+
+<!-- WHISKERS -->
+<g fill="none" stroke="#75482F" stroke-width="4" stroke-linecap="round">
+  <path d="M367 380L283 369"/><path d="M368 398L278 400"/><path d="M372 417L290 438"/>
+  <path d="M657 380L741 369"/><path d="M656 398L746 400"/><path d="M652 417L734 438"/>
+</g>
+
+<!-- CALENDAR SHADOW -->
+<ellipse cx="512" cy="792" rx="226" ry="34" fill="#06142E" opacity=".28"/>
+
+<!-- CALENDAR -->
+<g filter="url(#calendarShadow)">
+  <g clip-path="url(#calendarClip)">
+    <rect x="272" y="491" width="480" height="316" fill="url(#paper)"/>
+    <rect x="272" y="491" width="480" height="61" fill="url(#calTop)"/>
+    <path d="M294 503C397 484 625 485 731 507" fill="none" stroke="url(#calTopGloss)" stroke-width="8" stroke-linecap="round" opacity=".86"/>
+    <path d="M272 551H752" stroke="#174AA6" stroke-width="4"/>
+  </g>
+  <rect x="272" y="491" width="480" height="316" rx="60" fill="none" stroke="url(#paperEdge)" stroke-width="4"/>
+</g>
+
+<!-- PAWS -->
+<g filter="url(#smallShadow)">
+  <path d="M277 472 C277 444 295 424 321 423 C334 423 344 427 352 434 C360 441 365 451 364 462 C365 472 361 482 354 490 C347 498 340 503 331 507 C321 511 310 510 300 505 C286 498 277 486 277 472Z" fill="url(#paw)"/>
+  <path d="M747 472 C747 444 729 424 703 423 C690 423 680 427 672 434 C664 441 659 451 660 462 C659 472 663 482 670 490 C677 498 684 503 693 507 C703 511 714 510 724 505 C738 498 747 486 747 472Z" fill="url(#paw)"/>
+  <path d="M290 447C306 434 329 432 347 442" fill="none" stroke="#E6B493" stroke-width="4.5" stroke-linecap="round" opacity=".22"/>
+  <path d="M734 447C718 434 695 432 677 442" fill="none" stroke="#E6B493" stroke-width="4.5" stroke-linecap="round" opacity=".22"/>
+  <g fill="none" stroke="#71402A" stroke-width="4.2" stroke-linecap="round">
+    <path d="M299 462C296 475 296 486 301 495"/>
+    <path d="M320 457C319 473 320 488 325 500"/>
+    <path d="M342 462C345 475 345 486 340 496"/>
+    <path d="M725 462C728 475 728 486 723 495"/>
+    <path d="M704 457C705 473 704 488 699 500"/>
+    <path d="M682 462C679 475 679 486 684 496"/>
+  </g>
+</g>
+
+<!-- BINDER RINGS -->
+<g filter="url(#smallShadow)">
+  <rect x="387" y="441" width="31" height="85" rx="15.5" fill="url(#ring)"/>
+  <rect x="606" y="441" width="31" height="85" rx="15.5" fill="url(#ring)"/>
+  <path d="M396 455C401 448 406 448 411 453" fill="none" stroke="#7595CD" stroke-width="4" stroke-linecap="round"/>
+  <path d="M615 455C620 448 625 448 630 453" fill="none" stroke="#7595CD" stroke-width="4" stroke-linecap="round"/>
+</g>
+
+<!-- CALENDAR GRID -->
+<g fill="#E9EDF6">
+  <rect x="328" y="582" width="57" height="51" rx="12"/>
+  <rect x="405" y="582" width="57" height="51" rx="12"/>
+  <rect x="482" y="582" width="57" height="51" rx="12"/>
+  <rect x="559" y="582" width="57" height="51" rx="12"/>
+  <rect x="636" y="582" width="57" height="51" rx="12"/>
+  <rect x="328" y="650" width="57" height="51" rx="12"/>
+  <rect x="405" y="650" width="57" height="51" rx="12"/>
+  <rect x="482" y="650" width="57" height="51" rx="12"/>
+  <rect x="559" y="650" width="57" height="51" rx="12"/>
+  <rect x="636" y="650" width="57" height="51" rx="12"/>
+  <rect x="328" y="718" width="57" height="51" rx="12"/>
+  <rect x="405" y="718" width="57" height="51" rx="12"/>
+  <rect x="482" y="718" width="57" height="51" rx="12"/>
+</g>
+
+<!-- SELECTED DATE -->
+<g filter="url(#smallShadow)">
+  <rect x="559" y="650" width="57" height="51" rx="12" fill="url(#selected)"/>
+  <path d="M571 663C580 656 592 656 602 660" fill="none" stroke="#D7EDFF" stroke-width="5" stroke-linecap="round" opacity=".86"/>
+</g>
+</svg>

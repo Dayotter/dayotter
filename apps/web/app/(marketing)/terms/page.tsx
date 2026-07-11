@@ -3,8 +3,8 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — dayotter",
-  description: "The terms that govern your use of dayotter.",
+  title: "Terms of Service — DayOtter",
+  description: "The terms that govern your use of DayOtter.",
 };
 
 export default function TermsPage() {

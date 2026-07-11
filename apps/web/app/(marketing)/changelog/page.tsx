@@ -2,8 +2,8 @@ import { MarketingHeader } from "@/components/marketing/page-shell";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Changelog — dayotter",
-  description: "What's new in dayotter.",
+  title: "Changelog — DayOtter",
+  description: "What's new in DayOtter.",
 };
 
 const ENTRIES = [

@@ -24,4 +24,9 @@ config.resolver.disableHierarchicalLookup = true;
 //    Default-on in Expo SDK 53; opt-in here on SDK 52.
 config.resolver.unstable_enablePackageExports = true;
 
+// 5. Import *.svg files as React components (react-native-svg-transformer).
+config.transformer.babelTransformerPath = require.resolve("react-native-svg-transformer");
+config.resolver.assetExts = config.resolver.assetExts.filter((ext) => ext !== "svg");
+config.resolver.sourceExts = [...config.resolver.sourceExts, "svg"];
+
 module.exports = config;

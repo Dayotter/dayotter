@@ -66,7 +66,7 @@ automatic TLS, with DB migrations applied on boot):
 - **Any Ubuntu box, one command:**
   ```bash
   curl -fsSL https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/install.sh \
-    | sudo CALSYNC_DOMAIN=cal.example.com bash
+    | sudo DAYOTTER_DOMAIN=cal.example.com bash
   ```
 
 The installer creates strong secrets on first run and brings everything up.

@@ -14,7 +14,7 @@ license from dayotter.
 
 The open-source edition of dayotter (everything outside `ee/`) is fully
 functional on its own — these features simply do not activate when
-`CALSYNC_CLOUD` is unset. See `docs/EDITIONS.md`.
+`DAYOTTER_CLOUD` is unset. See `docs/EDITIONS.md`.
 
 Everything else in this repository remains under the repository's open-source
 license (see the root `LICENSE`).

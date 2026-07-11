@@ -318,7 +318,7 @@ export class GoogleCalendarAdapter implements CalendarAdapter {
     if (event.createConference) {
       body.conferenceData = {
         createRequest: {
-          requestId: `calsync-${event.start.getTime()}`,
+          requestId: `dayotter-${event.start.getTime()}`,
           conferenceSolutionKey: { type: "hangoutsMeet" },
         },
       };

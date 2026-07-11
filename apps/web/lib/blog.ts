@@ -19,9 +19,9 @@ export const POSTS: BlogPost[] = [
     slug: "why-open-source-scheduling",
     title: "Why scheduling should be open source",
     excerpt:
-      "Your calendar is a map of your life. Here's why the software that reads it should be open — and what that means for dayotter.",
+      "Your calendar is a map of your life. Here's why the software that reads it should be open — and what that means for DayOtter.",
     date: "2026-07-08",
-    author: "The dayotter team",
+    author: "The DayOtter team",
     readMinutes: 4,
     body: [
       {
@@ -32,14 +32,14 @@ export const POSTS: BlogPost[] = [
       {
         heading: "Trust you can verify",
         paragraphs: [
-          "Open source means you can audit exactly how your data is handled — how tokens are stored, what leaves your server, and what doesn't. With dayotter, OAuth tokens are encrypted at rest and we never sell your data. But you don't have to take our word for it; the code is right there.",
+          "Open source means you can audit exactly how your data is handled — how tokens are stored, what leaves your server, and what doesn't. With DayOtter, OAuth tokens are encrypted at rest and we never sell your data. But you don't have to take our word for it; the code is right there.",
           "It also means you're never locked in. Don't like where the hosted product is going? Run it yourself. Your data, your servers, every feature.",
         ],
       },
       {
         heading: "Open core, sustainably",
         paragraphs: [
-          "Free-and-open doesn't have to mean unsustainable. dayotter is open-core: the whole scheduling engine — including the advanced features — is free when you self-host. Our hosted cloud funds the work with a simple $9/seat Pro plan and a couple of managed-only extras.",
+          "Free-and-open doesn't have to mean unsustainable. DayOtter is open-core: the whole scheduling engine — including the advanced features — is free when you self-host. Our hosted cloud funds the work with a simple $9/seat Pro plan and a couple of managed-only extras.",
           "That balance keeps the lights on without holding the core hostage. It's the model that's worked for the tools developers actually trust.",
         ],
       },
@@ -49,9 +49,9 @@ export const POSTS: BlogPost[] = [
     slug: "confirm-first-ai",
     title: "AI that proposes, never disposes",
     excerpt:
-      "Calendar AI has a trust problem: it moves your meetings without asking. dayotter takes a different stance — confirm-first, always.",
+      "Calendar AI has a trust problem: it moves your meetings without asking. DayOtter takes a different stance — confirm-first, always.",
     date: "2026-07-06",
-    author: "The dayotter team",
+    author: "The DayOtter team",
     readMinutes: 3,
     body: [
       {
@@ -62,7 +62,7 @@ export const POSTS: BlogPost[] = [
       {
         heading: "Propose, then confirm",
         paragraphs: [
-          "dayotter's AI is confirm-first. Ask it to move your 3pm to tomorrow, or to defend two hours of deep work, and it drafts an editable proposal. Nothing touches your calendar until you say so.",
+          "DayOtter's AI is confirm-first. Ask it to move your 3pm to tomorrow, or to defend two hours of deep work, and it drafts an editable proposal. Nothing touches your calendar until you say so.",
           "It stays strictly in scope, too — scheduling only. It won't wander off to summarize your inbox or draft your strategy deck. It does one job, and it asks before it acts.",
         ],
       },
@@ -80,7 +80,7 @@ export const POSTS: BlogPost[] = [
     excerpt:
       "Back-to-back is not a badge of honor. Adaptive availability quietly protects your worst days — here's how.",
     date: "2026-07-02",
-    author: "The dayotter team",
+    author: "The DayOtter team",
     readMinutes: 3,
     body: [
       {
@@ -91,8 +91,8 @@ export const POSTS: BlogPost[] = [
       {
         heading: "A cap that thinks for you",
         paragraphs: [
-          "Adaptive availability sets a ceiling on meetings per day. Once a day hits your cap — counting both dayotter bookings and events on your connected calendars — dayotter simply stops offering slots that day. No awkward decline emails, no manual blocking.",
-          "Pair it with travel-time buffers and automated focus blocks, and your calendar starts defending itself. You set the rules once; dayotter enforces them every time someone tries to book.",
+          "Adaptive availability sets a ceiling on meetings per day. Once a day hits your cap — counting both DayOtter bookings and events on your connected calendars — DayOtter simply stops offering slots that day. No awkward decline emails, no manual blocking.",
+          "Pair it with travel-time buffers and automated focus blocks, and your calendar starts defending itself. You set the rules once; DayOtter enforces them every time someone tries to book.",
         ],
       },
     ],

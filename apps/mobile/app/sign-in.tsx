@@ -59,7 +59,7 @@ export default function SignInScreen() {
           </View>
           <Text style={styles.heading}>{isSignUp ? "Create your account" : "Welcome back"}</Text>
           <Text style={styles.sub}>
-            {isSignUp ? "Start scheduling in minutes." : "Sign in to your dayotter account."}
+            {isSignUp ? "Start scheduling in minutes." : "Sign in to your DayOtter account."}
           </Text>
 
           <View style={styles.form}>

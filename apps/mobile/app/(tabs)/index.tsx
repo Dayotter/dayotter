@@ -1,6 +1,7 @@
 import { BASE_URL, api } from "@/api";
 import { useAuth } from "@/auth";
 import { AiCommandBar } from "@/components/ai-command-bar";
+import { BrandMark } from "@/components/brand-mark";
 import { SetupChecklist } from "@/components/setup-checklist";
 import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
@@ -69,7 +70,10 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.brand}>dayotter</Text>
+        <View style={styles.brandRow}>
+          <BrandMark size={24} />
+          <Text style={styles.brand}>DayOtter</Text>
+        </View>
         <View style={styles.headerActions}>
           <Pressable onPress={() => router.push("/inbox")} hitSlop={10}>
             <Ionicons name="file-tray-outline" size={21} color={colors.muted} />
@@ -150,7 +154,7 @@ export default function DashboardScreen() {
         ) : !data || data.length === 0 ? (
           <EmptyState
             title="Nothing scheduled yet"
-            body="When people book you, meetings show up here."
+            body="Calm waters — when people book you, meetings surface here."
           />
         ) : (
           data.map((b) => (
@@ -181,6 +185,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   brand: { fontSize: 16, fontWeight: "700", color: colors.text },
   headerActions: { flexDirection: "row", alignItems: "center", gap: 18 },
   scroll: { paddingHorizontal: 20, paddingBottom: 32 },
