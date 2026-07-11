@@ -5,7 +5,7 @@ import { paymentsEnabled } from "@/lib/payments/stripe";
 export default function NewEventTypePage() {
   return (
     <>
-      <PageHeader title="New event type" description="Define a meeting people can book." />
+      <PageHeader title="New booking type" description="A link people use to grab time with you." />
       <EventTypeForm mode="create" paymentsEnabled={paymentsEnabled} />
     </>
   );
