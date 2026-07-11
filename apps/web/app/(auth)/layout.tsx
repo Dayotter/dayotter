@@ -42,7 +42,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             The open-source home for your time.
           </h2>
           <p className="mt-4 max-w-sm text-white/70">
-            Sync every calendar, share your availability, and let people book you — beautifully.
+            Sync every calendar, share your availability, and let people book you. Unhurried as an
+            otter on its back.
           </p>
           <ul className="mt-8 space-y-3.5">
             {HIGHLIGHTS.map((h) => (

@@ -13,7 +13,7 @@ export default function PrivacyPage() {
       <MarketingHeader
         eyebrow="Legal"
         title="Privacy Policy"
-        subtitle="Last updated July 9, 2026"
+        subtitle="Last updated July 11, 2026"
       />
       <Prose>
         <p>

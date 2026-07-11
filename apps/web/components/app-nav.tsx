@@ -16,7 +16,7 @@ export function AppNav({ user }: { user: { name?: string | null; email: string }
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] p-3 lg:flex">
       <Link href="/dashboard" className="flex items-center gap-2 px-2 py-3">
-        <BrandMark size={28} />
+        <BrandMark size={34} />
         <span className="text-[15px] font-semibold tracking-tight">DayOtter</span>
       </Link>
 
