@@ -5,11 +5,12 @@ import { OverflowButton } from "@/components/overflow-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { PendingInvites } from "@/components/pending-invites";
 import { RunningLateButton } from "@/components/running-late-button";
+import { SetupChecklist } from "@/components/setup-checklist";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { aiEnabled } from "@/lib/ai/llm";
-import { eventColorVar } from "@/lib/booking/event-type-input";
 import { getSession } from "@/lib/auth/session";
+import { eventColorVar } from "@/lib/booking/event-type-input";
 import { and, asc, eq, getDb, gt, gte, lte, schema } from "@calsync/db";
 import { CalendarClock, ExternalLink, Radio, Video } from "lucide-react";
 import { DateTime } from "luxon";
@@ -52,7 +53,31 @@ export default async function DashboardPage() {
     }),
   ]);
 
+  // Setup progress — drives the "get bookable" checklist for new accounts.
+  const [conns, defaultSchedule, activeEvents] = await Promise.all([
+    db.query.calendarConnections.findMany({
+      where: eq(schema.calendarConnections.userId, userId),
+      columns: { id: true },
+      limit: 1,
+    }),
+    db.query.schedules.findFirst({
+      where: and(eq(schema.schedules.userId, userId), eq(schema.schedules.isDefault, true)),
+      with: { availabilityRules: { columns: { id: true }, limit: 1 } },
+    }),
+    db.query.eventTypes.findMany({
+      where: and(eq(schema.eventTypes.ownerId, userId), eq(schema.eventTypes.isActive, true)),
+      columns: { id: true },
+      limit: 1,
+    }),
+  ]);
+  const hasCalendar = conns.length > 0;
+  const hasHours = (defaultSchedule?.availabilityRules.length ?? 0) > 0;
+  const hasEventType = activeEvents.length > 0;
+  const setupComplete = hasCalendar && hasHours && hasEventType;
+
   const handle = user?.handle ?? null;
+  const appHost = (process.env.APP_URL ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const linkDisplay = handle ? (appHost ? `${appHost}/${handle}` : `/${handle}`) : null;
   const next = upcoming[0];
   // Show the overflow nudge only when a back-to-back meeting follows the one in
   // progress within 90 minutes of it ending.
@@ -76,30 +101,37 @@ export default async function DashboardPage() {
         description="Here's what's on your calendar."
       />
 
-      {aiEnabled ? <AiQuickAdd /> : null}
-
-      <PendingInvites aiEnabled={aiEnabled} />
+      <SetupChecklist hasCalendar={hasCalendar} hasHours={hasHours} hasEventType={hasEventType} />
 
       {handle ? (
-        <Card className="mb-6 flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-faint)]">
-              Your booking page
-            </p>
-            <p className="mt-0.5 truncate text-sm text-[var(--color-text)]">/{handle}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <CopyLinkButton path={`/${handle}`} />
-            <Link
-              href={`/${handle}`}
-              target="_blank"
-              className="inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
-            >
-              View <ExternalLink size={13} />
-            </Link>
+        <Card className="mb-6 overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-br from-[var(--color-accent-soft)] to-[var(--color-surface)] p-5">
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-accent)]">
+                Your booking link
+              </p>
+              <p className="mt-1 truncate font-display text-xl">{linkDisplay}</p>
+              <p className="mt-0.5 text-sm text-[var(--color-muted)]">
+                Share it and people pick a time you're free — no back-and-forth.
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <CopyLinkButton path={`/${handle}`} />
+              <Link
+                href={`/${handle}`}
+                target="_blank"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                <ExternalLink size={15} /> View
+              </Link>
+            </div>
           </div>
         </Card>
       ) : null}
+
+      {aiEnabled ? <AiQuickAdd /> : null}
+
+      <PendingInvites aiEnabled={aiEnabled} />
 
       {inProgress ? (
         <Card className="mb-6 border-[var(--color-border-strong)] bg-gradient-to-br from-[var(--color-surface-2)] to-[var(--color-surface)]">
