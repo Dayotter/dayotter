@@ -10,17 +10,27 @@ import {
   Users,
 } from "lucide-react";
 
-/** Shared primary navigation, used by the desktop sidebar and the mobile tab bar. */
+/**
+ * Shared primary navigation, used by the desktop sidebar and the mobile tab bar.
+ * Ordered by daily use: home first, then the scheduling tools you touch most,
+ * then the calmer surfaces. Booking analytics live inside Insights (one nav item,
+ * two tabs) to keep the list short.
+ */
 export const NAV = [
-  { href: "/dashboard", label: "Dashboard", short: "Home", icon: LayoutDashboard },
-  { href: "/inbox", label: "Inbox", short: "Inbox", icon: Inbox },
-  { href: "/event-types", label: "Event Types", short: "Events", icon: CalendarClock },
-  { href: "/teams", label: "Teams", short: "Teams", icon: Users },
-  { href: "/bookings", label: "Bookings", short: "Bookings", icon: CalendarDays },
-  { href: "/insights", label: "Insights", short: "Insights", icon: ChartColumn },
-  { href: "/analytics", label: "Analytics", short: "Stats", icon: TrendingUp },
+  { href: "/dashboard", label: "Home", short: "Home", icon: LayoutDashboard },
+  { href: "/event-types", label: "Booking Types", short: "Events", icon: CalendarClock },
   { href: "/availability", label: "Availability", short: "Hours", icon: Clock },
+  { href: "/bookings", label: "Bookings", short: "Bookings", icon: CalendarDays },
+  { href: "/inbox", label: "Inbox", short: "Inbox", icon: Inbox },
+  { href: "/teams", label: "Teams", short: "Teams", icon: Users },
+  { href: "/insights", label: "Insights", short: "Insights", icon: ChartColumn },
   { href: "/settings/profile", label: "Settings", short: "Settings", icon: Settings },
+] as const;
+
+/** Tabs within the Insights area (time insights + booking analytics). */
+export const INSIGHTS_NAV = [
+  { href: "/insights", label: "Time insights", icon: ChartColumn },
+  { href: "/analytics", label: "Booking analytics", icon: TrendingUp },
 ] as const;
 
 /** Sub-navigation inside the Settings area (rendered as tabs by the settings layout). */
