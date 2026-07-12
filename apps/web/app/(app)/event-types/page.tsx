@@ -25,6 +25,7 @@ export default async function EventTypesPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Your links"
         title="Booking Types"
         description="The meetings people can book with you."
         action={

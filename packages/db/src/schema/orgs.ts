@@ -46,6 +46,9 @@ export const users = pgTable(
     image: text("image"),
     /** Public booking handle, e.g. /archit -> resolves to this user. */
     handle: text("handle").unique(),
+    /** Optional phone sign-in (Better Auth phoneNumber plugin). */
+    phoneNumber: text("phone_number").unique(),
+    phoneNumberVerified: boolean("phone_number_verified").notNull().default(false),
     timezone: text("timezone").notNull().default("UTC"),
     ...timestamps,
   },

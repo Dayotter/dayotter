@@ -18,7 +18,7 @@ export type EventColor = "violet" | "mint" | "amber" | "coral" | "sky";
 
 /** Token name → hex, mirroring the web design system's event hues. */
 export const EVENT_COLOR_HEX: Record<EventColor, string> = {
-  violet: "#5b4be6",
+  violet: "#6743e6",
   mint: "#16a085",
   amber: "#d98829",
   coral: "#ef6a52",

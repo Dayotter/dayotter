@@ -6,7 +6,7 @@
 /*
  * dayotter design language — "editorial calm meets a living calendar."
  * Warm ivory neutrals, rich ink text, a premium violet accent, an editorial
- * serif display (Fraunces) + Inter body + mono labels. Light is default.
+ * Geist sans (display + body) + Geist Mono labels. Light is default.
  */
 @theme {
   /* Surfaces — warm, not sterile white */
@@ -24,11 +24,11 @@
   --color-muted: #6a6660;
   --color-faint: #9c988e;
 
-  /* Accent — premium violet */
-  --color-accent: #5b4be6;
-  --color-accent-hover: #4a3ad4;
+  /* Accent — otter violet (matches the illustration palette) */
+  --color-accent: #6743e6;
+  --color-accent-hover: #5734d6;
   --color-accent-fg: #ffffff;
-  --color-accent-soft: #eeecfc;
+  --color-accent-soft: #efeafd;
 
   /* Event / secondary hues (color-coded calendar) */
   --color-mint: #16a085;
@@ -54,10 +54,12 @@
 
   /* Spacing rhythm — the canonical gaps/paddings the components compose from.
    * Field gap: space-y-4 · Card padding: p-6 · Section gap: gap-3 · inline: gap-2 */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif;
-  --font-display: var(--font-display), ui-serif, Georgia, "Times New Roman", serif;
-  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+  /* Headings use the same family a weight heavier — the modern software look
+     (one grotesque doing display + body) rather than a separate serif. */
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .dark {
@@ -73,10 +75,10 @@
   --color-muted: #9d988f;
   --color-faint: #6b6678;
 
-  --color-accent: #8272f7;
-  --color-accent-hover: #948bf9;
+  --color-accent: #9079f8;
+  --color-accent-hover: #a390fa;
   --color-accent-fg: #ffffff;
-  --color-accent-soft: rgba(130, 114, 247, 0.16);
+  --color-accent-soft: rgba(144, 121, 248, 0.16);
 
   --color-mint: #2dd4a7;
   --color-amber: #f0ad4e;
@@ -122,8 +124,8 @@
 /* Editorial display type */
 .font-display {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.015em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 .font-mono {
   font-family: var(--font-mono);

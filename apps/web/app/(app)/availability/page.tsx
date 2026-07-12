@@ -57,6 +57,7 @@ export default async function AvailabilityPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Your hours"
         title="Availability"
         description="Set the hours you're open for bookings. Assign a schedule to each event type."
       />

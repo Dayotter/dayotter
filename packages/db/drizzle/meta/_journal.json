@@ -197,6 +197,20 @@
       "when": 1783759576517,
       "tag": "0027_wet_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1783853391735,
+      "tag": "0028_clear_onslaught",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1783854291813,
+      "tag": "0029_gorgeous_serpent_society",
+      "breakpoints": true
     }
   ]
 }

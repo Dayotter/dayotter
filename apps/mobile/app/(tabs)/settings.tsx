@@ -2,6 +2,7 @@ import { ApiError, api } from "@/api";
 import { useAuth } from "@/auth";
 import { Loading } from "@/components/ui";
 import type { UserPreferences } from "@/models";
+import { serverHost } from "@/server";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -27,7 +28,7 @@ const REMINDER_OPTIONS = [
   { value: 10, label: "10 min" },
 ];
 /** Booking-page accent presets (hex); null = the default theme. */
-const BRAND_PRESETS = ["#5b4be6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
+const BRAND_PRESETS = ["#6743e6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -315,6 +316,16 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={18} color={colors.faint} />
         </Pressable>
 
+        <Text style={styles.section}>Connection</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/server")}>
+          <Ionicons name="server-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Server</Text>
+          <Text style={styles.navValue} numberOfLines={1}>
+            {serverHost()}
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+
         <Pressable style={styles.signOut} onPress={signOut}>
           <Text style={styles.signOutText}>Sign out</Text>
         </Pressable>
@@ -454,6 +465,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   navText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
+  navValue: { color: colors.faint, fontSize: 13, maxWidth: 150, marginRight: 6 },
   signOut: { marginTop: 28, alignItems: "center" },
   signOutText: { color: colors.danger, fontWeight: "500" },
 });

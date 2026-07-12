@@ -15,10 +15,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dayotter.app"
+      "bundleIdentifier": "com.dayotter.app",
+      "buildNumber": "1"
     },
     "android": {
       "package": "com.dayotter.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#12305F"
@@ -39,6 +41,11 @@
           "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cd87a7ee-bf23-407c-a664-0743fe0f3257"
+      }
+    }
   }
 }

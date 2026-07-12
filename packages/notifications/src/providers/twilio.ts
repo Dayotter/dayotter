@@ -67,3 +67,10 @@ export async function sendSms(
   if (!twilioConfigured() || !from) return { ok: false, reason: "not_configured" };
   return sendViaTwilio(from, phone, bodyText(message));
 }
+
+/** Send a plain-text SMS (e.g. an auth one-time code). False when Twilio is unset. */
+export async function sendTextSms(phone: string, text: string): Promise<boolean> {
+  const from = process.env.TWILIO_SMS_FROM;
+  if (!twilioConfigured() || !from) return false;
+  return (await sendViaTwilio(from, phone, text)).ok;
+}

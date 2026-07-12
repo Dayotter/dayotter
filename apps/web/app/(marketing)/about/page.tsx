@@ -22,6 +22,15 @@ export default function AboutPage() {
           notifications, or holds your data hostage.
         </p>
 
+        <h2>Why an otter?</h2>
+        <p>
+          Otters are unusually deliberate with their time. They float on their backs to rest, keep
+          their one favorite tool tucked in a pouch, and hold hands in a raft so the current never
+          pulls the group apart. That's the whole idea: stay calm, keep what matters close, and make
+          sure your team drifts together — not apart. {BRAND.name} guards your hours the way an
+          otter guards its afternoon.
+        </p>
+
         <h2>Open at the core</h2>
         <p>
           The entire scheduling engine is open source under Apache-2.0. Run it yourself and every

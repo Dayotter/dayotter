@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 export function SettingsNav() {
   const pathname = usePathname();
   return (
-    <div className="mb-6 flex gap-1 border-b border-[var(--color-border)]">
+    <div className="mb-6 flex gap-1 overflow-x-auto border-b border-[var(--color-border)]">
       {SETTINGS_NAV.map(({ href, label }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
         return (

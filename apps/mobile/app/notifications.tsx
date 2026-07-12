@@ -45,7 +45,19 @@ export default function NotificationsScreen() {
 
   const hasPush = channels.some((c) => c.type === "push");
 
-  async function enablePush() {
+  function enablePush() {
+    // Prime with the value *before* the OS permission dialog — fewer reflexive denials.
+    Alert.alert(
+      "Turn on reminders?",
+      "DayOtter sends a gentle nudge before each meeting so nothing slips. You can turn it off anytime.",
+      [
+        { text: "Not now", style: "cancel" },
+        { text: "Turn on", onPress: doEnablePush },
+      ],
+    );
+  }
+
+  async function doEnablePush() {
     setRegistering(true);
     const res = await registerPushChannel();
     setRegistering(false);

@@ -6,7 +6,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { teamSchedule } from "@/lib/booking/team-schedule";
 import { eq, getDb, schema } from "@dayotter/db";
-import { ExternalLink, Users } from "lucide-react";
+import { ArrowLeft, ExternalLink, Users } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -53,7 +53,17 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <PageHeader title={team.name} description={`Team · ${team.members.length} members`} />
+      <Link
+        href="/teams"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+      >
+        <ArrowLeft size={15} /> All teams
+      </Link>
+      <PageHeader
+        eyebrow="Team"
+        title={team.name}
+        description={`${team.members.length} member${team.members.length === 1 ? "" : "s"}`}
+      />
 
       <div className="space-y-6">
         <Card>

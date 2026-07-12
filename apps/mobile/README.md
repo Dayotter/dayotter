@@ -37,6 +37,16 @@ EXPO_PUBLIC_API_URL=http://10.0.2.2:3000 pnpm --filter @dayotter/mobile android
 Native `ios/` and `android/` folders are generated on demand by Expo prebuild;
 they're gitignored. Test account: `archit@example.com` / `supersecret123`.
 
+### Optional sign-in methods
+
+Both are hidden by default; set the flag to `1` (and configure the server side):
+
+- `EXPO_PUBLIC_GOOGLE_AUTH=1` — shows "Continue with Google" (needs `GOOGLE_CLIENT_ID`
+  on the server). Hidden on iOS builds pending Sign in with Apple.
+- `EXPO_PUBLIC_PHONE_AUTH=1` — shows "Continue with phone" (SMS OTP). The server
+  enables the endpoints automatically when Twilio is configured (`TWILIO_ACCOUNT_SID`,
+  `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`). iOS/Android auto-fill the code from the SMS.
+
 ## Architecture
 
 ```

@@ -1,9 +1,12 @@
 import { useAuth } from "@/auth";
-import { googleAuthEnabled } from "@/auth-client";
+import { googleAuthEnabled, phoneAuthEnabled } from "@/auth-client";
+import { BrandMark } from "@/components/brand-mark";
+import { hasOnboarded } from "@/onboarding-state";
+import { serverHost } from "@/server";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -18,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, sendPhoneOtp, verifyPhoneOtp } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -26,6 +29,20 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [ready, setReady] = useState(false);
+  // Phone/OTP flow: "off" (collapsed) → "phone" (enter number) → "code" (enter OTP).
+  const [phoneMode, setPhoneMode] = useState<"off" | "phone" | "code">("off");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [phoneLoading, setPhoneLoading] = useState(false);
+
+  // First launch → show onboarding before the sign-in form.
+  useEffect(() => {
+    hasOnboarded().then((done) => {
+      if (done) setReady(true);
+      else router.replace("/onboarding");
+    });
+  }, [router]);
 
   async function submit() {
     setLoading(true);
@@ -47,6 +64,24 @@ export default function SignInScreen() {
     else router.replace("/");
   }
 
+  async function phoneSubmit() {
+    setPhoneLoading(true);
+    setError(null);
+    if (phoneMode === "phone") {
+      const err = await sendPhoneOtp(phone.trim());
+      setPhoneLoading(false);
+      if (err) setError(err);
+      else setPhoneMode("code");
+      return;
+    }
+    const err = await verifyPhoneOtp(phone.trim(), otp.trim());
+    setPhoneLoading(false);
+    if (err) setError(err);
+    else router.replace("/");
+  }
+
+  if (!ready) return <View style={styles.safe} />;
+
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -54,8 +89,8 @@ export default function SignInScreen() {
         style={styles.flex}
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <View style={styles.logo}>
-            <Text style={styles.logoText}>c</Text>
+          <View style={styles.logoRow}>
+            <BrandMark size={48} />
           </View>
           <Text style={styles.heading}>{isSignUp ? "Create your account" : "Welcome back"}</Text>
           <Text style={styles.sub}>
@@ -87,7 +122,9 @@ export default function SignInScreen() {
               </Text>
             </Pressable>
 
-            {googleAuthEnabled ? (
+            {/* Google hidden on iOS: offering it would require Sign in with Apple
+                (App Store guideline 4.8). Email/password stays available. */}
+            {googleAuthEnabled && Platform.OS !== "ios" ? (
               <>
                 <View style={styles.divider}>
                   <View style={styles.line} />
@@ -102,6 +139,70 @@ export default function SignInScreen() {
                 </Pressable>
               </>
             ) : null}
+            {phoneAuthEnabled ? (
+              <>
+                <View style={styles.divider}>
+                  <View style={styles.line} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.line} />
+                </View>
+                {phoneMode === "off" ? (
+                  <Pressable
+                    style={styles.googleBtn}
+                    onPress={() => {
+                      setPhoneMode("phone");
+                      setError(null);
+                    }}
+                  >
+                    <Ionicons name="phone-portrait-outline" size={17} color={colors.text} />
+                    <Text style={styles.googleText}>Continue with phone</Text>
+                  </Pressable>
+                ) : (
+                  <View>
+                    {phoneMode === "phone" ? (
+                      <Field
+                        label="Phone number"
+                        value={phone}
+                        onChange={setPhone}
+                        placeholder="+14155551234"
+                        keyboardType="phone-pad"
+                        textContentType="telephoneNumber"
+                        autoComplete="tel"
+                      />
+                    ) : (
+                      <Field
+                        label={`Code sent to ${phone}`}
+                        value={otp}
+                        onChange={setOtp}
+                        placeholder="123456"
+                        keyboardType="number-pad"
+                        textContentType="oneTimeCode"
+                        autoComplete="sms-otp"
+                      />
+                    )}
+                    <Pressable style={styles.button} onPress={phoneSubmit} disabled={phoneLoading}>
+                      <Text style={styles.buttonText}>
+                        {phoneLoading
+                          ? "Please wait…"
+                          : phoneMode === "phone"
+                            ? "Send code"
+                            : "Verify & sign in"}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        setPhoneMode("off");
+                        setOtp("");
+                        setError(null);
+                      }}
+                    >
+                      <Text style={styles.toggle}>Cancel</Text>
+                    </Pressable>
+                  </View>
+                )}
+              </>
+            ) : null}
+
             <Pressable
               onPress={() => {
                 setIsSignUp((v) => !v);
@@ -111,6 +212,9 @@ export default function SignInScreen() {
               <Text style={styles.toggle}>
                 {isSignUp ? "Already have an account? Sign in" : "No account? Create one"}
               </Text>
+            </Pressable>
+            <Pressable onPress={() => router.push("/server")} hitSlop={8}>
+              <Text style={styles.serverLink}>Connected to {serverHost()} · Change server</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -125,7 +229,10 @@ function Field(props: {
   onChange: (v: string) => void;
   placeholder?: string;
   secure?: boolean;
-  keyboardType?: "email-address" | "default";
+  keyboardType?: "email-address" | "default" | "phone-pad" | "number-pad";
+  // OTP auto-fill hints: iOS reads the code from Messages, Android from the SMS.
+  textContentType?: "telephoneNumber" | "oneTimeCode";
+  autoComplete?: "tel" | "sms-otp";
 }) {
   return (
     <View style={{ marginBottom: 16 }}>
@@ -139,6 +246,8 @@ function Field(props: {
         secureTextEntry={props.secure}
         autoCapitalize="none"
         keyboardType={props.keyboardType ?? "default"}
+        textContentType={props.textContentType}
+        autoComplete={props.autoComplete}
       />
     </View>
   );
@@ -148,16 +257,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: "center", padding: 24 },
-  logo: {
-    height: 44,
-    width: 44,
-    borderRadius: 11,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  logoText: { color: colors.white, fontWeight: "700", fontSize: 22 },
+  logoRow: { marginBottom: 20, alignSelf: "flex-start" },
   heading: { fontSize: 28, fontWeight: "700", color: colors.text },
   sub: { color: colors.muted, marginTop: 6 },
   form: { marginTop: 28 },
@@ -196,4 +296,5 @@ const styles = StyleSheet.create({
   },
   googleText: { color: colors.text, fontWeight: "600", fontSize: 15 },
   toggle: { color: colors.accent, textAlign: "center", marginTop: 18 },
+  serverLink: { color: colors.faint, textAlign: "center", marginTop: 22, fontSize: 13 },
 });

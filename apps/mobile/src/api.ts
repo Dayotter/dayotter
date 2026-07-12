@@ -1,8 +1,8 @@
 import * as SecureStore from "expo-secure-store";
-import { authClient } from "./auth-client";
-import { BASE_URL } from "./config";
+import { getAuthClient } from "./auth-client";
+import { getServerUrl } from "./server";
 
-export { BASE_URL };
+export { getServerUrl };
 
 const TOKEN_KEY = "dayotter_auth_token";
 
@@ -33,14 +33,14 @@ async function headers(): Promise<Record<string, string>> {
   if (token) {
     return { "content-type": "application/json", authorization: `Bearer ${token}` };
   }
-  const cookie = authClient.getCookie();
+  const cookie = getAuthClient().getCookie();
   return { "content-type": "application/json", ...(cookie ? { cookie } : {}) };
 }
 
 /** True when either auth mechanism holds a session (used on cold start). */
 export async function hasSession(): Promise<boolean> {
   if (await getToken()) return true;
-  return Boolean(authClient.getCookie());
+  return Boolean(getAuthClient().getCookie());
 }
 
 async function handle(res: Response): Promise<unknown> {
@@ -54,11 +54,11 @@ async function handle(res: Response): Promise<unknown> {
 
 export const api = {
   async get<T>(path: string): Promise<T> {
-    const res = await fetch(`${BASE_URL}${path}`, { headers: await headers() });
+    const res = await fetch(`${getServerUrl()}${path}`, { headers: await headers() });
     return handle(res) as Promise<T>;
   },
   async post<T>(path: string, body: unknown): Promise<T> {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(`${getServerUrl()}${path}`, {
       method: "POST",
       headers: await headers(),
       body: JSON.stringify(body),
@@ -66,7 +66,7 @@ export const api = {
     return handle(res) as Promise<T>;
   },
   async put<T>(path: string, body: unknown): Promise<T> {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(`${getServerUrl()}${path}`, {
       method: "PUT",
       headers: await headers(),
       body: JSON.stringify(body),
@@ -74,7 +74,7 @@ export const api = {
     return handle(res) as Promise<T>;
   },
   async patch<T>(path: string, body: unknown): Promise<T> {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(`${getServerUrl()}${path}`, {
       method: "PATCH",
       headers: await headers(),
       body: JSON.stringify(body),
@@ -82,7 +82,10 @@ export const api = {
     return handle(res) as Promise<T>;
   },
   async del<T>(path: string): Promise<T> {
-    const res = await fetch(`${BASE_URL}${path}`, { method: "DELETE", headers: await headers() });
+    const res = await fetch(`${getServerUrl()}${path}`, {
+      method: "DELETE",
+      headers: await headers(),
+    });
     return handle(res) as Promise<T>;
   },
 };

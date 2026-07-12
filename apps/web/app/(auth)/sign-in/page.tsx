@@ -1,6 +1,7 @@
 "use client";
 
 import { GoogleAuthButton } from "@/components/google-auth-button";
+import { PhoneAuthPanel } from "@/components/phone-auth-panel";
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
@@ -40,8 +41,9 @@ export default function SignInPage() {
       <h1 className="font-display text-3xl leading-tight tracking-[-0.01em]">Welcome back</h1>
       <p className="mt-2 text-sm text-[var(--color-muted)]">Sign in to your DayOtter account.</p>
 
-      <div className="mt-7">
+      <div className="mt-7 space-y-3">
         <GoogleAuthButton label="Continue with Google" />
+        <PhoneAuthPanel />
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">

@@ -1,4 +1,4 @@
-import { ApiError, BASE_URL, api } from "@/api";
+import { ApiError, api, getServerUrl } from "@/api";
 import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { CalendarConnection } from "@/models";
@@ -136,7 +136,7 @@ export default function CalendarsScreen() {
             {/* Google / Microsoft need the OAuth redirect — open the web app. */}
             <Pressable
               style={styles.addRow}
-              onPress={() => Linking.openURL(`${BASE_URL}/settings/calendars`)}
+              onPress={() => Linking.openURL(`${getServerUrl()}/settings/calendars`)}
             >
               <Ionicons name="open-outline" size={18} color={colors.text} />
               <Text style={styles.addText}>Connect Google or Microsoft (web)</Text>

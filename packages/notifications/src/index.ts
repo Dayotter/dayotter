@@ -3,6 +3,7 @@ import { and, eq, getDb, schema } from "@dayotter/db";
 import { sendPush } from "./providers/push";
 import { sendSlack } from "./providers/slack";
 import { sendSms, sendWhatsApp, twilioConfigured } from "./providers/twilio";
+import { sendWebPush, webPushConfigured } from "./providers/webpush";
 import type {
   ChannelConfig,
   DeliverableChannel,
@@ -16,11 +17,13 @@ export type {
   DispatchResult,
   NotificationMessage,
 } from "./types";
-export { twilioConfigured } from "./providers/twilio";
+export { twilioConfigured, sendTextSms } from "./providers/twilio";
+export { webPushConfigured } from "./providers/webpush";
 
 /** Which channel kinds this server can actually deliver to right now. */
 export function availableChannels(): DeliverableChannel[] {
   const channels: DeliverableChannel[] = ["slack", "push"]; // self-contained
+  if (webPushConfigured()) channels.push("webpush");
   if (twilioConfigured()) channels.push("whatsapp", "sms");
   return channels;
 }
@@ -39,6 +42,10 @@ export async function dispatchToChannel(
     case "push":
       return "pushToken" in config
         ? sendPush(config.pushToken, message)
+        : { ok: false, reason: "bad_config" };
+    case "webpush":
+      return "subscription" in config
+        ? sendWebPush(config.subscription, message)
         : { ok: false, reason: "bad_config" };
     case "whatsapp":
       return "phone" in config

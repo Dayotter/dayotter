@@ -13,6 +13,7 @@
     "@better-auth/expo": "1.6.23",
     "@dayotter/db": "workspace:*",
     "@dayotter/emails": "workspace:*",
+    "@dayotter/notifications": "workspace:*",
     "better-auth": "^1.2.7"
   },
   "devDependencies": {

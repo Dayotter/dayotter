@@ -17,7 +17,9 @@ services:
       POSTGRES_PASSWORD: dayotter
       POSTGRES_DB: dayotter
     ports:
-      - "5432:5432"
+      # Host port is configurable so it won't clash with another local Postgres.
+      # Override with POSTGRES_PORT in .env (the container port stays 5432).
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - dayotter_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -30,7 +32,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - dayotter_redisdata:/data
     healthcheck:

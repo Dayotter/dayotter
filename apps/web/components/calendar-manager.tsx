@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/toast";
 import { Calendar, Check, Eye, EyeOff, Pencil, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -48,34 +49,57 @@ function Pill({
 
 /**
  * Manage a connection's calendars: rename, include/exclude from availability,
- * pick the booking write target, and hide from the list. Each change PATCHes the
- * calendar and refreshes the server component so state stays authoritative.
+ * pick the booking write target, and hide from the list. Toggles update
+ * optimistically (snappy) and reconcile against the server, surfacing a toast
+ * and rolling back if the PATCH fails — instead of a full-page refresh per click.
  */
 export function CalendarManager({ calendars }: { calendars: ManagedCalendar[] }) {
-  const router = useRouter();
+  const { toast } = useToast();
+  const [items, setItems] = useState(calendars);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
 
-  async function patch(id: string, body: Partial<ManagedCalendar>) {
+  async function patch(id: string, body: Partial<ManagedCalendar>, successMsg?: string) {
+    const prev = items;
+    // Optimistic: apply locally now. Choosing a booking target clears the others
+    // (there's a single global target), so mirror that in the UI immediately.
+    setItems((cur) =>
+      cur.map((c) => {
+        if (c.id === id) return { ...c, ...body };
+        if (body.isTargetForBookings === true) return { ...c, isTargetForBookings: false };
+        return c;
+      }),
+    );
     setBusyId(id);
-    await fetch(`/api/calendars/${id}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    }).catch(() => {});
-    setBusyId(null);
     setEditingId(null);
-    router.refresh();
+    try {
+      const res = await fetch(`/api/calendars/${id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("patch failed");
+      if (successMsg) toast({ title: successMsg, variant: "success" });
+    } catch {
+      setItems(prev); // roll back
+      toast({
+        title: "Couldn't update that calendar",
+        description: "Please try again.",
+        variant: "error",
+      });
+    } finally {
+      setBusyId(null);
+    }
   }
 
-  if (calendars.length === 0) {
+  if (items.length === 0) {
     return <p className="text-sm text-[var(--color-muted)]">Syncing calendars…</p>;
   }
 
   return (
     <ul className="space-y-2">
-      {calendars.map((cal) => (
+      {items.map((cal) => (
         <li key={cal.id} className="flex flex-wrap items-center gap-2 text-sm">
           <Calendar size={15} className="shrink-0 text-[var(--color-muted)]" />
           {editingId === cal.id ? (
@@ -87,7 +111,7 @@ export function CalendarManager({ calendars }: { calendars: ManagedCalendar[] })
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && draftName.trim())
-                    patch(cal.id, { name: draftName.trim() });
+                    patch(cal.id, { name: draftName.trim() }, "Calendar renamed");
                   if (e.key === "Escape") setEditingId(null);
                 }}
               />
@@ -95,7 +119,7 @@ export function CalendarManager({ calendars }: { calendars: ManagedCalendar[] })
                 type="button"
                 aria-label="Save name"
                 disabled={!draftName.trim() || busyId === cal.id}
-                onClick={() => patch(cal.id, { name: draftName.trim() })}
+                onClick={() => patch(cal.id, { name: draftName.trim() }, "Calendar renamed")}
                 className="text-[var(--color-success)] hover:opacity-80 disabled:opacity-40"
               >
                 <Check size={15} />
@@ -177,14 +201,22 @@ export function CalendarManager({ calendars }: { calendars: ManagedCalendar[] })
 /** Disconnect an entire calendar account, with a confirm step. */
 export function DisconnectButton({ connectionId }: { connectionId: string }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function disconnect() {
     setBusy(true);
-    await fetch(`/api/calendars/connection/${connectionId}`, { method: "DELETE" }).catch(() => {});
-    setBusy(false);
-    router.refresh();
+    try {
+      const res = await fetch(`/api/calendars/connection/${connectionId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("disconnect failed");
+      toast({ title: "Calendar disconnected", variant: "success" });
+      router.refresh();
+    } catch {
+      toast({ title: "Couldn't disconnect", description: "Please try again.", variant: "error" });
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (!confirming) {

@@ -134,7 +134,7 @@ export function AnalyticsDashboard() {
                 ) : !data || data.byEventType.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-4 py-8 text-center text-[var(--color-muted)]">
-                      No event types yet.
+                      No booking data yet.
                     </td>
                   </tr>
                 ) : (

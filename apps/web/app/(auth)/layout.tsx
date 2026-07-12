@@ -33,7 +33,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <div className="relative">
           <Link href="/" className="flex items-center gap-2">
             <BrandMark size={32} />
-            <span className="text-lg font-semibold tracking-tight">DayOtter</span>
+            <span className="text-lg font-semibold tracking-tight">Day{" "}Otter</span>
           </Link>
         </div>
 
@@ -42,7 +42,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             The open-source home for your time.
           </h2>
           <p className="mt-4 max-w-sm text-white/70">
-            Sync every calendar, share your availability, and let people book you — beautifully.
+            Sync every calendar, share your availability, and let people book you. Unhurried as an
+            otter on its back.
           </p>
           <ul className="mt-8 space-y-3.5">
             {HIGHLIGHTS.map((h) => (
@@ -65,7 +66,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           {/* Logo shown on mobile (the brand panel carries it on desktop). */}
           <Link href="/" className="flex items-center gap-2 lg:invisible">
             <BrandMark size={32} />
-            <span className="text-lg font-semibold tracking-tight">DayOtter</span>
+            <span className="text-lg font-semibold tracking-tight">Day{" "}Otter</span>
           </Link>
           <ThemeToggle />
         </div>

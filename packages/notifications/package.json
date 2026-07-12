@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@dayotter/core": "workspace:*",
-    "@dayotter/db": "workspace:*"
+    "@dayotter/db": "workspace:*",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "@types/web-push": "^3.6.4",
     "typescript": "^5.7.2"
   }
 }

@@ -6,6 +6,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/toast";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -21,7 +22,7 @@ function timezones(): string[] {
 }
 
 /** Preset booking-page accent colours (hex). `null` = the default DayOtter theme. */
-const BRAND_PRESETS = ["#5b4be6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
+const BRAND_PRESETS = ["#6743e6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
 
 export function ProfileForm({
   initial,
@@ -35,6 +36,7 @@ export function ProfileForm({
   };
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   // Ensure the stored timezone is always selectable — some runtimes omit "UTC"
   // and a few aliases from Intl.supportedValuesOf.
   const zones = useMemo(() => {
@@ -69,10 +71,13 @@ export function ProfileForm({
     setSaving(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(typeof data.error === "string" ? data.error : "Could not save");
+      const msg = typeof data.error === "string" ? data.error : "Could not save";
+      setError(msg);
+      toast({ title: "Couldn't save profile", description: msg, variant: "error" });
       return;
     }
     setSaved(true);
+    toast({ title: "Profile saved", variant: "success" });
     router.refresh();
   }
 
@@ -180,7 +185,7 @@ export function ProfileForm({
                   Custom
                   <input
                     type="color"
-                    value={brandColor ?? "#5b4be6"}
+                    value={brandColor ?? "#6743e6"}
                     onChange={(e) => {
                       setBrandColor(e.target.value);
                       setSaved(false);

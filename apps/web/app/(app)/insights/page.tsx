@@ -87,6 +87,7 @@ export default async function InsightsPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Insights"
         title="Insights"
         description="Where your scheduling time actually goes — the last 30 days."
       />
