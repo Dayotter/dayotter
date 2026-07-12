@@ -1,4 +1,4 @@
-import { AiQuickAdd } from "@/components/ai-quick-add";
+import { AiAssistant } from "@/components/ai-assistant";
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { DashboardTour } from "@/components/dashboard-tour";
 import { MeetingAssistant } from "@/components/meeting-assistant";
@@ -13,7 +13,16 @@ import { aiEnabled } from "@/lib/ai/llm";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
 import { and, asc, eq, getDb, gt, gte, lte, schema } from "@dayotter/db";
-import { CalendarClock, ExternalLink, Radio, Video } from "lucide-react";
+import {
+  BarChart3,
+  CalendarClock,
+  CalendarPlus,
+  Clock3,
+  ExternalLink,
+  Plus,
+  Radio,
+  Video,
+} from "lucide-react";
 import { DateTime } from "luxon";
 import Link from "next/link";
 
@@ -76,6 +85,48 @@ export default async function DashboardPage() {
   const hasEventType = activeEvents.length > 0;
   const setupComplete = hasCalendar && hasHours && hasEventType;
 
+  // Glance stats — cheap, personal counts (not the Pro analytics). One query for
+  // this week + today + the 30-day horizon, bucketed in the user's timezone.
+  const zoneNow = DateTime.now().setZone(tz);
+  const weekStart = zoneNow.startOf("week");
+  const weekEnd = zoneNow.endOf("week");
+  const dayStart = zoneNow.startOf("day");
+  const dayEnd = zoneNow.endOf("day");
+  const horizon = zoneNow.plus({ days: 30 });
+  const statBookings = await db.query.bookings.findMany({
+    where: and(
+      eq(schema.bookings.hostId, userId),
+      eq(schema.bookings.status, "confirmed"),
+      gte(schema.bookings.startsAt, weekStart.toJSDate()),
+      lte(schema.bookings.startsAt, horizon.toJSDate()),
+    ),
+    columns: { startsAt: true, endsAt: true },
+    limit: 300,
+  });
+  const inRange = (d: Date, a: DateTime, b: DateTime) => {
+    const t = DateTime.fromJSDate(d).setZone(tz);
+    return t >= a && t <= b;
+  };
+  const weekBookings = statBookings.filter((b) => inRange(b.startsAt, weekStart, weekEnd));
+  const weekMinutes = weekBookings.reduce(
+    (m, b) => m + (b.endsAt.getTime() - b.startsAt.getTime()) / 60_000,
+    0,
+  );
+  const stats = {
+    today: statBookings.filter((b) => inRange(b.startsAt, dayStart, dayEnd)).length,
+    week: weekBookings.length,
+    weekHours: Math.round((weekMinutes / 60) * 10) / 10,
+    upcoming: statBookings.filter((b) => b.startsAt.getTime() >= now.getTime()).length,
+  };
+  const showStats = statBookings.length > 0;
+
+  const QUICK_ACTIONS = [
+    { href: "/event-types", label: "New booking type", icon: Plus },
+    { href: "/availability", label: "Edit availability", icon: Clock3 },
+    { href: "/settings/calendars", label: "Connect calendar", icon: CalendarPlus },
+    { href: "/analytics", label: "View analytics", icon: BarChart3 },
+  ];
+
   const handle = user?.handle ?? null;
   const appHost = (process.env.APP_URL ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
   const linkDisplay = handle ? (appHost ? `${appHost}/${handle}` : `/${handle}`) : null;
@@ -104,6 +155,23 @@ export default async function DashboardPage() {
 
       <SetupChecklist hasCalendar={hasCalendar} hasHours={hasHours} hasEventType={hasEventType} />
       <DashboardTour />
+
+      {showStats ? (
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: "Today", value: stats.today, hint: "meetings" },
+            { label: "This week", value: stats.week, hint: "meetings" },
+            { label: "Hours this week", value: stats.weekHours, hint: "in meetings" },
+            { label: "Next 30 days", value: stats.upcoming, hint: "upcoming" },
+          ].map((s) => (
+            <Card key={s.label} className="p-4">
+              <p className="text-xs text-[var(--color-muted)]">{s.label}</p>
+              <p className="mt-1 font-display text-2xl tabular-nums">{s.value}</p>
+              <p className="text-xs text-[var(--color-faint)]">{s.hint}</p>
+            </Card>
+          ))}
+        </div>
+      ) : null}
 
       {handle ? (
         <Card className="mb-6 overflow-hidden">
@@ -134,7 +202,22 @@ export default async function DashboardPage() {
         </Card>
       ) : null}
 
-      {aiEnabled ? <AiQuickAdd /> : null}
+      {aiEnabled ? <AiAssistant /> : null}
+
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm font-medium transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-surface-2)]"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+              <Icon size={17} />
+            </span>
+            {label}
+          </Link>
+        ))}
+      </div>
 
       <PendingInvites aiEnabled={aiEnabled} />
 

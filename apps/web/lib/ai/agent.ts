@@ -22,7 +22,7 @@ import { MODELS, getAnthropicClient } from "./llm";
  * single-shot parser produces. It NEVER writes — the only tool is a read.
  */
 
-const FREE_SLOTS_TOOL: Anthropic.Tool = {
+export const FREE_SLOTS_TOOL: Anthropic.Tool = {
   name: "find_free_slots",
   description:
     "Look up times the host is genuinely free for a meeting of a given length, within a date range. Call this to ground a proposed time in real availability before proposing it. Returns up to 8 open slots.",
@@ -45,7 +45,7 @@ const OUTPUT_TOOL: Anthropic.Tool = {
 };
 
 /** Execute the read-only tool: the host's real free slots in a bounded window. */
-async function findFreeSlots(
+export async function findFreeSlots(
   userId: string,
   input: { durationMinutes: number; fromISO: string; toISO: string },
   timezone: string,
