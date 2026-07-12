@@ -18,7 +18,7 @@ import {
  */
 export const NAV = [
   { href: "/dashboard", label: "Home", short: "Home", icon: LayoutDashboard },
-  { href: "/event-types", label: "Booking Types", short: "Events", icon: CalendarClock },
+  { href: "/event-types", label: "Booking Types", short: "Types", icon: CalendarClock },
   { href: "/availability", label: "Availability", short: "Hours", icon: Clock },
   { href: "/bookings", label: "Bookings", short: "Bookings", icon: CalendarDays },
   { href: "/inbox", label: "Inbox", short: "Inbox", icon: Inbox },

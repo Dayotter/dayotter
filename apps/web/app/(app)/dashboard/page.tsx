@@ -6,6 +6,7 @@ import { OverflowButton } from "@/components/overflow-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { PendingInvites } from "@/components/pending-invites";
 import { RunningLateButton } from "@/components/running-late-button";
+import { SectionHeading } from "@/components/section-heading";
 import { SetupChecklist } from "@/components/setup-checklist";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -121,7 +122,7 @@ export default async function DashboardPage() {
   const showStats = statBookings.length > 0;
 
   const QUICK_ACTIONS = [
-    { href: "/event-types", label: "New booking type", icon: Plus },
+    { href: "/event-types/new", label: "New booking type", icon: Plus },
     { href: "/availability", label: "Edit availability", icon: Clock3 },
     { href: "/settings/calendars", label: "Connect calendar", icon: CalendarPlus },
     { href: "/analytics", label: "View analytics", icon: BarChart3 },
@@ -149,6 +150,7 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Your day"
         title={`Good to see you, ${firstName}`}
         description="Here's what's on your calendar."
       />
@@ -159,15 +161,26 @@ export default async function DashboardPage() {
       {showStats ? (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: "Today", value: stats.today, hint: "meetings" },
-            { label: "This week", value: stats.week, hint: "meetings" },
-            { label: "Hours this week", value: stats.weekHours, hint: "in meetings" },
-            { label: "Next 30 days", value: stats.upcoming, hint: "upcoming" },
+            { label: "Today", value: stats.today, hint: "meetings", accent: true },
+            { label: "This week", value: stats.week, hint: "meetings", accent: false },
+            {
+              label: "Hours this week",
+              value: stats.weekHours,
+              hint: "in meetings",
+              accent: false,
+            },
+            { label: "Next 30 days", value: stats.upcoming, hint: "upcoming", accent: false },
           ].map((s) => (
-            <Card key={s.label} className="p-4">
-              <p className="text-xs text-[var(--color-muted)]">{s.label}</p>
-              <p className="mt-1 font-display text-2xl tabular-nums">{s.value}</p>
-              <p className="text-xs text-[var(--color-faint)]">{s.hint}</p>
+            <Card key={s.label} interactive className="p-5">
+              <span className="eyebrow">{s.label}</span>
+              <p
+                className={`mt-2 font-display text-[2rem] leading-none tabular-nums ${
+                  s.accent ? "text-[var(--color-accent)]" : ""
+                }`}
+              >
+                {s.value}
+              </p>
+              <p className="mt-1.5 text-xs text-[var(--color-faint)]">{s.hint}</p>
             </Card>
           ))}
         </div>
@@ -271,7 +284,7 @@ export default async function DashboardPage() {
 
       {aiEnabled && next ? <MeetingAssistant uid={next.uid} title={next.title} /> : null}
 
-      <h2 className="mb-3 text-sm font-semibold text-[var(--color-muted)]">Upcoming</h2>
+      <SectionHeading eyebrow="Agenda" title="Upcoming" />
       {upcoming.length === 0 ? (
         <EmptyState
           title="Calm waters"
@@ -285,7 +298,7 @@ export default async function DashboardPage() {
       ) : (
         <div className="space-y-2">
           {upcoming.map((b) => (
-            <Card key={b.id} className="flex items-center gap-4 px-4 py-3">
+            <Card key={b.id} interactive className="flex items-center gap-4 px-4 py-3">
               <div
                 className="flex h-10 w-10 items-center justify-center rounded-md text-white"
                 style={{ backgroundColor: eventColorVar(b.eventType?.color) }}

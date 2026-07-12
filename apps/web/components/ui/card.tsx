@@ -1,11 +1,22 @@
 import { cn } from "@/lib/cn";
 import type { HTMLAttributes, ReactNode } from "react";
 
-export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+/**
+ * Surface container. Pass `interactive` on clickable cards to get the marketing
+ * hover-lift (rest `shadow-card` → `shadow-raise`), so the app gains the same
+ * elevation rhythm the landing page has instead of everything sitting flat.
+ */
+export function Card({
+  className,
+  interactive,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & { interactive?: boolean }) {
   return (
     <div
       className={cn(
         "rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]",
+        interactive &&
+          "transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-raise)]",
         className,
       )}
       {...props}
