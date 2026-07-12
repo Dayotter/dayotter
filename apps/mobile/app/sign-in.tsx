@@ -1,5 +1,6 @@
 import { useAuth } from "@/auth";
 import { googleAuthEnabled } from "@/auth-client";
+import { BrandMark } from "@/components/brand-mark";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -54,8 +55,8 @@ export default function SignInScreen() {
         style={styles.flex}
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <View style={styles.logo}>
-            <Text style={styles.logoText}>c</Text>
+          <View style={styles.logoRow}>
+            <BrandMark size={48} />
           </View>
           <Text style={styles.heading}>{isSignUp ? "Create your account" : "Welcome back"}</Text>
           <Text style={styles.sub}>
@@ -87,7 +88,9 @@ export default function SignInScreen() {
               </Text>
             </Pressable>
 
-            {googleAuthEnabled ? (
+            {/* Google hidden on iOS: offering it would require Sign in with Apple
+                (App Store guideline 4.8). Email/password stays available. */}
+            {googleAuthEnabled && Platform.OS !== "ios" ? (
               <>
                 <View style={styles.divider}>
                   <View style={styles.line} />
@@ -148,16 +151,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: "center", padding: 24 },
-  logo: {
-    height: 44,
-    width: 44,
-    borderRadius: 11,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  logoText: { color: colors.white, fontWeight: "700", fontSize: 22 },
+  logoRow: { marginBottom: 20, alignSelf: "flex-start" },
   heading: { fontSize: 28, fontWeight: "700", color: colors.text },
   sub: { color: colors.muted, marginTop: 6 },
   form: { marginTop: 28 },

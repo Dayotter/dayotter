@@ -2,7 +2,7 @@ import { BASE_URL, api } from "@/api";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 const LABELS: Record<string, string> = {
   ai: "AI scheduling",
@@ -41,12 +41,22 @@ export function ProLock({ feature }: { feature: string }) {
         <Ionicons name="lock-closed" size={20} color={colors.accent} />
       </View>
       <Text style={styles.title}>{LABELS[feature] ?? "This"} is a Pro feature</Text>
-      <Text style={styles.body}>
-        Upgrade to Pro ($9/seat/mo) to unlock it and every other DayOtter differentiator.
-      </Text>
-      <Pressable style={styles.btn} onPress={() => Linking.openURL(`${BASE_URL}/settings/billing`)}>
-        <Text style={styles.btnText}>Upgrade on the web</Text>
-      </Pressable>
+      {/* iOS: no external purchase CTA / pricing (App Store guideline 3.1.1). */}
+      {Platform.OS === "ios" ? (
+        <Text style={styles.body}>This is included with the DayOtter Pro plan.</Text>
+      ) : (
+        <>
+          <Text style={styles.body}>
+            Upgrade to Pro ($9/seat/mo) to unlock it and every other DayOtter differentiator.
+          </Text>
+          <Pressable
+            style={styles.btn}
+            onPress={() => Linking.openURL(`${BASE_URL}/settings/billing`)}
+          >
+            <Text style={styles.btnText}>Upgrade on the web</Text>
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }
