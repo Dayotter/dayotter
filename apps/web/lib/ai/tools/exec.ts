@@ -98,6 +98,17 @@ export async function executeReadTool(userId: string, name: string): Promise<str
         }),
       );
     }
+    case "get_profile": {
+      const u = await db.query.users.findFirst({
+        where: eq(schema.users.id, userId),
+        columns: { name: true, handle: true, timezone: true },
+      });
+      return JSON.stringify({
+        name: u?.name ?? null,
+        handle: u?.handle ?? null,
+        timezone: u?.timezone ?? "UTC",
+      });
+    }
     case "list_teams": {
       const rows = await db.query.teamMembers.findMany({
         where: eq(schema.teamMembers.userId, userId),
@@ -308,6 +319,42 @@ export async function executeActionTool(
         }
         await db.delete(schema.timeBlocks).where(eq(schema.timeBlocks.id, id));
         return { ok: true, message: `Deleted “${blk.title}”.` };
+      }
+
+      case "update_booking_type": {
+        const id = input.id as string;
+        const et = await db.query.eventTypes.findFirst({
+          where: and(eq(schema.eventTypes.id, id), eq(schema.eventTypes.ownerId, userId)),
+          columns: { id: true, title: true },
+        });
+        if (!et) return { ok: false, message: "I couldn't find that booking type." };
+        const set: Record<string, unknown> = {};
+        if (input.title !== undefined) set.title = input.title;
+        if (input.description !== undefined) set.description = input.description;
+        if (input.durationMinutes !== undefined) set.durationMinutes = input.durationMinutes;
+        if (input.color !== undefined) set.color = input.color;
+        if (Object.keys(set).length === 0) {
+          return { ok: false, message: "Tell me what to change on that booking type." };
+        }
+        await db.update(schema.eventTypes).set(set).where(eq(schema.eventTypes.id, id));
+        return { ok: true, message: `Updated “${et.title}”.` };
+      }
+
+      case "set_booking_type_active": {
+        const id = input.id as string;
+        const et = await db.query.eventTypes.findFirst({
+          where: and(eq(schema.eventTypes.id, id), eq(schema.eventTypes.ownerId, userId)),
+          columns: { id: true, title: true },
+        });
+        if (!et) return { ok: false, message: "I couldn't find that booking type." };
+        await db
+          .update(schema.eventTypes)
+          .set({ isActive: input.active as boolean })
+          .where(eq(schema.eventTypes.id, id));
+        return {
+          ok: true,
+          message: `“${et.title}” is now ${input.active ? "active" : "inactive"}.`,
+        };
       }
 
       case "create_team": {

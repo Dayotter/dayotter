@@ -19,6 +19,7 @@ export default async function TeamsPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Collaborate"
         title="Teams"
         description="Shared availability for your whole raft — every founder and teammate's free time in one place."
         action={<CreateTeamButton />}

@@ -29,7 +29,11 @@ export default async function BookingsPage() {
 
   return (
     <>
-      <PageHeader title="Bookings" description="Everything scheduled with you." />
+      <PageHeader
+        eyebrow="Your calendar"
+        title="Bookings"
+        description="Everything scheduled with you."
+      />
       <BookingsWorkspace tz={tz} history={history} />
     </>
   );

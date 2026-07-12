@@ -108,6 +108,17 @@ export const TOOLS: AiToolDef[] = [
     title: "Teams",
     summarize: () => "List teams",
   },
+  {
+    name: "get_profile",
+    description:
+      "Get the host's profile: display name, public booking handle, and account timezone.",
+    kind: "read",
+    confirmLevel: "none",
+    schema: empty,
+    zod: z.object({}),
+    title: "Profile",
+    summarize: () => "Read profile",
+  },
 
   // ---- Writes (confirm-first) ----
   {
@@ -198,6 +209,56 @@ export const TOOLS: AiToolDef[] = [
     }),
     title: "Create booking type",
     summarize: (i) => `Create “${i.title}” (${i.durationMinutes} min) at /${i.slug}`,
+  },
+  {
+    name: "update_booking_type",
+    description:
+      "Update fields on an existing booking type by id — title, description, duration, or colour. Only the fields you pass change. Get the id from list_booking_types.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Booking type id." },
+        title: { type: "string" },
+        description: { type: "string" },
+        durationMinutes: { type: "integer", description: "5–480." },
+        color: { type: "string", enum: COLORS as unknown as string[] },
+      },
+      required: ["id"],
+    },
+    zod: z.object({
+      id: z.string().uuid(),
+      title: z.string().min(1).max(120).optional(),
+      description: z.string().max(2000).optional(),
+      durationMinutes: z.number().int().min(5).max(480).optional(),
+      color: z.enum(COLORS).optional(),
+    }),
+    title: "Update booking type",
+    summarize: (i) => {
+      const fields = Object.keys(i).filter((k) => k !== "id");
+      return `Update ${fields.length ? fields.join(", ") : "this booking type"}`;
+    },
+  },
+  {
+    name: "set_booking_type_active",
+    description:
+      "Activate or deactivate a booking type by id. A deactivated type can't be booked but isn't deleted.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        id: { type: "string" },
+        active: { type: "boolean" },
+      },
+      required: ["id", "active"],
+    },
+    zod: z.object({ id: z.string().uuid(), active: z.boolean() }),
+    title: "Booking type status",
+    summarize: (i) => `${i.active ? "Activate" : "Deactivate"} this booking type`,
   },
   {
     name: "create_focus_block",

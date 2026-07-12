@@ -30,6 +30,7 @@ export default async function InboxPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Needs you"
         title="Inbox"
         description="Everything about your calendar that needs a decision — in one place."
       />
