@@ -30,6 +30,9 @@ export function AppNav({ user }: { user: { name?: string | null; email: string }
             <Link
               key={href}
               href={href}
+              data-tour={
+                href === "/availability" ? "hours" : href === "/event-types" ? "types" : undefined
+              }
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
                 active

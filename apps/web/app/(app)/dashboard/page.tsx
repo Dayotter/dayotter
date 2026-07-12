@@ -1,5 +1,6 @@
 import { AiQuickAdd } from "@/components/ai-quick-add";
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { DashboardTour } from "@/components/dashboard-tour";
 import { MeetingAssistant } from "@/components/meeting-assistant";
 import { OverflowButton } from "@/components/overflow-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
@@ -102,10 +103,14 @@ export default async function DashboardPage() {
       />
 
       <SetupChecklist hasCalendar={hasCalendar} hasHours={hasHours} hasEventType={hasEventType} />
+      <DashboardTour />
 
       {handle ? (
         <Card className="mb-6 overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-br from-[var(--color-accent-soft)] to-[var(--color-surface)] p-5">
+          <div
+            data-tour="link"
+            className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-br from-[var(--color-accent-soft)] to-[var(--color-surface)] p-5"
+          >
             <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-accent)]">
                 Your booking link
