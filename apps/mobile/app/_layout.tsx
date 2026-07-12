@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/auth";
+import { colors } from "@/theme";
 import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -20,7 +21,16 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <StatusBar style="dark" />
-        <Stack screenOptions={{ headerShown: false }} />
+        {/* Pushed screens set headerShown; give them the brand chrome, not the OS default. */}
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            headerStyle: { backgroundColor: colors.bg },
+            headerTintColor: colors.text,
+            headerTitleStyle: { fontWeight: "700", color: colors.text },
+            headerShadowVisible: false,
+          }}
+        />
       </AuthProvider>
     </SafeAreaProvider>
   );
