@@ -1,26 +1,14 @@
 import { Analytics } from "@/components/analytics";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Mono, Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-
-// Editorial display serif for headlines — the signature of the brand.
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-  axes: ["opsz", "SOFT"],
-});
-
-// Monospace for small technical labels / eyebrows.
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono",
-  display: "swap",
-});
+// Geist (Vercel) — a clean, modern grotesque sans used across professional
+// software products. One family carries body + headings; Geist Mono handles the
+// small uppercase eyebrow labels. Self-hosted via the `geist` package (no runtime
+// network request).
 
 export const metadata: Metadata = {
   title: "DayOtter — scheduling that respects every calendar you own",
@@ -36,7 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${fraunces.variable} ${plexMono.variable}`}
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
       suppressHydrationWarning
     >
       <head>

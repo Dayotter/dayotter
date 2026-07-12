@@ -24,6 +24,7 @@
     "better-auth": "^1.2.7",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
+    "geist": "^1.7.2",
     "lucide-react": "^0.471.0",
     "luxon": "^3.5.0",
     "mixpanel-browser": "^2.58.0",
@@ -35,10 +36,10 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
     "@types/luxon": "^3.4.2",
     "@types/mixpanel-browser": "^2.51.0",
     "@types/node": "^22.10.2",
-    "@tailwindcss/postcss": "^4.0.0",
     "@types/react": "~19.1.0",
     "@types/react-dom": "~19.1.0",
     "tailwindcss": "^4.0.0",
