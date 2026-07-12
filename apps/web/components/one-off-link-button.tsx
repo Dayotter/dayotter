@@ -6,7 +6,7 @@ import { useState } from "react";
 
 /** Generate a single-use booking link and copy it to the clipboard. */
 export function OneOffLinkButton({ id }: { id: string }) {
-  const [state, setState] = useState<"idle" | "busy" | "copied">("idle");
+  const [state, setState] = useState<"idle" | "busy" | "copied" | "error">("idle");
 
   async function create() {
     setState("busy");
@@ -17,7 +17,8 @@ export function OneOffLinkButton({ id }: { id: string }) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.url) {
-      setState("idle");
+      setState("error");
+      setTimeout(() => setState("idle"), 3000);
       return;
     }
     const full = `${window.location.origin}${data.url}`;
@@ -42,6 +43,10 @@ export function OneOffLinkButton({ id }: { id: string }) {
         <>
           <Check size={13} className="text-[var(--color-success)]" /> Link copied
         </>
+      ) : state === "error" ? (
+        <span className="inline-flex items-center gap-1 text-[var(--color-danger)]">
+          <LinkIcon size={13} /> Couldn't create
+        </span>
       ) : (
         <>
           <LinkIcon size={13} /> {state === "busy" ? "Creating…" : "One-off link"}

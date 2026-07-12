@@ -12,10 +12,12 @@ export function CreateTeamButton() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     const res = await fetch("/api/teams", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -25,7 +27,9 @@ export function CreateTeamButton() {
     if (res.ok) {
       const data = await res.json();
       router.push(`/teams/${data.id}`);
+      return;
     }
+    setError("Couldn't create the team. Please try again.");
   }
 
   if (!open) {
@@ -36,21 +40,28 @@ export function CreateTeamButton() {
     );
   }
   return (
-    <form onSubmit={create} className="flex items-end gap-2">
-      <div>
-        <Label htmlFor="team-name">Team name</Label>
-        <Input
-          id="team-name"
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Founders"
-        />
-      </div>
-      <Button type="submit" disabled={loading || !name}>
-        {loading ? "Creating…" : "Create"}
-      </Button>
-    </form>
+    <div>
+      <form onSubmit={create} className="flex items-end gap-2">
+        <div>
+          <Label htmlFor="team-name">Team name</Label>
+          <Input
+            id="team-name"
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Founders"
+          />
+        </div>
+        <Button type="submit" disabled={loading || !name}>
+          {loading ? "Creating…" : "Create"}
+        </Button>
+      </form>
+      {error ? (
+        <div className="mt-2">
+          <FormError>{error}</FormError>
+        </div>
+      ) : null}
+    </div>
   );
 }
 

@@ -98,8 +98,70 @@ export const TOOLS: AiToolDef[] = [
     title: "Channels",
     summarize: () => "List channels",
   },
+  {
+    name: "list_teams",
+    description: "List the teams the host belongs to (id, name, slug, member count).",
+    kind: "read",
+    confirmLevel: "none",
+    schema: empty,
+    zod: z.object({}),
+    title: "Teams",
+    summarize: () => "List teams",
+  },
 
   // ---- Writes (confirm-first) ----
+  {
+    name: "create_team",
+    description: "Create a new team (the host becomes its owner). Give a team name.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: { name: { type: "string", description: "Team name, 1–80 chars." } },
+      required: ["name"],
+    },
+    zod: z.object({ name: z.string().min(1).max(80) }),
+    title: "Create team",
+    summarize: (i) => `Create the team “${i.name}”`,
+  },
+  {
+    name: "update_timezone",
+    description:
+      "Change the host's account timezone (affects how times are shown and scheduled). Pass an IANA timezone like 'America/New_York'.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        timezone: { type: "string", description: "IANA timezone, e.g. 'Europe/London'." },
+      },
+      required: ["timezone"],
+    },
+    zod: z.object({ timezone: z.string().min(1).max(64) }),
+    title: "Update timezone",
+    summarize: (i) => `Set your timezone to ${i.timezone}`,
+  },
+  {
+    name: "toggle_channel_reminders",
+    description:
+      "Turn reminders on or off for one of the host's notification channels (by id, from list_notification_channels).",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Channel id." },
+        enabled: { type: "boolean", description: "true to receive reminders here, false to mute." },
+      },
+      required: ["id", "enabled"],
+    },
+    zod: z.object({ id: z.string().uuid(), enabled: z.boolean() }),
+    title: "Channel reminders",
+    summarize: (i) => `Turn reminders ${i.enabled ? "on" : "off"} for this channel`,
+  },
   {
     name: "create_booking_type",
     description:
@@ -281,6 +343,22 @@ export const TOOLS: AiToolDef[] = [
     zod: z.object({ id: z.string().uuid() }),
     title: "Delete booking type",
     summarize: () => "Delete this booking type (archived if it has bookings)",
+  },
+  {
+    name: "remove_channel",
+    description:
+      "Remove one of the host's notification channels by id (from list_notification_channels). Destructive — requires explicit confirmation.",
+    kind: "destructive",
+    confirmLevel: "danger",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: { id: { type: "string", description: "Channel id." } },
+      required: ["id"],
+    },
+    zod: z.object({ id: z.string().uuid() }),
+    title: "Remove channel",
+    summarize: () => "Remove this notification channel",
   },
   {
     name: "delete_focus_block",

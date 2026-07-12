@@ -2,9 +2,11 @@ import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { maskChannel } from "@/lib/notifications/channel-input";
+import { slugify, uniqueSlug } from "@/lib/slug";
 import { DEFAULT_REMINDER_OFFSETS, decryptJson, logger, sha256hex } from "@dayotter/core";
 import { and, asc, desc, eq, getDb, gte, schema } from "@dayotter/db";
 import type { ChannelConfig, DeliverableChannel } from "@dayotter/notifications";
+import { DateTime } from "luxon";
 import { getTool } from "./registry";
 
 /**
@@ -94,6 +96,21 @@ export async function executeReadTool(userId: string, name: string): Promise<str
           }
           return { id: c.id, type: c.type, label, remindersEnabled: c.remindersEnabled };
         }),
+      );
+    }
+    case "list_teams": {
+      const rows = await db.query.teamMembers.findMany({
+        where: eq(schema.teamMembers.userId, userId),
+        with: { team: { with: { members: { columns: { id: true } } } } },
+      });
+      return JSON.stringify(
+        rows.map((m) => ({
+          id: m.team.id,
+          name: m.team.name,
+          slug: m.team.slug,
+          memberCount: m.team.members.length,
+          role: m.role,
+        })),
       );
     }
     default:
@@ -291,6 +308,71 @@ export async function executeActionTool(
         }
         await db.delete(schema.timeBlocks).where(eq(schema.timeBlocks.id, id));
         return { ok: true, message: `Deleted “${blk.title}”.` };
+      }
+
+      case "create_team": {
+        const name = input.name as string;
+        const { organizationId } = await ensureUserWorkspace(userId);
+        const slug = await uniqueSlug(slugify(name), async (v) =>
+          Boolean(
+            await db.query.teams.findFirst({
+              where: and(eq(schema.teams.organizationId, organizationId), eq(schema.teams.slug, v)),
+            }),
+          ),
+        );
+        const [team] = await db
+          .insert(schema.teams)
+          .values({ organizationId, name, slug })
+          .returning();
+        if (!team) return { ok: false, message: "Couldn't create that team." };
+        await db
+          .insert(schema.teamMembers)
+          .values({ teamId: team.id, userId, role: "owner", priority: 1 })
+          .onConflictDoNothing();
+        return { ok: true, message: `Created the team “${name}”.` };
+      }
+
+      case "update_timezone": {
+        const tz = input.timezone as string;
+        if (!DateTime.local().setZone(tz).isValid) {
+          return { ok: false, message: `“${tz}” isn't a valid timezone.` };
+        }
+        await db.update(schema.users).set({ timezone: tz }).where(eq(schema.users.id, userId));
+        return { ok: true, message: `Your timezone is now ${tz}.` };
+      }
+
+      case "toggle_channel_reminders": {
+        const id = input.id as string;
+        const ch = await db.query.notificationChannels.findFirst({
+          where: and(
+            eq(schema.notificationChannels.id, id),
+            eq(schema.notificationChannels.userId, userId),
+          ),
+          columns: { id: true },
+        });
+        if (!ch) return { ok: false, message: "I couldn't find that channel." };
+        await db
+          .update(schema.notificationChannels)
+          .set({ remindersEnabled: input.enabled as boolean })
+          .where(eq(schema.notificationChannels.id, id));
+        return {
+          ok: true,
+          message: `Reminders ${input.enabled ? "on" : "off"} for that channel.`,
+        };
+      }
+
+      case "remove_channel": {
+        const id = input.id as string;
+        const ch = await db.query.notificationChannels.findFirst({
+          where: and(
+            eq(schema.notificationChannels.id, id),
+            eq(schema.notificationChannels.userId, userId),
+          ),
+          columns: { id: true },
+        });
+        if (!ch) return { ok: false, message: "I couldn't find that channel." };
+        await db.delete(schema.notificationChannels).where(eq(schema.notificationChannels.id, id));
+        return { ok: true, message: "Removed that notification channel." };
       }
 
       default:
