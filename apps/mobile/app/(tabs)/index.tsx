@@ -1,4 +1,4 @@
-import { BASE_URL, api } from "@/api";
+import { api, getServerUrl } from "@/api";
 import { useAuth } from "@/auth";
 import { AiCommandBar } from "@/components/ai-command-bar";
 import { BrandMark } from "@/components/brand-mark";
@@ -57,7 +57,7 @@ export default function DashboardScreen() {
 
   const { data: me, reload: reloadMe } = useAsync<Me>(async () => api.get<Me>("/api/me"));
   const handle = me?.user?.handle ?? null;
-  const bookingUrl = handle ? `${BASE_URL}/${handle}` : null;
+  const bookingUrl = handle ? `${getServerUrl()}/${handle}` : null;
 
   useFocusEffect(
     useCallback(() => {

@@ -1,4 +1,4 @@
-import { BASE_URL, api } from "@/api";
+import { api, getServerUrl } from "@/api";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -51,7 +51,7 @@ export function ProLock({ feature }: { feature: string }) {
           </Text>
           <Pressable
             style={styles.btn}
-            onPress={() => Linking.openURL(`${BASE_URL}/settings/billing`)}
+            onPress={() => Linking.openURL(`${getServerUrl()}/settings/billing`)}
           >
             <Text style={styles.btnText}>Upgrade on the web</Text>
           </Pressable>

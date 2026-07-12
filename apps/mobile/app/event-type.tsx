@@ -1,4 +1,4 @@
-import { ApiError, BASE_URL, api } from "@/api";
+import { ApiError, api, getServerUrl } from "@/api";
 import { Loading } from "@/components/ui";
 import {
   type BookingQuestion,
@@ -225,7 +225,7 @@ export default function EventTypeForm() {
       const res = await api.post<{ url: string }>(`/api/event-types/${params.id}/links`, {
         maxUses: 1,
       });
-      setLinkUrl(`${BASE_URL}${res.url}`);
+      setLinkUrl(`${getServerUrl()}${res.url}`);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not create a link");
     } finally {

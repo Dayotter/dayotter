@@ -1,6 +1,7 @@
 import { useAuth } from "@/auth";
 import { googleAuthEnabled } from "@/auth-client";
 import { BrandMark } from "@/components/brand-mark";
+import { serverHost } from "@/server";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -115,6 +116,9 @@ export default function SignInScreen() {
                 {isSignUp ? "Already have an account? Sign in" : "No account? Create one"}
               </Text>
             </Pressable>
+            <Pressable onPress={() => router.push("/server")} hitSlop={8}>
+              <Text style={styles.serverLink}>Connected to {serverHost()} · Change server</Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -190,4 +194,5 @@ const styles = StyleSheet.create({
   },
   googleText: { color: colors.text, fontWeight: "600", fontSize: 15 },
   toggle: { color: colors.accent, textAlign: "center", marginTop: 18 },
+  serverLink: { color: colors.faint, textAlign: "center", marginTop: 22, fontSize: 13 },
 });

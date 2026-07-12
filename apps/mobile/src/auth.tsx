@@ -1,7 +1,8 @@
 import { type ReactNode, createContext, useContext, useEffect, useMemo, useState } from "react";
 import { ApiError, api, clearToken, hasSession, setToken } from "./api";
-import { authClient } from "./auth-client";
+import { getAuthClient } from "./auth-client";
 import type { AppUser } from "./models";
+import { loadServerUrl } from "./server";
 
 interface AuthState {
   user: AppUser | null;
@@ -32,6 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
+        // Resolve the chosen backend before any request or session check.
+        await loadServerUrl();
         if (await hasSession()) {
           const { user } = await api.get<{ user: AppUser }>("/api/me");
           setUser(user);
@@ -64,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   async function signInWithGoogle(): Promise<string | null> {
     try {
-      const res = await authClient.signIn.social({ provider: "google", callbackURL: "/" });
+      const res = await getAuthClient().signIn.social({ provider: "google", callbackURL: "/" });
       if (res.error) return res.error.message ?? "Google sign-in failed";
       // The Expo client now holds the session cookie; api.ts sends it. Confirm
       // by loading the profile.
@@ -85,7 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         authenticate("/api/auth/sign-up/email", { name, email, password }),
       signInWithGoogle,
       signOut: async () => {
-        await authClient.signOut().catch(() => {});
+        await getAuthClient()
+          .signOut()
+          .catch(() => {});
         await clearToken();
         setUser(null);
       },
