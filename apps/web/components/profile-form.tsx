@@ -6,6 +6,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/toast";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -35,6 +36,7 @@ export function ProfileForm({
   };
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   // Ensure the stored timezone is always selectable — some runtimes omit "UTC"
   // and a few aliases from Intl.supportedValuesOf.
   const zones = useMemo(() => {
@@ -69,10 +71,13 @@ export function ProfileForm({
     setSaving(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(typeof data.error === "string" ? data.error : "Could not save");
+      const msg = typeof data.error === "string" ? data.error : "Could not save";
+      setError(msg);
+      toast({ title: "Couldn't save profile", description: msg, variant: "error" });
       return;
     }
     setSaved(true);
+    toast({ title: "Profile saved", variant: "success" });
     router.refresh();
   }
 
