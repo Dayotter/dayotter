@@ -58,7 +58,7 @@ export const userPreferences = pgTable(
     lunchEndMinute: smallint("lunch_end_minute").notNull().default(780),
 
     // Public booking-page branding.
-    /** Accent colour (hex, e.g. #5b4be6) themed onto the host's public pages. */
+    /** Accent colour (hex, e.g. #6743e6) themed onto the host's public pages. */
     brandColor: text("brand_color"),
     /** Short welcome / bio shown on the public profile + booking pages. */
     welcomeMessage: text("welcome_message"),

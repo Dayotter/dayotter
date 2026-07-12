@@ -19,8 +19,8 @@ fs.mkdirSync(mobOut, { recursive: true });
 
 const roundedMask = (w, h, r) =>
   Buffer.from(`<svg width="${w}" height="${h}"><rect width="${w}" height="${h}" rx="${r}" ry="${r}"/></svg>`);
-const circleMask = (d) =>
-  Buffer.from(`<svg width="${d}" height="${d}"><circle cx="${d / 2}" cy="${d / 2}" r="${d / 2}"/></svg>`);
+const circleMask = (d, r = d / 2) =>
+  Buffer.from(`<svg width="${d}" height="${d}"><circle cx="${d / 2}" cy="${d / 2}" r="${r}"/></svg>`);
 
 // --- 1. Onboarding scenes (1254² grid) ---
 const SCENES = {
@@ -43,13 +43,14 @@ for (const [name, rect] of Object.entries(SCENES)) {
 }
 
 // --- 2. Feature badges (circular icons in the bottom row of the composite) ---
-const D = 180;
+const D = 204; // generous box so the full icon circle is captured (no edge clip)
+const R = 98; // mask radius ≈ the icon circle radius (removes navy corners cleanly)
 const BADGES = ["scheduling", "secure", "balance", "timezone", "reminders", "track"];
 const CENTERS = [128, 384, 640, 896, 1152, 1408];
 for (let i = 0; i < BADGES.length; i++) {
   const buf = await sharp(COMPOSITE)
-    .extract({ left: CENTERS[i] - D / 2, top: 772, width: D, height: D })
-    .composite([{ input: circleMask(D), blend: "dest-in" }])
+    .extract({ left: CENTERS[i] - D / 2, top: 762, width: D, height: D })
+    .composite([{ input: circleMask(D, R), blend: "dest-in" }])
     .png()
     .toBuffer();
   fs.writeFileSync(path.join(webOut, `badge-${BADGES[i]}.png`), buf);

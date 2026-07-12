@@ -21,7 +21,7 @@ function timezones(): string[] {
 }
 
 /** Preset booking-page accent colours (hex). `null` = the default DayOtter theme. */
-const BRAND_PRESETS = ["#5b4be6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
+const BRAND_PRESETS = ["#6743e6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
 
 export function ProfileForm({
   initial,
@@ -180,7 +180,7 @@ export function ProfileForm({
                   Custom
                   <input
                     type="color"
-                    value={brandColor ?? "#5b4be6"}
+                    value={brandColor ?? "#6743e6"}
                     onChange={(e) => {
                       setBrandColor(e.target.value);
                       setSaved(false);

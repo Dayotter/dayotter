@@ -28,7 +28,7 @@ const REMINDER_OPTIONS = [
   { value: 10, label: "10 min" },
 ];
 /** Booking-page accent presets (hex); null = the default theme. */
-const BRAND_PRESETS = ["#5b4be6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
+const BRAND_PRESETS = ["#6743e6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
 
 export default function SettingsScreen() {
   const router = useRouter();
