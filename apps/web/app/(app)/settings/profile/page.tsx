@@ -1,3 +1,4 @@
+import { AccountSecurity } from "@/components/account-security";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { ProfileForm } from "@/components/profile-form";
 import { getSession } from "@/lib/auth/session";
@@ -36,6 +37,7 @@ export default async function ProfileSettingsPage() {
         }}
       />
       <ChangePasswordForm />
+      <AccountSecurity />
     </>
   );
 }

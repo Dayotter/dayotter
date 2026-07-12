@@ -1,5 +1,5 @@
 import { expo } from "@better-auth/expo";
-import { getDb, schema } from "@dayotter/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import { sendEmail } from "@dayotter/emails";
 import { type BetterAuthPlugin, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -47,6 +47,24 @@ export const auth = betterAuth({
       });
     },
   },
+  // Send a verification email on sign-up. NOT hard-required (that would block the
+  // mobile bearer-token flow and self-hosts without SMTP); flip
+  // `emailAndPassword.requireEmailVerification` on once you have SMTP + handle it
+  // on mobile. When SMTP is unset the mailer just logs the message.
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendEmail({
+        to: user.email,
+        subject: "Verify your DayOtter email",
+        text: `Welcome to DayOtter! Confirm your email to secure your account: ${url}`,
+        html: `<p>Welcome to DayOtter — confirm your email to secure your account.</p>
+<p><a href="${url}">Verify your email</a></p>
+<p style="color:#666;font-size:13px">If you didn't sign up, you can ignore this email.</p>`,
+      });
+    },
+  },
   // "Sign in with Google" — enabled only when Google OAuth creds are configured
   // (the same app used for calendar connect). Register
   // `${APP_URL}/api/auth/callback/google` as an authorized redirect URI.
@@ -62,6 +80,14 @@ export const auth = betterAuth({
     additionalFields: {
       handle: { type: "string", required: false, input: true },
       timezone: { type: "string", required: false, input: true },
+    },
+    deleteUser: {
+      enabled: true,
+      // bookings.host_id is ON DELETE restrict — remove the host's bookings first
+      // so the cascade on everything else (event types, schedules, sessions…) runs.
+      beforeDelete: async (user) => {
+        await getDb().delete(schema.bookings).where(eq(schema.bookings.hostId, user.id));
+      },
     },
   },
   advanced: {
