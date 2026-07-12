@@ -42,7 +42,7 @@ export function SetupChecklist({ setup }: { setup?: Setup }) {
         >
           <View style={[styles.num, s.done && styles.numDone]}>
             {s.done ? (
-              <Ionicons name="checkmark" size={14} color="#fff" />
+              <Ionicons name="checkmark" size={14} color={colors.white} />
             ) : (
               <Text style={styles.numText}>{i + 1}</Text>
             )}

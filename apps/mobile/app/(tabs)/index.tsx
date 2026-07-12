@@ -117,7 +117,7 @@ export default function DashboardScreen() {
               <Ionicons name="open-outline" size={18} color={colors.muted} />
             </Pressable>
             <View style={styles.shareBtn}>
-              <Ionicons name="share-outline" size={15} color="#fff" />
+              <Ionicons name="share-outline" size={15} color={colors.white} />
               <Text style={styles.shareText}>Share</Text>
             </View>
           </Pressable>
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  shareText: { color: "#fff", fontWeight: "600", fontSize: 13 },
+  shareText: { color: colors.white, fontWeight: "600", fontSize: 13 },
   row: { flexDirection: "row", alignItems: "center" },
   iconBox: {
     height: 40,

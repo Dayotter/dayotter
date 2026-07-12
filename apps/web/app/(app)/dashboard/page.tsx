@@ -186,8 +186,8 @@ export default async function DashboardPage() {
       <h2 className="mb-3 text-sm font-semibold text-[var(--color-muted)]">Upcoming</h2>
       {upcoming.length === 0 ? (
         <EmptyState
-          title="Nothing scheduled yet"
-          description="Once your calendars are connected and people start booking, meetings show up here."
+          title="Calm waters"
+          description="Once your calendars are connected and people start booking, meetings surface here."
           action={
             <Link href="/settings/calendars" className={buttonVariants({ variant: "primary" })}>
               Connect a calendar
