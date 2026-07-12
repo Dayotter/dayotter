@@ -1,0 +1,23 @@
+# Overlay for running DayOtter behind your OWN reverse proxy (e.g. a host nginx
+# with certbot / Let's Encrypt) instead of the bundled Caddy. It:
+#   - publishes the web app on 127.0.0.1:3000 (reachable only by a proxy on the
+#     SAME host, never the public internet), and
+#   - disables the bundled `caddy` service via a compose profile.
+#
+# Usage (from deploy/), layered on top of the prod stack:
+#   docker compose -f docker-compose.prod.yml -f docker-compose.nginx.yml \
+#     --env-file .env up -d --build web worker
+#
+# Then point an nginx server block at http://127.0.0.1:3000 and terminate TLS
+# there — see deploy/nginx/dayotter.com.conf and the README section
+# "Option D — Behind your own nginx (Let's Encrypt)".
+#
+# Note: the bundled Postgres never publishes a host port, so it does NOT conflict
+# with anything else already using 5432 on the host (e.g. a local Supabase).
+services:
+  web:
+    ports:
+      - "127.0.0.1:3000:3000"
+  caddy:
+    # Profile-gated so a normal `up` never starts it; your host nginx fronts us.
+    profiles: ["disabled"]
