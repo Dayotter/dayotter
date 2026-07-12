@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
-import type { ChatAction } from "@/lib/ai/chat";
+import type { ChatAction, ChatToolAction } from "@/lib/ai/chat";
 import { track } from "@/lib/analytics";
 import { useSpeechInput } from "@/lib/use-speech";
 import { Mic, Send, Sparkles, Volume2, VolumeX } from "lucide-react";
@@ -70,6 +70,8 @@ export function AiAssistant() {
   const [notes, setNotes] = useState("");
   const [newStartLocal, setNewStartLocal] = useState("");
   const [busy, setBusy] = useState(false);
+  // Generic confirm-first registry action (booking types, availability, prefs, …).
+  const [toolAction, setToolAction] = useState<ChatToolAction | null>(null);
 
   const messagesRef = useRef<Msg[]>(messages);
   messagesRef.current = messages;
@@ -104,6 +106,7 @@ export function AiAssistant() {
       if (!content || streaming) return;
       setError(null);
       setAction(null);
+      setToolAction(null);
       setInput("");
       const history = [...messagesRef.current, { role: "user" as const, content }];
       // Add the user turn + an empty assistant bubble we stream into.
@@ -148,6 +151,8 @@ export function AiAssistant() {
               setAssistant(acc);
             } else if (ev.type === "action") {
               initAction(ev.action as ChatAction);
+            } else if (ev.type === "tool_action") {
+              setToolAction(ev.toolAction as ChatToolAction);
             } else if (ev.type === "error") {
               setError(ev.message);
               // Drop the empty streaming bubble so only the error shows.
@@ -267,6 +272,38 @@ export function AiAssistant() {
     }
     track("AI Cancel Confirmed", { via: "chat" });
     afterAction("Cancelled — attendees notified ✓");
+  }
+
+  // Confirm a registry action (create/update/delete booking types, availability,
+  // preferences, focus blocks). Runs only on this explicit click; deletes arrive
+  // with confirmLevel 'danger' and a red confirm button.
+  async function confirmToolAction() {
+    if (!toolAction) return;
+    setBusy(true);
+    setError(null);
+    const res = await fetch("/api/ai/act", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tool: toolAction.tool, input: toolAction.input }),
+    });
+    setBusy(false);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      setError(
+        typeof data.message === "string"
+          ? data.message
+          : typeof data.error === "string"
+            ? data.error
+            : "Couldn't complete that.",
+      );
+      return;
+    }
+    track("AI Tool Action", { tool: toolAction.tool });
+    const msg = typeof data.message === "string" ? data.message : "Done ✓";
+    setToolAction(null);
+    setMessages((prev) => [...prev, { role: "assistant", content: msg }]);
+    if (speakRef.current) speak(msg);
+    router.refresh();
   }
 
   const intent = action?.draft.intent;
@@ -436,6 +473,50 @@ export function AiAssistant() {
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
                   Keep it
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Generic confirm-first action (booking types, availability, prefs, focus). */}
+          {toolAction ? (
+            <div
+              className={`mt-3 space-y-3 rounded-lg border p-4 shadow-[var(--shadow-card)] ${
+                toolAction.confirmLevel === "danger"
+                  ? "border-[color-mix(in_srgb,var(--color-danger)_40%,transparent)] bg-[color-mix(in_srgb,var(--color-danger)_5%,transparent)]"
+                  : "border-[var(--color-border)] bg-[var(--color-surface)]"
+              }`}
+            >
+              <span
+                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                  toolAction.confirmLevel === "danger"
+                    ? "bg-[color-mix(in_srgb,var(--color-danger)_15%,transparent)] text-[var(--color-danger)]"
+                    : "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
+                }`}
+              >
+                {toolAction.title}
+              </span>
+              <p className="text-sm">{toolAction.summary}.</p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant={toolAction.confirmLevel === "danger" ? "danger" : "primary"}
+                  onClick={confirmToolAction}
+                  disabled={busy}
+                >
+                  {busy
+                    ? "Working…"
+                    : toolAction.confirmLevel === "danger"
+                      ? "Confirm delete"
+                      : "Confirm"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setToolAction(null)}
+                  disabled={busy}
+                >
+                  Discard
                 </Button>
               </div>
             </div>

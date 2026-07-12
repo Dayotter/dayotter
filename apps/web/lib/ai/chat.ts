@@ -10,6 +10,8 @@ import {
 } from "./command-parse";
 import { MODELS, getAnthropicClient } from "./llm";
 import { retrieveCalendarContext } from "./retrieval";
+import { executeReadTool } from "./tools/exec";
+import { anthropicToolDefs, getTool } from "./tools/registry";
 
 /** One turn of the chat, as the client stores it (plain text, not Anthropic blocks). */
 export interface ChatTurn {
@@ -24,10 +26,20 @@ export interface ChatAction {
   matchedEventType: { title: string; slug: string; durationMinutes: number } | null;
 }
 
+/** A confirm-first registry action (booking types, availability, preferences, …). */
+export interface ChatToolAction {
+  tool: string;
+  title: string;
+  summary: string;
+  confirmLevel: "confirm" | "danger";
+  input: unknown;
+}
+
 /** SSE events the stream emits to the client. */
 export type ChatEvent =
   | { type: "token"; text: string }
   | { type: "action"; action: ChatAction }
+  | { type: "tool_action"; toolAction: ChatToolAction }
   | { type: "done"; text: string }
   | { type: "error"; message: string };
 
@@ -42,7 +54,12 @@ HOW YOU WORK:
 - When a time depends on when the host is actually free ("find me a free 30 min", "my next open afternoon"), call find_free_slots FIRST, then use a real returned slot in the draft. Never invent availability.
 - Resolve every time to an absolute ISO-8601 instant in the host's timezone. Never pick a past time. Interpret vague times locally (morning=09:00, afternoon=14:00, evening=18:00).
 - For reschedule/cancel, set bookingRef to the exact ref of the intended booking. If several could match and you can't tell, DON'T propose — just ask which one in your reply.
-- If you're only answering a question (not proposing a change), reply in plain text and do not call propose_action.`;
+- If you're only answering a question (not proposing a change), reply in plain text and do not call propose_action.
+
+BEYOND BOOKINGS — you can also read and control the rest of the host's setup with these tools:
+- Reads (use freely to answer questions, and BEFORE changing something so you know the current values): list_booking_types, get_availability, get_preferences, list_focus_blocks, list_notification_channels.
+- Actions (each shows the host a confirm card — nothing happens until they tap Confirm): create_booking_type, create_focus_block, update_preferences, set_weekly_hours, delete_booking_type, delete_focus_block.
+Rules for these: propose exactly ONE action at a time. NEVER say you've done, created, changed, or deleted something — you have only proposed it; the host confirms. Deleting always requires the host's explicit confirmation. For set_weekly_hours and update_preferences, call the matching read tool first and carry over the values the host wants to keep (both replace/merge against current state). Use propose_action ONLY for bookings (create/reschedule/cancel a meeting); use these tools for booking types, availability, preferences, and focus blocks.`;
 
 const PROPOSE_ACTION_TOOL: Anthropic.Tool = {
   name: "propose_action",
@@ -133,7 +150,7 @@ export async function streamAssistant(params: {
       model: MODELS.deep,
       max_tokens: 3000,
       system,
-      tools: [FREE_SLOTS_TOOL, PROPOSE_ACTION_TOOL],
+      tools: [FREE_SLOTS_TOOL, PROPOSE_ACTION_TOOL, ...(anthropicToolDefs() as Anthropic.Tool[])],
       tool_choice: { type: "auto" },
       output_config: { effort: "medium" },
       thinking: { type: "adaptive" },
@@ -148,10 +165,12 @@ export async function streamAssistant(params: {
     }
 
     const final = await stream.finalMessage();
-
-    const proposal = final.content.find(
-      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use" && b.name === "propose_action",
+    const toolUses = final.content.filter(
+      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
     );
+
+    // 1. Booking create/reschedule/cancel → the rich editable card.
+    const proposal = toolUses.find((b) => b.name === "propose_action");
     if (proposal) {
       try {
         const draft = commandDraftSchema.parse(proposal.input);
@@ -164,20 +183,46 @@ export async function streamAssistant(params: {
       break;
     }
 
-    const reads = final.content.filter(
-      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use" && b.name === "find_free_slots",
+    // 2. Registry write/destructive tool → generic confirm card. NOT executed here;
+    //    the client runs it via /api/ai/act only after the host confirms.
+    const actionCall = toolUses.find((b) => {
+      const t = getTool(b.name);
+      return t && t.kind !== "read";
+    });
+    if (actionCall) {
+      const t = getTool(actionCall.name)!;
+      const inp = (actionCall.input ?? {}) as Record<string, unknown>;
+      emit({
+        type: "tool_action",
+        toolAction: {
+          tool: t.name,
+          title: t.title,
+          summary: t.summarize(inp),
+          confirmLevel: t.confirmLevel === "danger" ? "danger" : "confirm",
+          input: inp,
+        },
+      });
+      break;
+    }
+
+    // 3. Reads (registry reads + find_free_slots) → run inline, feed back, loop.
+    const reads = toolUses.filter(
+      (b) => b.name === "find_free_slots" || getTool(b.name)?.kind === "read",
     );
     if (reads.length === 0) break; // plain conversational answer—done
 
     messages.push({ role: "assistant", content: final.content });
     const results: Anthropic.ToolResultBlockParam[] = [];
     for (const call of reads) {
-      const text = await findFreeSlots(
-        userId,
-        call.input as { durationMinutes: number; fromISO: string; toISO: string },
-        tz,
-      ).catch(() => "Could not look up availability.");
-      results.push({ type: "tool_result", tool_use_id: call.id, content: text });
+      const content =
+        call.name === "find_free_slots"
+          ? await findFreeSlots(
+              userId,
+              call.input as { durationMinutes: number; fromISO: string; toISO: string },
+              tz,
+            ).catch(() => "Could not look up availability.")
+          : await executeReadTool(userId, call.name).catch(() => "Could not read that.");
+      results.push({ type: "tool_result", tool_use_id: call.id, content });
     }
     messages.push({ role: "user", content: results });
   }
