@@ -1,4 +1,5 @@
 import { expoClient } from "@better-auth/expo/client";
+import { phoneNumberClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import * as SecureStore from "expo-secure-store";
 import { getServerUrl } from "./server";
@@ -16,7 +17,10 @@ import { getServerUrl } from "./server";
 function makeClient(baseURL: string) {
   return createAuthClient({
     baseURL,
-    plugins: [expoClient({ scheme: "dayotter", storagePrefix: "dayotter", storage: SecureStore })],
+    plugins: [
+      expoClient({ scheme: "dayotter", storagePrefix: "dayotter", storage: SecureStore }),
+      phoneNumberClient(),
+    ],
   });
 }
 
@@ -31,3 +35,6 @@ export function getAuthClient(): Client {
 
 /** Whether the "Continue with Google" button should render. */
 export const googleAuthEnabled = process.env.EXPO_PUBLIC_GOOGLE_AUTH === "1";
+
+/** Whether phone + OTP sign-in should render (operator runs Twilio on the server). */
+export const phoneAuthEnabled = process.env.EXPO_PUBLIC_PHONE_AUTH === "1";

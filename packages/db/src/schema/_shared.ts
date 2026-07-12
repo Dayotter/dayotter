@@ -65,6 +65,7 @@ export const notificationChannelType = pgEnum("notification_channel_type", [
   "email",
   "sms",
   "push", // mobile push (APNs / FCM)
+  "webpush", // desktop/browser push (Web Push + VAPID)
   "whatsapp",
   "slack",
 ]);

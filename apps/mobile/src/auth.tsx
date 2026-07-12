@@ -10,6 +10,10 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (name: string, email: string, password: string) => Promise<string | null>;
   signInWithGoogle: () => Promise<string | null>;
+  /** Text an OTP to the phone. Returns an error string or null on success. */
+  sendPhoneOtp: (phone: string) => Promise<string | null>;
+  /** Verify the OTP; on success a session is established and the user is set. */
+  verifyPhoneOtp: (phone: string, code: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 }
 
@@ -79,6 +83,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function sendPhoneOtp(phone: string): Promise<string | null> {
+    const res = await getAuthClient().phoneNumber.sendOtp({ phoneNumber: phone });
+    return res.error ? (res.error.message ?? "Couldn't send the code") : null;
+  }
+
+  /**
+   * Verify the SMS code. Like Google, this leaves the session in the Expo client
+   * (api.ts sends its cookie); we confirm by loading the profile. An unknown
+   * number is auto-provisioned server-side (signUpOnVerification).
+   */
+  async function verifyPhoneOtp(phone: string, code: string): Promise<string | null> {
+    try {
+      const res = await getAuthClient().phoneNumber.verify({ phoneNumber: phone, code });
+      if (res.error) return res.error.message ?? "That code didn't match";
+      const { user: me } = await api.get<{ user: AppUser }>("/api/me");
+      setUser(me);
+      return null;
+    } catch (err) {
+      return err instanceof Error ? err.message : "Verification failed";
+    }
+  }
+
+  // The handler closures are stable enough for our needs; re-memoizing only when
+  // user/initializing change is intentional (adding them would defeat the memo).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: stable auth closures
   const value = useMemo<AuthState>(
     () => ({
       user,
@@ -87,6 +116,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp: (name, email, password) =>
         authenticate("/api/auth/sign-up/email", { name, email, password }),
       signInWithGoogle,
+      sendPhoneOtp,
+      verifyPhoneOtp,
       signOut: async () => {
         await getAuthClient()
           .signOut()

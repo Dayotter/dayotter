@@ -50,8 +50,9 @@ export const POST = withUser(async (u, request) => {
   }
   const input = parsed.data;
 
-  // Push (device reminders) stays free; extra channels (Slack/WhatsApp/SMS) are Pro.
-  if (input.type !== "push") {
+  // Device reminders (mobile + browser push) stay free; extra channels
+  // (Slack/WhatsApp/SMS) are Pro.
+  if (input.type !== "push" && input.type !== "webpush") {
     const gate = await requireFeature(u.id, "multi_channel");
     if (gate) return gate;
   }

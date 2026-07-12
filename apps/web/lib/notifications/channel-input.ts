@@ -25,6 +25,13 @@ export const channelInputSchema = z.discriminatedUnion("type", [
     pushToken: z.string().min(1).max(300),
     platform: z.enum(["ios", "android"]).optional(),
   }),
+  z.object({
+    type: z.literal("webpush"),
+    subscription: z.object({
+      endpoint: z.string().url(),
+      keys: z.object({ p256dh: z.string().min(1), auth: z.string().min(1) }),
+    }),
+  }),
 ]);
 
 export type ChannelInput = z.infer<typeof channelInputSchema>;
@@ -39,6 +46,8 @@ export function configFromInput(input: ChannelInput): ChannelConfig {
       return { phone: input.phone };
     case "push":
       return { pushToken: input.pushToken, platform: input.platform };
+    case "webpush":
+      return { subscription: input.subscription };
   }
 }
 
@@ -50,6 +59,7 @@ export function maskChannel(type: DeliverableChannel | "email", config: ChannelC
   }
   if ("webhookUrl" in config) return "hooks.slack.com/…";
   if ("pushToken" in config) return `${type} device`;
+  if ("subscription" in config) return "This browser";
   return type;
 }
 
@@ -58,4 +68,5 @@ export const CHANNEL_LABELS: Record<DeliverableChannel, string> = {
   whatsapp: "WhatsApp",
   sms: "SMS",
   push: "Mobile push",
+  webpush: "Browser",
 };

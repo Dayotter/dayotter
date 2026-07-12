@@ -1,10 +1,11 @@
 import { expo } from "@better-auth/expo";
 import { eq, getDb, schema } from "@dayotter/db";
 import { sendEmail } from "@dayotter/emails";
+import { sendTextSms, twilioConfigured } from "@dayotter/notifications";
 import { type BetterAuthPlugin, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { bearer, organization } from "better-auth/plugins";
+import { bearer, organization, phoneNumber } from "better-auth/plugins";
 
 /**
  * Better Auth server instance — the single source of truth for identity and
@@ -105,7 +106,27 @@ export const auth = betterAuth({
   // `expo()` is cast to the generic plugin type so the auth instance's inferred
   // type stays portable (avoids TS2742 leaking a nested zod-v4 path); it still
   // runs and registers its endpoints at runtime.
-  plugins: [organization(), expo() as BetterAuthPlugin, bearer(), nextCookies()],
+  plugins: [
+    organization(),
+    // Phone + OTP sign-in — enabled only when Twilio is configured (it sends the
+    // code). Phone-only users get an auto-provisioned account via a temp email.
+    ...(twilioConfigured()
+      ? [
+          phoneNumber({
+            sendOTP: async ({ phoneNumber: phone, code }) => {
+              await sendTextSms(phone, `Your DayOtter code is ${code}`);
+            },
+            signUpOnVerification: {
+              getTempEmail: (phone) => `${phone.replace(/[^0-9]/g, "")}@phone.dayotter.local`,
+              getTempName: (phone) => phone,
+            },
+          }) as BetterAuthPlugin,
+        ]
+      : []),
+    expo() as BetterAuthPlugin,
+    bearer(),
+    nextCookies(),
+  ],
 });
 
 export type Auth = typeof auth;
