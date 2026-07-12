@@ -1,11 +1,12 @@
 import { useAuth } from "@/auth";
 import { googleAuthEnabled } from "@/auth-client";
 import { BrandMark } from "@/components/brand-mark";
+import { hasOnboarded } from "@/onboarding-state";
 import { serverHost } from "@/server";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -28,6 +29,15 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  // First launch → show onboarding before the sign-in form.
+  useEffect(() => {
+    hasOnboarded().then((done) => {
+      if (done) setReady(true);
+      else router.replace("/onboarding");
+    });
+  }, [router]);
 
   async function submit() {
     setLoading(true);
@@ -48,6 +58,8 @@ export default function SignInScreen() {
     if (err) setError(err);
     else router.replace("/");
   }
+
+  if (!ready) return <View style={styles.safe} />;
 
   return (
     <SafeAreaView style={styles.safe}>

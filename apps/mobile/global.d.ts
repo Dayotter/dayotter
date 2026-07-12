@@ -9,3 +9,9 @@ declare module "*.svg" {
   const content: FC<SvgProps>;
   export default content;
 }
+
+// Bundled image assets resolve to a Metro asset id (number).
+declare module "*.png" {
+  const content: number;
+  export default content;
+}
