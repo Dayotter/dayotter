@@ -40,7 +40,8 @@ export default function SignUpPage() {
     }
     if (data?.user?.id) identify(data.user.id, { email, name });
     track("Signed Up");
-    router.push("/dashboard");
+    // New accounts land on the welcome flow, then continue to the dashboard.
+    router.push("/welcome");
   }
 
   return (

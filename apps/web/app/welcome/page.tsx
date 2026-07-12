@@ -70,7 +70,7 @@ export default function WelcomePage() {
           ) : null}
           {last ? (
             <Link
-              href="/sign-up"
+              href="/dashboard"
               className={cn(buttonVariants({ variant: "primary", size: "lg" }), "flex-1")}
             >
               Get started <ArrowRight size={17} />
@@ -88,7 +88,7 @@ export default function WelcomePage() {
 
         <div className="mt-4 text-center">
           <Link
-            href="/sign-up"
+            href="/dashboard"
             className="text-sm text-[var(--color-faint)] transition-colors hover:text-[var(--color-muted)]"
           >
             Skip
