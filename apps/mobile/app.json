@@ -15,7 +15,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dayotter.app"
+      "bundleIdentifier": "com.dayotter.app",
+      "buildNumber": "1"
     },
     "android": {
       "package": "com.dayotter.app",

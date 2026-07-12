@@ -78,6 +78,50 @@ subsequent upload.
 To push straight to Play from CI later: `eas submit -p android` (needs a Play
 service-account JSON configured under `submit.production`).
 
+## Building the iOS app (.ipa) for the App Store
+
+Same EAS flow; the `production` profile produces a store-ready archive. The app
+id is `com.dayotter.app`, versioned by `ios.buildNumber` in
+[`../app.json`](../app.json). Requires a paid **Apple Developer** account.
+
+```bash
+npm i -g eas-cli && eas login
+cd apps/mobile
+eas init                            # once — links the project
+eas build -p ios --profile production
+```
+
+EAS prompts for your Apple credentials and manages the signing certificate +
+provisioning profile for you. When it finishes it prints a URL to download the
+signed **.ipa**. Then either:
+
+- `eas submit -p ios` — uploads straight to App Store Connect (needs your Apple
+  ID / an App Store Connect API key), **or**
+- upload the `.ipa` yourself via **Transporter** (Mac App Store).
+
+In App Store Connect create the app record (bundle id `com.dayotter.app`), then
+attach the build, screenshots, and the listing copy above. Bump `buildNumber`
+for each new upload (or rely on `autoIncrement`).
+
+## ⚠️ App Store review — two things to resolve before submitting
+
+App Review commonly rejects on these; both are present today:
+
+1. **In-app purchase / anti-steering (Guideline 3.1.1).** `src/components/pro-lock.tsx`
+   shows an **"Upgrade on the web"** button that opens the Stripe billing page.
+   Directing users to an external purchase for digital goods is not allowed
+   without Apple's External-Purchase entitlement. Fix: remove the purchase
+   button/link from the iOS build (show the feature as locked with a neutral
+   message), add Apple In-App Purchase, or apply for the entitlement.
+2. **Sign in with Apple (Guideline 4.8).** `app/sign-in.tsx` offers Google
+   sign-in. If any third-party login is offered, Apple requires **Sign in with
+   Apple** as an equivalent option. Fix: add Sign in with Apple, or disable
+   Google sign-in on the build submitted to Apple (email/password alone is fine).
+
+You'll also need in App Store Connect: a privacy policy URL
+(`https://dayotter.com/privacy`), a support URL, and the App Privacy
+data-use questionnaire.
+
 ## Screenshots (capture from the app — not generated here)
 
 Stores require real device screenshots; generate them from the running app:
