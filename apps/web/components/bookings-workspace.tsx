@@ -34,12 +34,14 @@ type Tab = "calendar" | "history";
 /** Bookings surface: a colour-coded calendar (month/week/agenda) plus a full
  *  history list (including past + cancelled). */
 export function BookingsWorkspace({ tz, history }: { tz: string; history: HistoryBooking[] }) {
-  const [tab, setTab] = useState<Tab>("calendar");
+  // Default to History so the server-loaded rows render immediately; the
+  // calendar fetches its own range only when that tab is opened.
+  const [tab, setTab] = useState<Tab>("history");
 
   return (
     <>
       <div className="mb-5 flex rounded-md border border-[var(--color-border-strong)] p-0.5 w-fit">
-        {(["calendar", "history"] as Tab[]).map((t) => (
+        {(["history", "calendar"] as Tab[]).map((t) => (
           <button
             key={t}
             type="button"

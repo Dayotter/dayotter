@@ -221,7 +221,9 @@ export async function streamAssistant(params: {
               call.input as { durationMinutes: number; fromISO: string; toISO: string },
               tz,
             ).catch(() => "Could not look up availability.")
-          : await executeReadTool(userId, call.name).catch(() => "Could not read that.");
+          : await executeReadTool(userId, call.name, call.input as Record<string, unknown>).catch(
+              () => "Could not read that.",
+            );
       results.push({ type: "tool_result", tool_use_id: call.id, content });
     }
     messages.push({ role: "user", content: results });

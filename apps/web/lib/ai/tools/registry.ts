@@ -130,6 +130,43 @@ export const TOOLS: AiToolDef[] = [
     title: "Calendars",
     summarize: () => "List connected calendars",
   },
+  {
+    name: "list_automations",
+    description:
+      "List the host's automation rules (auto prep/buffer/follow-up blocks around bookings, and weekly rules).",
+    kind: "read",
+    confirmLevel: "none",
+    schema: empty,
+    zod: z.object({}),
+    title: "Automations",
+    summarize: () => "List automations",
+  },
+  {
+    name: "list_workflows",
+    description:
+      "List the host's org workflows (automated before/after-event messages to attendees).",
+    kind: "read",
+    confirmLevel: "none",
+    schema: empty,
+    zod: z.object({}),
+    title: "Workflows",
+    summarize: () => "List workflows",
+  },
+  {
+    name: "get_analytics",
+    description:
+      "Read booking-funnel analytics (views, unique visitors, bookings, confirmed, cancellations, no-shows, conversion) over the last N days.",
+    kind: "read",
+    confirmLevel: "none",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: { days: { type: "integer", description: "Window in days (default 30)." } },
+    },
+    zod: z.object({ days: z.number().int().min(1).max(365).optional() }),
+    title: "Analytics",
+    summarize: () => "Read analytics",
+  },
 
   // ---- Writes (confirm-first) ----
   {
@@ -158,6 +195,116 @@ export const TOOLS: AiToolDef[] = [
     }),
     title: "Add channel",
     summarize: (i) => `Add a ${i.type} reminder channel`,
+  },
+  {
+    name: "add_team_member",
+    description:
+      "Add a member to one of the host's teams by email. The person must already have a DayOtter account. The host must own or admin the team.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        teamId: { type: "string", description: "Team id (from list_teams)." },
+        email: { type: "string", description: "The member's account email." },
+      },
+      required: ["teamId", "email"],
+    },
+    zod: z.object({ teamId: z.string().uuid(), email: z.string().email() }),
+    title: "Add team member",
+    summarize: (i) => `Add ${i.email} to the team`,
+  },
+  {
+    name: "create_automation",
+    description:
+      "Create an automation rule. For a booking-created rule pick an action (prep_block = focus time before, buffer_after = gap after, followup = follow-up block) and an offset in minutes; optionally matchTitle to only fire on matching bookings. For a weekly rule set trigger=weekly with dayOfWeek + windowStart/windowEnd (HH:MM).",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        name: { type: "string" },
+        trigger: { type: "string", enum: ["booking_created", "weekly"] },
+        action: { type: "string", enum: ["prep_block", "buffer_after", "followup"] },
+        offsetMinutes: { type: "integer", description: "5\u201310080." },
+        matchTitle: {
+          type: "string",
+          description: "Only fire on bookings whose title contains this (booking_created only).",
+        },
+        dayOfWeek: { type: "integer", description: "0=Sun\u20266=Sat (weekly)." },
+        windowStart: { type: "string", description: "HH:MM (weekly)." },
+        windowEnd: { type: "string", description: "HH:MM (weekly)." },
+      },
+      required: ["name"],
+    },
+    zod: z.object({
+      name: z.string().min(1).max(120),
+      trigger: z.enum(["booking_created", "weekly"]).optional(),
+      action: z.enum(["prep_block", "buffer_after", "followup"]).optional(),
+      offsetMinutes: z.number().int().min(5).max(10_080).optional(),
+      matchTitle: z.string().max(120).optional(),
+      dayOfWeek: z.number().int().min(0).max(6).optional(),
+      windowStart: z
+        .string()
+        .regex(/^\d{1,2}:\d{2}$/)
+        .optional(),
+      windowEnd: z
+        .string()
+        .regex(/^\d{1,2}:\d{2}$/)
+        .optional(),
+    }),
+    title: "Create automation",
+    summarize: (i) => `Create automation \u201c${i.name}\u201d`,
+  },
+  {
+    name: "toggle_automation",
+    description: "Enable or disable an automation rule by id (from list_automations).",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        id: { type: "string" },
+        enabled: { type: "boolean" },
+      },
+      required: ["id", "enabled"],
+    },
+    zod: z.object({ id: z.string().uuid(), enabled: z.boolean() }),
+    title: "Automation status",
+    summarize: (i) => `${i.enabled ? "Enable" : "Disable"} this automation`,
+  },
+  {
+    name: "create_workflow",
+    description:
+      "Create a workflow that emails attendees before or after their meeting. Needs a name and a bodyTemplate; optionally a subjectTemplate, an offset in minutes, and which event types it applies to (empty = all).",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        name: { type: "string" },
+        trigger: { type: "string", enum: ["before_event", "after_event"] },
+        offsetMinutes: { type: "integer", description: "0\u201343200." },
+        subjectTemplate: { type: "string" },
+        bodyTemplate: { type: "string", description: "Message body (1\u20135000 chars)." },
+        isActive: { type: "boolean" },
+      },
+      required: ["name", "bodyTemplate"],
+    },
+    zod: z.object({
+      name: z.string().min(1).max(120),
+      trigger: z.enum(["before_event", "after_event"]).optional(),
+      offsetMinutes: z.number().int().min(0).max(43_200).optional(),
+      subjectTemplate: z.string().max(300).optional(),
+      bodyTemplate: z.string().min(1).max(5000),
+      isActive: z.boolean().optional(),
+    }),
+    title: "Create workflow",
+    summarize: (i) => `Create workflow \u201c${i.name}\u201d`,
   },
   {
     name: "create_team",
@@ -442,6 +589,38 @@ export const TOOLS: AiToolDef[] = [
     zod: z.object({ id: z.string().uuid() }),
     title: "Delete booking type",
     summarize: () => "Delete this booking type (archived if it has bookings)",
+  },
+  {
+    name: "delete_automation",
+    description:
+      "Delete an automation rule by id. Destructive \u2014 requires explicit confirmation.",
+    kind: "destructive",
+    confirmLevel: "danger",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: { id: { type: "string" } },
+      required: ["id"],
+    },
+    zod: z.object({ id: z.string().uuid() }),
+    title: "Delete automation",
+    summarize: () => "Delete this automation rule",
+  },
+  {
+    name: "delete_workflow",
+    description:
+      "Delete a workflow by id (unsent scheduled messages are cancelled). Destructive \u2014 requires explicit confirmation.",
+    kind: "destructive",
+    confirmLevel: "danger",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: { id: { type: "string" } },
+      required: ["id"],
+    },
+    zod: z.object({ id: z.string().uuid() }),
+    title: "Delete workflow",
+    summarize: () => "Delete this workflow",
   },
   {
     name: "remove_channel",

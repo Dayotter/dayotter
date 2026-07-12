@@ -1,3 +1,4 @@
+import { computeAnalytics } from "@/lib/booking/analytics";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
@@ -28,7 +29,11 @@ import { getTool } from "./registry";
  */
 
 /** Run a read tool and return a compact JSON string for the model. */
-export async function executeReadTool(userId: string, name: string): Promise<string> {
+export async function executeReadTool(
+  userId: string,
+  name: string,
+  input?: Record<string, unknown>,
+): Promise<string> {
   const db = getDb();
   switch (name) {
     case "list_booking_types": {
@@ -150,6 +155,47 @@ export async function executeReadTool(userId: string, name: string): Promise<str
           role: m.role,
         })),
       );
+    }
+    case "list_automations": {
+      const rows = await db.query.automationRules.findMany({
+        where: eq(schema.automationRules.userId, userId),
+        orderBy: asc(schema.automationRules.createdAt),
+      });
+      return JSON.stringify(
+        rows.map((r) => ({
+          id: r.id,
+          name: r.name,
+          enabled: r.enabled,
+          trigger: r.trigger,
+          action: r.action,
+          offsetMinutes: r.offsetMinutes,
+          matchTitle: r.matchTitle,
+        })),
+      );
+    }
+    case "list_workflows": {
+      const { organizationId } = await ensureUserWorkspace(userId);
+      const rows = await db.query.workflows.findMany({
+        where: eq(schema.workflows.organizationId, organizationId),
+        orderBy: asc(schema.workflows.createdAt),
+      });
+      return JSON.stringify(
+        rows.map((w) => ({
+          id: w.id,
+          name: w.name,
+          trigger: w.trigger,
+          offsetMinutes: w.offsetMinutes,
+          isActive: w.isActive,
+        })),
+      );
+    }
+    case "get_analytics": {
+      const d = input?.days;
+      const days = typeof d === "number" ? d : 30;
+      const to = new Date();
+      const from = new Date(to.getTime() - days * 86_400_000);
+      const data = await computeAnalytics({ userId, from, to });
+      return JSON.stringify({ windowDays: days, currency: data.currency, ...data.totals });
     }
     default:
       return `Unknown read tool: ${name}`;
@@ -484,6 +530,114 @@ export async function executeActionTool(
         if (!ch) return { ok: false, message: "I couldn't find that channel." };
         await db.delete(schema.notificationChannels).where(eq(schema.notificationChannels.id, id));
         return { ok: true, message: "Removed that notification channel." };
+      }
+
+      case "add_team_member": {
+        const teamId = input.teamId as string;
+        const email = (input.email as string).toLowerCase();
+        const membership = await db.query.teamMembers.findFirst({
+          where: and(eq(schema.teamMembers.teamId, teamId), eq(schema.teamMembers.userId, userId)),
+          columns: { role: true },
+        });
+        if (!membership) return { ok: false, message: "You're not a member of that team." };
+        if (membership.role !== "owner" && membership.role !== "admin") {
+          return { ok: false, message: "Only team owners/admins can add members." };
+        }
+        const invitee = await db.query.users.findFirst({
+          where: eq(schema.users.email, email),
+          columns: { id: true, name: true, email: true },
+        });
+        if (!invitee) {
+          return {
+            ok: false,
+            message: "No DayOtter account with that email yet — they need to sign up first.",
+          };
+        }
+        await db
+          .insert(schema.teamMembers)
+          .values({ teamId, userId: invitee.id, priority: 1 })
+          .onConflictDoNothing();
+        return { ok: true, message: `Added ${invitee.name ?? invitee.email} to the team.` };
+      }
+
+      case "create_automation": {
+        const weekly = input.trigger === "weekly";
+        const [created] = await db
+          .insert(schema.automationRules)
+          .values({
+            userId,
+            name: input.name as string,
+            trigger: (input.trigger as "booking_created" | "weekly") ?? "booking_created",
+            matchTitle: weekly ? null : (input.matchTitle as string) || null,
+            action: (input.action as "prep_block" | "buffer_after" | "followup") ?? "prep_block",
+            offsetMinutes: (input.offsetMinutes as number) ?? 15,
+            dayOfWeek: weekly ? ((input.dayOfWeek as number) ?? null) : null,
+            windowStart: weekly ? ((input.windowStart as string) ?? null) : null,
+            windowEnd: weekly ? ((input.windowEnd as string) ?? null) : null,
+          })
+          .returning();
+        return { ok: true, message: `Created automation \u201c${created!.name}\u201d.` };
+      }
+
+      case "toggle_automation": {
+        const res = await db
+          .update(schema.automationRules)
+          .set({ enabled: input.enabled as boolean })
+          .where(
+            and(
+              eq(schema.automationRules.id, input.id as string),
+              eq(schema.automationRules.userId, userId),
+            ),
+          )
+          .returning({ id: schema.automationRules.id });
+        if (res.length === 0) return { ok: false, message: "I couldn't find that automation." };
+        return { ok: true, message: `Automation ${input.enabled ? "enabled" : "disabled"}.` };
+      }
+
+      case "create_workflow": {
+        const { organizationId } = await ensureUserWorkspace(userId);
+        const [created] = await db
+          .insert(schema.workflows)
+          .values({
+            organizationId,
+            name: input.name as string,
+            trigger: (input.trigger as "before_event" | "after_event") ?? "before_event",
+            offsetMinutes: (input.offsetMinutes as number) ?? 60,
+            subjectTemplate: (input.subjectTemplate as string) ?? "",
+            bodyTemplate: input.bodyTemplate as string,
+            isActive: (input.isActive as boolean) ?? true,
+          })
+          .returning();
+        return { ok: true, message: `Created workflow \u201c${created!.name}\u201d.` };
+      }
+
+      case "delete_automation": {
+        const res = await db
+          .delete(schema.automationRules)
+          .where(
+            and(
+              eq(schema.automationRules.id, input.id as string),
+              eq(schema.automationRules.userId, userId),
+            ),
+          )
+          .returning({ id: schema.automationRules.id });
+        if (res.length === 0) return { ok: false, message: "I couldn't find that automation." };
+        return { ok: true, message: "Deleted that automation rule." };
+      }
+
+      case "delete_workflow": {
+        const { organizationId } = await ensureUserWorkspace(userId);
+        const res = await db
+          .delete(schema.workflows)
+          .where(
+            and(
+              eq(schema.workflows.id, input.id as string),
+              eq(schema.workflows.organizationId, organizationId),
+            ),
+          )
+          .returning({ id: schema.workflows.id });
+        if (res.length === 0) return { ok: false, message: "I couldn't find that workflow." };
+        return { ok: true, message: "Deleted that workflow." };
       }
 
       default:
