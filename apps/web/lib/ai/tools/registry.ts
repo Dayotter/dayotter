@@ -119,8 +119,46 @@ export const TOOLS: AiToolDef[] = [
     title: "Profile",
     summarize: () => "Read profile",
   },
+  {
+    name: "list_calendars",
+    description:
+      "List the host's connected calendar accounts (provider, account, sync status, calendar count).",
+    kind: "read",
+    confirmLevel: "none",
+    schema: empty,
+    zod: z.object({}),
+    title: "Calendars",
+    summarize: () => "List connected calendars",
+  },
 
   // ---- Writes (confirm-first) ----
+  {
+    name: "add_notification_channel",
+    description:
+      "Add a reminder notification channel. Slack needs a hooks.slack.com webhook URL; SMS and WhatsApp need an E.164 phone number (e.g. +14155551234). A test message is sent to verify it. (Push channels are registered by the apps, not here.)",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        type: { type: "string", enum: ["slack", "sms", "whatsapp"] },
+        webhookUrl: {
+          type: "string",
+          description: "Slack incoming webhook URL (slack type only).",
+        },
+        phone: { type: "string", description: "E.164 phone number (sms / whatsapp)." },
+      },
+      required: ["type"],
+    },
+    zod: z.object({
+      type: z.enum(["slack", "sms", "whatsapp"]),
+      webhookUrl: z.string().optional(),
+      phone: z.string().optional(),
+    }),
+    title: "Add channel",
+    summarize: (i) => `Add a ${i.type} reminder channel`,
+  },
   {
     name: "create_team",
     description: "Create a new team (the host becomes its owner). Give a team name.",

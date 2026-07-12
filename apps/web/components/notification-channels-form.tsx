@@ -6,6 +6,7 @@ import { ConfirmDialog } from "@/components/ui/dialog";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { useToast } from "@/components/ui/toast";
 import { track } from "@/lib/analytics";
 import { CHANNEL_LABELS } from "@/lib/notifications/channel-input";
 import {
@@ -70,6 +71,7 @@ export function NotificationChannelsForm({
   const [phone, setPhone] = useState("");
   const [pushToken, setPushToken] = useState("");
   const [adding, setAdding] = useState(false);
+  const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Channel | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -100,6 +102,7 @@ export function NotificationChannelsForm({
       return;
     }
     track("Notification Channel Added", { type });
+    toast({ title: `${CHANNEL_LABELS[type] ?? type} channel added`, variant: "success" });
     setChannels((prev) => [...prev, data.channel]);
     setWebhookUrl("");
     setPhone("");
@@ -143,6 +146,7 @@ export function NotificationChannelsForm({
         return;
       }
       track("Notification Channel Added", { type: "webpush" });
+      toast({ title: "Browser notifications enabled", variant: "success" });
       setChannels((prev) => [...prev, data.channel]);
     } catch (e) {
       setPushError(e instanceof Error ? e.message : "Couldn't enable browser notifications.");
@@ -164,6 +168,11 @@ export function NotificationChannelsForm({
       setChannels((prev) =>
         prev.map((c) => (c.id === ch.id ? { ...c, remindersEnabled: !next } : c)),
       );
+      toast({
+        title: "Couldn't update reminders",
+        description: "Please try again.",
+        variant: "error",
+      });
     }
   }
 
@@ -175,6 +184,13 @@ export function NotificationChannelsForm({
     if (res.ok) {
       setChannels((prev) => prev.filter((c) => c.id !== pendingDelete.id));
       track("Notification Channel Removed", { type: pendingDelete.type });
+      toast({ title: "Channel removed", variant: "success" });
+    } else {
+      toast({
+        title: "Couldn't remove that channel",
+        description: "Please try again.",
+        variant: "error",
+      });
     }
     setPendingDelete(null);
   }

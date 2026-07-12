@@ -1,10 +1,21 @@
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
-import { maskChannel } from "@/lib/notifications/channel-input";
+import {
+  channelInputSchema,
+  configFromInput,
+  maskChannel,
+} from "@/lib/notifications/channel-input";
 import { slugify, uniqueSlug } from "@/lib/slug";
-import { DEFAULT_REMINDER_OFFSETS, decryptJson, logger, sha256hex } from "@dayotter/core";
+import {
+  DEFAULT_REMINDER_OFFSETS,
+  decryptJson,
+  encryptJson,
+  logger,
+  sha256hex,
+} from "@dayotter/core";
 import { and, asc, desc, eq, getDb, gte, schema } from "@dayotter/db";
+import { availableChannels, dispatchToChannel } from "@dayotter/notifications";
 import type { ChannelConfig, DeliverableChannel } from "@dayotter/notifications";
 import { DateTime } from "luxon";
 import { getTool } from "./registry";
@@ -108,6 +119,22 @@ export async function executeReadTool(userId: string, name: string): Promise<str
         handle: u?.handle ?? null,
         timezone: u?.timezone ?? "UTC",
       });
+    }
+    case "list_calendars": {
+      const rows = await db.query.calendarConnections.findMany({
+        where: eq(schema.calendarConnections.userId, userId),
+        orderBy: asc(schema.calendarConnections.createdAt),
+        with: { calendars: { columns: { id: true } } },
+      });
+      return JSON.stringify(
+        rows.map((c) => ({
+          id: c.id,
+          provider: c.provider,
+          account: c.externalAccountId,
+          status: c.status,
+          calendarCount: c.calendars.length,
+        })),
+      );
     }
     case "list_teams": {
       const rows = await db.query.teamMembers.findMany({
@@ -355,6 +382,43 @@ export async function executeActionTool(
           ok: true,
           message: `“${et.title}” is now ${input.active ? "active" : "inactive"}.`,
         };
+      }
+
+      case "add_notification_channel": {
+        const type = input.type as "slack" | "sms" | "whatsapp";
+        const chInput =
+          type === "slack" ? { type, webhookUrl: input.webhookUrl } : { type, phone: input.phone };
+        const parsed = channelInputSchema.safeParse(chInput);
+        if (!parsed.success) {
+          return {
+            ok: false,
+            message:
+              type === "slack"
+                ? "That doesn't look like a valid Slack webhook URL (must start with https://hooks.slack.com/)."
+                : "Use an international phone number like +14155551234.",
+          };
+        }
+        if (!availableChannels().includes(type)) {
+          return { ok: false, message: `${type} isn't enabled on this server.` };
+        }
+        const config = configFromInput(parsed.data);
+        const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+        const test = await dispatchToChannel(type, config, {
+          title: "DayOtter connected",
+          body: "This channel will now receive your meeting reminders.",
+          url: `${appUrl}/settings/notifications`,
+        });
+        if (!test.ok) {
+          return { ok: false, message: "Couldn't reach that channel — double-check the details." };
+        }
+        await db.insert(schema.notificationChannels).values({
+          userId,
+          type,
+          encryptedConfig: encryptJson(config),
+          isVerified: true,
+          remindersEnabled: true,
+        });
+        return { ok: true, message: `Added a ${type} reminder channel.` };
       }
 
       case "create_team": {

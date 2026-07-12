@@ -1,5 +1,5 @@
 import { FocusDefense } from "@/components/focus-defense";
-import { PageHeader } from "@/components/page-header";
+import { EmptyState, PageHeader } from "@/components/page-header";
 import { PendingInvites } from "@/components/pending-invites";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -182,10 +182,11 @@ export default async function InboxPage() {
       duplicates.length === 0 &&
       timezoneMismatches.length === 0 &&
       recommendations.length === 0 ? (
-        <p className="mt-2 text-sm text-[var(--color-muted)]">
-          No sync problems or double-bookings right now. Pending invites and focus suggestions, if
-          any, appear above.
-        </p>
+        <EmptyState
+          title="You're all caught up"
+          description="No sync problems or double-bookings right now. Pending invites and focus suggestions, when there are any, appear above."
+          illustration="/brand/illustrations/otter-relax.png"
+        />
       ) : null}
     </>
   );

@@ -3,6 +3,7 @@ import { FormError } from "@/components/ui/form";
 
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { useToast } from "@/components/ui/toast";
 import { Plus, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -67,6 +68,7 @@ export function CreateTeamButton() {
 
 export function AddMemberForm({ teamId }: { teamId: string }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -85,9 +87,12 @@ export function AddMemberForm({ teamId }: { teamId: string }) {
     if (res.ok) {
       setEmail("");
       setMsg({ ok: true, text: `Added ${data.name}` });
+      toast({ title: `${data.name} added to the team`, variant: "success" });
       router.refresh();
     } else {
-      setMsg({ ok: false, text: data.error ?? "Could not add member" });
+      const text = data.error ?? "Could not add member";
+      setMsg({ ok: false, text });
+      toast({ title: "Couldn't add member", description: text, variant: "error" });
     }
   }
 
@@ -121,6 +126,7 @@ const DURATIONS = [15, 30, 45, 60];
 
 export function CreateTeamEventForm({ teamId }: { teamId: string }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState(30);
   const [type, setType] = useState<"collective" | "round_robin">("collective");
@@ -139,9 +145,11 @@ export function CreateTeamEventForm({ teamId }: { teamId: string }) {
     setLoading(false);
     if (res.ok) {
       setTitle("");
+      toast({ title: "Team event created", variant: "success" });
       router.refresh();
     } else {
       setError("Could not create event type");
+      toast({ title: "Couldn't create the team event", variant: "error" });
     }
   }
 
