@@ -41,6 +41,11 @@
           "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cd87a7ee-bf23-407c-a664-0743fe0f3257"
+      }
+    }
   }
 }
