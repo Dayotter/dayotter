@@ -132,7 +132,7 @@ export function PreferencesForm({
   }
 
   return (
-    <Card className="max-w-xl">
+    <Card className="max-w-2xl">
       <CardBody className="p-6">
         <form onSubmit={onSubmit} className="space-y-5">
           <div>

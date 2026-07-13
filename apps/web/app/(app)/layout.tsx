@@ -13,18 +13,19 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <ToastProvider>
-      <div className="grain relative flex min-h-screen">
+      <div className="grain relative flex h-[100dvh] overflow-hidden">
         <AppNav user={{ name: session.user.name, email: session.user.email }} />
         <MobileNav />
         <main className="relative flex-1 overflow-y-auto">
-          {/* Subtle ambient wash so the app inherits the marketing atmosphere
-            instead of dying at flat ivory — far fainter than the hero (6% vs 22%). */}
+          {/* Ambient wash so the app inherits the marketing atmosphere instead of
+            dying at flat ivory. Two offset accent glows read fuller than a single
+            faint radial without shouting like the hero. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-72"
+            className="pointer-events-none absolute inset-x-0 top-0 h-[34rem]"
             style={{
               background:
-                "radial-gradient(60% 100% at 50% 0%, color-mix(in srgb, var(--color-accent) 6%, transparent), transparent 72%)",
+                "radial-gradient(80% 70% at 18% -8%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 56%), radial-gradient(72% 62% at 96% 0%, color-mix(in srgb, var(--color-accent) 9%, transparent), transparent 58%)",
             }}
           />
           {/* Top/bottom padding on mobile clears the fixed top bar + bottom tab bar. */}

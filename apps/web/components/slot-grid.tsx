@@ -227,7 +227,7 @@ export function SlotGrid({
         </div>
       ) : null}
 
-      <div className="grid gap-5 sm:grid-cols-[220px_1fr] sm:gap-6">
+      <div className="grid gap-5 sm:grid-cols-[176px_1fr] sm:gap-6">
         <div className="flex gap-1.5 overflow-x-auto pb-1 sm:max-h-80 sm:flex-col sm:overflow-x-visible sm:overflow-y-auto sm:pb-0 sm:pr-1">
           {days.map((d) => {
             const dt = DateTime.fromISO(d);
@@ -255,30 +255,32 @@ export function SlotGrid({
           })}
         </div>
 
-        <div className="grid max-h-80 grid-cols-4 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
-          {daySlots.map((s) => {
-            const isRecommended = recommendedSet.has(s.start);
-            const conflict = hasConflict(s);
-            return (
-              <button
-                key={s.start}
-                type="button"
-                onClick={() => onSelect(s)}
-                title={conflict ? t(locale, "busyTooltip") : undefined}
-                className={cn(
-                  "inline-flex items-center justify-center gap-1 rounded-md border py-2 text-sm transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
-                  conflict
-                    ? "border-[var(--color-border)] text-[var(--color-faint)] line-through decoration-[var(--color-faint)]"
-                    : isRecommended
-                      ? "border-[var(--color-accent)]/50 text-[var(--color-accent)]"
-                      : "border-[var(--color-border-strong)]",
-                )}
-              >
-                {isRecommended && !conflict ? <Sparkles size={11} /> : null}
-                {DateTime.fromISO(s.start).setZone(zone).setLocale(locale).toFormat("h:mm a")}
-              </button>
-            );
-          })}
+        <div className="@container">
+          <div className="grid max-h-80 grid-cols-2 gap-2 overflow-y-auto pr-1 @[300px]:grid-cols-3 @[460px]:grid-cols-4">
+            {daySlots.map((s) => {
+              const isRecommended = recommendedSet.has(s.start);
+              const conflict = hasConflict(s);
+              return (
+                <button
+                  key={s.start}
+                  type="button"
+                  onClick={() => onSelect(s)}
+                  title={conflict ? t(locale, "busyTooltip") : undefined}
+                  className={cn(
+                    "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md border py-2.5 text-sm tabular-nums transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]",
+                    conflict
+                      ? "border-[var(--color-border)] text-[var(--color-faint)] line-through decoration-[var(--color-faint)]"
+                      : isRecommended
+                        ? "border-[var(--color-accent)]/50 text-[var(--color-accent)]"
+                        : "border-[var(--color-border-strong)]",
+                  )}
+                >
+                  {isRecommended && !conflict ? <Sparkles size={11} /> : null}
+                  {DateTime.fromISO(s.start).setZone(zone).setLocale(locale).toFormat("h:mm a")}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

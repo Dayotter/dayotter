@@ -42,7 +42,7 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <Card className="mt-6 max-w-xl">
+    <Card className="mt-6 max-w-2xl">
       <CardHeader title="Password" description="Change the password you use to sign in." />
       <CardBody className="p-6 pt-0">
         <form onSubmit={onSubmit} className="space-y-4">

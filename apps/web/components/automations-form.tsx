@@ -108,7 +108,7 @@ export function AutomationsForm() {
   }
 
   return (
-    <Card className="max-w-xl">
+    <Card className="max-w-2xl">
       <CardHeader
         title="Automations"
         description="Rules that protect your time automatically — reserve prep before interviews, or block every Friday afternoon for deep work."
