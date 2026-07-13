@@ -107,8 +107,30 @@ sudo certbot --nginx -d dayotter.com -d www.dayotter.com
 sudo certbot renew --dry-run
 ```
 
-Open **https://dayotter.com**. To update later: `git -C .. pull` then re-run the
-Step 3 `up -d --build` command.
+Open **https://dayotter.com**.
+
+### Redeploying / updating
+
+Do **not** just re-run `up -d --build`: `docker compose up -d` reuses the already
+completed one-shot `migrate` container instead of re-running it, so new app code
+can boot against an un-migrated database (missing columns → 500s everywhere).
+
+Use the script, which always builds, then runs a **fresh** migration one-shot,
+then (re)starts the stack — in that order:
+
+```bash
+git -C .. pull
+./deploy.sh          # build → run --rm migrate → up -d
+```
+
+Or run the equivalent by hand from `deploy/` (add `-f docker-compose.nginx.yml`
+when using the host-nginx overlay):
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env build web worker
+docker compose -f docker-compose.prod.yml --env-file .env run --rm migrate
+docker compose -f docker-compose.prod.yml --env-file .env up -d
+```
 
 > Prefer to reuse an existing managed/Supabase Postgres instead of the bundled
 > one? Set `DATABASE_URL=postgresql://user:pass@host:5432/dayotter` in
