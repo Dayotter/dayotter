@@ -1,3 +1,4 @@
+import { MemberWeight } from "@/components/member-weight";
 import { PageHeader } from "@/components/page-header";
 import { AddMemberForm, CreateTeamEventForm } from "@/components/team-forms";
 import { TeamRules } from "@/components/team-rules";
@@ -79,7 +80,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
         <Card>
           <CardHeader
             title="Members"
-            description="Everyone whose availability counts for this team."
+            description="Everyone whose availability counts for this team. Weight tunes round-robin — higher gets booked more often; 0 pauses them."
           />
           <CardBody className="space-y-4">
             <ul className="space-y-2">
@@ -88,10 +89,16 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent)] text-xs font-semibold text-white">
                     {(m.user?.name ?? m.user?.email ?? "?").charAt(0).toUpperCase()}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-medium">{m.user?.name ?? "Member"}</p>
-                    <p className="text-xs text-[var(--color-muted)]">{m.user?.email}</p>
+                    <p className="truncate text-xs text-[var(--color-muted)]">{m.user?.email}</p>
                   </div>
+                  <MemberWeight
+                    teamId={team.id}
+                    memberId={m.id}
+                    initial={m.priority}
+                    editable={canManage}
+                  />
                 </li>
               ))}
             </ul>
