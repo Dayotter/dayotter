@@ -2,6 +2,7 @@
   "expo": {
     "name": "DayOtter",
     "slug": "dayotter",
+    "owner": "dayotter",
     "scheme": "dayotter",
     "version": "0.1.0",
     "orientation": "portrait",
@@ -16,15 +17,22 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dayotter.app",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "DayOtter turns your spoken commands into scheduling actions.",
+        "NSMicrophoneUsageDescription": "DayOtter uses the microphone so you can speak scheduling commands."
+      }
     },
     "android": {
       "package": "com.dayotter.app",
-      "versionCode": 1,
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#12305F"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -38,13 +46,31 @@
         {
           "microphonePermission": "DayOtter uses the microphone so you can speak scheduling commands.",
           "speechRecognitionPermission": "DayOtter turns your spoken commands into scheduling actions.",
-          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
         }
       ]
     ],
     "extra": {
       "eas": {
-        "projectId": "cd87a7ee-bf23-407c-a664-0743fe0f3257"
+        "projectId": "c23c4638-20dd-4be4-9c78-3d11c8f2bc66"
+      },
+      "router": {
+        "origin": false
       }
     }
   }

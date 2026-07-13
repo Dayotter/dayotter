@@ -77,7 +77,7 @@ export default async function EventTypesPage() {
                   {et.description}
                 </p>
               ) : null}
-              <div className="mt-4 flex items-center justify-between gap-2 border-t border-[var(--color-border)] pt-3">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-[var(--color-border)] pt-3">
                 {handle ? (
                   <div className="flex items-center gap-3">
                     <CopyLinkButton path={`/${handle}/${et.slug}`} />
