@@ -41,14 +41,35 @@ export async function writeBookingToCalendar(
   const target = await targetCalendar(userId);
   if (!target) return null;
 
-  const adapter = await adapterForConnection(target.connection);
-  const created = await adapter.createEvent(target.calendar.externalId, event);
-  return {
-    calendarId: target.calendar.id,
-    provider: target.connection.provider,
-    externalEventId: created.externalEventId,
-    meetingUrl: created.meetingUrl,
-  };
+  const db = getDb();
+  try {
+    const adapter = await adapterForConnection(target.connection);
+    const created = await adapter.createEvent(target.calendar.externalId, event);
+    // Clear any stale error now that a write has succeeded.
+    if (target.connection.lastError) {
+      await db
+        .update(schema.calendarConnections)
+        .set({ lastError: null })
+        .where(eq(schema.calendarConnections.id, target.connection.id));
+    }
+    return {
+      calendarId: target.calendar.id,
+      provider: target.connection.provider,
+      externalEventId: created.externalEventId,
+      meetingUrl: created.meetingUrl,
+    };
+  } catch (err) {
+    // Record WHY the write failed so it surfaces in Settings → Calendars
+    // instead of vanishing silently. Keep status "active" so the next booking
+    // still tries (a transient token/API hiccup shouldn't lock out sync).
+    const reason = (err instanceof Error ? err.message : String(err)).slice(0, 300);
+    await db
+      .update(schema.calendarConnections)
+      .set({ lastError: reason })
+      .where(eq(schema.calendarConnections.id, target.connection.id))
+      .catch(() => {});
+    throw err;
+  }
 }
 
 /** Best-effort: move the calendar event(s) behind a booking to a new time. */
