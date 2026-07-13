@@ -573,6 +573,10 @@ export const TOOLS: AiToolDef[] = [
         maxMeetingsPerDay: { type: "integer", description: "1–20." },
         travelBufferMinutes: { type: "integer", description: "0–240." },
         reclaimCancelledTime: { type: "boolean" },
+        overflowNotifyEnabled: {
+          type: "boolean",
+          description: "Auto-notify the next meeting's guests when running back-to-back.",
+        },
         lunchEnabled: { type: "boolean" },
         lunchStartMinute: {
           type: "integer",
@@ -589,6 +593,7 @@ export const TOOLS: AiToolDef[] = [
       maxMeetingsPerDay: z.number().int().min(1).max(20).optional(),
       travelBufferMinutes: z.number().int().min(0).max(240).optional(),
       reclaimCancelledTime: z.boolean().optional(),
+      overflowNotifyEnabled: z.boolean().optional(),
       lunchEnabled: z.boolean().optional(),
       lunchStartMinute: z.number().int().min(0).max(1439).optional(),
       lunchEndMinute: z.number().int().min(1).max(1440).optional(),

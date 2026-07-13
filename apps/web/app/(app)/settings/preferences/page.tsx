@@ -21,6 +21,7 @@ export default async function PreferencesSettingsPage() {
         maxMeetingsPerDay: prefs?.maxMeetingsPerDay ?? 5,
         travelBufferMinutes: prefs?.travelBufferMinutes ?? 0,
         reclaimCancelledTime: prefs?.reclaimCancelledTime ?? false,
+        overflowNotifyEnabled: prefs?.overflowNotifyEnabled ?? false,
         lunchEnabled: prefs?.lunchEnabled ?? false,
         lunchStartMinute: prefs?.lunchStartMinute ?? 720,
         lunchEndMinute: prefs?.lunchEndMinute ?? 780,

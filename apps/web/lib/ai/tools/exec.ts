@@ -350,6 +350,7 @@ export async function executeActionTool(
           maxMeetingsPerDay: cur?.maxMeetingsPerDay ?? 5,
           travelBufferMinutes: cur?.travelBufferMinutes ?? 0,
           reclaimCancelledTime: cur?.reclaimCancelledTime ?? false,
+          overflowNotifyEnabled: cur?.overflowNotifyEnabled ?? false,
           lunchEnabled: cur?.lunchEnabled ?? false,
           lunchStartMinute: cur?.lunchStartMinute ?? 720,
           lunchEndMinute: cur?.lunchEndMinute ?? 780,

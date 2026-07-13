@@ -60,6 +60,7 @@ export function PreferencesForm({
     maxMeetingsPerDay?: number;
     travelBufferMinutes?: number;
     reclaimCancelledTime?: boolean;
+    overflowNotifyEnabled?: boolean;
     lunchEnabled?: boolean;
     lunchStartMinute?: number;
     lunchEndMinute?: number;
@@ -73,6 +74,7 @@ export function PreferencesForm({
   const [maxPerDay, setMaxPerDay] = useState(initial.maxMeetingsPerDay ?? 5);
   const [travelBuffer, setTravelBuffer] = useState(initial.travelBufferMinutes ?? 0);
   const [reclaim, setReclaim] = useState(initial.reclaimCancelledTime ?? false);
+  const [overflowNotify, setOverflowNotify] = useState(initial.overflowNotifyEnabled ?? false);
   const [lunchOn, setLunchOn] = useState(initial.lunchEnabled ?? false);
   const [lunchStart, setLunchStart] = useState(initial.lunchStartMinute ?? 720);
   const [lunchEnd, setLunchEnd] = useState(initial.lunchEndMinute ?? 780);
@@ -117,6 +119,7 @@ export function PreferencesForm({
         maxMeetingsPerDay: maxPerDay,
         travelBufferMinutes: travelBuffer,
         reclaimCancelledTime: reclaim,
+        overflowNotifyEnabled: overflowNotify,
         lunchEnabled: lunchOn,
         lunchStartMinute: lunchStart,
         lunchEndMinute: lunchEnd,
@@ -295,6 +298,28 @@ export function PreferencesForm({
                 <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
                   When an upcoming meeting is cancelled, hold onto that time as a focus block
                   instead of re-opening it for booking. You can always remove the block.
+                </span>
+              </span>
+            </label>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={overflowNotify}
+                onChange={(e) => {
+                  setOverflowNotify(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Auto-notify my next meeting if I'm running behind
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  When a meeting is booked back-to-back, we'll email the next meeting's guests a
+                  quick "running a few minutes behind" heads-up at the first meeting's end — so
+                  nobody's left waiting. Like a great EA would.
                 </span>
               </span>
             </label>

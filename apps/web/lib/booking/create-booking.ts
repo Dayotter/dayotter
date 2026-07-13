@@ -16,8 +16,10 @@ import {
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import {
+  hostWantsOverflowNotice,
   reminderOffsetsForHost,
   scheduleBookingReminders,
+  scheduleOverflowCheck,
   scheduleWorkflowMessages,
 } from "./reminders";
 import { reserveTravelBlocks } from "./travel";
@@ -393,6 +395,12 @@ export async function createBooking(
 
   // Schedule reminders at the host's preferred lead times.
   await scheduleBookingReminders(booking.id, start, await reminderOffsetsForHost(host.id));
+
+  // Proactive overflow: if the host opted in, schedule an end-of-meeting check
+  // that auto-notifies a back-to-back next meeting when this one runs over.
+  if (await hostWantsOverflowNotice(host.id)) {
+    await scheduleOverflowCheck(booking.id, end);
+  }
 
   // Schedule the host's workflow messages (custom reminders / follow-ups).
   await scheduleWorkflowMessages(booking.id, eventType.organizationId, eventType.id, start, end);
