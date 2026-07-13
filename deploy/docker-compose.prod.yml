@@ -63,6 +63,16 @@ services:
     build:
       context: ..
       dockerfile: apps/web/Dockerfile
+      # NEXT_PUBLIC_* are baked into the web build, so they're passed as build args
+      # (read from deploy/.env). Change one -> rebuild with `up -d --build web`.
+      args:
+        NEXT_PUBLIC_GOOGLE_AUTH: ${NEXT_PUBLIC_GOOGLE_AUTH:-}
+        NEXT_PUBLIC_PHONE_AUTH: ${NEXT_PUBLIC_PHONE_AUTH:-}
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY:-}
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+        NEXT_PUBLIC_MIXPANEL_TOKEN: ${NEXT_PUBLIC_MIXPANEL_TOKEN:-}
+        NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID:-}
     image: dayotter-web:local
     restart: unless-stopped
     env_file: .env
