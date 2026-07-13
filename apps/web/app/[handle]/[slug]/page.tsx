@@ -10,7 +10,7 @@ import { brandingHidden } from "@/lib/ee/white-label";
 import { resolveLocale, t } from "@/lib/i18n/booking";
 import { paymentsEnabled } from "@/lib/payments/stripe";
 import { and, eq, getDb, schema } from "@dayotter/db";
-import { Clock, CreditCard, Video } from "lucide-react";
+import { Clock, CreditCard, Repeat, Video } from "lucide-react";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -81,6 +81,17 @@ export default async function PublicBookingPage({
               <p className="flex items-center gap-2">
                 <Video size={15} /> {LOCATION_LABELS[eventType.location] ?? eventType.location}
               </p>
+              {eventType.recurringCount > 1 ? (
+                <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
+                  <Repeat size={15} /> Repeats{" "}
+                  {eventType.recurringFrequency === "monthly"
+                    ? "monthly"
+                    : eventType.recurringFrequency === "biweekly"
+                      ? "every 2 weeks"
+                      : "weekly"}{" "}
+                  · {eventType.recurringCount} sessions
+                </p>
+              ) : null}
               {priceLabel ? (
                 <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
                   <CreditCard size={15} /> {priceLabel}

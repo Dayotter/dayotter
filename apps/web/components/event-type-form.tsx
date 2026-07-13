@@ -60,6 +60,8 @@ export interface EventTypeInitial {
   dailyBookingLimit?: number | null;
   weeklyBookingLimit?: number | null;
   maxAttendees?: number;
+  recurringCount?: number;
+  recurringFrequency?: "weekly" | "biweekly" | "monthly";
   hasAccessCode?: boolean;
   isPrivate?: boolean;
   redirectUrl?: string | null;
@@ -115,6 +117,13 @@ export function EventTypeForm({
   const [weeklyLimit, setWeeklyLimit] = useState(initial?.weeklyBookingLimit ?? 20);
   const [accessCodeOn, setAccessCodeOn] = useState(initial?.hasAccessCode ?? false);
   const [accessCode, setAccessCode] = useState("");
+  const [recurringOn, setRecurringOn] = useState((initial?.recurringCount ?? 1) > 1);
+  const [recurringCount, setRecurringCount] = useState(
+    initial?.recurringCount && initial.recurringCount > 1 ? initial.recurringCount : 4,
+  );
+  const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "biweekly" | "monthly">(
+    initial?.recurringFrequency ?? "weekly",
+  );
   const [groupOn, setGroupOn] = useState((initial?.maxAttendees ?? 1) > 1);
   const [maxAttendees, setMaxAttendees] = useState(
     initial?.maxAttendees && initial.maxAttendees > 1 ? initial.maxAttendees : 10,
@@ -207,6 +216,8 @@ export function EventTypeForm({
       dailyBookingLimit: dailyLimitOn ? dailyLimit : null,
       weeklyBookingLimit: weeklyLimitOn ? weeklyLimit : null,
       maxAttendees: groupOn ? maxAttendees : 1,
+      recurringCount: recurringOn ? recurringCount : 1,
+      recurringFrequency,
       // undefined (omitted) = keep existing code; null = clear; string = set new.
       accessCode: accessCodeOn ? accessCode.trim() || undefined : null,
       isPrivate,
@@ -600,6 +611,54 @@ export function EventTypeForm({
                     <p className="mt-1 text-xs text-[var(--color-faint)]">
                       For webinars, classes, office hours — many people book the same time. Booked
                       group events aren't written to your connected calendar.
+                    </p>
+                  )}
+                </div>
+                <div className="mt-3 rounded-md border border-[var(--color-border)] p-3">
+                  <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                    <input
+                      type="checkbox"
+                      checked={recurringOn}
+                      onChange={(e) => setRecurringOn(e.target.checked)}
+                      className="accent-[var(--color-accent)]"
+                    />
+                    Recurring meeting (repeats on a schedule)
+                  </label>
+                  {recurringOn ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                      <span className="text-[var(--color-faint)]">Repeats</span>
+                      <div className="w-40">
+                        <Select
+                          aria-label="Frequency"
+                          value={recurringFrequency}
+                          onChange={(e) =>
+                            setRecurringFrequency(
+                              e.target.value as "weekly" | "biweekly" | "monthly",
+                            )
+                          }
+                        >
+                          <option value="weekly">weekly</option>
+                          <option value="biweekly">every 2 weeks</option>
+                          <option value="monthly">monthly</option>
+                        </Select>
+                      </div>
+                      <span className="text-[var(--color-faint)]">for</span>
+                      <Input
+                        aria-label="Occurrences"
+                        type="number"
+                        min={2}
+                        max={52}
+                        value={recurringCount}
+                        onChange={(e) =>
+                          setRecurringCount(Math.max(2, Number(e.target.value) || 2))
+                        }
+                        className="w-20"
+                      />
+                      <span className="text-[var(--color-faint)]">times</span>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-xs text-[var(--color-faint)]">
+                      Booking once schedules the whole series — great for coaching or standing 1:1s.
                     </p>
                   )}
                 </div>

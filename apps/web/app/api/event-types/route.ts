@@ -76,6 +76,8 @@ export async function POST(request: Request) {
         dailyBookingLimit: d.dailyBookingLimit,
         weeklyBookingLimit: d.weeklyBookingLimit,
         maxAttendees: d.maxAttendees,
+        recurringCount: d.recurringCount,
+        recurringFrequency: d.recurringFrequency,
         // On create, a code is only set when a non-empty value is supplied.
         accessCodeHash: d.accessCode ? sha256hex(d.accessCode) : null,
         isPrivate: d.isPrivate,

@@ -117,6 +117,9 @@ export const eventTypeInputSchema = z
     weeklyBookingLimit: z.number().int().min(1).max(500).nullable().default(null),
     /** Group event capacity: seats per slot (1 = a normal 1:1 event). */
     maxAttendees: z.number().int().min(1).max(1000).default(1),
+    /** Recurring meetings: occurrences per booking (1 = single) + cadence. */
+    recurringCount: z.number().int().min(1).max(52).default(1),
+    recurringFrequency: z.enum(["weekly", "biweekly", "monthly"]).default("weekly"),
     /**
      * Access code the booker must enter before booking.
      * `undefined` = leave unchanged (edit), `null` = remove, string = set.

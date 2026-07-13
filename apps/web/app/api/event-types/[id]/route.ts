@@ -105,6 +105,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         dailyBookingLimit: d.dailyBookingLimit,
         weeklyBookingLimit: d.weeklyBookingLimit,
         maxAttendees: d.maxAttendees,
+        recurringCount: d.recurringCount,
+        recurringFrequency: d.recurringFrequency,
         isPrivate: d.isPrivate,
         redirectUrl: d.redirectUrl,
         color: d.color,
