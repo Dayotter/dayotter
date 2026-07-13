@@ -12,7 +12,10 @@ import { usePathname, useRouter } from "next/navigation";
 // Editorial grouping of the flat NAV list — gives the rail eyebrow-labelled
 // sections (like the marketing section heads) instead of one flat list.
 const GROUPS: { label: string; items: string[] }[] = [
-  { label: "Workspace", items: ["/dashboard", "/event-types", "/availability", "/bookings"] },
+  {
+    label: "Workspace",
+    items: ["/dashboard", "/event-types", "/availability", "/bookings", "/polls"],
+  },
   { label: "Insights", items: ["/inbox", "/teams", "/insights"] },
   { label: "Account", items: ["/settings/profile"] },
 ];
