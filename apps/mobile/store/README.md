@@ -139,20 +139,18 @@ In App Store Connect create the app record (bundle id `com.dayotter.app`), then
 attach the build, screenshots, and the listing copy above. Bump `buildNumber`
 for each new upload (or rely on `autoIncrement`).
 
-## ⚠️ App Store review — two things to resolve before submitting
+## App Store review — the two common blockers are handled
 
-App Review commonly rejects on these; both are present today:
+Both guideline issues App Review usually flags are already addressed in the iOS build:
 
 1. **In-app purchase / anti-steering (Guideline 3.1.1).** `src/components/pro-lock.tsx`
-   shows an **"Upgrade on the web"** button that opens the Stripe billing page.
-   Directing users to an external purchase for digital goods is not allowed
-   without Apple's External-Purchase entitlement. Fix: remove the purchase
-   button/link from the iOS build (show the feature as locked with a neutral
-   message), add Apple In-App Purchase, or apply for the entitlement.
-2. **Sign in with Apple (Guideline 4.8).** `app/sign-in.tsx` offers Google
-   sign-in. If any third-party login is offered, Apple requires **Sign in with
-   Apple** as an equivalent option. Fix: add Sign in with Apple, or disable
-   Google sign-in on the build submitted to Apple (email/password alone is fine).
+   hides the "Upgrade on the web" button on iOS (`Platform.OS === "ios"`) and shows a
+   neutral "locked" message instead — no external-purchase steering.
+2. **Sign in with Apple (Guideline 4.8).** `app/sign-in.tsx` hides Google sign-in on
+   iOS (`Platform.OS !== "ios"`), so no third-party login is offered and Sign in with
+   Apple isn't required. Email/password (and phone OTP) remain available.
+
+If you later add Sign in with Apple and want Google back on iOS, do both together.
 
 You'll also need in App Store Connect: a privacy policy URL
 (`https://dayotter.com/privacy`), a support URL, and the App Privacy

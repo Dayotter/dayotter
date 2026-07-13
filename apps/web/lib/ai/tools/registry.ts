@@ -307,6 +307,39 @@ export const TOOLS: AiToolDef[] = [
     summarize: (i) => `Create workflow \u201c${i.name}\u201d`,
   },
   {
+    name: "update_workflow",
+    description:
+      "Update an existing workflow by id — its name, message subject/body, offset, or active state. Only the fields you pass change.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Workflow id (from list_workflows)." },
+        name: { type: "string" },
+        subjectTemplate: { type: "string" },
+        bodyTemplate: { type: "string" },
+        offsetMinutes: { type: "integer", description: "0\u201343200." },
+        isActive: { type: "boolean" },
+      },
+      required: ["id"],
+    },
+    zod: z.object({
+      id: z.string().uuid(),
+      name: z.string().min(1).max(120).optional(),
+      subjectTemplate: z.string().max(300).optional(),
+      bodyTemplate: z.string().min(1).max(5000).optional(),
+      offsetMinutes: z.number().int().min(0).max(43_200).optional(),
+      isActive: z.boolean().optional(),
+    }),
+    title: "Update workflow",
+    summarize: (i) => {
+      const f = Object.keys(i).filter((k) => k !== "id");
+      return `Update ${f.length ? f.join(", ") : "this workflow"}`;
+    },
+  },
+  {
     name: "create_team",
     description: "Create a new team (the host becomes its owner). Give a team name.",
     kind: "write",

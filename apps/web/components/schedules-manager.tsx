@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { FormError } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { SkeletonRows } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
-import { Loader2, Plus, Star, Trash2 } from "lucide-react";
+import { Plus, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 interface ScheduleSummary {
@@ -239,8 +240,8 @@ export function SchedulesManager({
           ) : null}
 
           {loading || !detail ? (
-            <div className="flex items-center gap-2 py-16 text-sm text-[var(--color-muted)]">
-              <Loader2 size={15} className="animate-spin" /> Loading…
+            <div className="py-6">
+              <SkeletonRows rows={5} />
             </div>
           ) : (
             <AvailabilityEditor key={selectedId} scheduleId={selectedId} initial={detail} />
