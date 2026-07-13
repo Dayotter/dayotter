@@ -1,4 +1,3 @@
-import { AiAssistant } from "@/components/ai-assistant";
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { DashboardTour } from "@/components/dashboard-tour";
 import { MeetingAssistant } from "@/components/meeting-assistant";
@@ -214,8 +213,6 @@ export default async function DashboardPage() {
           </div>
         </Card>
       ) : null}
-
-      {aiEnabled ? <AiAssistant /> : null}
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (

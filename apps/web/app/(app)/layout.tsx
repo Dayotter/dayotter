@@ -1,6 +1,8 @@
 import { AppNav } from "@/components/app-nav";
 import { MobileNav } from "@/components/mobile-nav";
+import { OtterLauncher } from "@/components/otter-launcher";
 import { ToastProvider } from "@/components/ui/toast";
+import { aiEnabled } from "@/lib/ai/llm";
 import { getSession } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
@@ -31,6 +33,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           </div>
         </main>
       </div>
+      {aiEnabled ? <OtterLauncher /> : null}
     </ToastProvider>
   );
 }
