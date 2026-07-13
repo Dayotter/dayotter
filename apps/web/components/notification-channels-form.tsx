@@ -196,7 +196,7 @@ export function NotificationChannelsForm({
   }
 
   return (
-    <Card className="max-w-xl">
+    <Card className="max-w-2xl">
       <CardHeader
         title="Notification channels"
         description="Get meeting reminders where you actually are — Slack, WhatsApp, SMS, or your phone. Email reminders are always on."

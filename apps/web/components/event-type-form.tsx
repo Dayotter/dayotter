@@ -42,9 +42,6 @@ const NOTICE_OPTIONS = [
   { value: 1440, label: "1 day" },
   { value: 2880, label: "2 days" },
 ];
-const selectClass =
-  "w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]";
-
 export interface EventTypeInitial {
   id?: string;
   title: string;
@@ -372,18 +369,17 @@ export function EventTypeForm({
 
           <div>
             <Label htmlFor="location">Location</Label>
-            <select
+            <Select
               id="location"
               value={location}
               onChange={(e) => setLocation(e.target.value as LocationTypeValue)}
-              className={selectClass}
             >
               {LOCATION_TYPES.map((loc) => (
                 <option key={loc} value={loc}>
                   {LOCATION_LABELS[loc]}
                 </option>
               ))}
-            </select>
+            </Select>
             {needsDetail ? (
               <Input
                 className="mt-2"
@@ -457,18 +453,17 @@ export function EventTypeForm({
                   </div>
                   <div>
                     <Label htmlFor="min-notice">Minimum notice</Label>
-                    <select
+                    <Select
                       id="min-notice"
                       value={minimumNotice}
                       onChange={(e) => setMinimumNotice(Number(e.target.value))}
-                      className={selectClass}
                     >
                       {NOTICE_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>
                           {o.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="booking-window">Bookable up to</Label>
@@ -486,11 +481,10 @@ export function EventTypeForm({
                   </div>
                   <div>
                     <Label htmlFor="slot-interval">Show slots every</Label>
-                    <select
+                    <Select
                       id="slot-interval"
                       value={slotInterval ?? 0}
                       onChange={(e) => setSlotInterval(Number(e.target.value) || null)}
-                      className={selectClass}
                     >
                       <option value={0}>Every {duration} min (default)</option>
                       {[10, 15, 20, 30, 60].map((v) => (
@@ -498,7 +492,7 @@ export function EventTypeForm({
                           {v} min
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="min-gap">Gap between bookings</Label>

@@ -1,13 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardBody } from "@/components/ui/card";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import type { ChatAction, ChatToolAction } from "@/lib/ai/chat";
 import { track } from "@/lib/analytics";
 import { useSpeechInput } from "@/lib/use-speech";
-import { Mic, Send, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Mic, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -54,7 +53,11 @@ function speak(text: string) {
  * renders a confirm-first action card whenever it proposes a calendar change.
  * The assistant only proposes; the human always confirms before anything runs.
  */
-export function AiAssistant() {
+export function AiAssistant({
+  variant = "card",
+  onClose,
+}: { variant?: "card" | "panel"; onClose?: () => void } = {}) {
+  const panel = variant === "panel";
   const router = useRouter();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -309,267 +312,279 @@ export function AiAssistant() {
   const intent = action?.draft.intent;
 
   return (
-    <Card className="mb-6">
-      <CardBody className="p-0">
-        {/* Header */}
-        <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-5 py-3.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
-            <Sparkles size={15} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold leading-none">Ask Otter</p>
-            <p className="mt-1 text-xs text-[var(--color-faint)]">
-              Your scheduling assistant — you confirm before anything changes
-            </p>
-          </div>
+    <div
+      className={
+        panel
+          ? "flex h-full min-h-0 flex-col"
+          : "mb-6 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]"
+      }
+    >
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-5 py-3.5">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+          <Sparkles size={15} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold leading-none">Ask Otter</p>
+          <p className="mt-1 text-xs text-[var(--color-faint)]">
+            Your scheduling assistant — you confirm before anything changes
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={toggleSpeak}
+          aria-pressed={speakReplies}
+          title={speakReplies ? "Spoken replies on" : "Spoken replies off"}
+          className={
+            speakReplies
+              ? "rounded-md p-1.5 text-[var(--color-accent)]"
+              : "rounded-md p-1.5 text-[var(--color-faint)] hover:text-[var(--color-text)]"
+          }
+        >
+          {speakReplies ? <Volume2 size={16} /> : <VolumeX size={16} />}
+        </button>
+        {onClose ? (
           <button
             type="button"
-            onClick={toggleSpeak}
-            aria-pressed={speakReplies}
-            title={speakReplies ? "Spoken replies on" : "Spoken replies off"}
-            className={
-              speakReplies
-                ? "rounded-md p-1.5 text-[var(--color-accent)]"
-                : "rounded-md p-1.5 text-[var(--color-faint)] hover:text-[var(--color-text)]"
-            }
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-md p-1.5 text-[var(--color-faint)] hover:text-[var(--color-text)]"
           >
-            {speakReplies ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            <X size={16} />
           </button>
-        </div>
+        ) : null}
+      </div>
 
-        {/* Thread */}
-        <div ref={scrollRef} className="max-h-[380px] min-h-[132px] overflow-y-auto px-5 py-4">
-          {messages.length === 0 ? (
-            <div>
-              <p className="text-sm text-[var(--color-muted)]">
-                Hi! Ask about your schedule, or tell me to book, move, or cancel something.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => void send(s)}
-                    className="rounded-full border border-[var(--color-border-strong)] px-3 py-1.5 text-xs text-[var(--color-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {messages.map((m, i) => (
-                <div
-                  key={i}
-                  className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
+      {/* Thread */}
+      <div
+        ref={scrollRef}
+        className={`overflow-y-auto px-5 py-4 ${panel ? "min-h-0 flex-1" : "max-h-[380px] min-h-[132px]"}`}
+      >
+        {messages.length === 0 ? (
+          <div>
+            <p className="text-sm text-[var(--color-muted)]">
+              Hi! Ask about your schedule, or tell me to book, move, or cancel something.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => void send(s)}
+                  className="rounded-full border border-[var(--color-border-strong)] px-3 py-1.5 text-xs text-[var(--color-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
                 >
-                  <div
-                    className={
-                      m.role === "user"
-                        ? "max-w-[85%] rounded-2xl rounded-br-sm bg-[var(--color-accent)] px-3.5 py-2 text-sm text-white"
-                        : "max-w-[85%] rounded-2xl rounded-bl-sm bg-[var(--color-surface-2)] px-3.5 py-2 text-sm text-[var(--color-text)]"
-                    }
-                  >
-                    {m.content || (
-                      <span className="inline-flex gap-1">
-                        <Dot /> <Dot /> <Dot />
-                      </span>
-                    )}
-                  </div>
-                </div>
+                  {s}
+                </button>
               ))}
             </div>
-          )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
+              >
+                <div
+                  className={
+                    m.role === "user"
+                      ? "max-w-[85%] rounded-2xl rounded-br-sm bg-[var(--color-accent)] px-3.5 py-2 text-sm text-white"
+                      : "max-w-[85%] rounded-2xl rounded-bl-sm bg-[var(--color-surface-2)] px-3.5 py-2 text-sm text-[var(--color-text)]"
+                  }
+                >
+                  {m.content || (
+                    <span className="inline-flex gap-1">
+                      <Dot /> <Dot /> <Dot />
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-          {/* Confirm-first action card */}
-          {action && intent === "create" ? (
-            <div className="mt-3 space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
-              <span className="inline-block rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--color-accent)]">
-                {KIND_LABEL[action.draft.kind] ?? "Meeting"}
-                {action.matchedEventType ? ` · ${action.matchedEventType.title}` : ""}
-              </span>
+        {/* Confirm-first action card */}
+        {action && intent === "create" ? (
+          <div className="mt-3 space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
+            <span className="inline-block rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--color-accent)]">
+              {KIND_LABEL[action.draft.kind] ?? "Meeting"}
+              {action.matchedEventType ? ` · ${action.matchedEventType.title}` : ""}
+            </span>
+            <div>
+              <Label htmlFor="otter-title">Title</Label>
+              <Input id="otter-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="otter-title">Title</Label>
-                <Input id="otter-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                <Label htmlFor="otter-start">Starts</Label>
+                <Input
+                  id="otter-start"
+                  type="datetime-local"
+                  value={startLocal}
+                  onChange={(e) => setStartLocal(e.target.value)}
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="otter-start">Starts</Label>
-                  <Input
-                    id="otter-start"
-                    type="datetime-local"
-                    value={startLocal}
-                    onChange={(e) => setStartLocal(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="otter-dur">Duration (min)</Label>
-                  <Input
-                    id="otter-dur"
-                    type="number"
-                    min={5}
-                    max={1440}
-                    value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value) || 30)}
-                  />
-                </div>
-              </div>
-              {action.draft.attendees.length > 0 ? (
-                <p className="text-xs text-[var(--color-muted)]">
-                  With: {action.draft.attendees.map((a) => a.name || a.email).join(", ")}
-                </p>
-              ) : null}
-              <div className="flex gap-2">
-                <Button size="sm" onClick={confirmCreate} disabled={busy}>
-                  {busy ? "Adding…" : "Add to calendar"}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
-                  Discard
-                </Button>
+              <div>
+                <Label htmlFor="otter-dur">Duration (min)</Label>
+                <Input
+                  id="otter-dur"
+                  type="number"
+                  min={5}
+                  max={1440}
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value) || 30)}
+                />
               </div>
             </div>
-          ) : null}
-
-          {action && intent === "reschedule" && action.target ? (
-            <div className="mt-3 space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
-              <span className="inline-block rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--color-accent)]">
-                Reschedule
-              </span>
-              <p className="text-sm">
-                Move <strong>{action.target.title}</strong> from{" "}
-                <span className="text-[var(--color-muted)]">{fmtWhen(action.target.startISO)}</span>{" "}
-                to:
+            {action.draft.attendees.length > 0 ? (
+              <p className="text-xs text-[var(--color-muted)]">
+                With: {action.draft.attendees.map((a) => a.name || a.email).join(", ")}
               </p>
-              <Input
-                type="datetime-local"
-                value={newStartLocal}
-                onChange={(e) => setNewStartLocal(e.target.value)}
-              />
-              <div className="flex gap-2">
-                <Button size="sm" onClick={confirmReschedule} disabled={busy}>
-                  {busy ? "Rescheduling…" : "Reschedule"}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
-                  Discard
-                </Button>
-              </div>
+            ) : null}
+            <div className="flex gap-2">
+              <Button size="sm" onClick={confirmCreate} disabled={busy}>
+                {busy ? "Adding…" : "Add to calendar"}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
+                Discard
+              </Button>
             </div>
-          ) : null}
+          </div>
+        ) : null}
 
-          {action && intent === "cancel" && action.target ? (
-            <div className="mt-3 space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
-              <span className="inline-block rounded-full bg-[color-mix(in_srgb,var(--color-danger)_15%,transparent)] px-2 py-0.5 text-xs font-medium text-[var(--color-danger)]">
-                Cancel
-              </span>
-              <p className="text-sm">
-                Cancel <strong>{action.target.title}</strong> on{" "}
-                <span className="text-[var(--color-muted)]">{fmtWhen(action.target.startISO)}</span>
-                ? This notifies attendees.
-              </p>
-              <div className="flex gap-2">
-                <Button size="sm" variant="danger" onClick={confirmCancel} disabled={busy}>
-                  {busy ? "Cancelling…" : "Cancel meeting"}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
-                  Keep it
-                </Button>
-              </div>
+        {action && intent === "reschedule" && action.target ? (
+          <div className="mt-3 space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
+            <span className="inline-block rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--color-accent)]">
+              Reschedule
+            </span>
+            <p className="text-sm">
+              Move <strong>{action.target.title}</strong> from{" "}
+              <span className="text-[var(--color-muted)]">{fmtWhen(action.target.startISO)}</span>{" "}
+              to:
+            </p>
+            <Input
+              type="datetime-local"
+              value={newStartLocal}
+              onChange={(e) => setNewStartLocal(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={confirmReschedule} disabled={busy}>
+                {busy ? "Rescheduling…" : "Reschedule"}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
+                Discard
+              </Button>
             </div>
-          ) : null}
+          </div>
+        ) : null}
 
-          {/* Generic confirm-first action (booking types, availability, prefs, focus). */}
-          {toolAction ? (
-            <div
-              className={`mt-3 space-y-3 rounded-lg border p-4 shadow-[var(--shadow-card)] ${
+        {action && intent === "cancel" && action.target ? (
+          <div className="mt-3 space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
+            <span className="inline-block rounded-full bg-[color-mix(in_srgb,var(--color-danger)_15%,transparent)] px-2 py-0.5 text-xs font-medium text-[var(--color-danger)]">
+              Cancel
+            </span>
+            <p className="text-sm">
+              Cancel <strong>{action.target.title}</strong> on{" "}
+              <span className="text-[var(--color-muted)]">{fmtWhen(action.target.startISO)}</span>?
+              This notifies attendees.
+            </p>
+            <div className="flex gap-2">
+              <Button size="sm" variant="danger" onClick={confirmCancel} disabled={busy}>
+                {busy ? "Cancelling…" : "Cancel meeting"}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
+                Keep it
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Generic confirm-first action (booking types, availability, prefs, focus). */}
+        {toolAction ? (
+          <div
+            className={`mt-3 space-y-3 rounded-lg border p-4 shadow-[var(--shadow-card)] ${
+              toolAction.confirmLevel === "danger"
+                ? "border-[color-mix(in_srgb,var(--color-danger)_40%,transparent)] bg-[color-mix(in_srgb,var(--color-danger)_5%,transparent)]"
+                : "border-[var(--color-border)] bg-[var(--color-surface)]"
+            }`}
+          >
+            <span
+              className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                 toolAction.confirmLevel === "danger"
-                  ? "border-[color-mix(in_srgb,var(--color-danger)_40%,transparent)] bg-[color-mix(in_srgb,var(--color-danger)_5%,transparent)]"
-                  : "border-[var(--color-border)] bg-[var(--color-surface)]"
+                  ? "bg-[color-mix(in_srgb,var(--color-danger)_15%,transparent)] text-[var(--color-danger)]"
+                  : "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
               }`}
             >
-              <span
-                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                  toolAction.confirmLevel === "danger"
-                    ? "bg-[color-mix(in_srgb,var(--color-danger)_15%,transparent)] text-[var(--color-danger)]"
-                    : "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
-                }`}
+              {toolAction.title}
+            </span>
+            <p className="text-sm">{toolAction.summary}.</p>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={toolAction.confirmLevel === "danger" ? "danger" : "primary"}
+                onClick={confirmToolAction}
+                disabled={busy}
               >
-                {toolAction.title}
-              </span>
-              <p className="text-sm">{toolAction.summary}.</p>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant={toolAction.confirmLevel === "danger" ? "danger" : "primary"}
-                  onClick={confirmToolAction}
-                  disabled={busy}
-                >
-                  {busy
-                    ? "Working…"
-                    : toolAction.confirmLevel === "danger"
-                      ? "Confirm delete"
-                      : "Confirm"}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setToolAction(null)}
-                  disabled={busy}
-                >
-                  Discard
-                </Button>
-              </div>
+                {busy
+                  ? "Working…"
+                  : toolAction.confirmLevel === "danger"
+                    ? "Confirm delete"
+                    : "Confirm"}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setToolAction(null)} disabled={busy}>
+                Discard
+              </Button>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
+      </div>
 
-        {/* Composer */}
-        <div className="border-t border-[var(--color-border)] px-3 py-3">
-          {error ? (
-            <div className="mb-2">
-              <FormError>{error}</FormError>
-            </div>
-          ) : null}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void send(input);
-            }}
-            className="flex items-center gap-2"
-          >
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={speech.listening ? "Listening…" : "Message Otter…"}
-              disabled={streaming}
-            />
-            {speech.supported ? (
-              <button
-                type="button"
-                onClick={speech.toggle}
-                aria-label={speech.listening ? "Stop listening" : "Speak"}
-                aria-pressed={speech.listening}
-                className={
-                  speech.listening
-                    ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-danger)] bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)] text-[var(--color-danger)]"
-                    : "flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-border-strong)] text-[var(--color-muted)] hover:text-[var(--color-text)]"
-                }
-              >
-                <Mic size={16} className={speech.listening ? "animate-pulse" : undefined} />
-              </button>
-            ) : null}
-            <Button
-              type="submit"
-              disabled={streaming || !input.trim()}
-              aria-label="Send"
-              className="h-10 w-10 shrink-0 px-0"
+      {/* Composer */}
+      <div className="border-t border-[var(--color-border)] px-3 py-3">
+        {error ? (
+          <div className="mb-2">
+            <FormError>{error}</FormError>
+          </div>
+        ) : null}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void send(input);
+          }}
+          className="flex items-center gap-2"
+        >
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={speech.listening ? "Listening…" : "Message Otter…"}
+            disabled={streaming}
+          />
+          {speech.supported ? (
+            <button
+              type="button"
+              onClick={speech.toggle}
+              aria-label={speech.listening ? "Stop listening" : "Speak"}
+              aria-pressed={speech.listening}
+              className={
+                speech.listening
+                  ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-danger)] bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)] text-[var(--color-danger)]"
+                  : "flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-border-strong)] text-[var(--color-muted)] hover:text-[var(--color-text)]"
+              }
             >
-              <Send size={16} />
-            </Button>
-          </form>
-        </div>
-      </CardBody>
-    </Card>
+              <Mic size={16} className={speech.listening ? "animate-pulse" : undefined} />
+            </button>
+          ) : null}
+          <Button
+            type="submit"
+            disabled={streaming || !input.trim()}
+            aria-label="Send"
+            className="h-10 w-10 shrink-0 px-0"
+          >
+            <Send size={16} />
+          </Button>
+        </form>
+      </div>
+    </div>
   );
 }
 

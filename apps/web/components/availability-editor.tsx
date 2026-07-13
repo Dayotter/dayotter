@@ -2,6 +2,7 @@
 import { FormError } from "@/components/ui/form";
 
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/cn";
 import { Check, Copy, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -181,21 +182,20 @@ export function AvailabilityEditor({
         <label htmlFor="timezone" className="mb-1.5 block text-sm font-medium">
           Timezone
         </label>
-        <select
+        <Select
           id="timezone"
           value={timezone}
           onChange={(e) => {
             setTimezone(e.target.value);
             setSaved(false);
           }}
-          className="h-10 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 text-sm text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
         >
           {zones.map((z) => (
             <option key={z} value={z}>
               {z}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">

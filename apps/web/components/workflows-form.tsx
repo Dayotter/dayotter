@@ -168,7 +168,7 @@ export function WorkflowsForm() {
   }
 
   return (
-    <Card className="max-w-xl">
+    <Card className="max-w-2xl">
       <CardHeader
         title="Workflows"
         description="Automated emails to attendees around each booking — a reminder before, a thank-you or follow-up after. Applies to every event type unless you scope it."

@@ -5,11 +5,15 @@ import { cn } from "@/lib/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-/** Horizontal tab strip for the Settings area. */
+/**
+ * Settings sub-nav — a scrollable underline tab strip on mobile, a vertical
+ * pill rail on large screens (so the settings pane fills the width instead of
+ * stranding a narrow column against the left edge).
+ */
 export function SettingsNav() {
   const pathname = usePathname();
   return (
-    <div className="mb-6 flex gap-1 overflow-x-auto border-b border-[var(--color-border)]">
+    <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-[var(--color-border)] lg:mb-0 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:border-b-0 lg:pt-1">
       {SETTINGS_NAV.map(({ href, label }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
@@ -17,16 +21,16 @@ export function SettingsNav() {
             key={href}
             href={href}
             className={cn(
-              "-mb-px border-b-2 px-3 py-2.5 text-sm transition-colors",
+              "shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm transition-colors lg:rounded-md lg:border-b-0 lg:py-2",
               active
-                ? "border-[var(--color-accent)] font-medium text-[var(--color-text)]"
-                : "border-transparent text-[var(--color-muted)] hover:text-[var(--color-text)]",
+                ? "border-[var(--color-accent)] font-medium text-[var(--color-text)] lg:bg-[var(--color-accent-soft)] lg:text-[var(--color-accent)]"
+                : "text-[var(--color-muted)] hover:text-[var(--color-text)] lg:hover:bg-[var(--color-surface-2)]",
             )}
           >
             {label}
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

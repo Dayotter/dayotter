@@ -1,6 +1,7 @@
 import { connectCalendarAccount } from "@/lib/calendar/calendar-connect";
 import { verifyState } from "@/lib/calendar/oauth-state";
 import { providerConfig } from "@/lib/calendar/providers";
+import { env } from "@/lib/server/env";
 import { GoogleCalendarAdapter, MicrosoftCalendarAdapter } from "@dayotter/calendar";
 import { NextResponse } from "next/server";
 
@@ -16,7 +17,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  const settings = new URL("/settings/calendars", request.url);
+  // Build the redirect target from the configured public origin, NOT request.url
+  // — behind a reverse proxy the request host is the internal container name
+  // (e.g. c5b9330a…:3000), which would send the user to an unreachable URL.
+  const settings = new URL("/settings/calendars", env.APP_URL);
 
   if (url.searchParams.get("error")) {
     // Reflect only the provider's short error *code*, never arbitrary text.

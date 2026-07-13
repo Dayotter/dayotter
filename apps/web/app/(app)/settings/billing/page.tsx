@@ -37,7 +37,7 @@ export default async function BillingPage() {
     return (
       <div>
         <PageHeader title="Billing" description="Your DayOtter edition and plan." />
-        <Card className="max-w-xl">
+        <Card className="max-w-2xl">
           <CardBody className="space-y-4 p-6">
             <div className="flex items-center gap-2 font-medium">
               <Heart size={16} className="text-[var(--color-accent)]" /> Self-hosted — everything
@@ -63,7 +63,7 @@ export default async function BillingPage() {
   return (
     <div>
       <PageHeader title="Billing" description="Manage your DayOtter plan." />
-      <Card className="max-w-xl">
+      <Card className="max-w-2xl">
         <CardBody className="space-y-5 p-6">
           <div className="flex items-baseline justify-between">
             <div>
