@@ -29,11 +29,11 @@ const TIERS: Tier[] = [
     cadence: "forever",
     tagline: "Everything one person needs to get booked.",
     features: [
-      "Unlimited event types",
+      "Unlimited event types & booking pages",
       "Google, Microsoft & Apple calendar sync",
-      "Public booking pages",
-      "Email reminders",
-      "Reschedule & cancel flows",
+      "Group polls — find a time across a group",
+      "Email reminders + reschedule & cancel",
+      "Booking questions & confirmations",
     ],
     cta: { label: "Get started", href: "/sign-up", variant: "outline" },
   },
@@ -44,13 +44,14 @@ const TIERS: Tier[] = [
     tagline: "The full toolkit for teams that live in their calendar.",
     features: [
       "Everything in Free",
-      "AI scheduling & smart suggestions",
-      "Automations & recurring focus blocks",
+      "Otter — your AI scheduling assistant",
+      "Team scheduling — weighted round-robin & collective",
+      "Routing forms — qualify & route inbound",
+      "Recurring meetings & focus auto-scheduling",
+      "Running-late overflow alerts",
       "Booking analytics & CSV export",
       "Slack / WhatsApp / SMS reminders",
-      "Adaptive availability, travel-time & deep-work defense",
-      "Accept payments for bookings",
-      "Developer platform — API keys & webhooks",
+      "Accept payments · API & webhooks",
     ],
     cta: { label: "Start with Pro", href: "/sign-up", variant: "primary" },
     featured: true,
@@ -72,6 +73,10 @@ const TIERS: Tier[] = [
 ];
 
 const FAQ = [
+  {
+    q: "How does DayOtter compare to Calendly or Cal.com?",
+    a: "You get the scheduling table stakes both have — team round-robin & collective, routing forms, recurring meetings, group polls, workflows, payments and calendar sync — at $9/seat, below Calendly ($10–20) and Cal.com's team plan. Our free plan is genuinely usable (unlimited event types) instead of one-event-only. And we add what neither does: Otter, a proactive AI assistant that protects your focus time and flags overflow — plus an open-source core you can self-host.",
+  },
   {
     q: "Is DayOtter really free?",
     a: "Yes. Individuals get a genuinely useful free plan on the cloud, and if you self-host, every feature — including the Pro ones — is free forever. You only pay for Pro on our hosted product.",
