@@ -60,6 +60,63 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 
 ---
 
+## Option D — Behind your own nginx (Let's Encrypt)
+
+For a server that already runs **host nginx** fronting other sites (e.g. an EC2
+box). Run everything except the bundled Caddy, publish the app on
+`127.0.0.1:3000`, and let your nginx terminate TLS with certbot.
+
+> The bundled Postgres publishes **no host port** (it's private to the compose
+> network), so it never conflicts with anything else on the host's `5432`
+> — e.g. a local Supabase. Nothing to change.
+
+**1. Point DNS at the box.** With Namecheap: *Domain List -> Manage -> Advanced
+DNS -> Host Records*, add `A @ -> <server IP>` and `A www -> <server IP>` (use an
+Elastic IP on EC2 so it's stable). Confirm with `dig +short dayotter.com`.
+
+**2. Configure `deploy/.env`** as in Option C, with:
+
+```ini
+APP_URL=https://dayotter.com
+BETTER_AUTH_URL=https://dayotter.com
+# DAYOTTER_SITE_ADDRESS is unused here (Caddy is disabled)
+```
+
+**3. Bring up the stack without Caddy** (database + migrations + app):
+
+```bash
+cd deploy
+docker compose -f docker-compose.prod.yml -f docker-compose.nginx.yml --env-file .env   up -d --build            # starts postgres, redis, migrate, web, worker (not caddy)
+
+curl -I http://127.0.0.1:3000     # sanity check the app is up locally
+```
+
+**4. Add the nginx site** (alongside your existing ones):
+
+```bash
+sudo cp nginx/dayotter.com.conf /etc/nginx/sites-available/dayotter.com
+sudo ln -s /etc/nginx/sites-available/dayotter.com /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**5. Issue the certificate** (adds the `:443` block + HTTP->HTTPS redirect + auto-renew):
+
+```bash
+sudo apt-get install -y certbot python3-certbot-nginx   # if not already present
+sudo certbot --nginx -d dayotter.com -d www.dayotter.com
+sudo certbot renew --dry-run
+```
+
+Open **https://dayotter.com**. To update later: `git -C .. pull` then re-run the
+Step 3 `up -d --build` command.
+
+> Prefer to reuse an existing managed/Supabase Postgres instead of the bundled
+> one? Set `DATABASE_URL=postgresql://user:pass@host:5432/dayotter` in
+> `deploy/.env` (migrations still run automatically against it) and omit the
+> `postgres` service from the `up` command.
+
+---
+
 ## What runs
 
 | Service    | Role                                                            |
