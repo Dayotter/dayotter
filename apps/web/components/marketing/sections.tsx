@@ -4,8 +4,65 @@ import { BrandMark } from "@/components/brand-mark";
 import { Reveal } from "@/components/marketing/motion";
 import { buttonVariants } from "@/components/ui/button";
 import { BRAND, FOOTER_COLUMNS } from "@/lib/marketing";
-import { CalendarPlus, Clock, LinkIcon } from "lucide-react";
+import { CalendarPlus, Check, Clock, LinkIcon, X } from "lucide-react";
 import Link from "next/link";
+
+const BEFORE = [
+  "Five emails to find one time that works.",
+  "Meetings creep in; the real work never gets a slot.",
+  "You forget to tell your 3pm you're running late.",
+  "Double-booked across three different calendars.",
+  "A basic team round-robin costs $16 a seat.",
+];
+const AFTER = [
+  "Share one link — or just ask Otter to find the time.",
+  "Otter holds hours for deep work and defends them.",
+  "It messages your next meeting before you even notice.",
+  "Every calendar, one honest view of when you're free.",
+  "Team scheduling, routing and polls — free to self-host.",
+];
+
+/** The before/after story — the calm case for switching, plainly told. */
+export function Shift() {
+  return (
+    <section className="mx-auto max-w-5xl px-6 py-24">
+      <Reveal className="mx-auto max-w-2xl text-center">
+        <span className="eyebrow">The shift</span>
+        <h2 className="font-display mt-4 text-4xl leading-tight tracking-[-0.02em] sm:text-5xl">
+          From scattered to simply handled.
+        </h2>
+      </Reveal>
+      <div className="mt-14 grid gap-4 md:grid-cols-2">
+        <Reveal>
+          <div className="h-full rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-7">
+            <p className="text-sm font-semibold text-[var(--color-faint)]">Without DayOtter</p>
+            <ul className="mt-5 space-y-3.5">
+              {BEFORE.map((t) => (
+                <li key={t} className="flex items-start gap-3 text-sm text-[var(--color-muted)]">
+                  <X size={16} className="mt-0.5 shrink-0 text-[var(--color-faint)]" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <div className="h-full rounded-[var(--radius-xl)] border border-[var(--color-accent)]/40 bg-[var(--color-surface)] p-7 shadow-[var(--shadow-raise)]">
+            <p className="text-sm font-semibold text-[var(--color-accent)]">With DayOtter</p>
+            <ul className="mt-5 space-y-3.5">
+              {AFTER.map((t) => (
+                <li key={t} className="flex items-start gap-3 text-sm text-[var(--color-text)]">
+                  <Check size={16} className="mt-0.5 shrink-0 text-[var(--color-accent)]" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
 
 const STEPS = [
   {
