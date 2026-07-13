@@ -1,8 +1,9 @@
-import { and, eq, getDb, isNull, schema } from "@dayotter/db";
+import { and, asc, eq, getDb, gt, isNull, lt, schema } from "@dayotter/db";
 import {
   bookingFollowUp,
   bookingNoShowFollowUp,
   bookingReminder,
+  bookingRunningLate,
   sendEmail,
   workflowEmail,
 } from "@dayotter/emails";
@@ -77,6 +78,59 @@ export function startRemindersWorker(): Worker<ReminderJob> {
               }),
             ),
           );
+        }
+        await db
+          .update(schema.scheduledReminders)
+          .set({ sentAt: new Date() })
+          .where(eq(schema.scheduledReminders.id, reminder.id));
+        return;
+      }
+
+      // Proactive overflow (#1): this booking's scheduled end just arrived. If a
+      // back-to-back meeting follows within the tight window and the host opted
+      // in, auto-notify the NEXT meeting's attendees that the host is running a
+      // few minutes behind — the "quick snap at the end of a meeting" an EA does.
+      if (reminder.kind === "overflow") {
+        const OVERFLOW_TIGHT_MS = 20 * 60_000;
+        if (booking.hostId && booking.status !== "cancelled" && booking.status !== "rejected") {
+          const prefs = await db.query.userPreferences.findFirst({
+            where: eq(schema.userPreferences.userId, booking.hostId),
+            columns: { overflowNotifyEnabled: true },
+          });
+          if (prefs?.overflowNotifyEnabled) {
+            const next = await db.query.bookings.findFirst({
+              where: and(
+                eq(schema.bookings.hostId, booking.hostId),
+                eq(schema.bookings.status, "confirmed"),
+                gt(schema.bookings.startsAt, booking.endsAt),
+                lt(
+                  schema.bookings.startsAt,
+                  new Date(booking.endsAt.getTime() + OVERFLOW_TIGHT_MS),
+                ),
+              ),
+              orderBy: asc(schema.bookings.startsAt),
+              with: { attendees: true, host: true },
+            });
+            if (next) {
+              await Promise.all(
+                next.attendees.map((a) =>
+                  sendEmail({
+                    ...bookingRunningLate({
+                      eventTitle: next.title,
+                      start: next.startsAt,
+                      end: next.endsAt,
+                      timezone: a.timezone ?? next.timezone,
+                      hostName: next.host?.name ?? "your host",
+                      attendeeName: a.name ?? a.email,
+                      meetingUrl: next.meetingUrl ?? undefined,
+                      manageUrl: `${appUrl}/booking/${next.uid}`,
+                    }),
+                    to: a.email,
+                  }),
+                ),
+              );
+            }
+          }
         }
         await db
           .update(schema.scheduledReminders)

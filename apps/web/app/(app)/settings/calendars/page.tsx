@@ -92,9 +92,9 @@ export default async function CalendarsPage({
                   }
                 />
                 <CardBody>
-                  {conn.status === "error" && conn.lastError ? (
+                  {conn.lastError ? (
                     <p className="mb-2 rounded-sm bg-[var(--color-danger)]/10 px-3 py-2 text-xs text-[var(--color-danger)]">
-                      Last sync failed: {conn.lastError}
+                      Last sync failed: {conn.lastError}. Try reconnecting this calendar.
                     </p>
                   ) : null}
                   {conn.lastSyncedAt ? (

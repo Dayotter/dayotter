@@ -16,8 +16,10 @@ import {
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import {
+  hostWantsOverflowNotice,
   reminderOffsetsForHost,
   scheduleBookingReminders,
+  scheduleOverflowCheck,
   scheduleWorkflowMessages,
 } from "./reminders";
 import { reserveTravelBlocks } from "./travel";
@@ -178,6 +180,13 @@ export async function createBooking(
     ...new Set([...(input.guests ?? []).filter((e) => e.includes("@")), ...coHostEmails]),
   ];
 
+  // Recurring meetings: one booking spins up a series of occurrences. Group
+  // events are excluded (they share a slot). The occurrences share a
+  // recurrenceUid so they can be managed together later.
+  const recurringCount = !isGroup ? Math.min(52, Math.max(1, eventType.recurringCount ?? 1)) : 1;
+  const isRecurring = recurringCount > 1;
+  const recurrenceUid = isRecurring ? randomUUID() : null;
+
   // Persist booking + attendees atomically. The partial unique index on
   // (hostId, startsAt) guards against a concurrent double-book: a request that
   // wins the availability check but loses the insert raises a 23505 → 409.
@@ -289,6 +298,7 @@ export async function createBooking(
           location: eventType.locationDetail,
           responses: input.responses,
           uid,
+          recurrenceUid,
           paymentStatus: input.payment ? "paid" : "none",
           paymentIntentId: input.payment?.paymentIntentId,
           amountPaid: input.payment?.amountPaid,
@@ -394,6 +404,12 @@ export async function createBooking(
   // Schedule reminders at the host's preferred lead times.
   await scheduleBookingReminders(booking.id, start, await reminderOffsetsForHost(host.id));
 
+  // Proactive overflow: if the host opted in, schedule an end-of-meeting check
+  // that auto-notifies a back-to-back next meeting when this one runs over.
+  if (await hostWantsOverflowNotice(host.id)) {
+    await scheduleOverflowCheck(booking.id, end);
+  }
+
   // Schedule the host's workflow messages (custom reminders / follow-ups).
   await scheduleWorkflowMessages(booking.id, eventType.organizationId, eventType.id, start, end);
 
@@ -455,6 +471,88 @@ export async function createBooking(
       bookingId: booking.id,
       err,
     });
+  }
+
+  // Recurring series: create the remaining occurrences (best-effort each; an
+  // occurrence that collides with an existing booking is skipped). Attendees get
+  // one confirmation for the first meeting above — the rest land on the calendar.
+  if (isRecurring) {
+    const zone = input.attendee.timezone || host.timezone || "UTC";
+    const base = DateTime.fromJSDate(start).setZone(zone);
+    const offsets = await reminderOffsetsForHost(host.id);
+    const attendeeList = [
+      { email: input.attendee.email, name: input.attendee.name },
+      ...guests.map((email) => ({ email })),
+    ];
+    for (let i = 1; i < recurringCount; i++) {
+      const occStart =
+        eventType.recurringFrequency === "monthly"
+          ? base.plus({ months: i }).toJSDate()
+          : eventType.recurringFrequency === "biweekly"
+            ? base.plus({ weeks: 2 * i }).toJSDate()
+            : base.plus({ weeks: i }).toJSDate();
+      const occEnd = new Date(occStart.getTime() + duration * 60_000);
+      try {
+        const [occ] = await db
+          .insert(schema.bookings)
+          .values({
+            organizationId: eventType.organizationId,
+            eventTypeId: eventType.id,
+            hostId: host.id,
+            title: eventType.title,
+            description: input.notes,
+            startsAt: occStart,
+            endsAt: occEnd,
+            timezone: input.attendee.timezone,
+            status: "confirmed",
+            isGroup: false,
+            location: eventType.locationDetail,
+            responses: input.responses,
+            uid: randomUUID(),
+            recurrenceUid,
+          })
+          .returning();
+        if (!occ) continue;
+        await db.insert(schema.bookingAttendees).values([
+          {
+            bookingId: occ.id,
+            name: input.attendee.name,
+            email: input.attendee.email,
+            timezone: input.attendee.timezone,
+          },
+          ...guests.map((email) => ({ bookingId: occ.id, email })),
+        ]);
+        await scheduleBookingReminders(occ.id, occStart, offsets);
+        const written = await writeBookingToCalendar(host.id, {
+          title: eventType.title,
+          description: input.notes,
+          start: occStart,
+          end: occEnd,
+          timezone: input.attendee.timezone,
+          attendees: attendeeList,
+          location: zoomUrl ?? eventType.locationDetail ?? undefined,
+          createConference: AUTO_CONFERENCE.includes(eventType.location),
+        }).catch(() => null);
+        if (written) {
+          await db
+            .update(schema.bookings)
+            .set({ meetingUrl: written.meetingUrl ?? undefined })
+            .where(eq(schema.bookings.id, occ.id));
+          await db.insert(schema.bookingReferences).values({
+            bookingId: occ.id,
+            calendarId: written.calendarId,
+            provider: written.provider,
+            externalEventId: written.externalEventId,
+          });
+        }
+      } catch (err) {
+        logger.error("recurring occurrence skipped", {
+          event: "recurrence_skipped",
+          index: i,
+          err,
+        });
+      }
+    }
   }
 
   return { uid, redirectUrl: eventType.redirectUrl ?? null };

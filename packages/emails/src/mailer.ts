@@ -21,11 +21,52 @@ export interface OutboundEmail {
   replyTo?: string;
 }
 
+/**
+ * Send through Resend's HTTP API. Preferred when RESEND_API_KEY is set — it
+ * needs no SMTP URL wrangling, just the key + a verified `EMAIL_FROM` domain.
+ */
+async function sendViaResend(email: OutboundEmail, from: string, apiKey: string): Promise<void> {
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      from,
+      to: Array.isArray(email.to) ? email.to : [email.to],
+      subject: email.subject,
+      text: email.text,
+      html: email.html,
+      reply_to: email.replyTo,
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    // Surface the reason (unverified domain, bad key, etc.) — callers log it.
+    throw new Error(`Resend send failed (${res.status}): ${detail.slice(0, 300)}`);
+  }
+}
+
+/**
+ * Deliver an email. Transport is chosen by what's configured, in order:
+ *   1. RESEND_API_KEY  → Resend HTTP API
+ *   2. SMTP_URL        → SMTP (nodemailer)
+ *   3. neither         → warn loudly and drop (so a missing config surfaces in
+ *      logs instead of silently swallowing every confirmation/reminder).
+ */
 export async function sendEmail(email: OutboundEmail): Promise<void> {
   const from = process.env.EMAIL_FROM ?? "DayOtter <no-reply@example.com>";
-  const info = await getTransporter().sendMail({ from, ...email });
-  if (!process.env.SMTP_URL) {
-    console.log(`[emails] (no SMTP) → ${JSON.stringify(email.to)}: ${email.subject}`);
+
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    await sendViaResend(email, from, resendKey);
+    return;
   }
-  return void info;
+
+  if (process.env.SMTP_URL) {
+    await getTransporter().sendMail({ from, ...email });
+    return;
+  }
+
+  console.warn(
+    `[emails] No RESEND_API_KEY or SMTP_URL configured — NOT sending "${email.subject}" to ${JSON.stringify(email.to)}`,
+  );
 }

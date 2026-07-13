@@ -44,6 +44,8 @@ export default async function EditEventTypePage({
           dailyBookingLimit: eventType.dailyBookingLimit,
           weeklyBookingLimit: eventType.weeklyBookingLimit,
           maxAttendees: eventType.maxAttendees,
+          recurringCount: eventType.recurringCount,
+          recurringFrequency: eventType.recurringFrequency as "weekly" | "biweekly" | "monthly",
           hasAccessCode: eventType.accessCodeHash != null,
           isPrivate: eventType.isPrivate,
           redirectUrl: eventType.redirectUrl,

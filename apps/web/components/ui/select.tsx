@@ -16,6 +16,15 @@ import {
 
 type Opt = { value: string; label: string; disabled?: boolean };
 
+/** Join an <option>'s children into a label, handling `{a} {b}` array children
+ * (which would otherwise stringify with stray commas, e.g. "30, min"). */
+function optionLabel(children: ReactNode): string {
+  if (typeof children === "string") return children;
+  if (typeof children === "number") return String(children);
+  if (Array.isArray(children)) return children.map(optionLabel).join("");
+  return children == null || typeof children === "boolean" ? "" : String(children);
+}
+
 /** Flatten `<option>` children (including mapped arrays) into a plain list. */
 function parseOptions(children: ReactNode): Opt[] {
   const out: Opt[] = [];
@@ -28,7 +37,7 @@ function parseOptions(children: ReactNode): Opt[] {
     };
     out.push({
       value: String(props.value ?? ""),
-      label: typeof props.children === "string" ? props.children : String(props.children ?? ""),
+      label: optionLabel(props.children),
       disabled: props.disabled,
     });
   });

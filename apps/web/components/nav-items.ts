@@ -6,8 +6,10 @@ import {
   Inbox,
   LayoutDashboard,
   Settings,
+  Split,
   TrendingUp,
   Users,
+  Vote,
 } from "lucide-react";
 
 /**
@@ -21,6 +23,8 @@ export const NAV = [
   { href: "/event-types", label: "Booking Types", short: "Types", icon: CalendarClock },
   { href: "/availability", label: "Availability", short: "Hours", icon: Clock },
   { href: "/bookings", label: "Bookings", short: "Bookings", icon: CalendarDays },
+  { href: "/polls", label: "Group polls", short: "Polls", icon: Vote },
+  { href: "/routing", label: "Routing forms", short: "Routing", icon: Split },
   { href: "/inbox", label: "Inbox", short: "Inbox", icon: Inbox },
   { href: "/teams", label: "Teams", short: "Teams", icon: Users },
   { href: "/insights", label: "Insights", short: "Insights", icon: ChartColumn },

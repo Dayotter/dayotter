@@ -46,6 +46,8 @@ export const bookings = pgTable(
     responses: jsonb("responses").$type<Record<string, unknown>>(),
     /** Stable public token used in reschedule/cancel links. */
     uid: text("uid").notNull(),
+    /** Shared across the occurrences of a recurring booking (null for one-offs). */
+    recurrenceUid: text("recurrence_uid"),
 
     /** True for bookings on a group event type (capacity > 1). These share a
      * slot, so they're EXEMPT from the per-host single-slot / no-overlap guards

@@ -169,6 +169,10 @@ export const eventTypes = pgTable(
     /** Group events: seats per slot. 1 = a normal 1:1 event; >1 = many bookers
      * share one slot until it fills. Only for individual (owner) event types. */
     maxAttendees: integer("max_attendees").notNull().default(1),
+    /** Recurring meetings: how many occurrences one booking creates (1 = a normal
+     * single meeting; >1 = a repeating series) and how far apart they sit. */
+    recurringCount: integer("recurring_count").notNull().default(1),
+    recurringFrequency: text("recurring_frequency").notNull().default("weekly"),
     /** SHA-256 of an access code required to book (null = public, no code). */
     accessCodeHash: text("access_code_hash"),
     /** If set + non-empty, the booker chooses one of these durations (minutes). */

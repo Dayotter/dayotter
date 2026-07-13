@@ -19,8 +19,8 @@ interface Msg {
 const SUGGESTIONS = [
   "What's next on my calendar?",
   "How busy am I this week?",
-  "Find me a free hour this week",
-  "Block 2 hours for deep work tomorrow",
+  "Protect 4 hours of focus this week",
+  "Find 3 hours for a deck by Friday",
 ];
 
 const KIND_LABEL: Record<string, string> = {

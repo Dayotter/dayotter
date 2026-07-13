@@ -142,6 +142,41 @@ export async function scheduleWorkflowMessages(
   );
 }
 
+/**
+ * Proactive overflow guard (#1): schedule a check at the meeting's scheduled END
+ * so that — if a back-to-back meeting follows — the host's next attendees get a
+ * "running a few minutes behind" heads-up automatically, the way an EA would.
+ * The worker re-checks the host's opt-in and whether a next meeting actually
+ * exists at fire time, so this is safe to schedule for every booking.
+ */
+export async function scheduleOverflowCheck(bookingId: string, endsAt: Date): Promise<void> {
+  if (endsAt.getTime() <= Date.now()) return;
+  const db = getDb();
+  const [rem] = await db
+    .insert(schema.scheduledReminders)
+    .values({ bookingId, kind: "overflow", scheduledFor: endsAt })
+    .returning();
+  if (!rem) return;
+  try {
+    await scheduleReminder({ reminderId: rem.id, bookingId }, endsAt);
+  } catch (err) {
+    logger.error("failed to enqueue overflow check", {
+      event: "overflow_enqueue_failed",
+      bookingId,
+      err,
+    });
+  }
+}
+
+/** Whether the host has opted into proactive overflow notices. */
+export async function hostWantsOverflowNotice(userId: string): Promise<boolean> {
+  const prefs = await getDb().query.userPreferences.findFirst({
+    where: eq(schema.userPreferences.userId, userId),
+    columns: { overflowNotifyEnabled: true },
+  });
+  return prefs?.overflowNotifyEnabled ?? false;
+}
+
 /** Schedule a post-meeting follow-up email `offsetMinutes` after the meeting ends. */
 export async function scheduleBookingFollowUp(
   bookingId: string,

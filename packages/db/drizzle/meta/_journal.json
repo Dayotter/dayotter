@@ -211,6 +211,27 @@
       "when": 1783854291813,
       "tag": "0029_gorgeous_serpent_society",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1783963297395,
+      "tag": "0030_third_jasper_sitwell",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1783964086483,
+      "tag": "0031_sleepy_logan",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1783965215275,
+      "tag": "0032_burly_roland_deschain",
+      "breakpoints": true
     }
   ]
 }
