@@ -4,7 +4,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "About — DayOtter",
-  description: "Why we built DayOtter — the open-source home for your time.",
+  description:
+    "Why we built DayOtter — every calendar, your booking links, reminders, and an assistant in one calm place.",
 };
 
 export default function AboutPage() {
@@ -13,7 +14,7 @@ export default function AboutPage() {
       <MarketingHeader
         eyebrow="About"
         title="Software that respects your time"
-        subtitle="DayOtter is the open-source home for your calendar — built for people who guard their hours."
+        subtitle="DayOtter brings every calendar, your booking links, reminders, and a scheduling assistant into one calm place — built for people who guard their hours."
       />
       <Prose>
         <p>
@@ -31,11 +32,11 @@ export default function AboutPage() {
           otter guards its afternoon.
         </p>
 
-        <h2>Open at the core</h2>
+        <h2>Yours to run</h2>
         <p>
-          The entire scheduling engine is open source under Apache-2.0. Run it yourself and every
-          feature is free, forever. Or use our cloud and let us handle the servers. Either way, your
-          calendar data is yours — OAuth tokens are encrypted at rest, and we never sell what you
+          A quiet bonus: the whole scheduling engine is open source, so you can self-host it and get
+          every feature free, or use our cloud and let us handle the servers. Either way your
+          calendar data stays yours — OAuth tokens are encrypted at rest, and we never sell what you
           put in.
         </p>
 
@@ -45,15 +46,6 @@ export default function AboutPage() {
           across every calendar you own, shares that cleanly, and lets people book you. The smart
           bits — AI suggestions, automations, adaptive availability — are confirm-first: they
           propose, you decide. We never silently rearrange your day.
-        </p>
-
-        <h2>Built in the open</h2>
-        <p>
-          We ship fast and in public. Follow along, file issues, or send a pull request on{" "}
-          <a href={BRAND.github} target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-          .
         </p>
 
         <hr />

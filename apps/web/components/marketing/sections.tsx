@@ -84,18 +84,16 @@ export function CTA() {
               Take back your calendar.
             </h2>
             <p className="mx-auto mt-5 max-w-lg text-lg text-[var(--color-muted)]">
-              Free forever for individuals. Self-host it, or use the cloud — your time, your rules.
+              Free for individuals, $9/seat for teams. Up and running in minutes — on the cloud or
+              your own server. Your time, your rules.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link href="/sign-up" className={buttonVariants({ variant: "primary", size: "lg" })}>
                 Get started free
               </Link>
-              <a
-                href="https://github.com"
-                className={buttonVariants({ variant: "outline", size: "lg" })}
-              >
-                Star on GitHub
-              </a>
+              <Link href="/pricing" className={buttonVariants({ variant: "outline", size: "lg" })}>
+                See pricing
+              </Link>
             </div>
           </div>
         </div>
