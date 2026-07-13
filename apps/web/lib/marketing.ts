@@ -22,27 +22,38 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Product",
     links: [
-      { label: "Pricing", href: "/pricing" },
       { label: "Features", href: "/#features" },
+      { label: "Pricing", href: "/pricing" },
       { label: "How it works", href: "/#how" },
-      { label: "Mobile app", href: "/#mobile" },
       { label: "Changelog", href: "/changelog" },
     ],
   },
   {
-    title: "Developers",
+    title: "Compare",
     links: [
-      { label: "Documentation", href: "/docs" },
-      { label: "Self-hosting", href: "/self-hosting" },
-      { label: "Status", href: "/status" },
-      { label: "GitHub", href: BRAND.github, external: true },
+      { label: "vs Calendly", href: "/vs/calendly" },
+      { label: "vs Cal.com", href: "/vs/cal-com" },
+      { label: "vs Motion", href: "/vs/motion" },
+      { label: "vs Reclaim", href: "/vs/reclaim" },
+      { label: "All comparisons", href: "/vs" },
     ],
   },
   {
-    title: "Company",
+    title: "For",
     links: [
-      { label: "About", href: "/about" },
+      { label: "Founders", href: "/for/founders" },
+      { label: "Teams", href: "/for/teams" },
+      { label: "Consultants", href: "/for/consultants" },
+      { label: "Recruiters", href: "/for/recruiters" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "Docs", href: "/docs" },
+      { label: "Self-hosting", href: "/self-hosting" },
       { label: "Blog", href: "/blog" },
+      { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },
     ],
   },
@@ -52,7 +63,7 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
       { label: "Security", href: "/security" },
-      { label: "License", href: BRAND.githubLicense, external: true },
+      { label: "Status", href: "/status" },
     ],
   },
 ];
@@ -61,6 +72,7 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
 export const MARKETING_NAV: FooterLink[] = [
   { label: "Features", href: "/#features" },
   { label: "Pricing", href: "/pricing" },
+  { label: "Compare", href: "/vs" },
   { label: "Blog", href: "/blog" },
   { label: "Docs", href: "/docs" },
 ];
