@@ -33,6 +33,7 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
     links: [
       { label: "vs Calendly", href: "/vs/calendly" },
       { label: "vs Cal.com", href: "/vs/cal-com" },
+      { label: "vs Google Calendar", href: "/vs/google-calendar" },
       { label: "vs Motion", href: "/vs/motion" },
       { label: "vs Reclaim", href: "/vs/reclaim" },
       { label: "All comparisons", href: "/vs" },
@@ -43,6 +44,8 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
     links: [
       { label: "Founders", href: "/for/founders" },
       { label: "Teams", href: "/for/teams" },
+      { label: "Sales teams", href: "/for/sales" },
+      { label: "Agencies", href: "/for/agencies" },
       { label: "Consultants", href: "/for/consultants" },
       { label: "Recruiters", href: "/for/recruiters" },
     ],

@@ -4,7 +4,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { Reveal } from "@/components/marketing/motion";
 import { buttonVariants } from "@/components/ui/button";
 import { BRAND, FOOTER_COLUMNS } from "@/lib/marketing";
-import { CalendarPlus, Check, Clock, LinkIcon, X } from "lucide-react";
+import { CalendarPlus, Check, Clock, LinkIcon, Plus, X } from "lucide-react";
 import Link from "next/link";
 
 const BEFORE = [
@@ -120,6 +120,66 @@ export function Manifesto() {
           </em>
         </p>
         <p className="eyebrow mt-8">The DayOtter team</p>
+      </Reveal>
+    </section>
+  );
+}
+
+const HOME_FAQ = [
+  {
+    q: "Do I have to talk to the AI to use it?",
+    a: "Not at all. DayOtter is a complete scheduling tool on its own — booking pages, team round-robin, reminders, calendar sync. Otter is there when you want it: ask it to book, reschedule or hold focus time and it drafts the change for you. Never the other way around.",
+  },
+  {
+    q: "Will Otter ever change my calendar on its own?",
+    a: "No. Otter is confirm-first by design — it proposes, you approve. Nothing lands on your calendar, and nothing moves, without your explicit OK.",
+  },
+  {
+    q: "Is DayOtter really free?",
+    a: "Yes. Individuals get unlimited event types, calendar sync, group polls and reminders free, forever. Teams are $9 a seat each month — and if you self-host, every feature is free.",
+  },
+  {
+    q: "Which calendars does it work with?",
+    a: "Google, Outlook, Apple iCloud and any ICS feed — unified into one honest view of when you're actually free, across every timezone.",
+  },
+  {
+    q: "Can my whole team use it?",
+    a: "Yes. Weighted round-robin, collective availability, routing forms and group polls are built in — the team toolkit that runs $16–20 a seat elsewhere, here for $9.",
+  },
+  {
+    q: "Can I self-host it?",
+    a: "The core is open-source, Apache-2.0 licensed, and ships with Docker. Run it on your own servers with every Pro feature unlocked, or let us host it for you.",
+  },
+];
+
+/** Home-page FAQ — plain answers to the questions people actually ask. */
+export function FAQ() {
+  return (
+    <section id="faq" className="mx-auto max-w-3xl px-6 py-24">
+      <Reveal className="mx-auto max-w-2xl text-center">
+        <span className="eyebrow">Good questions</span>
+        <h2 className="font-display mt-4 text-4xl leading-tight tracking-[-0.02em] sm:text-5xl">
+          The honest answers.
+        </h2>
+      </Reveal>
+      <Reveal className="mt-12">
+        <div className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+          {HOME_FAQ.map((item) => (
+            <details
+              key={item.q}
+              className="group py-5 [&_summary::-webkit-details-marker]:hidden"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
+                {item.q}
+                <Plus
+                  size={18}
+                  className="shrink-0 text-[var(--color-faint)] transition-transform duration-200 group-open:rotate-45"
+                />
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--color-muted)]">{item.a}</p>
+            </details>
+          ))}
+        </div>
       </Reveal>
     </section>
   );

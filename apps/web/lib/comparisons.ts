@@ -317,6 +317,88 @@ export const COMPARISONS: Comparison[] = [
       },
     ],
   },
+  {
+    slug: "google-calendar",
+    name: "Google Calendar",
+    blurb: "Where your events live — but its booking is bare-bones, with no team routing or AI.",
+    title: "DayOtter vs Google Calendar",
+    subtitle:
+      "Google Calendar is the calendar. DayOtter is the scheduling layer on top — booking pages, team routing, focus protection and an assistant — working with your Google Calendar, not replacing it.",
+    intro: [
+      "Google Calendar is where most of us actually keep our time, and its built-in \"appointment schedules\" let people grab a slot. For one person with simple needs, that can be enough.",
+      "But the moment you need team round-robin, routing, reminders across channels, payments, or an assistant that protects your focus, you've outgrown it. DayOtter adds all of that — and syncs straight into the Google Calendar you already live in.",
+    ],
+    theirStrength:
+      "Google Calendar is free, everyone already has it, and it's rock-solid at the basics — events, invites, and simple one-person appointment booking inside the Google ecosystem.",
+    rows: [
+      {
+        label: "Where your events live",
+        dayotter: "Syncs with Google (+ Outlook, Apple)",
+        them: "Native",
+        edge: "tie",
+      },
+      {
+        label: "Booking pages",
+        dayotter: "Unlimited, branded, with intake",
+        them: "Basic appointment schedules",
+        edge: "us",
+      },
+      { label: "Team round-robin & routing", dayotter: "Yes, weighted", them: "None", edge: "us" },
+      {
+        label: "Reminders (SMS / Slack / WhatsApp)",
+        dayotter: "Yes",
+        them: "Email only",
+        edge: "us",
+      },
+      { label: "Payments to book", dayotter: "Yes (Stripe)", them: "No", edge: "us" },
+      { label: "Focus auto-scheduling", dayotter: "Yes", them: "None", edge: "us" },
+      {
+        label: "AI assistant",
+        dayotter: "Otter — chat, confirm-first",
+        them: "None",
+        edge: "us",
+      },
+      {
+        label: "Calendars supported",
+        dayotter: "Google, Outlook, Apple, ICS",
+        them: "Google only",
+        edge: "us",
+      },
+      { label: "Price", dayotter: "Free / $9 seat", them: "Free", edge: "tie" },
+    ],
+    whyUs: [
+      {
+        title: "It builds on Google, not against it",
+        body: "DayOtter reads and writes your Google Calendar, so everything stays in the calendar you already check. You gain booking pages, routing and an assistant without leaving it behind.",
+      },
+      {
+        title: "Real booking, not a bare slot picker",
+        body: "Branded pages, intake questions, buffers, multiple event types, cross-channel reminders and payments — the things Google's appointment schedules simply don't do.",
+      },
+      {
+        title: "A team tool, and an assistant",
+        body: "Weighted round-robin, routing forms and group polls for teams, plus Otter to book meetings and defend your focus time by chat, confirm-first.",
+      },
+    ],
+    chooseThem:
+      "You're one person, you only use Google, and simple appointment slots inside Google Calendar are all you'll ever need.",
+    chooseUs:
+      "You want proper booking pages, team routing, cross-channel reminders, payments and an AI assistant — layered on top of the Google Calendar you already use.",
+    faq: [
+      {
+        q: "Does DayOtter replace Google Calendar?",
+        a: "No — it works with it. Connect your Google account and DayOtter syncs both ways, so your bookings show up in the calendar you already use.",
+      },
+      {
+        q: "Isn't Google's appointment scheduling free?",
+        a: "It is, and it's fine for simple one-person booking. DayOtter adds team round-robin, routing, cross-channel reminders, payments and an AI assistant — and is still free for individuals.",
+      },
+      {
+        q: "Will my DayOtter bookings show in Google Calendar?",
+        a: "Yes. Every booking writes straight to your connected Google Calendar (or Outlook or Apple), with the video link attached.",
+      },
+    ],
+  },
 ];
 
 export function getComparison(slug: string): Comparison | undefined {

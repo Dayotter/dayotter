@@ -236,6 +236,118 @@ export const PERSONAS: Persona[] = [
       },
     ],
   },
+  {
+    slug: "agencies",
+    label: "Agencies",
+    title: "Client scheduling that doesn't eat your billable hours.",
+    subtitle:
+      "Let clients book the right person on your team, keep every account's meetings straight, and hand the back-and-forth to Otter — so your hours go to the work, not the calendar.",
+    problems: [
+      {
+        title: "Booking eats billable time",
+        body: "Every client call starts with a scheduling thread. Multiply that across accounts and it's days a month you can't invoice.",
+      },
+      {
+        title: "Clients reach the wrong person",
+        body: "A new-business enquiry and a project check-in hit the same link, so the wrong person fields the wrong call.",
+      },
+      {
+        title: "Every account juggles its own calendar",
+        body: "Account leads, designers and devs each have their own availability, and lining them up for a client review is a puzzle.",
+      },
+    ],
+    solutions: [
+      {
+        title: "One link, routed to the right team",
+        body: "A short routing form sends new business, support and project calls to the right person or pod automatically.",
+      },
+      {
+        title: "Weighted round-robin across the team",
+        body: "Spread discovery calls fairly across account managers, weight your leads, and pause anyone at capacity.",
+      },
+      {
+        title: "Collective booking for reviews",
+        body: "Find a slot that works for the client and everyone on the project in one go, across all your calendars.",
+      },
+      {
+        title: "Otter runs the back-and-forth",
+        body: '"Move the Acme review to Thursday." Otter finds the time and reschedules — you confirm and get back to the work.',
+      },
+    ],
+    steps: [
+      "Add your team and connect everyone's calendars.",
+      "Build a routing form and set round-robin weights per pod.",
+      "Share one link — clients book the right person, every time.",
+    ],
+    faq: [
+      {
+        q: "Can different clients book different people?",
+        a: "Yes — a routing form asks a question or two and sends each client to the right account lead, pod or event type.",
+      },
+      {
+        q: "Does it handle our whole team's availability?",
+        a: "Yes. Collective and round-robin booking look across every connected calendar, so client meetings only land when the right people are actually free.",
+      },
+    ],
+  },
+  {
+    slug: "sales",
+    label: "Sales teams",
+    title: "Turn inbound into booked meetings — instantly, on the right rep.",
+    subtitle:
+      "Qualify and route leads the moment they land, distribute meetings fairly with weighted round-robin, and cut the no-shows — so your pipeline moves faster.",
+    problems: [
+      {
+        title: "Speed-to-lead is killing you",
+        body: "A lead fills a form, then waits for a rep to email back. By the time you reply, they've cooled — or booked a competitor.",
+      },
+      {
+        title: "Leads land on the wrong rep",
+        body: "Enterprise and SMB hit the same link, so your closers spend time on deals that were never theirs.",
+      },
+      {
+        title: "Round-robin isn't really fair",
+        body: "Meetings get spread evenly whether or not that's right — you can't book your top closers more or pause someone who's out.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Qualify and book on the spot",
+        body: "A routing form scores the lead and drops them straight onto the right rep's live availability — no reply-and-wait.",
+      },
+      {
+        title: "Weighted round-robin",
+        body: "Send more meetings to your best closers, weight by territory or segment, and pause anyone who's away — always load-balanced.",
+      },
+      {
+        title: "Fewer no-shows",
+        body: "Automated reminders over email, SMS and Slack — plus optional deposits — keep booked meetings booked.",
+      },
+      {
+        title: "Wired into your stack",
+        body: "Push every booking to your tools with webhooks and our API, so the rest of your stack stays in sync.",
+      },
+    ],
+    steps: [
+      "Build a routing form that qualifies inbound.",
+      "Set round-robin weights across your reps.",
+      "Share the link — qualified leads book the right rep instantly.",
+    ],
+    faq: [
+      {
+        q: "How fast can a lead book after filling the form?",
+        a: "Immediately — the routing form sends a qualified lead straight to the right rep's live availability, so there's no reply-and-wait gap.",
+      },
+      {
+        q: "Can I weight meetings toward my best reps?",
+        a: "Yes — each rep has a weight you can tune by performance, territory or segment, and set to zero to pause anyone who's out.",
+      },
+      {
+        q: "Does it connect to our CRM?",
+        a: "You can push every booking to your stack today via webhooks and our API. Native Salesforce and HubSpot sync is on our roadmap.",
+      },
+    ],
+  },
 ];
 
 export function getPersona(slug: string): Persona | undefined {
