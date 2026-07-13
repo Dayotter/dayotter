@@ -14,7 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 const GROUPS: { label: string; items: string[] }[] = [
   {
     label: "Workspace",
-    items: ["/dashboard", "/event-types", "/availability", "/bookings", "/polls"],
+    items: ["/dashboard", "/event-types", "/availability", "/bookings", "/polls", "/routing"],
   },
   { label: "Insights", items: ["/inbox", "/teams", "/insights"] },
   { label: "Account", items: ["/settings/profile"] },

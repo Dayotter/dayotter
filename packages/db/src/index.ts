@@ -1,5 +1,6 @@
 export * from "./client";
 export * as schema from "./schema/index";
+export type { RoutingField, RoutingRoute } from "./schema/routing";
 export {
   eq,
   ne,

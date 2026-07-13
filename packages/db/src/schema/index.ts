@@ -11,3 +11,4 @@ export * from "./analytics";
 export * from "./developer";
 export * from "./conferencing";
 export * from "./poll";
+export * from "./routing";
