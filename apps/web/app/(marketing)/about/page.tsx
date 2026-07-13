@@ -48,15 +48,6 @@ export default function AboutPage() {
           propose, you decide. We never silently rearrange your day.
         </p>
 
-        <h2>Built in the open</h2>
-        <p>
-          We ship fast and in public. Follow along, file issues, or send a pull request on{" "}
-          <a href={BRAND.github} target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-          .
-        </p>
-
         <hr />
         <p>
           <em>Made for people who value their time.</em>

@@ -3,9 +3,8 @@
 import { BookingMock, CalendarMock, ReminderMock } from "@/components/marketing/mocks";
 import { FadeUp, Float } from "@/components/marketing/motion";
 import { buttonVariants } from "@/components/ui/button";
-import { BRAND } from "@/lib/marketing";
 import { motion } from "framer-motion";
-import { ArrowRight, Smartphone, Star } from "lucide-react";
+import { ArrowRight, Smartphone } from "lucide-react";
 import Link from "next/link";
 
 export function Hero() {
@@ -33,8 +32,9 @@ export function Hero() {
         </FadeUp>
         <FadeUp delay={0.16}>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[var(--color-muted)]">
-            One calm home for your time — sync every calendar, share availability across your team,
-            and let people book you. Beautifully. Self-hostable, or use the cloud.
+            One calm home for your time — sync every calendar, share your availability, and let
+            people book you without the back-and-forth. Beautifully simple, on the cloud or your own
+            server.
           </p>
         </FadeUp>
         <FadeUp delay={0.24}>
@@ -42,14 +42,9 @@ export function Hero() {
             <Link href="/sign-up" className={buttonVariants({ variant: "primary", size: "lg" })}>
               Get started free <ArrowRight size={17} />
             </Link>
-            <a
-              href={BRAND.github}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({ variant: "outline", size: "lg" })}
-            >
-              <Star size={16} /> Star on GitHub
-            </a>
+            <Link href="#how" className={buttonVariants({ variant: "outline", size: "lg" })}>
+              See how it works
+            </Link>
           </div>
         </FadeUp>
         <FadeUp delay={0.32}>
