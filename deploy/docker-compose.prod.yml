@@ -45,9 +45,10 @@ services:
   # One-shot: apply committed DB migrations, then exit. web/worker wait for it to
   # finish successfully before starting, so the schema is always current on boot.
   migrate:
-    build:
-      context: ..
-      dockerfile: apps/worker/Dockerfile
+    # Reuses the worker image instead of declaring its own build. Two services
+    # building the SAME tag (dayotter-app:local) makes Compose/Bake export it
+    # twice in parallel -> "image ... already exists". `worker` is the single
+    # build target for this tag; migrate just runs a one-shot command against it.
     image: dayotter-app:local
     env_file: .env
     environment:
