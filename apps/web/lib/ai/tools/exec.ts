@@ -1,5 +1,6 @@
 import { computeAnalytics } from "@/lib/booking/analytics";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
+import { findFocusBlocks } from "@/lib/booking/focus-suggestions";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import {
@@ -94,6 +95,24 @@ export async function executeReadTool(
           seriesId: b.seriesId,
         })),
       );
+    }
+    case "find_focus_time": {
+      const args = (input ?? {}) as Record<string, unknown>;
+      const blocks = await findFocusBlocks(userId, {
+        hoursNeeded: args.hoursNeeded as number | undefined,
+        chunkMinutes: args.chunkMinutes as number | undefined,
+        days: args.days as number | undefined,
+        byDate: args.byDate ? new Date(args.byDate as string) : null,
+      });
+      const totalMinutes = blocks.reduce((s, b) => s + b.durationMinutes, 0);
+      return JSON.stringify({
+        found: blocks.length,
+        totalHours: Math.round((totalMinutes / 60) * 10) / 10,
+        blocks,
+        note: blocks.length
+          ? "Show these times to the host, then call protect_focus_time with the same blocks to hold them."
+          : "No open blocks in that window — suggest a longer window, a shorter block, or fewer hours.",
+      });
     }
     case "list_notification_channels": {
       const rows = await db.query.notificationChannels.findMany({
@@ -284,6 +303,38 @@ export async function executeActionTool(
           seriesId: null,
         });
         return { ok: true, message: `Held ${input.durationMinutes} min for “${input.title}”.` };
+      }
+
+      case "protect_focus_time": {
+        const title = input.title as string;
+        const blocks = (input.blocks as { startISO: string; durationMinutes: number }[]) ?? [];
+        const rows = blocks
+          .map((b) => {
+            const start = new Date(b.startISO);
+            if (Number.isNaN(start.getTime())) return null;
+            return {
+              userId,
+              title,
+              kind: "focus" as const,
+              startsAt: start,
+              endsAt: new Date(start.getTime() + b.durationMinutes * 60_000),
+              seriesId: null,
+            };
+          })
+          .filter((r): r is NonNullable<typeof r> => r !== null);
+        if (rows.length === 0) return { ok: false, message: "No valid blocks to protect." };
+        await db.insert(schema.timeBlocks).values(rows);
+        const mins = rows.reduce(
+          (s, r) => s + (r.endsAt.getTime() - r.startsAt.getTime()) / 60_000,
+          0,
+        );
+        const h = Math.floor(mins / 60);
+        const m = Math.round(mins % 60);
+        const dur = h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+        return {
+          ok: true,
+          message: `Protected ${rows.length} focus block${rows.length === 1 ? "" : "s"} (${dur}) for “${title}”.`,
+        };
       }
 
       case "update_preferences": {

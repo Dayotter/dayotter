@@ -474,6 +474,89 @@ export const TOOLS: AiToolDef[] = [
     summarize: (i) => `Block ${i.durationMinutes} min for “${i.title}”`,
   },
   {
+    name: "find_focus_time",
+    description:
+      'Find concrete open blocks on the host\'s calendar to protect for focus / deep work or a task. Returns specific candidate blocks (already clear of meetings and busy times) that add up toward the hours requested. ALWAYS call this before protect_focus_time, then pass the returned blocks through. Use it whenever the host wants to reserve time ("block 6 hours of focus this week", "find 4 hours for the deck by Friday").',
+    kind: "read",
+    confirmLevel: "none",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        hoursNeeded: { type: "number", description: "Total hours to find, e.g. 4. Default 1.5." },
+        chunkMinutes: {
+          type: "integer",
+          description: "Length of each block in minutes, 30–240. Default 90.",
+        },
+        byDate: {
+          type: "string",
+          description: "ISO-8601 deadline; only find blocks before this instant.",
+        },
+        days: { type: "integer", description: "How many days ahead to search, 1–30. Default 7." },
+      },
+    },
+    zod: z.object({
+      hoursNeeded: z.number().min(0.25).max(40).optional(),
+      chunkMinutes: z.number().int().min(30).max(240).optional(),
+      byDate: z.string().optional(),
+      days: z.number().int().min(1).max(30).optional(),
+    }),
+    title: "Find focus time",
+    summarize: () => "Find open focus time",
+  },
+  {
+    name: "protect_focus_time",
+    description:
+      "Protect one or more focus / deep-work blocks on the host's calendar (holds the time so nobody can book over it). Pass the exact blocks returned by find_focus_time and a short title. Confirm-first — the host reviews before anything is held.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        title: {
+          type: "string",
+          description: 'Label for the blocks, e.g. "Deep work" or "Q3 deck".',
+        },
+        blocks: {
+          type: "array",
+          description: "The blocks to hold (from find_focus_time).",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              startISO: { type: "string", description: "ISO-8601 start instant." },
+              durationMinutes: { type: "integer", description: "15–480." },
+            },
+            required: ["startISO", "durationMinutes"],
+          },
+        },
+      },
+      required: ["title", "blocks"],
+    },
+    zod: z.object({
+      title: z.string().min(1).max(120),
+      blocks: z
+        .array(
+          z.object({
+            startISO: z.string().datetime(),
+            durationMinutes: z.number().int().min(15).max(480),
+          }),
+        )
+        .min(1)
+        .max(20),
+    }),
+    title: "Protect focus time",
+    summarize: (i) => {
+      const blocks = (i.blocks as { durationMinutes: number }[] | undefined) ?? [];
+      const mins = blocks.reduce((s, b) => s + (b.durationMinutes || 0), 0);
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      const dur = h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+      return `Protect ${blocks.length} focus block${blocks.length === 1 ? "" : "s"} · ${dur} for “${i.title}”`;
+    },
+  },
+  {
     name: "update_preferences",
     description:
       "Update one or more scheduling preferences. Only the fields you pass change; the rest are preserved. Use get_preferences first if unsure of current values.",
