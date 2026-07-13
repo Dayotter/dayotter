@@ -625,6 +625,30 @@ export async function executeActionTool(
         return { ok: true, message: "Deleted that automation rule." };
       }
 
+      case "update_workflow": {
+        const { organizationId } = await ensureUserWorkspace(userId);
+        const id = input.id as string;
+        const wf = await db.query.workflows.findFirst({
+          where: and(
+            eq(schema.workflows.id, id),
+            eq(schema.workflows.organizationId, organizationId),
+          ),
+          columns: { id: true, name: true },
+        });
+        if (!wf) return { ok: false, message: "I couldn't find that workflow." };
+        const set: Record<string, unknown> = {};
+        if (input.name !== undefined) set.name = input.name;
+        if (input.subjectTemplate !== undefined) set.subjectTemplate = input.subjectTemplate;
+        if (input.bodyTemplate !== undefined) set.bodyTemplate = input.bodyTemplate;
+        if (input.offsetMinutes !== undefined) set.offsetMinutes = input.offsetMinutes;
+        if (input.isActive !== undefined) set.isActive = input.isActive;
+        if (Object.keys(set).length === 0) {
+          return { ok: false, message: "Tell me what to change on that workflow." };
+        }
+        await db.update(schema.workflows).set(set).where(eq(schema.workflows.id, id));
+        return { ok: true, message: `Updated \u201c${wf.name}\u201d.` };
+      }
+
       case "delete_workflow": {
         const { organizationId } = await ensureUserWorkspace(userId);
         const res = await db

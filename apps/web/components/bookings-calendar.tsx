@@ -1,5 +1,7 @@
 "use client";
 
+import { SkeletonRows } from "@/components/ui/skeleton";
+
 import { buttonVariants } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 import { eventColorVar } from "@/lib/booking/event-type-input";
@@ -161,7 +163,9 @@ export function BookingsCalendar({ tz }: { tz: string }) {
       </div>
 
       {loading ? (
-        <p className="py-16 text-center text-sm text-[var(--color-muted)]">Loading…</p>
+        <div className="py-6">
+          <SkeletonRows rows={5} />
+        </div>
       ) : view === "month" ? (
         <MonthGrid rangeStart={rangeStart} anchor={anchor} byDay={byDay} tz={tz} />
       ) : view === "week" ? (

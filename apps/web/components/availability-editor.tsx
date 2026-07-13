@@ -4,7 +4,7 @@ import { FormError } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import { Check, Copy, Plus, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface Range {
   start: string; // "HH:MM"
@@ -83,6 +83,29 @@ export function AvailabilityEditor({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Hours use an explicit Save (unlike the instant schedule actions), so guard
+  // against navigating away with unsaved edits. Derive "dirty" by comparing the
+  // current state to what was loaded — no need to flag every handler.
+  const dirty = useMemo(
+    () =>
+      JSON.stringify({ timezone, days, overrides }) !==
+      JSON.stringify({
+        timezone: initial.timezone,
+        days: initial.days,
+        overrides: initial.overrides ?? [],
+      }),
+    [timezone, days, overrides, initial],
+  );
+  useEffect(() => {
+    if (!dirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
 
   function addOverride() {
     if (!newDate || overrides.some((o) => o.date === newDate)) return;
@@ -368,7 +391,9 @@ export function AvailabilityEditor({
         <Button onClick={save} disabled={saving}>
           {saving ? "Saving…" : "Save availability"}
         </Button>
-        {saved ? (
+        {dirty ? (
+          <span className="text-sm text-[var(--color-amber)]">Unsaved changes</span>
+        ) : saved ? (
           <span className="inline-flex items-center gap-1.5 text-sm text-[var(--color-success)]">
             <Check size={15} /> Saved
           </span>
