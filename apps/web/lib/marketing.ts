@@ -2,7 +2,7 @@
 
 export const BRAND = {
   name: "DayOtter",
-  tagline: "The open-source home for your time.",
+  tagline: "The calm home for your time.",
   email: "hello@dayotter.com",
   github: "https://github.com/nometria/dayotter",
   githubLicense: "https://github.com/nometria/dayotter/blob/main/LICENSE",

@@ -9,6 +9,16 @@ export const metadata: Metadata = {
 const ENTRIES = [
   {
     date: "July 2026",
+    title: "Ask Otter, a refreshed interface & new sign-in",
+    items: [
+      "Ask Otter: a conversational assistant in your dashboard — by chat or voice — that reads your schedule and can act on your whole setup (bookings, booking types, availability, focus time, preferences, teams, reminder channels, automations). Always confirm-first; deletes ask twice.",
+      "A refreshed, premium interface end to end — a cleaner typeface, in-theme dialogs and toasts, and a tidier mobile navigation.",
+      "Phone number + one-time-code sign-in, email verification, and self-serve account deletion.",
+      "Browser (web push) reminders alongside mobile push, Slack, SMS, and WhatsApp.",
+    ],
+  },
+  {
+    date: "July 2026",
     title: "Billing, editions & the developer platform",
     items: [
       "Open-core editions: self-host free, cloud $9/seat Pro.",
@@ -43,7 +53,7 @@ export default function ChangelogPage() {
       <MarketingHeader
         eyebrow="Changelog"
         title="What's new"
-        subtitle="We ship fast and in the open. Here's the recent work."
+        subtitle="We ship fast. Here's the recent work."
       />
       <section className="mx-auto max-w-2xl px-6 py-16">
         <ol className="relative space-y-10 border-l border-[var(--color-border)] pl-6">

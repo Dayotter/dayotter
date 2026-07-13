@@ -23,7 +23,7 @@ export function Hero() {
 
       <div className="relative mx-auto max-w-5xl px-6 pt-16 text-center sm:pt-24">
         <FadeUp>
-          <span className="eyebrow">Open-source team scheduling</span>
+          <span className="eyebrow">Scheduling, minus the back-and-forth</span>
         </FadeUp>
         <FadeUp delay={0.08}>
           <h1 className="font-display mx-auto mt-5 max-w-4xl text-[2.6rem] leading-[1.04] tracking-[-0.02em] sm:text-6xl lg:text-[4.5rem]">
