@@ -31,12 +31,33 @@ const STATUS_LABEL: Record<string, string> = { no_show: "no-show" };
 
 type Tab = "calendar" | "history";
 
+// History status filters. Each maps one or more raw booking statuses to a
+// friendly label; a filter only shows when the history actually contains it.
+const FILTERS: { key: string; label: string; match: (status: string) => boolean }[] = [
+  { key: "all", label: "All", match: () => true },
+  { key: "confirmed", label: "Confirmed", match: (s) => s === "confirmed" },
+  { key: "completed", label: "Completed", match: (s) => s === "completed" },
+  { key: "cancelled", label: "Cancelled", match: (s) => s === "cancelled" || s === "rejected" },
+  { key: "no_show", label: "No-show", match: (s) => s === "no_show" },
+  { key: "pending", label: "Pending", match: (s) => s === "pending" },
+];
+
 /** Bookings surface: a colour-coded calendar (month/week/agenda) plus a full
  *  history list (including past + cancelled). */
 export function BookingsWorkspace({ tz, history }: { tz: string; history: HistoryBooking[] }) {
   // Default to History so the server-loaded rows render immediately; the
   // calendar fetches its own range only when that tab is opened.
   const [tab, setTab] = useState<Tab>("history");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Only surface filters that match at least one booking (besides "All"), and
+  // only bother showing the row when there's more than one status to filter by.
+  const availableFilters = FILTERS.filter(
+    (f) => f.key === "all" || history.some((b) => f.match(b.status)),
+  );
+  const showFilters = availableFilters.length > 2;
+  const active = FILTERS.find((f) => f.key === statusFilter) ?? FILTERS[0]!;
+  const shownHistory = history.filter((b) => active.match(b.status));
 
   return (
     <>
@@ -66,11 +87,38 @@ export function BookingsWorkspace({ tz, history }: { tz: string; history: Histor
           description="Calm waters for now — when someone books one of your booking types, it surfaces here."
         />
       ) : (
-        <div className="space-y-2">
-          {history.map((b) => (
-            <HistoryRow key={b.id} b={b} tz={tz} />
-          ))}
-        </div>
+        <>
+          {showFilters ? (
+            <div className="mb-4 flex flex-wrap gap-1.5">
+              {availableFilters.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setStatusFilter(f.key)}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                    statusFilter === f.key
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
+                      : "border-[var(--color-border-strong)] text-[var(--color-muted)] hover:text-[var(--color-text)]",
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {shownHistory.length === 0 ? (
+            <p className="py-10 text-center text-sm text-[var(--color-muted)]">
+              No {active.label.toLowerCase()} bookings.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {shownHistory.map((b) => (
+                <HistoryRow key={b.id} b={b} tz={tz} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </>
   );
