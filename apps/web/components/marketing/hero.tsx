@@ -22,19 +22,18 @@ export function Hero() {
 
       <div className="relative mx-auto max-w-5xl px-6 pt-16 text-center sm:pt-24">
         <FadeUp>
-          <span className="eyebrow">Scheduling, minus the back-and-forth</span>
+          <span className="eyebrow">Meet Otter, your scheduling assistant</span>
         </FadeUp>
         <FadeUp delay={0.08}>
           <h1 className="font-display mx-auto mt-5 max-w-4xl text-[2.6rem] leading-[1.04] tracking-[-0.02em] sm:text-6xl lg:text-[4.5rem]">
-            Scheduling that respects <em className="text-[var(--color-accent)]">every calendar</em>{" "}
-            you own.
+            Say it once. <em className="text-[var(--color-accent)]">Otter handles the rest.</em>
           </h1>
         </FadeUp>
         <FadeUp delay={0.16}>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[var(--color-muted)]">
-            One calm home for your time — sync every calendar, share your availability, and let
-            people book you without the back-and-forth. Beautifully simple, on the cloud or your own
-            server.
+            Talk to your calendar like you'd talk to an assistant. Otter books the meeting, holds
+            your focus time, and clears the back-and-forth — and never changes a thing without your
+            OK. Or share one link and let people book you themselves.
           </p>
         </FadeUp>
         <FadeUp delay={0.24}>
@@ -49,7 +48,7 @@ export function Hero() {
         </FadeUp>
         <FadeUp delay={0.32}>
           <p className="mt-6 text-sm text-[var(--color-faint)]">
-            Free forever for individuals · No credit card
+            Free forever for individuals · No credit card · Open source
           </p>
         </FadeUp>
         <FadeUp delay={0.38}>

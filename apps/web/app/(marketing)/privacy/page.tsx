@@ -13,7 +13,7 @@ export default function PrivacyPage() {
       <MarketingHeader
         eyebrow="Legal"
         title="Privacy Policy"
-        subtitle="Last updated July 11, 2026"
+        subtitle="Last updated July 14, 2026"
       />
       <Prose>
         <p>
@@ -53,11 +53,50 @@ export default function PrivacyPage() {
           reliable product.
         </p>
 
+        <h2>Otter, our AI assistant</h2>
+        <p>
+          When you use Otter — {BRAND.name}'s built-in assistant — the message you send and the
+          relevant scheduling context (your event types, availability, and upcoming bookings) are
+          sent to our AI provider, Anthropic, to generate a response. Otter is{" "}
+          <strong>confirm-first</strong>: it only ever drafts a change and waits for your explicit
+          confirmation — it never books, moves, or cancels anything on its own. Our AI provider does
+          not use your data to train its models, and we don't use Otter conversations for
+          advertising. AI features are optional — if you never use Otter, none of your data is sent
+          to an AI provider.
+        </p>
+
         <h2>How we share it</h2>
         <p>
-          We share data only with the processors needed to run the Service: calendar providers
-          (Google, Microsoft, Apple) you connect, email/SMS providers for reminders, and Stripe for
-          payments. We do not sell your personal data or share it for advertising.
+          We share data only with the processors needed to run the Service — never for advertising,
+          and we never sell your personal data. Those processors are listed below.
+        </p>
+
+        <h2>Subprocessors</h2>
+        <p>We rely on a small set of vendors to operate the Service:</p>
+        <ul>
+          <li>
+            <strong>Calendar &amp; conferencing</strong> — Google, Microsoft, Apple, and Zoom, for
+            the accounts you choose to connect.
+          </li>
+          <li>
+            <strong>Anthropic</strong> — powers Otter's AI responses, only when you use Otter.
+          </li>
+          <li>
+            <strong>Stripe</strong> — payments and subscription billing.
+          </li>
+          <li>
+            <strong>Resend</strong> — transactional email (confirmations and reminders).
+          </li>
+          <li>
+            <strong>Twilio</strong> — SMS one-time codes and reminders, if you enable them.
+          </li>
+          <li>
+            <strong>Cloudflare</strong> — bot protection on public booking pages.
+          </li>
+        </ul>
+        <p>
+          Some of these processors are based in the United States; where required, international
+          transfers rely on standard contractual clauses.
         </p>
 
         <h2>Security</h2>
@@ -65,6 +104,12 @@ export default function PrivacyPage() {
           OAuth tokens, notification secrets, and webhook signing keys are encrypted at rest. API
           keys are stored only as hashes. Access is scoped per user and organization. See our{" "}
           <a href="/security">security page</a> for details.
+        </p>
+
+        <h2>Cookies</h2>
+        <p>
+          We use a session cookie to keep you signed in, and — where enabled — a bot-protection
+          cookie on public booking pages. We don't use advertising or cross-site tracking cookies.
         </p>
 
         <h2>Retention</h2>

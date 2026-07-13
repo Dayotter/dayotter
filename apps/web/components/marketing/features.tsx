@@ -56,14 +56,14 @@ function AIMock() {
   return (
     <div className="space-y-2.5">
       <div className="ml-auto w-fit max-w-[85%] rounded-[14px] rounded-br-sm bg-[var(--color-accent)] px-3.5 py-2 text-sm text-white">
-        "Book a 30-min call with mom Friday afternoon"
+        "Hold two hours for deep work tomorrow"
       </div>
       <div className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
         <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-          <Sparkles size={13} className="text-[var(--color-accent)]" /> Draft — review before
-          booking
+          <Sparkles size={13} className="text-[var(--color-accent)]" /> Draft — nothing's booked
+          until you say so
         </div>
-        <p className="mt-1.5 text-sm font-medium">Call with mom · Fri, 3:00 PM</p>
+        <p className="mt-1.5 text-sm font-medium">Deep work · Tomorrow, 9:00–11:00 AM</p>
         <div className="mt-2.5 flex gap-2">
           <span className="rounded-sm bg-[var(--color-accent)] px-3 py-1 text-xs font-medium text-white">
             Confirm
@@ -81,33 +81,33 @@ export function Features() {
   return (
     <section id="features" className="relative mx-auto max-w-6xl px-6 py-24">
       <Reveal className="mx-auto max-w-2xl text-center">
-        <span className="eyebrow">Everything, one calm place</span>
+        <span className="eyebrow">Everything you need, nothing you don't</span>
         <h2 className="font-display mt-4 text-4xl leading-tight tracking-[-0.02em] sm:text-5xl">
-          A calendar that works the way you do.
+          One calm home for your whole schedule.
         </h2>
       </Reveal>
 
       <Stagger className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-6">
         <Card
           className="md:col-span-4 md:row-span-2"
-          title="Shared team availability"
-          body="Find a time you're all free — collective and round-robin scheduling built in, never behind a paywall. Your founder wedge, out of the box."
+          title="Ask Otter anything"
+          body="“Book a call with Priya Thursday.” “Hold two hours for deep work.” “Move my 3pm.” Say it in plain words — Otter drafts it and waits for your OK. It never touches your calendar on its own."
         >
-          <TeamAvailabilityMock />
+          <AIMock />
         </Card>
 
         <Card
           className="md:col-span-2"
           title="Every calendar, in sync"
-          body="Unify Google, Outlook and Apple into one source of truth."
+          body="Google, Outlook and Apple — one source of truth."
         >
           <ProviderChips />
         </Card>
 
         <Card
           className="md:col-span-2"
-          title="Reminders that fire"
-          body="Automatic 1-day and 1-hour nudges. Durable — never dropped."
+          title="It covers for you"
+          body="Otter holds focus time on quiet mornings, and quietly warns your next meeting when you're running behind."
         >
           <ReminderMock />
         </Card>
@@ -115,17 +115,17 @@ export function Features() {
         <Card
           className="md:col-span-3"
           title="Let people book you"
-          body="Beautiful booking pages with buffers, intake questions and instant video links."
+          body="A booking page as calm as it is capable — buffers, intake questions, recurring meetings, instant video links."
         >
           <BookingMock />
         </Card>
 
         <Card
           className="md:col-span-3"
-          title="Scheduling, with a little AI"
-          body="Say it in plain words. DayOtter drafts the event — you confirm. It never touches your calendar on its own."
+          title="Schedule as a team"
+          body="Round-robin and collective booking, weighted your way. Routing forms send each visitor to the right person — never behind a paywall."
         >
-          <AIMock />
+          <TeamAvailabilityMock />
         </Card>
       </Stagger>
     </section>

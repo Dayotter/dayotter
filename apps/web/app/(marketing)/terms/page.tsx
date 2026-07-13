@@ -13,7 +13,7 @@ export default function TermsPage() {
       <MarketingHeader
         eyebrow="Legal"
         title="Terms of Service"
-        subtitle="Last updated July 11, 2026"
+        subtitle="Last updated July 14, 2026"
       />
       <Prose>
         <p>
@@ -76,7 +76,15 @@ export default function TermsPage() {
           changes will be announced with reasonable notice.
         </p>
 
-        <h2>8. Disclaimers & liability</h2>
+        <h2>8. AI features</h2>
+        <p>
+          {BRAND.name} includes an AI assistant ("Otter") that drafts events, suggestions, and
+          replies. Otter is confirm-first — it proposes actions and only carries them out after you
+          confirm. AI output can be inaccurate or incomplete, so you are responsible for reviewing
+          any draft before confirming it. Don't rely on AI output as professional advice.
+        </p>
+
+        <h2>9. Disclaimers & liability</h2>
         <p>
           The Service is provided "as is" without warranties of any kind. To the maximum extent
           permitted by law, {BRAND.name} is not liable for indirect, incidental, or consequential
@@ -84,13 +92,13 @@ export default function TermsPage() {
           before the claim.
         </p>
 
-        <h2>9. Termination</h2>
+        <h2>10. Termination</h2>
         <p>
           You may stop using the Service at any time. We may suspend or terminate access if you
           breach these Terms. On termination you may export your data for a reasonable period.
         </p>
 
-        <h2>10. Contact</h2>
+        <h2>11. Contact</h2>
         <p>
           Questions about these Terms? Email <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>.
         </p>

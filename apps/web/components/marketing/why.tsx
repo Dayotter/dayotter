@@ -1,10 +1,10 @@
 const BADGES = [
-  { img: "/brand/illustrations/badge-scheduling.png", label: "Easy scheduling" },
-  { img: "/brand/illustrations/badge-secure.png", label: "Secure & private" },
-  { img: "/brand/illustrations/badge-balance.png", label: "Work–life balance" },
-  { img: "/brand/illustrations/badge-timezone.png", label: "Timezone-friendly" },
-  { img: "/brand/illustrations/badge-reminders.png", label: "Smart reminders" },
-  { img: "/brand/illustrations/badge-track.png", label: "Stay on track" },
+  { img: "/brand/illustrations/badge-scheduling.png", label: "One link, done" },
+  { img: "/brand/illustrations/badge-secure.png", label: "Yours to self-host" },
+  { img: "/brand/illustrations/badge-balance.png", label: "Focus, protected" },
+  { img: "/brand/illustrations/badge-timezone.png", label: "Every timezone" },
+  { img: "/brand/illustrations/badge-reminders.png", label: "Reminders that fire" },
+  { img: "/brand/illustrations/badge-track.png", label: "Never double-booked" },
 ];
 
 /** A playful badge strip — the otter's take on "why DayOtter". */

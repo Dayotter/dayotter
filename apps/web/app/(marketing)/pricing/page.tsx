@@ -87,7 +87,7 @@ const FAQ = [
   },
   {
     q: "What's the difference between cloud and self-hosting?",
-    a: "The open-source edition you run yourself is fully featured and free. Our hosted cloud adds a free tier plus the $9/seat Pro plan, and a couple of managed-only extras (Managed AI, SSO, white-label, hosted messaging).",
+    a: "The open-source edition you run yourself is fully featured and free. Our hosted cloud adds a free tier plus the $9/seat Pro plan, and takes the ops off your hands — managed AI and hosted messaging today, with team extras like SSO and custom booking domains on the way.",
   },
   {
     q: "Can I cancel anytime?",

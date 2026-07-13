@@ -3,7 +3,7 @@ import { Hero } from "@/components/marketing/hero";
 import { Marquee } from "@/components/marketing/marquee";
 import { MobileApps } from "@/components/marketing/mobile";
 import { MarketingNav } from "@/components/marketing/nav";
-import { CTA, Footer, HowItWorks, Manifesto } from "@/components/marketing/sections";
+import { CTA, FAQ, Footer, HowItWorks, Manifesto, Shift } from "@/components/marketing/sections";
 import { OtterBand, WhyOtter } from "@/components/marketing/why";
 
 export default function HomePage() {
@@ -14,11 +14,13 @@ export default function HomePage() {
         <Hero />
         <Marquee />
         <Features />
+        <Shift />
         <WhyOtter />
         <MobileApps />
         <HowItWorks />
         <Manifesto />
         <OtterBand />
+        <FAQ />
         <CTA />
       </main>
       <Footer />
