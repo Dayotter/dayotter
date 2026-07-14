@@ -36,12 +36,17 @@ Append a `TimeMetric` to `METRICS` in `metrics.ts`:
 It appears on `/api/insights/time` and the "Where your time goes" section
 automatically.
 
+## Shipped metrics
+`meeting_focus_balance`, `top_people`, `time_of_day`, `weekly_load`,
+`back_to_back_share` (% of meetings with no gap before the next),
+`longest_focus_streak` (biggest uninterrupted block held),
+`external_vs_internal` (time with outside guests vs. teammates, by email domain).
+
 ## Ideas for future metrics
-- `back_to_back_share` - % of meetings with no gap before the next
-- `longest_focus_streak` - the biggest uninterrupted block you held
-- `external_vs_internal` - time with outside guests vs. teammates (by email domain)
 - `recurring_load` - share of time in recurring vs. one-off meetings
-- `reclaimed_time` - focus time Otter protected for you
+- `reclaimed_time` - focus time Otter protected for you (needs a marker on
+  time_blocks to distinguish reclaimed from manually-held focus)
+- `busiest_weekday` - which day carries the most meeting load
 
 ## Notes
 - Distinct from `lib/booking/insights.ts` (scheduling counts/funnel). This module

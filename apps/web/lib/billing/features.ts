@@ -23,6 +23,7 @@ export type Feature =
   | "deep_work" // focus-time defense
   | "accept_payments" // charge attendees for bookings
   | "developer" // API keys, webhooks, embed
+  | "crm_sync" // native Salesforce / HubSpot sync
   // Cloud-only (ee/, commercial license)
   | "managed_ai" // AI with DayOtter's key - no BYO key
   | "sso" // SAML / Google Workspace sign-in
@@ -40,6 +41,7 @@ export const FEATURE_TIER: Record<Feature, FeatureTier> = {
   deep_work: "pro",
   accept_payments: "pro",
   developer: "pro",
+  crm_sync: "pro",
   managed_ai: "cloud",
   sso: "cloud",
   white_label: "cloud",
@@ -60,6 +62,7 @@ export const FEATURE_LABEL: Record<Feature, string> = {
   deep_work: "Deep-work defense",
   accept_payments: "Accept payments",
   developer: "Developer platform",
+  crm_sync: "CRM sync (Salesforce / HubSpot)",
   managed_ai: "Managed AI",
   sso: "Single sign-on",
   white_label: "White-label booking",

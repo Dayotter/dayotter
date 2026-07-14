@@ -5,8 +5,24 @@ import type { MetricResult, TimeDataset } from "./types";
 export type { MetricResult, StatResult, BreakdownResult, TimeMetric } from "./types";
 export { METRICS } from "./metrics";
 
+/** Extract a lowercase email domain, or null for a missing/malformed address. */
+function emailDomain(email: string | null | undefined): string | null {
+  const at = email?.lastIndexOf("@") ?? -1;
+  if (!email || at < 0) return null;
+  const domain = email
+    .slice(at + 1)
+    .toLowerCase()
+    .trim();
+  return domain || null;
+}
+
 /** Load the shared dataset (one pass over bookings + focus blocks) for a window. */
-async function loadDataset(userId: string, tz: string, windowDays: number): Promise<TimeDataset> {
+async function loadDataset(
+  userId: string,
+  tz: string,
+  windowDays: number,
+  hostDomain: string | null,
+): Promise<TimeDataset> {
   const db = getDb();
   const now = new Date();
   const from = new Date(now.getTime() - windowDays * 86_400_000);
@@ -40,6 +56,7 @@ async function loadDataset(userId: string, tz: string, windowDays: number): Prom
   return {
     tz,
     windowDays,
+    hostDomain,
     bookings: bookings.map((b) => ({
       start: b.startsAt,
       end: b.endsAt,
@@ -61,15 +78,15 @@ export async function computeTimeAllocation(params: {
   windowDays?: number;
 }): Promise<{ windowDays: number; metrics: MetricResult[] }> {
   const windowDays = params.windowDays ?? 30;
-  let tz = params.tz;
-  if (!tz) {
-    const user = await getDb().query.users.findFirst({
-      where: eq(schema.users.id, params.userId),
-      columns: { timezone: true },
-    });
-    tz = user?.timezone ?? "UTC";
-  }
-  const data = await loadDataset(params.userId, tz, windowDays);
+  // Always look up the host (email domain drives external/internal; timezone as
+  // a fallback when the caller didn't pass one).
+  const user = await getDb().query.users.findFirst({
+    where: eq(schema.users.id, params.userId),
+    columns: { timezone: true, email: true },
+  });
+  const tz = params.tz ?? user?.timezone ?? "UTC";
+  const hostDomain = emailDomain(user?.email);
+  const data = await loadDataset(params.userId, tz, windowDays, hostDomain);
   const metrics = METRICS.map((m) => m.compute(data)).filter((r): r is MetricResult => r !== null);
   return { windowDays, metrics };
 }

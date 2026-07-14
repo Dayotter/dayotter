@@ -15,6 +15,7 @@ export const QUEUE_NAMES = {
   sync: "calendar-sync",
   maintenance: "calendar-maintenance",
   webhooks: "webhooks",
+  crmSync: "crm-sync",
 } as const;
 
 /** Liveness key the worker refreshes so the web /health can confirm it's alive. */
@@ -68,10 +69,16 @@ export interface WebhookJob {
   deliveryId: string;
 }
 
+export interface CrmSyncJob {
+  bookingId: string;
+  action: "created" | "rescheduled" | "cancelled";
+}
+
 export const remindersQueue = new Queue<ReminderJob>(QUEUE_NAMES.reminders, { connection });
 export const syncQueue = new Queue<SyncJob>(QUEUE_NAMES.sync, { connection });
 export const maintenanceQueue = new Queue(QUEUE_NAMES.maintenance, { connection });
 export const webhooksQueue = new Queue<WebhookJob>(QUEUE_NAMES.webhooks, { connection });
+export const crmSyncQueue = new Queue<CrmSyncJob>(QUEUE_NAMES.crmSync, { connection });
 
 /**
  * Enqueue delivery of a persisted webhook delivery row. Retries with backoff so
@@ -89,6 +96,21 @@ export async function enqueueWebhook(deliveryId: string): Promise<void> {
       removeOnFail: 200,
     },
   );
+}
+
+/**
+ * Enqueue a CRM push for a booking lifecycle change. Keyed per (booking, action)
+ * so duplicate triggers coalesce; retries with backoff so a transient CRM API
+ * error recovers. Best-effort - never blocks the booking flow.
+ */
+export async function enqueueCrmSync(job: CrmSyncJob): Promise<void> {
+  await crmSyncQueue.add(job.action, job, {
+    jobId: `crm-${job.bookingId}-${job.action}`,
+    attempts: 5,
+    backoff: { type: "exponential", delay: 15_000 },
+    removeOnComplete: true,
+    removeOnFail: 200,
+  });
 }
 
 /**
