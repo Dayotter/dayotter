@@ -118,23 +118,35 @@ export const COMPARISONS: Comparison[] = [
   {
     slug: "cal-com",
     name: "Cal.com",
-    blurb: "Open-source and developer-grade — but its AI is a usage-priced voice add-on.",
+    blurb:
+      "Went closed-source in 2026, leaving a stripped MIT fork. DayOtter is the open alternative.",
     title: "DayOtter vs Cal.com",
     subtitle:
-      "Both are open-source with generous free plans. The difference is the assistant: DayOtter is built around a proactive AI EA that protects your time — Cal.com's AI is a separate, metered voice product.",
+      "Cal.com was the open-source scheduler for years — then moved its core to a closed repo in 2026, keeping only a stripped-down fork with the commercial features removed. DayOtter is the genuinely open alternative: AGPLv3, the whole product, AI included.",
     intro: [
-      "Cal.com is the open-source scheduler developers love — API-first, self-hostable, with a genuinely generous free tier and strong routing. On the fundamentals, DayOtter and Cal.com are close cousins.",
-      "Where they diverge is the assistant. Cal.com's AI (Cal.ai) is a usage-priced voice-agent add-on. DayOtter is designed from the ground up around Otter — a conversational assistant that books, protects focus, and handles overflow, confirm-first, at no per-minute cost.",
+      'For years Cal.com was the open-source scheduler developers loved — API-first, self-hostable, strong routing. In April 2026 it moved its production codebase to a closed repository (citing AI), keeping a separate MIT fork, "Cal.diy", with the commercial features — Organizations, Teams, Routing, Workflows, Instant Booking — removed. So the open version is now a demo, and the real product is closed.',
+      "DayOtter took the opposite path. The whole product — teams, routing, workflows, and all of Otter's AI — is AGPLv3 and self-hostable, free forever. And it's built around Otter, a confirm-first assistant that books, protects focus, and handles overflow at no per-minute cost (Cal.com's AI was a usage-priced voice add-on).",
     ],
     theirStrength:
-      "Cal.com's API and webhook surface is excellent, its app ecosystem is large, and its enterprise/org tier (attribute routing, SAML, SCIM, HIPAA) is further along. If you're building a scheduling product on top of an API, it's a strong platform.",
+      "Cal.com's API and app ecosystem are mature, and their hosted product is polished. If you want a managed scheduling API and don't mind that the core is now closed, it's an established choice.",
     rows: [
-      { label: "Open source / self-host", dayotter: "Yes", them: "Yes", edge: "tie" },
+      {
+        label: "License",
+        dayotter: "AGPLv3 — genuinely open",
+        them: "Core closed (2026); stripped MIT fork",
+        edge: "us",
+      },
+      {
+        label: "Self-host the whole product",
+        dayotter: "Yes — teams, routing, AI, all of it",
+        them: "Fork has commercial features removed",
+        edge: "us",
+      },
       { label: "Generous free plan", dayotter: "Yes", them: "Yes", edge: "tie" },
       {
         label: "AI assistant",
         dayotter: "Otter, included — chat + confirm-first",
-        them: "Cal.ai, usage-priced voice (~$0.29/min)",
+        them: "Cal.ai was usage-priced voice (~$0.29/min)",
         edge: "us",
       },
       {
@@ -166,30 +178,34 @@ export const COMPARISONS: Comparison[] = [
     ],
     whyUs: [
       {
+        title: "Still genuinely open source",
+        body: "Cal.com moved its core to a closed repo and stripped the commercial features out of its open fork. DayOtter is AGPLv3 — teams, routing, workflows, and all of Otter's AI are in the open core, self-hostable and free forever. Not a demo.",
+      },
+      {
         title: "The assistant is the product, not an add-on",
-        body: "With DayOtter, talking to Otter is the main way to get things done — book, reschedule, protect focus, all confirm-first, at no metered cost. Cal.com's AI is a separate voice product billed by the minute.",
+        body: "Talking to Otter is the main way to get things done — book, reschedule, protect focus, confirm-first, at no metered cost. Cal.com's AI was a separate voice product billed by the minute.",
       },
       {
         title: "Time protection built in",
-        body: "Otter finds open time and holds it for deep work, and warns your next meeting when you're running behind — Reclaim/Motion territory that Cal.com doesn't touch.",
-      },
-      {
-        title: "Calmer out of the box",
-        body: "Cal.com is powerful and endlessly configurable. DayOtter is opinionated and quiet by default — you're booked in minutes without wiring up apps.",
+        body: "Otter finds open time and holds it for deep work, and warns your next meeting when you're running behind — Reclaim/Motion territory Cal.com never touched.",
       },
     ],
     chooseThem:
-      "You're building on top of a scheduling API, want the deepest developer platform, or need mature enterprise org features (SAML/SCIM) right now.",
+      "You want a mature, managed scheduling API and app ecosystem, and you're comfortable that the core is now closed.",
     chooseUs:
-      "You want the open-source, self-hostable base plus a proactive AI assistant and time protection included — not a metered voice add-on.",
+      "You want a genuinely open, self-hostable platform — the whole product, AI included — with a proactive assistant and time protection built in.",
     faq: [
       {
-        q: "Both are open-source — what's the real difference?",
-        a: "The assistant and time protection. DayOtter is built around Otter (conversational, confirm-first, included) and defends your focus time. Cal.com's AI is a usage-priced voice add-on and it doesn't do focus scheduling.",
+        q: "Didn't Cal.com go closed source?",
+        a: "Yes — in April 2026 Cal.com moved its production code to a closed repository and kept only a stripped MIT fork with the commercial features (Orgs, Teams, Routing, Workflows) removed. DayOtter stayed open: AGPLv3, the whole product self-hostable.",
       },
       {
-        q: "Can I self-host DayOtter like Cal.com?",
-        a: "Yes — the core is Apache-2.0 and ships with Docker/compose. Self-hosting unlocks every feature for free.",
+        q: "Is DayOtter really fully open source?",
+        a: "The core — everything except a small cloud-only infrastructure layer (managed keys, SSO, white-label) — is AGPLv3 and self-hostable for free, including every AI feature. See our docs on editions and the enterprise boundary.",
+      },
+      {
+        q: "Can I self-host DayOtter?",
+        a: "Yes — it ships with Docker/compose and unlocks every Pro feature for free when self-hosted. No license key, no billing.",
       },
     ],
   },
@@ -325,7 +341,7 @@ export const COMPARISONS: Comparison[] = [
     subtitle:
       "Google Calendar is the calendar. DayOtter is the scheduling layer on top — booking pages, team routing, focus protection and an assistant — working with your Google Calendar, not replacing it.",
     intro: [
-      "Google Calendar is where most of us actually keep our time, and its built-in \"appointment schedules\" let people grab a slot. For one person with simple needs, that can be enough.",
+      'Google Calendar is where most of us actually keep our time, and its built-in "appointment schedules" let people grab a slot. For one person with simple needs, that can be enough.',
       "But the moment you need team round-robin, routing, reminders across channels, payments, or an assistant that protects your focus, you've outgrown it. DayOtter adds all of that — and syncs straight into the Google Calendar you already live in.",
     ],
     theirStrength:

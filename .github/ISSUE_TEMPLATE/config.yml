@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions & discussion
+    url: https://github.com/nometria/dayotter/discussions
+    about: Ask questions, share what you're building, or discuss ideas before filing.
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/nometria/dayotter/security/advisories/new
+    about: Please report vulnerabilities privately — never as a public issue.
+  - name: 🗺️ Roadmap
+    url: https://github.com/nometria/dayotter/blob/main/docs/ROADMAP.md
+    about: See what's planned before requesting a feature.

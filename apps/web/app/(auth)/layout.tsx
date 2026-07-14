@@ -88,7 +88,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             rel="noreferrer"
             className="hover:text-[var(--color-muted)]"
           >
-            Open source · Apache-2.0
+            Open source · AGPLv3
           </a>
         </div>
       </div>

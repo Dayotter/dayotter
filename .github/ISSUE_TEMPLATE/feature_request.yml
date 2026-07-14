@@ -1,0 +1,56 @@
+name: ✨ Feature request
+description: Suggest an idea or improvement for DayOtter
+title: "feat: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Please check the [Roadmap](../../blob/main/docs/ROADMAP.md)
+        and existing issues first — someone may already be on it.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: The user pain, not the solution. "As a <role>, I want <goal> so that <benefit>."
+      placeholder: When I run team round-robin, I can't pause a rep who's on holiday…
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What you'd like to see happen. Rough is fine.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches, workarounds you use today, or how other tools do it.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Otter / AI
+        - Scheduling & availability
+        - Teams (round-robin / routing)
+        - Calendar sync
+        - Notifications & reminders
+        - Analytics & insights
+        - Payments / packages
+        - Mobile app
+        - Self-hosting / deploy
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and the roadmap
+          required: true
+        - label: I'd be willing to help build this
+          required: false
