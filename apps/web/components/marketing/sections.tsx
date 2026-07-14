@@ -25,7 +25,7 @@ const AFTER = [
 /** The before/after story - the calm case for switching, plainly told. */
 export function Shift() {
   return (
-    <section className="mx-auto max-w-5xl px-6 py-24">
+    <section className="mx-auto max-w-6xl px-6 py-24">
       <Reveal className="mx-auto max-w-2xl text-center">
         <span className="eyebrow">The shift</span>
         <h2 className="font-display mt-4 text-4xl leading-tight tracking-[-0.02em] sm:text-5xl">
@@ -111,8 +111,8 @@ export function HowItWorks() {
 
 export function Manifesto() {
   return (
-    <section className="mx-auto max-w-4xl px-6 py-20 text-center">
-      <Reveal>
+    <section className="mx-auto max-w-6xl px-6 py-20 text-center">
+      <Reveal className="mx-auto max-w-3xl">
         <p className="font-display text-3xl leading-[1.3] tracking-[-0.01em] sm:text-[2.6rem]">
           We built DayOtter because your time is the one thing you can't get back.{" "}
           <em className="text-[var(--color-accent)]">
@@ -155,14 +155,14 @@ const HOME_FAQ = [
 /** Home-page FAQ - plain answers to the questions people actually ask. */
 export function FAQ() {
   return (
-    <section id="faq" className="mx-auto max-w-3xl px-6 py-24">
+    <section id="faq" className="mx-auto max-w-6xl px-6 py-24">
       <Reveal className="mx-auto max-w-2xl text-center">
         <span className="eyebrow">Good questions</span>
         <h2 className="font-display mt-4 text-4xl leading-tight tracking-[-0.02em] sm:text-5xl">
           The honest answers.
         </h2>
       </Reveal>
-      <Reveal className="mt-12">
+      <Reveal className="mx-auto mt-12 max-w-3xl">
         <div className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
           {HOME_FAQ.map((item) => (
             <details key={item.q} className="group py-5 [&_summary::-webkit-details-marker]:hidden">

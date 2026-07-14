@@ -20,7 +20,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative mx-auto max-w-5xl px-6 pt-16 text-center sm:pt-24">
+      <div className="relative mx-auto max-w-6xl px-6 pt-16 text-center sm:pt-24">
         <FadeUp>
           <span className="eyebrow">Meet Otter, your scheduling assistant</span>
         </FadeUp>

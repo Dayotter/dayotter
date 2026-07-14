@@ -19,10 +19,11 @@
   --color-border: #ebe8e0;
   --color-border-strong: #dcd8cd;
 
-  /* Text - warm near-black */
+  /* Text - warm near-black. muted = body/secondary, faint = tertiary/labels.
+     Kept richer (darker + warmer) than a flat grey so nothing reads washed-out. */
   --color-text: #191720;
-  --color-muted: #6a6660;
-  --color-faint: #9c988e;
+  --color-muted: #55504a;
+  --color-faint: #837d72;
 
   /* Accent - otter violet (matches the illustration palette) */
   --color-accent: #6743e6;

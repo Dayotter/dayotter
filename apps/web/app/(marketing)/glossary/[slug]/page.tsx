@@ -52,7 +52,7 @@ export default async function GlossaryTermPage({
       />
       <MarketingHeader eyebrow={t.category} title={t.term} subtitle={t.short} />
 
-      <div className="mx-auto max-w-2xl px-6 py-16">
+      <div className="mx-auto max-w-3xl px-6 py-16">
         <section className="space-y-4 text-[15px] leading-7 text-[var(--color-muted)]">
           {t.body.map((p) => (
             <p key={p.slice(0, 24)}>{p}</p>

@@ -19,7 +19,7 @@ export default function ComparisonsHub() {
         title="Honest comparisons"
         subtitle="No hand-waving. Here's where each tool wins - and where DayOtter is the better call."
       />
-      <section className="mx-auto max-w-4xl px-6 py-16">
+      <section className="mx-auto max-w-5xl px-6 py-16">
         <div className="grid gap-4 sm:grid-cols-2">
           {COMPARISONS.map((c) => (
             <Link

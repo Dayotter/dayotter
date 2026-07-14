@@ -42,7 +42,7 @@ const MOMENTS = [
 
 export function DayWithOtter() {
   return (
-    <section className="mx-auto max-w-3xl px-6 py-24">
+    <section className="mx-auto max-w-6xl px-6 py-24">
       <Reveal className="mx-auto max-w-2xl text-center">
         <span className="eyebrow">A day with Otter</span>
         <h2 className="font-display mt-4 text-4xl leading-tight tracking-[-0.02em] sm:text-5xl">
@@ -54,7 +54,7 @@ export function DayWithOtter() {
         </p>
       </Reveal>
 
-      <div className="relative mt-16">
+      <div className="relative mx-auto mt-16 max-w-2xl">
         {/* the spine */}
         <div
           className="absolute bottom-2 left-[68px] top-2 w-px bg-[var(--color-border)] sm:left-[84px]"
@@ -163,7 +163,7 @@ export function OtterDemo() {
   const isInfo = reply.type === "info";
 
   return (
-    <section className="mx-auto max-w-5xl px-6 py-24">
+    <section className="mx-auto max-w-6xl px-6 py-24">
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <Reveal>
           <span className="eyebrow">Try it yourself</span>
@@ -330,14 +330,14 @@ function TeaserCell({ cell, strong }: { cell: Cell; strong?: boolean }) {
 export function CompareTeaser() {
   const count = COMPARISONS.length;
   return (
-    <section className="mx-auto max-w-4xl px-6 py-24">
+    <section className="mx-auto max-w-6xl px-6 py-24">
       <Reveal className="mx-auto max-w-2xl text-center">
         <span className="eyebrow">How we stack up</span>
         <h2 className="font-display mt-4 text-4xl leading-tight tracking-[-0.02em] sm:text-5xl">
           The same scheduling. More for less.
         </h2>
       </Reveal>
-      <Reveal className="mt-12">
+      <Reveal className="mx-auto mt-12 max-w-4xl">
         <div className="overflow-x-auto rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
           <table className="w-full min-w-[520px] border-collapse">
             <thead>
