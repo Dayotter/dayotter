@@ -1,4 +1,5 @@
 import { MarketingHeader } from "@/components/marketing/page-shell";
+import { FaqJsonLd } from "@/components/seo/json-ld";
 import { buttonVariants } from "@/components/ui/button";
 import { PRO_PRICE_USD } from "@/lib/billing/edition";
 import { BRAND } from "@/lib/marketing";
@@ -7,9 +8,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Pricing — DayOtter",
+  title: "Pricing",
   description:
-    "Free forever for individuals. Pro is $9/seat/mo for the whole team. Or self-host every feature for free.",
+    "Free forever for individuals. Pro is $9/seat/mo for the whole team. Or self-host every feature for free under AGPLv3.",
+  alternates: { canonical: "/pricing" },
 };
 
 interface Tier {
@@ -98,6 +100,7 @@ const FAQ = [
 export default function PricingPage() {
   return (
     <>
+      <FaqJsonLd items={FAQ} />
       <MarketingHeader
         eyebrow="Pricing"
         title="Simple pricing for time well spent"

@@ -1,4 +1,5 @@
 import { MarketingHeader } from "@/components/marketing/page-shell";
+import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/json-ld";
 import { buttonVariants } from "@/components/ui/button";
 import { PERSONAS, getPersona } from "@/lib/personas";
 import { ArrowRight, Check } from "lucide-react";
@@ -17,7 +18,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const p = getPersona((await params).slug);
   if (!p) return { title: "DayOtter" };
-  return { title: `${p.title} — DayOtter`, description: p.subtitle };
+  const path = `/for/${p.slug}`;
+  return {
+    title: p.title,
+    description: p.subtitle,
+    alternates: { canonical: path },
+    openGraph: { title: `${p.title} — DayOtter`, description: p.subtitle, url: path },
+  };
 }
 
 export default async function PersonaPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -28,6 +35,13 @@ export default async function PersonaPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
+      <FaqJsonLd items={p.faq} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "For", path: "/for" },
+          { name: p.label, path: `/for/${p.slug}` },
+        ]}
+      />
       <MarketingHeader
         eyebrow={`For ${p.label.toLowerCase()}`}
         title={p.title}

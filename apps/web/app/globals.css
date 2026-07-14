@@ -54,8 +54,8 @@
 
   /* Spacing rhythm — the canonical gaps/paddings the components compose from.
    * Field gap: space-y-4 · Card padding: p-6 · Section gap: gap-3 · inline: gap-2 */
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
   /* Headings use the same family a weight heavier — the modern software look
      (one grotesque doing display + body) rather than a separate serif. */
   --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;

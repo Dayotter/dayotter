@@ -1,4 +1,5 @@
 import { MarketingHeader } from "@/components/marketing/page-shell";
+import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/json-ld";
 import { buttonVariants } from "@/components/ui/button";
 import { COMPARISONS, getComparison } from "@/lib/comparisons";
 import { Check, Minus } from "lucide-react";
@@ -17,9 +18,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const c = getComparison((await params).slug);
   if (!c) return { title: "Compare — DayOtter" };
+  const path = `/vs/${c.slug}`;
+  const title = `${c.title} (2026) — how they compare`;
   return {
-    title: `${c.title} (2026) — how they compare`,
+    title,
     description: c.subtitle,
+    alternates: { canonical: path },
+    openGraph: { title, description: c.subtitle, url: path },
   };
 }
 
@@ -35,6 +40,13 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
 
   return (
     <>
+      <FaqJsonLd items={c.faq} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Compare", path: "/vs" },
+          { name: c.name, path: `/vs/${c.slug}` },
+        ]}
+      />
       <MarketingHeader eyebrow="Compare" title={c.title} subtitle={c.subtitle} />
 
       <div className="mx-auto max-w-3xl px-6 py-16">
