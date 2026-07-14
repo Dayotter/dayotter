@@ -276,3 +276,41 @@ export function dailyBriefing(d: DailyBriefingData): Rendered {
     html: shell("Your morning briefing", lines, { label: "Open DayOtter", url: d.manageUrl }),
   };
 }
+
+export interface MeetingRecapData {
+  /** Host's first name (may be empty). */
+  hostName: string;
+  eventTitle: string;
+  start: Date;
+  end: Date;
+  timezone: string;
+  /** Attendee display names/emails. */
+  attendees: string[];
+  /** Deep links for the one-tap next steps. */
+  bookAgainUrl: string;
+  messageUrl: string;
+  manageUrl: string;
+}
+
+/**
+ * Post-meeting recap ("Scribe") — sent to the HOST shortly after a meeting ends.
+ * A calm prompt to capture notes and take the obvious next steps, with one-tap
+ * links into the actions DayOtter already supports.
+ */
+export function meetingRecap(d: MeetingRecapData): Rendered {
+  const when = fmt(d.start, d.timezone);
+  const who = d.attendees.length > 0 ? d.attendees.map(esc).join(", ") : "your guest";
+  const lines = [
+    `Your meeting <strong>${esc(d.eventTitle)}</strong> just wrapped.`,
+    `${esc(when)} · with ${who}.`,
+    "A good moment to capture what you agreed and line up the next step:",
+    `• <a href="${esc(d.bookAgainUrl)}">Book a follow-up</a>`,
+    `• <a href="${esc(d.messageUrl)}">Send a recap to attendees</a>`,
+    `• <a href="${esc(d.manageUrl)}">View the meeting</a>`,
+  ];
+  return {
+    subject: `Recap: ${d.eventTitle}`,
+    text: `Your meeting "${d.eventTitle}" just wrapped.\n${when} · with ${d.attendees.join(", ") || "your guest"}.\n\nBook a follow-up: ${d.bookAgainUrl}\nSend a recap: ${d.messageUrl}\nView: ${d.manageUrl}`,
+    html: shell(`How did it go${d.hostName ? `, ${esc(d.hostName)}` : ""}?`, lines),
+  };
+}

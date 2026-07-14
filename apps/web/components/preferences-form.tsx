@@ -63,6 +63,7 @@ export function PreferencesForm({
     overflowNotifyEnabled?: boolean;
     briefingEnabled?: boolean;
     briefingHour?: number;
+    scribeEnabled?: boolean;
     lunchEnabled?: boolean;
     lunchStartMinute?: number;
     lunchEndMinute?: number;
@@ -79,6 +80,7 @@ export function PreferencesForm({
   const [overflowNotify, setOverflowNotify] = useState(initial.overflowNotifyEnabled ?? false);
   const [briefingOn, setBriefingOn] = useState(initial.briefingEnabled ?? false);
   const [briefingHour, setBriefingHour] = useState(initial.briefingHour ?? 8);
+  const [scribeOn, setScribeOn] = useState(initial.scribeEnabled ?? false);
   const [lunchOn, setLunchOn] = useState(initial.lunchEnabled ?? false);
   const [lunchStart, setLunchStart] = useState(initial.lunchStartMinute ?? 720);
   const [lunchEnd, setLunchEnd] = useState(initial.lunchEndMinute ?? 780);
@@ -126,6 +128,7 @@ export function PreferencesForm({
         overflowNotifyEnabled: overflowNotify,
         briefingEnabled: briefingOn,
         briefingHour,
+        scribeEnabled: scribeOn,
         lunchEnabled: lunchOn,
         lunchStartMinute: lunchStart,
         lunchEndMinute: lunchEnd,
@@ -371,6 +374,27 @@ export function PreferencesForm({
                 <span className="text-xs text-[var(--color-faint)]">your local time</span>
               </label>
             ) : null}
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={scribeOn}
+                onChange={(e) => {
+                  setScribeOn(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Send me a recap after each meeting
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  Just after a meeting ends, Otter emails you a recap with one-tap next steps —
+                  book a follow-up, send notes to attendees, or review the meeting.
+                </span>
+              </span>
+            </label>
           </div>
 
           <div className="border-t border-[var(--color-border)] pt-4">

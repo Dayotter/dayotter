@@ -17,9 +17,11 @@ import { BookingError, mapInsertError, validateResponses } from "./booking-logic
 import { AUTO_CONFERENCE } from "./event-type-input";
 import {
   hostWantsOverflowNotice,
+  hostWantsScribe,
   reminderOffsetsForHost,
   scheduleBookingReminders,
   scheduleOverflowCheck,
+  scheduleScribe,
   scheduleWorkflowMessages,
 } from "./reminders";
 import { reserveTravelBlocks } from "./travel";
@@ -408,6 +410,12 @@ export async function createBooking(
   // that auto-notifies a back-to-back next meeting when this one runs over.
   if (await hostWantsOverflowNotice(host.id)) {
     await scheduleOverflowCheck(booking.id, end);
+  }
+
+  // Post-meeting recap ("Scribe"): if the host opted in, nudge them just after
+  // the meeting ends to capture notes and line up the next step.
+  if (await hostWantsScribe(host.id)) {
+    await scheduleScribe(booking.id, end);
   }
 
   // Schedule the host's workflow messages (custom reminders / follow-ups).

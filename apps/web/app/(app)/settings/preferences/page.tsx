@@ -24,6 +24,7 @@ export default async function PreferencesSettingsPage() {
         overflowNotifyEnabled: prefs?.overflowNotifyEnabled ?? false,
         briefingEnabled: prefs?.briefingEnabled ?? false,
         briefingHour: prefs?.briefingHour ?? 8,
+        scribeEnabled: prefs?.scribeEnabled ?? false,
         lunchEnabled: prefs?.lunchEnabled ?? false,
         lunchStartMinute: prefs?.lunchStartMinute ?? 720,
         lunchEndMinute: prefs?.lunchEndMinute ?? 780,

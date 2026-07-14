@@ -46,6 +46,9 @@ export const userPreferences = pgTable(
     briefingHour: smallint("briefing_hour").notNull().default(8),
     /** Local date (YYYY-MM-DD) of the last briefing sent — once-per-day guard. */
     briefingLastSent: text("briefing_last_sent"),
+    /** Post-meeting recap ("Scribe"): after a meeting ends, send the host a
+     * recap + next-step nudges. */
+    scribeEnabled: boolean("scribe_enabled").notNull().default(false),
 
     /** Adaptive availability: hide remaining slots on days already at the cap. */
     adaptiveAvailability: boolean("adaptive_availability").notNull().default(false),

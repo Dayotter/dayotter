@@ -177,6 +177,36 @@ export async function hostWantsOverflowNotice(userId: string): Promise<boolean> 
   return prefs?.overflowNotifyEnabled ?? false;
 }
 
+/** Whether the host has opted into the post-meeting recap ("Scribe"). */
+export async function hostWantsScribe(userId: string): Promise<boolean> {
+  const prefs = await getDb().query.userPreferences.findFirst({
+    where: eq(schema.userPreferences.userId, userId),
+    columns: { scribeEnabled: true },
+  });
+  return prefs?.scribeEnabled ?? false;
+}
+
+/**
+ * Post-meeting recap ("Scribe"): schedule a check shortly after the meeting ends
+ * that sends the host a recap + next-step nudges. The worker re-checks the
+ * booking wasn't cancelled at fire time, so it's safe to schedule at create.
+ */
+export async function scheduleScribe(bookingId: string, endsAt: Date): Promise<void> {
+  const fireAt = new Date(endsAt.getTime() + 2 * 60_000);
+  if (fireAt.getTime() <= Date.now()) return;
+  const db = getDb();
+  const [rem] = await db
+    .insert(schema.scheduledReminders)
+    .values({ bookingId, kind: "scribe", scheduledFor: fireAt })
+    .returning();
+  if (!rem) return;
+  try {
+    await scheduleReminder({ reminderId: rem.id, bookingId }, fireAt);
+  } catch (err) {
+    logger.error("failed to enqueue scribe", { event: "scribe_enqueue_failed", bookingId, err });
+  }
+}
+
 /** Schedule a post-meeting follow-up email `offsetMinutes` after the meeting ends. */
 export async function scheduleBookingFollowUp(
   bookingId: string,

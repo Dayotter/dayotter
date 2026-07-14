@@ -10,8 +10,10 @@ export {
   bookingMessage,
   workflowEmail,
   dailyBriefing,
+  meetingRecap,
   applyTemplateVars,
   WORKFLOW_VARIABLES,
   type BookingEmailData,
   type DailyBriefingData,
+  type MeetingRecapData,
 } from "./templates";
