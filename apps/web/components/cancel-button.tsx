@@ -20,7 +20,7 @@ export function CancelButton({ uid }: { uid: string }) {
     });
     if (!res.ok) {
       setLoading(false);
-      setError("Could not cancel — it may already be cancelled.");
+      setError("Could not cancel - it may already be cancelled.");
       return;
     }
     router.push(`/booking/${uid}`);

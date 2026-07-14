@@ -16,7 +16,7 @@ import { membershipRole, timestamps } from "./_shared";
  * Also the Better Auth `organization` model (see schema/auth.ts + packages/auth).
  *
  * Billing lives on the org (per-seat): the whole team shares one Pro plan. These
- * columns only matter in the hosted edition — self-host ignores them entirely.
+ * columns only matter in the hosted edition - self-host ignores them entirely.
  */
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),

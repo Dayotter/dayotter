@@ -5,7 +5,7 @@ contact_links:
     about: Ask questions, share what you're building, or discuss ideas before filing.
   - name: 🔒 Report a security vulnerability
     url: https://github.com/nometria/dayotter/security/advisories/new
-    about: Please report vulnerabilities privately — never as a public issue.
+    about: Please report vulnerabilities privately - never as a public issue.
   - name: 🗺️ Roadmap
     url: https://github.com/nometria/dayotter/blob/main/docs/ROADMAP.md
     about: See what's planned before requesting a feature.

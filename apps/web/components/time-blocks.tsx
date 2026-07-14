@@ -77,7 +77,7 @@ export function TimeBlocks() {
       return;
     }
     track("Time Block Created", { kind, recurring: repeatWeeks > 0 });
-    // A recurring block creates several rows — reload to show the collapsed series.
+    // A recurring block creates several rows - reload to show the collapsed series.
     if (repeatWeeks > 0) load();
     else
       setBlocks((prev) =>
@@ -114,7 +114,7 @@ export function TimeBlocks() {
     <Card className="mt-8">
       <CardHeader
         title="Personal & focus blocks"
-        description="Protect time on your calendar — bookers can't schedule over these."
+        description="Protect time on your calendar - bookers can't schedule over these."
       />
       <CardBody className="space-y-4">
         {displayed.length > 0 ? (
@@ -214,7 +214,7 @@ export function TimeBlocks() {
               onChange={(e) => setRepeatWeeks(Number(e.target.value))}
               className="w-40"
             >
-              <option value={0}>No — one-off</option>
+              <option value={0}>No - one-off</option>
               <option value={3}>for 4 weeks</option>
               <option value={7}>for 8 weeks</option>
               <option value={11}>for 12 weeks</option>

@@ -22,7 +22,7 @@ export interface OutboundEmail {
 }
 
 /**
- * Send through Resend's HTTP API. Preferred when RESEND_API_KEY is set — it
+ * Send through Resend's HTTP API. Preferred when RESEND_API_KEY is set - it
  * needs no SMTP URL wrangling, just the key + a verified `EMAIL_FROM` domain.
  */
 async function sendViaResend(email: OutboundEmail, from: string, apiKey: string): Promise<void> {
@@ -40,7 +40,7 @@ async function sendViaResend(email: OutboundEmail, from: string, apiKey: string)
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    // Surface the reason (unverified domain, bad key, etc.) — callers log it.
+    // Surface the reason (unverified domain, bad key, etc.) - callers log it.
     throw new Error(`Resend send failed (${res.status}): ${detail.slice(0, 300)}`);
   }
 }
@@ -67,6 +67,6 @@ export async function sendEmail(email: OutboundEmail): Promise<void> {
   }
 
   console.warn(
-    `[emails] No RESEND_API_KEY or SMTP_URL configured — NOT sending "${email.subject}" to ${JSON.stringify(email.to)}`,
+    `[emails] No RESEND_API_KEY or SMTP_URL configured - NOT sending "${email.subject}" to ${JSON.stringify(email.to)}`,
   );
 }

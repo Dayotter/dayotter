@@ -2,8 +2,8 @@ import { z } from "zod";
 
 /**
  * Validated, typed environment access for the web app. Parsed once at import.
- * Optional vars (OAuth creds, SMTP) default to empty so `next build` — which
- * evaluates modules without a full env — never throws; presence is checked at
+ * Optional vars (OAuth creds, SMTP) default to empty so `next build` - which
+ * evaluates modules without a full env - never throws; presence is checked at
  * the point of use instead. Security-critical secrets get a hard strength check
  * at runtime in production (see `assertSecrets` below).
  */
@@ -34,14 +34,14 @@ const schema = z.object({
   TURNSTILE_SECRET: z.string().optional(),
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
 
-  // Optional analytics — nothing loads unless set.
+  // Optional analytics - nothing loads unless set.
   NEXT_PUBLIC_MIXPANEL_TOKEN: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
 
   // Optional AI scheduling (Claude). AI features are hidden unless set.
   ANTHROPIC_API_KEY: z.string().optional(),
 
-  // Optional Stripe payments — paid bookings are disabled unless set.
+  // Optional Stripe payments - paid bookings are disabled unless set.
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
@@ -60,7 +60,7 @@ const ALL_ZERO_KEY = /^0+$/;
 
 /**
  * Fail fast if production is running with missing or placeholder secrets. Skipped
- * during `next build` (no runtime env yet) — enforced on the server at first use.
+ * during `next build` (no runtime env yet) - enforced on the server at first use.
  */
 export function assertSecrets(): void {
   if (env.NODE_ENV !== "production") return;

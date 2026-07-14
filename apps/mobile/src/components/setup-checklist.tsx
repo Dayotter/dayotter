@@ -10,7 +10,7 @@ interface Setup {
 }
 
 /**
- * "Get bookable in 3 steps" for the mobile home — mirrors the web dashboard.
+ * "Get bookable in 3 steps" for the mobile home - mirrors the web dashboard.
  * Hidden once every step is done. Tapping an unfinished step jumps to it.
  */
 export function SetupChecklist({ setup }: { setup?: Setup }) {

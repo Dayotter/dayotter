@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * Minimal shape of the browser's SpeechRecognition we use — the DOM lib doesn't
+ * Minimal shape of the browser's SpeechRecognition we use - the DOM lib doesn't
  * ship types for the (prefixed) Web Speech API, so we describe just what we call.
  */
 interface SpeechRecognitionLike {
@@ -30,7 +30,7 @@ function getCtor(): SpeechRecognitionCtor | null {
 }
 
 /**
- * Speak-to-type via the browser's built-in Web Speech API — no server, no key,
+ * Speak-to-type via the browser's built-in Web Speech API - no server, no key,
  * transcription happens on the device/browser. `onResult` fires once with the
  * final transcript. `supported` is false where the API is missing (e.g. Firefox);
  * callers should hide the mic in that case.

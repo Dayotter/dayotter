@@ -5,7 +5,7 @@ import * as SecureStore from "expo-secure-store";
 import { getServerUrl } from "./server";
 
 /**
- * Better Auth client wired with the Expo plugin — used ONLY for native OAuth
+ * Better Auth client wired with the Expo plugin - used ONLY for native OAuth
  * (Google sign-in), which needs the deep-link/browser bridge. Email/password
  * uses the lightweight bearer flow in api.ts/auth.tsx.
  *

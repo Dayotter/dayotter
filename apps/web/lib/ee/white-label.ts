@@ -2,7 +2,7 @@ import { isCloud } from "../billing/edition";
 import { hasFeature } from "../billing/features";
 
 /**
- * White-label — cloud-only, commercial. Pro customers on cloud can remove the
+ * White-label - cloud-only, commercial. Pro customers on cloud can remove the
  * "Powered by DayOtter" mark and serve booking pages on their own domain.
  */
 

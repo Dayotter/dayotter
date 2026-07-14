@@ -5,7 +5,7 @@ import { track } from "@/lib/analytics";
 import { Check, Clock } from "lucide-react";
 import { useState } from "react";
 
-/** One-tap "I'm running late" — notifies the current meeting's attendees. */
+/** One-tap "I'm running late" - notifies the current meeting's attendees. */
 export function RunningLateButton({ uid }: { uid: string }) {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);

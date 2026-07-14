@@ -40,13 +40,13 @@ export default function InsightsScreen() {
         />
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
-          <Text style={styles.intro}>Where your scheduling time goes — the last 30 days.</Text>
+          <Text style={styles.intro}>Where your scheduling time goes - the last 30 days.</Text>
 
           <View style={styles.stats}>
             <Stat value={String(data.upcomingCount)} label="Upcoming" sub="next 30 days" />
             <Stat value={fmtHours(data.bookedMinutes)} label="Booked" sub="last 30 days" />
             <Stat
-              value={data.busiestWeekday !== null ? WEEKDAYS[data.busiestWeekday]! : "—"}
+              value={data.busiestWeekday !== null ? WEEKDAYS[data.busiestWeekday]! : "-"}
               label="Busiest day"
               sub="last 30 days"
             />

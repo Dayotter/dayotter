@@ -69,10 +69,10 @@ export const eventTypeHosts = pgTable(
 );
 
 /**
- * Team-wide scheduling rules that block bookable time for every member — the
+ * Team-wide scheduling rules that block bookable time for every member - the
  * "working agreements" layer. Two kinds:
- *  - `holiday`     — a whole day off (company holiday), given by `theDate`.
- *  - `no_meeting`  — a recurring weekly window (e.g. Friday afternoons), given
+ *  - `holiday`     - a whole day off (company holiday), given by `theDate`.
+ *  - `no_meeting`  - a recurring weekly window (e.g. Friday afternoons), given
  *                    by `dayOfWeek` (0=Sun..6=Sat; null = every day) + the
  *                    `startMinute`/`endMinute` range (minutes from local midnight).
  * Applied in each member's schedule timezone by the availability engine.

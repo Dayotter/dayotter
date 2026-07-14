@@ -6,7 +6,7 @@ import { refundPayment, retrieveSession } from "./stripe";
 
 /**
  * Turn a paid Checkout Session into a confirmed booking. Idempotent + safe to
- * call from BOTH the success redirect and the webhook — the pending payload is
+ * call from BOTH the success redirect and the webhook - the pending payload is
  * claimed atomically (GETDEL) and the paymentIntent id is the dedup key.
  *
  * Returns the booking uid, or `pending: true` when the other handler is mid-flight.
@@ -59,7 +59,7 @@ export async function fulfillCheckout(
         where: eq(schema.bookings.paymentIntentId, pi),
       });
       if (raced) return { uid: raced.uid, pending: false };
-      logger.error("paid booking failed after payment — refunding", {
+      logger.error("paid booking failed after payment - refunding", {
         event: "paid_booking_refunded",
         paymentIntentId: pi,
         err,

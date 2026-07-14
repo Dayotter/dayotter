@@ -15,7 +15,7 @@ export interface Entitlements {
   features: Record<Feature, boolean>;
 }
 
-/** The user's primary org (oldest membership) — where the plan lives. */
+/** The user's primary org (oldest membership) - where the plan lives. */
 export async function primaryOrg(userId: string) {
   const membership = await getDb().query.memberships.findFirst({
     where: eq(schema.memberships.userId, userId),

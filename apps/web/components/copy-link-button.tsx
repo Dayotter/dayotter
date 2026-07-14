@@ -25,7 +25,7 @@ export function CopyLinkButton({
     try {
       await navigator.clipboard.writeText(url);
     } catch {
-      // Clipboard blocked (e.g. insecure context) — fall back to a prompt.
+      // Clipboard blocked (e.g. insecure context) - fall back to a prompt.
       window.prompt("Copy this link", url);
       return;
     }

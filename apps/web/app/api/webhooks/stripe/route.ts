@@ -8,7 +8,7 @@ import type Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
 
-/** Stripe webhook — the reliable backstop that confirms a paid booking even if
+/** Stripe webhook - the reliable backstop that confirms a paid booking even if
  *  the booker closes the success tab. Signature-verified; idempotent. */
 export async function POST(request: Request) {
   if (!paymentsEnabled) return NextResponse.json({ ok: true });
@@ -30,10 +30,10 @@ export async function POST(request: Request) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.mode === "subscription" && session.subscription) {
-          // A Pro subscription checkout — activate the org's plan.
+          // A Pro subscription checkout - activate the org's plan.
           await syncSubscriptionById(session.subscription as string);
         } else if (session.metadata?.kind === "package") {
-          // A prepaid session-package purchase — grant the client's credits.
+          // A prepaid session-package purchase - grant the client's credits.
           await fulfillPackagePurchase(session);
         } else {
           // A one-off booking payment.

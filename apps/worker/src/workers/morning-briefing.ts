@@ -7,7 +7,7 @@ import { DateTime } from "luxon";
 /**
  * How many hours after the configured briefing hour we'll still send. Keeps a
  * user who enables briefings in the afternoon from getting a "morning" briefing
- * at 3pm — if we miss the window (worker down, just enabled), it waits for
+ * at 3pm - if we miss the window (worker down, just enabled), it waits for
  * tomorrow. The maintenance tick runs every ~15 min, so the real send lands
  * within a quarter hour of the chosen hour.
  */
@@ -23,7 +23,7 @@ function focusLabel(totalMinutes: number): string | undefined {
 }
 
 /**
- * Daily "morning briefing" — for each user who opted in, once their local time
+ * Daily "morning briefing" - for each user who opted in, once their local time
  * has crossed their chosen hour, send a calm summary of the day (today's
  * meetings + focus time) over email and their configured channels. Idempotent
  * per local day via `briefingLastSent`, so it's safe on every maintenance tick.
@@ -120,7 +120,7 @@ export async function sendDueBriefings(now = new Date()): Promise<number> {
     const body =
       meetings.length === 0
         ? `A clear calendar today.${focus ? ` ${focus}.` : ""}`
-        : `${meetings.length} meeting${meetings.length === 1 ? "" : "s"} today${first ? `, first at ${first.time} — ${first.title}` : ""}.${focus ? ` ${focus}.` : ""}`;
+        : `${meetings.length} meeting${meetings.length === 1 ? "" : "s"} today${first ? `, first at ${first.time} - ${first.title}` : ""}.${focus ? ` ${focus}.` : ""}`;
     await deliverUserReminder(pref.userId, {
       title: "Your morning briefing",
       body,

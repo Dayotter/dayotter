@@ -10,7 +10,7 @@ export function Skeleton({ className }: { className?: string }) {
   );
 }
 
-/** A few stacked rows — a ready-made skeleton for list/agenda loading states. */
+/** A few stacked rows - a ready-made skeleton for list/agenda loading states. */
 export function SkeletonRows({ rows = 4, className }: { rows?: number; className?: string }) {
   return (
     <div className={cn("space-y-2", className)} aria-hidden>

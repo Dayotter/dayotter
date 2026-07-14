@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 const MAX_WINDOW_MS = 62 * 86_400_000; // ~2 months per request
 
-/** GET /api/v1/event-types/:id/availability?from&to&duration — bookable slots. */
+/** GET /api/v1/event-types/:id/availability?from&to&duration - bookable slots. */
 export const GET = withApiKey(async (caller, request, ctx: { params: Promise<{ id: string }> }) => {
   const { id } = await ctx.params;
 

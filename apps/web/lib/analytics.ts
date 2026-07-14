@@ -4,7 +4,7 @@
  * Both are OPTIONAL and independent: nothing loads or tracks unless the matching
  * public env var is set, so local dev and self-hosters run analytics-free by
  * default. Import `track`/`identify` anywhere in a client component and call them
- * on real user actions — we deliberately track meaningful events (button clicks,
+ * on real user actions - we deliberately track meaningful events (button clicks,
  * flow completions), not just page views.
  */
 
@@ -70,7 +70,7 @@ export function resetAnalytics(): void {
   }
 }
 
-/** Manual page-view (route changes) — auto page_view is disabled so this is the
+/** Manual page-view (route changes) - auto page_view is disabled so this is the
  * single source of truth for both providers. */
 export function pageview(url: string): void {
   if (typeof window === "undefined") return;

@@ -37,7 +37,7 @@ export default function InboxScreen() {
                     <Ionicons name="warning-outline" size={18} color={colors.danger} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.itemTitle}>
-                        {r.provider} — {r.account}
+                        {r.provider} - {r.account}
                       </Text>
                       <Text style={styles.itemMeta}>
                         {r.error ?? "Stopped syncing"} · reconnect on the web app

@@ -7,7 +7,7 @@
  *   differentiator features, and the `ee/` cloud-only features are available.
  *
  * The edition is chosen at deploy time via `DAYOTTER_CLOUD=1`. It is NOT a
- * runtime user setting — a self-hoster can never accidentally paywall themselves.
+ * runtime user setting - a self-hoster can never accidentally paywall themselves.
  */
 export const isCloud = process.env.DAYOTTER_CLOUD === "1";
 export const isSelfHosted = !isCloud;

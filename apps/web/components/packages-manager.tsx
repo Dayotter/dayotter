@@ -135,7 +135,7 @@ export function PackagesManager({ eventTypes }: { eventTypes: EventTypeOpt[] }) 
     return (
       <Card className="max-w-2xl">
         <CardBody className="p-6 text-sm text-[var(--color-muted)]">
-          Create a booking type first — packages are sold against one of your event types.
+          Create a booking type first - packages are sold against one of your event types.
         </CardBody>
       </Card>
     );

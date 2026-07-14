@@ -8,7 +8,7 @@ import { nextCookies } from "better-auth/next-js";
 import { bearer, organization, phoneNumber } from "better-auth/plugins";
 
 /**
- * Better Auth server instance — the single source of truth for identity and
+ * Better Auth server instance - the single source of truth for identity and
  * organizations. Lives in a package (not apps/web) so the future mobile API
  * uses the exact same auth. See docs/DECISIONS.md §2 (API-first).
  *
@@ -36,7 +36,7 @@ export const auth = betterAuth({
     enabled: true,
     // Password reset via emailed capability link. Better Auth mints the token
     // and hands us the URL (it routes through the API, then redirects to the
-    // `redirectTo` page with the token) — we just deliver it.
+    // `redirectTo` page with the token) - we just deliver it.
     sendResetPassword: async ({ user, url }) => {
       await sendEmail({
         to: user.email,
@@ -44,7 +44,7 @@ export const auth = betterAuth({
         text: `Reset your dayotter password: ${url}\n\nIf you didn't request this, you can ignore this email.`,
         html: `<p>Someone requested a password reset for your dayotter account.</p>
 <p><a href="${url}">Reset your password</a></p>
-<p style="color:#666;font-size:13px">If this wasn't you, you can safely ignore this email — your password won't change.</p>`,
+<p style="color:#666;font-size:13px">If this wasn't you, you can safely ignore this email - your password won't change.</p>`,
       });
     },
   },
@@ -60,13 +60,13 @@ export const auth = betterAuth({
         to: user.email,
         subject: "Verify your DayOtter email",
         text: `Welcome to DayOtter! Confirm your email to secure your account: ${url}`,
-        html: `<p>Welcome to DayOtter — confirm your email to secure your account.</p>
+        html: `<p>Welcome to DayOtter - confirm your email to secure your account.</p>
 <p><a href="${url}">Verify your email</a></p>
 <p style="color:#666;font-size:13px">If you didn't sign up, you can ignore this email.</p>`,
       });
     },
   },
-  // "Sign in with Google" — enabled only when Google OAuth creds are configured
+  // "Sign in with Google" - enabled only when Google OAuth creds are configured
   // (the same app used for calendar connect). Register
   // `${APP_URL}/api/auth/callback/google` as an authorized redirect URI.
   socialProviders: process.env.GOOGLE_CLIENT_ID
@@ -84,7 +84,7 @@ export const auth = betterAuth({
     },
     deleteUser: {
       enabled: true,
-      // bookings.host_id is ON DELETE restrict — remove the host's bookings first
+      // bookings.host_id is ON DELETE restrict - remove the host's bookings first
       // so the cascade on everything else (event types, schedules, sessions…) runs.
       beforeDelete: async (user) => {
         await getDb().delete(schema.bookings).where(eq(schema.bookings.hostId, user.id));
@@ -108,7 +108,7 @@ export const auth = betterAuth({
   // runs and registers its endpoints at runtime.
   plugins: [
     organization(),
-    // Phone + OTP sign-in — enabled only when Twilio is configured (it sends the
+    // Phone + OTP sign-in - enabled only when Twilio is configured (it sends the
     // code). Phone-only users get an auto-provisioned account via a temp email.
     ...(twilioConfigured()
       ? [

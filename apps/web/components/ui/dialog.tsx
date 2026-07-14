@@ -53,7 +53,7 @@ export function Dialog({
         type="button"
         aria-label="Close dialog"
         onClick={onClose}
-        // Warm ink veil (matches the shadow tone) instead of flat black — softer,
+        // Warm ink veil (matches the shadow tone) instead of flat black - softer,
         // more in-theme than the default modal scrim.
         className="absolute inset-0 cursor-default bg-[color-mix(in_srgb,var(--color-text)_42%,transparent)] backdrop-blur-[3px]"
       />

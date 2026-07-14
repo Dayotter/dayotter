@@ -4,12 +4,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * dayotter design language — "editorial calm meets a living calendar."
+ * dayotter design language - "editorial calm meets a living calendar."
  * Warm ivory neutrals, rich ink text, a premium violet accent, an editorial
  * Geist sans (display + body) + Geist Mono labels. Light is default.
  */
 @theme {
-  /* Surfaces — warm, not sterile white */
+  /* Surfaces - warm, not sterile white */
   --color-bg: #faf9f6;
   --color-surface: #ffffff;
   --color-surface-2: #f4f2ec;
@@ -19,12 +19,12 @@
   --color-border: #ebe8e0;
   --color-border-strong: #dcd8cd;
 
-  /* Text — warm near-black */
+  /* Text - warm near-black */
   --color-text: #191720;
   --color-muted: #6a6660;
   --color-faint: #9c988e;
 
-  /* Accent — otter violet (matches the illustration palette) */
+  /* Accent - otter violet (matches the illustration palette) */
   --color-accent: #6743e6;
   --color-accent-hover: #5734d6;
   --color-accent-fg: #ffffff;
@@ -39,24 +39,24 @@
   --color-danger-soft: #fdf1f3;
   --color-success: #16a085;
 
-  /* Elevation — soft, layered, warm shadows */
+  /* Elevation - soft, layered, warm shadows */
   --shadow-card: 0 1px 2px rgba(40, 33, 20, 0.04), 0 2px 6px rgba(40, 33, 20, 0.05);
   --shadow-raise: 0 8px 24px rgba(40, 33, 20, 0.08);
   --shadow-pop: 0 24px 60px -12px rgba(40, 33, 20, 0.18);
   --shadow-float: 0 40px 80px -24px rgba(30, 24, 60, 0.28);
 
-  /* Shape scale — use rounded-sm/md/lg/xl utilities, never arbitrary values.
+  /* Shape scale - use rounded-sm/md/lg/xl utilities, never arbitrary values.
    * sm: chips/badges · md: inputs, buttons, list rows · lg: cards · xl: hero cards */
   --radius-sm: 8px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-xl: 22px;
 
-  /* Spacing rhythm — the canonical gaps/paddings the components compose from.
+  /* Spacing rhythm - the canonical gaps/paddings the components compose from.
    * Field gap: space-y-4 · Card padding: p-6 · Section gap: gap-3 · inline: gap-2 */
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
-  /* Headings use the same family a weight heavier — the modern software look
+  /* Headings use the same family a weight heavier - the modern software look
      (one grotesque doing display + body) rather than a separate serif. */
   --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;

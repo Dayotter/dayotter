@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for the idea! Please check the [Roadmap](../../blob/main/docs/ROADMAP.md)
-        and existing issues first — someone may already be on it.
+        and existing issues first - someone may already be on it.
   - type: textarea
     id: problem
     attributes:

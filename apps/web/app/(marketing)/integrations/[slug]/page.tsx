@@ -19,7 +19,7 @@ export async function generateMetadata({
   const it = getIntegration((await params).slug);
   if (!it) return { title: "Integrations" };
   const path = `/integrations/${it.slug}`;
-  const title = `${it.name} scheduling — DayOtter integration`;
+  const title = `${it.name} scheduling - DayOtter integration`;
   return {
     title,
     description: it.subtitle,
@@ -100,7 +100,7 @@ export default async function IntegrationPage({ params }: { params: Promise<{ sl
 
         <section className="mt-16 text-center">
           <Link href="/sign-up" className={buttonVariants({ variant: "primary", size: "lg" })}>
-            Start free — no credit card
+            Start free - no credit card
           </Link>
         </section>
 

@@ -32,7 +32,7 @@ export interface InboxData {
   reconnect: ReconnectItem[];
   /** Confirmed bookings that now overlap an external calendar event (double-booked). */
   conflicts: ConflictItem[];
-  /** The same meeting synced onto 2+ calendars — blocks time twice over. */
+  /** The same meeting synced onto 2+ calendars - blocks time twice over. */
   duplicates: DuplicateItem[];
   /** Booking write-target calendar whose timezone differs from the host's. */
   timezoneMismatches: TimezoneItem[];
@@ -46,7 +46,7 @@ function normalizeTitle(title: string | null): string {
 /**
  * Find the same meeting synced onto 2+ distinct calendars. Matches on
  * normalized title + exact start instant; untitled busy blocks are skipped
- * (too noisy). Pure — unit-tested. Capped at 10 items.
+ * (too noisy). Pure - unit-tested. Capped at 10 items.
  */
 export function detectDuplicates(
   events: { calendarId: string; title: string | null; startsAt: Date }[],
@@ -80,7 +80,7 @@ export function detectDuplicates(
 }
 
 /**
- * The Calendar Inbox aggregator — one place for scheduling actions that need
+ * The Calendar Inbox aggregator - one place for scheduling actions that need
  * attention. Composes existing engines (sync health) and the unified event model
  * (double-booking detection). Pending invites + focus suggestions are lazy-loaded
  * client-side from their own endpoints.
@@ -105,7 +105,7 @@ export async function inboxData(userId: string): Promise<InboxData> {
 
   // Double-booking detection: the host's upcoming confirmed bookings that overlap
   // an opaque event on one of their conflict-checked calendars. (Availability
-  // prevents this at booking time — a clash means an external event was added
+  // prevents this at booking time - a clash means an external event was added
   // afterwards.)
   const conflictCals = connections
     .flatMap((c) => c.calendars)
@@ -150,7 +150,7 @@ export async function inboxData(userId: string): Promise<InboxData> {
     }
 
     // Duplicate detection: the same titled event (same start instant) synced onto
-    // 2+ distinct calendars, so it blocks the host's time twice. Actionable —
+    // 2+ distinct calendars, so it blocks the host's time twice. Actionable -
     // uncheck "Availability" on one of the calendars.
     duplicates.push(...detectDuplicates(relevant, calName));
   }

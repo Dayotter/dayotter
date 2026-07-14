@@ -7,9 +7,9 @@ import path from "node:path";
 import sharp from "sharp";
 
 const DL = path.join(os.homedir(), "Downloads");
-const GRID5 = path.join(DL, "ChatGPT Image Jul 12, 2026, 11_58_06 AM.png"); // 1254² — 5 scenes
-const COMPOSITE = path.join(DL, "ChatGPT Image Jul 12, 2026, 12_57_57 PM.png"); // 1536×1024 — badge row
-const BANNERS = path.join(DL, "ChatGPT Image Jul 12, 2026, 12_57_48 PM.png"); // 1857×847 — banners
+const GRID5 = path.join(DL, "ChatGPT Image Jul 12, 2026, 11_58_06 AM.png"); // 1254² - 5 scenes
+const COMPOSITE = path.join(DL, "ChatGPT Image Jul 12, 2026, 12_57_57 PM.png"); // 1536×1024 - badge row
+const BANNERS = path.join(DL, "ChatGPT Image Jul 12, 2026, 12_57_48 PM.png"); // 1857×847 - banners
 
 const webOut = path.join(process.cwd(), "apps/web/public/brand/illustrations");
 const mobOut = path.join(process.cwd(), "apps/mobile/assets/onboarding");

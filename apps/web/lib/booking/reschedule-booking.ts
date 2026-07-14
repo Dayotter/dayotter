@@ -47,7 +47,7 @@ export async function rescheduleBooking(uid: string, newStartISO: string): Promi
   if (newStart.getTime() === booking.startsAt.getTime()) return; // no-op
 
   // Validate the new slot against the booking's actual host only (not the whole
-  // team) — the host is already fixed, so there's no need to fan out.
+  // team) - the host is already fixed, so there's no need to fan out.
   const scheduleId = eventType.ownerId === booking.hostId ? eventType.scheduleId : null;
   const slots = await hostSlots(
     booking.hostId,

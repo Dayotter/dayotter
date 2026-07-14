@@ -149,7 +149,7 @@ export async function hasZoomConnection(userId: string): Promise<boolean> {
 
 /**
  * Create a scheduled Zoom meeting for a booking and return its join URL, or null
- * if the user has no Zoom connection or the API call fails. Best-effort — the
+ * if the user has no Zoom connection or the API call fails. Best-effort - the
  * booking always proceeds (falls back to any manual link).
  */
 export async function createZoomMeeting(

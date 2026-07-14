@@ -293,7 +293,7 @@ export class GoogleCalendarAdapter implements CalendarAdapter {
   }
 
   async respondToInvite(calId: string, eventId: string, response: InviteResponse): Promise<void> {
-    // Google has no direct RSVP endpoint — patch the self attendee's status.
+    // Google has no direct RSVP endpoint - patch the self attendee's status.
     const { data: ev } = await this.api.events.get({ calendarId: calId, eventId });
     const attendees = (ev.attendees ?? []).map((a) =>
       a.self ? { ...a, responseStatus: response } : a,

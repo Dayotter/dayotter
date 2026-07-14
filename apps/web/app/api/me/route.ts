@@ -40,7 +40,7 @@ export const GET = withUser(async (u) => {
     brandColor: prefs?.brandColor ?? null,
     welcomeMessage: prefs?.welcomeMessage ?? null,
   };
-  // Setup progress — drives the mobile "get bookable" checklist (mirrors the web dashboard).
+  // Setup progress - drives the mobile "get bookable" checklist (mirrors the web dashboard).
   const setup = {
     hasCalendar: conns.length > 0,
     hasHours: (defaultSchedule?.availabilityRules.length ?? 0) > 0,

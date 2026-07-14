@@ -1,5 +1,5 @@
 // DTOs mirroring the DayOtter REST API. `Slot` is re-exported from the shared
-// core package — the exact same type the web app + availability engine use.
+// core package - the exact same type the web app + availability engine use.
 export type { Slot } from "@dayotter/core/availability";
 
 export interface AppUser {

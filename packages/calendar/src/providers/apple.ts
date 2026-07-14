@@ -17,7 +17,7 @@ const { createDAVClient } = tsdav;
 
 const ICLOUD_CALDAV = "https://caldav.icloud.com";
 
-/** Hostnames / IP-literal patterns that must never be used as a CalDAV target —
+/** Hostnames / IP-literal patterns that must never be used as a CalDAV target -
  * blocks SSRF to cloud metadata, loopback, and private ranges when a user
  * supplies a custom `serverUrl`. */
 const BLOCKED_HOST =
@@ -58,7 +58,7 @@ export interface AppleCredentials {
 
 /**
  * CalDAV adapter (Apple iCloud by default). Unlike Google/Microsoft there are
- * NO push webhooks — the sync worker polls these calendars on an interval and
+ * NO push webhooks - the sync worker polls these calendars on an interval and
  * reconciles via CTag/ETag. Construct with {@link AppleCalendarAdapter.connect}.
  */
 export class AppleCalendarAdapter implements CalendarAdapter {

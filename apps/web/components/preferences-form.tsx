@@ -252,7 +252,7 @@ export function PreferencesForm({
               <span>
                 Adaptive availability
                 <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
-                  On heavy days, stop offering booking slots once you hit your meeting cap — so a
+                  On heavy days, stop offering booking slots once you hit your meeting cap - so a
                   full day doesn't get fuller.
                 </span>
               </span>
@@ -339,7 +339,7 @@ export function PreferencesForm({
                 Auto-notify my next meeting if I'm running behind
                 <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
                   When a meeting is booked back-to-back, we'll email the next meeting's guests a
-                  quick "running a few minutes behind" heads-up at the first meeting's end — so
+                  quick "running a few minutes behind" heads-up at the first meeting's end - so
                   nobody's left waiting. Like a great EA would.
                 </span>
               </span>
@@ -360,8 +360,8 @@ export function PreferencesForm({
               <span>
                 Send me a daily morning briefing
                 <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
-                  Each morning, Otter sends a calm summary of your day — today's meetings and the
-                  focus time you've held — over email and your notification channels.
+                  Each morning, Otter sends a calm summary of your day - today's meetings and the
+                  focus time you've held - over email and your notification channels.
                 </span>
               </span>
             </label>
@@ -402,7 +402,7 @@ export function PreferencesForm({
               <span>
                 Send me a recap after each meeting
                 <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
-                  Just after a meeting ends, Otter emails you a recap with one-tap next steps — book
+                  Just after a meeting ends, Otter emails you a recap with one-tap next steps - book
                   a follow-up, send notes to attendees, or review the meeting.
                 </span>
               </span>

@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Integrations",
   description:
-    "DayOtter connects with Google Calendar, Outlook, Apple iCloud, Zoom, Google Meet, Teams, Slack, WhatsApp, and Stripe — one calm scheduling layer over the tools you already use.",
+    "DayOtter connects with Google Calendar, Outlook, Apple iCloud, Zoom, Google Meet, Teams, Slack, WhatsApp, and Stripe - one calm scheduling layer over the tools you already use.",
   alternates: { canonical: "/integrations" },
 };
 
@@ -19,7 +19,7 @@ export default function IntegrationsPage() {
       <MarketingHeader
         eyebrow="Integrations"
         title="Works with the tools you already use"
-        subtitle="DayOtter is a scheduling layer on top of your calendar, video, and messaging tools — not a replacement. Connect and go."
+        subtitle="DayOtter is a scheduling layer on top of your calendar, video, and messaging tools - not a replacement. Connect and go."
       />
 
       <section className="mx-auto max-w-5xl px-6 py-16">

@@ -8,7 +8,7 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-/** List the user's API keys (never the secret — only the display prefix). */
+/** List the user's API keys (never the secret - only the display prefix). */
 export const GET = withUser(async (u) => {
   const rows = await getDb().query.apiKeys.findMany({
     where: eq(schema.apiKeys.userId, u.id),
@@ -27,7 +27,7 @@ export const GET = withUser(async (u) => {
 
 const body = z.object({ name: z.string().min(1).max(80) });
 
-/** Create an API key. Returns the full secret ONCE — it's only stored hashed. */
+/** Create an API key. Returns the full secret ONCE - it's only stored hashed. */
 export const POST = withUser(async (u, request) => {
   const gate = await requireFeature(u.id, "developer");
   if (gate) return gate;

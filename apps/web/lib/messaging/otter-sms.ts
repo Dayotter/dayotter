@@ -39,7 +39,7 @@ function whenLabel(iso: string, tz: string): string {
  * Interpret an inbound message with Otter and return a reply. Uses the same
  * interpret core as the web/mobile command bar, so texting Otter behaves
  * identically. For an actionable request it returns a `pending` action and a
- * "reply YES to confirm" prompt — confirm-first, over text.
+ * "reply YES to confirm" prompt - confirm-first, over text.
  */
 export async function interpretForSms(userId: string, text: string): Promise<InterpretResult> {
   const { draft, timezone: tz, target } = await interpretOtterCommand(userId, text);
@@ -48,7 +48,7 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
     return {
       reply:
         draft.message ||
-        'I help with scheduling — try things like "book a 30-min call with Sam Thursday 2pm" or "move my 3pm to tomorrow".',
+        'I help with scheduling - try things like "book a 30-min call with Sam Thursday 2pm" or "move my 3pm to tomorrow".',
     };
   }
 
@@ -70,7 +70,7 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
   }
 
   if (!target) {
-    return { reply: "I couldn't tell which meeting you meant — try naming it or its time." };
+    return { reply: "I couldn't tell which meeting you meant - try naming it or its time." };
   }
 
   if (draft.intent === "reschedule") {
@@ -113,7 +113,7 @@ export async function executePending(userId: string, pending: PendingAction): Pr
         attendees,
         eventTypeSlug: pending.eventTypeSlug,
       });
-      if (!result) return "I couldn't add that right now — please try again, or use the app.";
+      if (!result) return "I couldn't add that right now - please try again, or use the app.";
       return `Done ✓ "${pending.title}" is on your calendar for ${whenLabel(pending.startISO, pending.timezone)}.`;
     }
 
@@ -125,7 +125,7 @@ export async function executePending(userId: string, pending: PendingAction): Pr
     const ok = await cancelBooking(pending.uid, "Cancelled via Otter");
     return ok
       ? `Done ✓ "${pending.title}" is cancelled.`
-      : "That meeting couldn't be cancelled — it may already be gone.";
+      : "That meeting couldn't be cancelled - it may already be gone.";
   } catch (err) {
     logger.error("otter sms execute failed", { event: "otter_sms_execute_failed", userId, err });
     return "Something went wrong carrying that out. Please try again, or use the app.";

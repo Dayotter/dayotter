@@ -73,7 +73,7 @@ export async function getPollByToken(token: string) {
   });
 }
 
-/** The host's results view — same shape, fetched by id + ownership check. */
+/** The host's results view - same shape, fetched by id + ownership check. */
 export async function getPollForHost(pollId: string, hostId: string) {
   const poll = await getDb().query.meetingPolls.findFirst({
     where: and(eq(schema.meetingPolls.id, pollId), eq(schema.meetingPolls.hostId, hostId)),
@@ -142,8 +142,8 @@ export async function submitVotes(
 /**
  * Finalize a poll on the winning option: mark it finalized, add the event to the
  * host's calendar (inviting everyone who could make it), and email the host plus
- * all yes/maybe voters that the time is set. Standalone from the booking table —
- * the poll IS the record — so it doesn't need an event type.
+ * all yes/maybe voters that the time is set. Standalone from the booking table -
+ * the poll IS the record - so it doesn't need an event type.
  */
 export async function finalizePoll(
   pollId: string,

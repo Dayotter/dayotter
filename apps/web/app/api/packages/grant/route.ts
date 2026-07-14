@@ -12,7 +12,7 @@ const bodySchema = z.object({
 });
 
 /**
- * Manually grant a package's credits to a client — for hosts who sell offline
+ * Manually grant a package's credits to a client - for hosts who sell offline
  * (invoice, in person) or want to comp a client, without going through Stripe.
  */
 export const POST = withUser(async (u, request) => {

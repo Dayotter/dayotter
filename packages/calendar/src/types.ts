@@ -90,7 +90,7 @@ export interface SyncResult {
   deletedExternalIds: string[];
   /** Opaque cursor to pass to the next syncEvents call (syncToken / deltaLink / ctag). */
   nextCursor?: string;
-  /** true when the provider invalidated the cursor — caller should wipe + full-resync. */
+  /** true when the provider invalidated the cursor - caller should wipe + full-resync. */
   fullResync?: boolean;
 }
 
@@ -125,7 +125,7 @@ export interface WatchResult {
 
 /**
  * Uniform interface every provider implements. The rest of the app talks to
- * calendars only through this — swapping/adding providers never leaks upward.
+ * calendars only through this - swapping/adding providers never leaks upward.
  */
 export interface CalendarAdapter {
   readonly provider: Provider;
@@ -142,7 +142,7 @@ export interface CalendarAdapter {
 
   /**
    * Incremental change fetch. Pass the cursor from the previous call (null on
-   * first sync — the window seeds the initial set). Returns changed/removed
+   * first sync - the window seeds the initial set). Returns changed/removed
    * events and a cursor for next time.
    */
   syncEvents(
@@ -164,7 +164,7 @@ export interface CalendarAdapter {
 
   /**
    * Events the user has been invited to but not yet responded to, within the
-   * window. Optional — providers without an RSVP concept (CalDAV) omit it.
+   * window. Optional - providers without an RSVP concept (CalDAV) omit it.
    */
   listInvites?(
     calendarExternalId: string,

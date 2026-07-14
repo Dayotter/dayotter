@@ -9,7 +9,7 @@ const STEPS = [
   {
     sel: '[data-tour="link"]',
     title: "Your booking link",
-    body: "Share this and people pick a time you're free — no back-and-forth.",
+    body: "Share this and people pick a time you're free - no back-and-forth.",
   },
   {
     sel: '[data-tour="hours"]',
@@ -19,7 +19,7 @@ const STEPS = [
   {
     sel: '[data-tour="types"]',
     title: "Create a booking type",
-    body: "Set up the meetings people can book — a 30-min intro, office hours, whatever you need.",
+    body: "Set up the meetings people can book - a 30-min intro, office hours, whatever you need.",
   },
 ];
 

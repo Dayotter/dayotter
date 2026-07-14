@@ -18,7 +18,7 @@ const fullbleed = master.replace(
   '<rect x="0" y="0" width="1024" height="1024" fill="url(#bg)"/>\n  <rect x="0" y="0" width="1024" height="1024" fill="url(#bgGlow)"/>',
 );
 
-// Content-only (tile removed) on transparent — Android adaptive foreground,
+// Content-only (tile removed) on transparent - Android adaptive foreground,
 // composited by the OS over the adaptive backgroundColor.
 const contentOnly = master.replace(tileGroupRe, "");
 

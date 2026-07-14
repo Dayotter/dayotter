@@ -43,7 +43,7 @@ const START_HOUR = 9;
 const END_HOUR = 16;
 const ROW = 34; // px per hour
 
-/** A polished week calendar view — the flagship product visual. */
+/** A polished week calendar view - the flagship product visual. */
 export function CalendarMock({ className }: { className?: string }) {
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i);
   const bodyHeight = (END_HOUR - START_HOUR) * ROW;
@@ -122,7 +122,7 @@ export function CalendarMock({ className }: { className?: string }) {
   );
 }
 
-/** Team availability overlap — the "find a time we're all free" wedge. */
+/** Team availability overlap - the "find a time we're all free" wedge. */
 export function TeamAvailabilityMock({ className }: { className?: string }) {
   const people: { name: string; hue: Hue; busy: [number, number][] }[] = [
     {
@@ -242,7 +242,7 @@ export function ReminderMock({ className }: { className?: string }) {
       <div className="min-w-0">
         <p className="text-sm font-medium">Reminder · in 1 hour</p>
         <p className="truncate text-xs text-[var(--color-muted)]">
-          Intro Call with Dana — Join on Google Meet
+          Intro Call with Dana - Join on Google Meet
         </p>
       </div>
     </div>

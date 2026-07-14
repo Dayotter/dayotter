@@ -14,7 +14,7 @@ interface Suggestion {
 }
 
 /**
- * Deep-work defense — proposes the earliest free block on each of the next few
+ * Deep-work defense - proposes the earliest free block on each of the next few
  * days and lets the user protect it with one tap (writes a focus block to their
  * calendar). Confirm-first: nothing is written until the user clicks Protect.
  */

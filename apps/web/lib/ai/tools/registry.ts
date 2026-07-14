@@ -15,7 +15,7 @@ import { z } from "zod";
  *
  * Bookings (create / reschedule / cancel) are handled by the older
  * `propose_action` tool in ../chat.ts (they need rich date-editable cards); this
- * registry covers everything else — booking types, availability, preferences,
+ * registry covers everything else - booking types, availability, preferences,
  * focus blocks, channels, teams.
  */
 export type ToolKind = "read" | "write" | "destructive";
@@ -309,7 +309,7 @@ export const TOOLS: AiToolDef[] = [
   {
     name: "update_workflow",
     description:
-      "Update an existing workflow by id — its name, message subject/body, offset, or active state. Only the fields you pass change.",
+      "Update an existing workflow by id - its name, message subject/body, offset, or active state. Only the fields you pass change.",
     kind: "write",
     confirmLevel: "confirm",
     schema: {
@@ -431,7 +431,7 @@ export const TOOLS: AiToolDef[] = [
   {
     name: "update_booking_type",
     description:
-      "Update fields on an existing booking type by id — title, description, duration, or colour. Only the fields you pass change. Get the id from list_booking_types.",
+      "Update fields on an existing booking type by id - title, description, duration, or colour. Only the fields you pass change. Get the id from list_booking_types.",
     kind: "write",
     confirmLevel: "confirm",
     schema: {
@@ -540,7 +540,7 @@ export const TOOLS: AiToolDef[] = [
   {
     name: "protect_focus_time",
     description:
-      "Protect one or more focus / deep-work blocks on the host's calendar (holds the time so nobody can book over it). Pass the exact blocks returned by find_focus_time and a short title. Confirm-first — the host reviews before anything is held.",
+      "Protect one or more focus / deep-work blocks on the host's calendar (holds the time so nobody can book over it). Pass the exact blocks returned by find_focus_time and a short title. Confirm-first - the host reviews before anything is held.",
     kind: "write",
     confirmLevel: "confirm",
     schema: {
@@ -696,7 +696,7 @@ export const TOOLS: AiToolDef[] = [
   {
     name: "delete_booking_type",
     description:
-      "Delete a booking type by id. If it has bookings it is archived (deactivated) instead of hard-deleted. Destructive — requires explicit confirmation.",
+      "Delete a booking type by id. If it has bookings it is archived (deactivated) instead of hard-deleted. Destructive - requires explicit confirmation.",
     kind: "destructive",
     confirmLevel: "danger",
     schema: {
@@ -746,7 +746,7 @@ export const TOOLS: AiToolDef[] = [
   {
     name: "remove_channel",
     description:
-      "Remove one of the host's notification channels by id (from list_notification_channels). Destructive — requires explicit confirmation.",
+      "Remove one of the host's notification channels by id (from list_notification_channels). Destructive - requires explicit confirmation.",
     kind: "destructive",
     confirmLevel: "danger",
     schema: {
@@ -762,7 +762,7 @@ export const TOOLS: AiToolDef[] = [
   {
     name: "delete_focus_block",
     description:
-      "Delete a focus / personal time block by id. Pass series=true to delete the whole recurring series. Destructive — requires explicit confirmation.",
+      "Delete a focus / personal time block by id. Pass series=true to delete the whole recurring series. Destructive - requires explicit confirmation.",
     kind: "destructive",
     confirmLevel: "danger",
     schema: {

@@ -70,7 +70,7 @@ async function resolveHost(
     return { host: primary.user, coHostEmails };
   }
 
-  // round-robin — only among hosts genuinely free at the chosen time (reusing
+  // round-robin - only among hosts genuinely free at the chosen time (reusing
   // the slots we already computed above).
   const slotsByHost = new Map(hostIds.map((id, i) => [id, perHost[i] ?? []]));
   const free = hosts.filter((h) =>
@@ -347,7 +347,7 @@ export async function createBooking(
   // Zoom event types: auto-create a real Zoom meeting when the host has Zoom
   // connected (falls back to any manual link otherwise). Best-effort.
   // Group events share one link (the host's configured location) and are NOT
-  // written to the host calendar — a per-booking event would sync back as busy
+  // written to the host calendar - a per-booking event would sync back as busy
   // and wrongly close the shared slot, and per-booking Zoom links would differ.
   let zoomUrl: string | null = null;
   if (!isGroup && eventType.location === "zoom") {
@@ -423,7 +423,7 @@ export async function createBooking(
   await scheduleWorkflowMessages(booking.id, eventType.organizationId, eventType.id, start, end);
 
   // Prepaid packages: if this booker holds a credit balance for the event type,
-  // spend one session. Best-effort — never blocks the booking.
+  // spend one session. Best-effort - never blocks the booking.
   await consumeCredit(eventType.id, input.attendee.email).catch(() => false);
 
   // Automation rules (prep blocks / buffers / follow-ups). Best-effort.
@@ -488,7 +488,7 @@ export async function createBooking(
 
   // Recurring series: create the remaining occurrences (best-effort each; an
   // occurrence that collides with an existing booking is skipped). Attendees get
-  // one confirmation for the first meeting above — the rest land on the calendar.
+  // one confirmation for the first meeting above - the rest land on the calendar.
   if (isRecurring) {
     const zone = input.attendee.timezone || host.timezone || "UTC";
     const base = DateTime.fromJSDate(start).setZone(zone);

@@ -206,7 +206,7 @@ async function syncCalendar(
 /**
  * Keep a live push subscription for the calendar (Google watch / MS Graph
  * subscription). No-op for CalDAV (no webhooks) and when APP_URL isn't a public
- * https endpoint (local dev — the provider couldn't reach us anyway).
+ * https endpoint (local dev - the provider couldn't reach us anyway).
  */
 async function ensureSubscription(
   adapter: CalendarAdapter,

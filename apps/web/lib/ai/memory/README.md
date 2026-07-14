@@ -22,14 +22,14 @@ extractors[]  --refreshMemory(userId)-->  otter_memory  --recallMemory-->  summa
 ```
 
 - `refreshMemory(userId)` runs every extractor and upserts the facts it returns.
-- `recallFreshMemory(userId)` refreshes if stale (>24h) then reads — this is what
+- `recallFreshMemory(userId)` refreshes if stale (>24h) then reads - this is what
   the Otter path (`lib/ai/interpret.ts`) calls, so memory self-maintains for
   active users with no dedicated job.
 - `summarizeMemory(entries)` renders the block for the prompt.
 - `rememberUserFact(userId, fact)` stores an explicit user-stated preference
   (source `"user"`), which outranks derived facts of the same key.
 
-## Extending — add a fact Otter can learn
+## Extending - add a fact Otter can learn
 
 Add a `MemoryExtractor` to `EXTRACTORS` in `extractors.ts`:
 
@@ -50,18 +50,18 @@ Add a `MemoryExtractor` to `EXTRACTORS` in `extractors.ts`:
 }
 ```
 
-That's the only change needed — refresh, recall, and the prompt pick it up
+That's the only change needed - refresh, recall, and the prompt pick it up
 automatically.
 
 ## Ideas for future extractors
-- `preferred_buffer` — typical gap they leave between meetings
+- `preferred_buffer` - typical gap they leave between meetings
 - `prefers_video` / `prefers_location`
-- `no_meeting_days` — weekdays they keep clear
-- `reschedule_habits` — how often / how far ahead they move things
+- `no_meeting_days` - weekdays they keep clear
+- `reschedule_habits` - how often / how far ahead they move things
 - LLM-summarised freeform notes from Otter conversations (a `source: "inferred"` fact)
 
 ## Guardrails
-- Extractors return `null` without enough signal — memory only holds facts we can
+- Extractors return `null` without enough signal - memory only holds facts we can
   stand behind.
 - Only facts above `MIN_CONFIDENCE` are recalled into the prompt.
 - The prompt line tells Otter to *use* memory, not recite it back.

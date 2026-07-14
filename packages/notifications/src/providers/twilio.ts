@@ -5,9 +5,9 @@ import type { DispatchResult, NotificationMessage } from "../types";
  * WhatsApp + SMS via Twilio. Env-gated: no-ops (skipped) when the server has no
  * Twilio credentials, so self-hosters without a Twilio account are unaffected.
  *
- *   TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN  — account credentials
- *   TWILIO_WHATSAPP_FROM                    — e.g. "whatsapp:+14155238886"
- *   TWILIO_SMS_FROM                         — e.g. "+14155238886"
+ *   TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN  - account credentials
+ *   TWILIO_WHATSAPP_FROM                    - e.g. "whatsapp:+14155238886"
+ *   TWILIO_SMS_FROM                         - e.g. "+14155238886"
  */
 export function twilioConfigured(): boolean {
   return Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN);

@@ -23,7 +23,7 @@ describe("roundRobinPick", () => {
     expect(roundRobinPick([c("a", 1, 3), c("b", 2, 4)])?.userId).toBe("b");
   });
 
-  it("weights by priority — a higher-priority host absorbs more load before losing", () => {
+  it("weights by priority - a higher-priority host absorbs more load before losing", () => {
     // hi: prio 3, lo: prio 1. Simulate 8 assignments; priority-3 gets the majority.
     let hiCount = 0;
     let loCount = 0;

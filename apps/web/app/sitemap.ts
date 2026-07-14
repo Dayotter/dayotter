@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/marketing";
 import { PERSONAS } from "@/lib/personas";
 import type { MetadataRoute } from "next";
 
-/** Dynamic sitemap — every public page, so search engines can crawl the lot. */
+/** Dynamic sitemap - every public page, so search engines can crawl the lot. */
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = BRAND.url;
   const now = new Date();

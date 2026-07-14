@@ -3,7 +3,7 @@
 export const BRAND = {
   name: "DayOtter",
   tagline: "The calm home for your time.",
-  /** Canonical site origin — drives metadataBase, sitemap, canonical URLs, JSON-LD. */
+  /** Canonical site origin - drives metadataBase, sitemap, canonical URLs, JSON-LD. */
   url: process.env.NEXT_PUBLIC_APP_URL ?? "https://dayotter.com",
   email: "hello@dayotter.com",
   github: "https://github.com/nometria/dayotter",

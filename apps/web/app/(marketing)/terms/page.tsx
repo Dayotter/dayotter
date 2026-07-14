@@ -3,7 +3,7 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — DayOtter",
+  title: "Terms of Service - DayOtter",
   description: "The terms that govern your use of DayOtter.",
 };
 
@@ -58,7 +58,7 @@ export default function TermsPage() {
         <p>
           You retain ownership of the data you put into the Service (event types, bookings, calendar
           data, and messages). You grant us the limited rights needed to operate the Service on your
-          behalf — for example, storing your data and syncing your calendars. We do not sell your
+          behalf - for example, storing your data and syncing your calendars. We do not sell your
           data. See our <a href="/privacy">Privacy Policy</a>.
         </p>
 
@@ -79,7 +79,7 @@ export default function TermsPage() {
         <h2>8. AI features</h2>
         <p>
           {BRAND.name} includes an AI assistant ("Otter") that drafts events, suggestions, and
-          replies. Otter is confirm-first — it proposes actions and only carries them out after you
+          replies. Otter is confirm-first - it proposes actions and only carries them out after you
           confirm. AI output can be inaccurate or incomplete, so you are responsible for reviewing
           any draft before confirming it. Don't rely on AI output as professional advice.
         </p>

@@ -39,7 +39,7 @@ export default async function EventTypesPage() {
       {eventTypes.length === 0 ? (
         <EmptyState
           title="No booking types yet"
-          description="Create your first bookable meeting — like a 30-minute intro call — and share the link."
+          description="Create your first bookable meeting - like a 30-minute intro call - and share the link."
           action={
             <Link href="/event-types/new" className={buttonVariants({ variant: "primary" })}>
               <Plus size={16} /> New booking type

@@ -13,7 +13,7 @@ async function targetCalendar(userId: string) {
     with: { calendars: true },
   });
   for (const conn of connections) {
-    // Never write to a read-only source (e.g. an ICS feed) — pick a writable
+    // Never write to a read-only source (e.g. an ICS feed) - pick a writable
     // calendar: the chosen booking target if set, else the first writable one.
     const cal =
       conn.calendars.find((c) => c.isTargetForBookings && !c.isReadOnly) ??

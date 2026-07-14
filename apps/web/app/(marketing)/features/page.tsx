@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Features",
   description:
-    "Everything DayOtter does — AI scheduling with Otter, weighted round-robin, routing forms, focus-time protection, calendar sync, reminders, payments, and more. Open source.",
+    "Everything DayOtter does - AI scheduling with Otter, weighted round-robin, routing forms, focus-time protection, calendar sync, reminders, payments, and more. Open source.",
   alternates: { canonical: "/features" },
 };
 
@@ -17,7 +17,7 @@ export default function FeaturesPage() {
       <MarketingHeader
         eyebrow="Features"
         title="Everything you need to run your calendar"
-        subtitle="From an AI assistant that does the scheduling to team round-robin, routing, and payments — all in one calm, open-source platform."
+        subtitle="From an AI assistant that does the scheduling to team round-robin, routing, and payments - all in one calm, open-source platform."
       />
 
       <section className="mx-auto max-w-5xl px-6 py-16">

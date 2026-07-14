@@ -17,10 +17,10 @@ export interface NotificationMessage {
 
 /** Per-channel destination config, stored encrypted in notification_channels.encryptedConfig. */
 export type ChannelConfig =
-  | { webhookUrl: string } // slack — a per-user Slack incoming webhook
-  | { phone: string } // whatsapp / sms — E.164 phone number
-  | { pushToken: string; platform?: "ios" | "android" } // push — Expo push token
-  | { subscription: WebPushSubscription }; // webpush — browser Push subscription
+  | { webhookUrl: string } // slack - a per-user Slack incoming webhook
+  | { phone: string } // whatsapp / sms - E.164 phone number
+  | { pushToken: string; platform?: "ios" | "android" } // push - Expo push token
+  | { subscription: WebPushSubscription }; // webpush - browser Push subscription
 
 export interface DispatchResult {
   ok: boolean;

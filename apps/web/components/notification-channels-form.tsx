@@ -23,7 +23,7 @@ import { useState } from "react";
 
 type ChannelType = "slack" | "whatsapp" | "sms" | "push" | "webpush";
 
-/** VAPID public key from the server — present only when web push is configured. */
+/** VAPID public key from the server - present only when web push is configured. */
 const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
 /** Decode a base64url VAPID key into the bytes PushManager.subscribe expects. */
@@ -199,7 +199,7 @@ export function NotificationChannelsForm({
     <Card className="max-w-2xl">
       <CardHeader
         title="Notification channels"
-        description="Get meeting reminders where you actually are — Slack, WhatsApp, SMS, or your phone. Email reminders are always on."
+        description="Get meeting reminders where you actually are - Slack, WhatsApp, SMS, or your phone. Email reminders are always on."
       />
       <CardBody className="space-y-5">
         {webPushAvailable && !hasWebPush ? (
@@ -210,7 +210,7 @@ export function NotificationChannelsForm({
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">Turn on browser notifications</p>
               <p className="mt-0.5 text-xs text-[var(--color-muted)]">
-                Get a desktop nudge before each meeting — even when DayOtter isn't open. You can
+                Get a desktop nudge before each meeting - even when DayOtter isn't open. You can
                 turn it off anytime.
               </p>
               {pushError ? (

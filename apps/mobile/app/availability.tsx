@@ -33,7 +33,7 @@ export default function AvailabilityScreen() {
     setSaved(false);
   }
 
-  /** One-tap presets — mirrors the web editor so nobody sets seven days by hand. */
+  /** One-tap presets - mirrors the web editor so nobody sets seven days by hand. */
   function applyPreset(preset: "weekdays" | "everyday" | "clear") {
     const nineToFive: Range[] = [{ start: "09:00", end: "17:00" }];
     setDays((prev) =>

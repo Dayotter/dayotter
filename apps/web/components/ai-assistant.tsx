@@ -48,7 +48,7 @@ function speak(text: string) {
 }
 
 /**
- * Otter — the conversational scheduling assistant. Streams replies from
+ * Otter - the conversational scheduling assistant. Streams replies from
  * /api/ai/chat, supports voice in (speech-to-text) and spoken replies, and
  * renders a confirm-first action card whenever it proposes a calendar change.
  * The assistant only proposes; the human always confirms before anything runs.
@@ -255,7 +255,7 @@ export function AiAssistant({
       return;
     }
     track("AI Reschedule Confirmed", { via: "chat" });
-    afterAction("Rescheduled — attendees notified ✓");
+    afterAction("Rescheduled - attendees notified ✓");
   }
 
   async function confirmCancel() {
@@ -274,7 +274,7 @@ export function AiAssistant({
       return;
     }
     track("AI Cancel Confirmed", { via: "chat" });
-    afterAction("Cancelled — attendees notified ✓");
+    afterAction("Cancelled - attendees notified ✓");
   }
 
   // Confirm a registry action (create/update/delete booking types, availability,
@@ -327,7 +327,7 @@ export function AiAssistant({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold leading-none">Ask Otter</p>
           <p className="mt-1 text-xs text-[var(--color-faint)]">
-            Your scheduling assistant — you confirm before anything changes
+            Your scheduling assistant - you confirm before anything changes
           </p>
         </div>
         <button

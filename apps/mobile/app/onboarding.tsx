@@ -23,7 +23,7 @@ const SLIDES = [
   {
     img: plan,
     title: "Welcome to DayOtter",
-    body: "The calm home for your time — scheduling that respects every calendar you own.",
+    body: "The calm home for your time - scheduling that respects every calendar you own.",
   },
   {
     img: agenda,
@@ -33,7 +33,7 @@ const SLIDES = [
   {
     img: relax,
     title: "Protect your calm",
-    body: "Buffers, focus blocks, and gentle reminders keep your day yours — not your calendar's.",
+    body: "Buffers, focus blocks, and gentle reminders keep your day yours - not your calendar's.",
   },
   {
     img: remind,

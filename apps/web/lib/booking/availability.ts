@@ -8,7 +8,7 @@ import { and, eq, getDb, gte, inArray, lte, ne, schema, sql } from "@dayotter/db
 import { DateTime } from "luxon";
 import { recommendedSlots } from "./rank-slots";
 
-/** Keep only group slots that still have a free seat. Pure — unit-tested. */
+/** Keep only group slots that still have a free seat. Pure - unit-tested. */
 export function filterOpenGroupSlots(
   slots: Slot[],
   counts: Map<number, number>,
@@ -31,7 +31,7 @@ export interface TeamRule {
  * [rangeStart, rangeEnd], in that member's schedule timezone (DST-correct):
  *  - `holiday`    → the whole local day is blocked.
  *  - `no_meeting` → the [start,end] window on matching weekdays is blocked.
- * Pure — unit-tested.
+ * Pure - unit-tested.
  */
 export function teamRuleIntervals(
   rules: TeamRule[],
@@ -124,7 +124,7 @@ function gapFor(eventType: EventTypeRow): number {
 }
 
 /**
- * Combine per-host slot arrays for an event type. Pure — no I/O — so it's unit
+ * Combine per-host slot arrays for an event type. Pure - no I/O - so it's unit
  * tested directly:
  * - individual → the single host's slots
  * - collective → intersection (every host free)
@@ -170,7 +170,7 @@ export async function hostSlots(
 ): Promise<Slot[]> {
   const db = getDb();
 
-  // Schedule + calendar connections don't depend on each other — fetch together.
+  // Schedule + calendar connections don't depend on each other - fetch together.
   const [schedule, connections] = await Promise.all([
     scheduleId
       ? db.query.schedules.findFirst({
@@ -212,7 +212,7 @@ export async function hostSlots(
 
   const ownBookings = existingBookings.filter((b) => b.hostId === userId);
   // Team working-agreement rules (holidays, meeting-free windows) block time for
-  // every member — applied in this host's schedule timezone.
+  // every member - applied in this host's schedule timezone.
   const teamBusy = teamRuleRows.length
     ? teamRuleIntervals(teamRuleRows, schedule.timezone, rangeStart, rangeEnd)
     : [];
@@ -308,7 +308,7 @@ function teamRulesFor(userId: string): Promise<TeamRule[]> {
     .where(eq(schema.teamMembers.userId, userId));
 }
 
-/** Busy blocks that OVERLAP the window (not just those that start inside it — a
+/** Busy blocks that OVERLAP the window (not just those that start inside it - a
  * long meeting starting before rangeStart still blocks the window's opening). */
 function busyBlocksFor(calendarIds: string[], rangeStart: Date, rangeEnd: Date) {
   return getDb().query.busyBlocks.findMany({
@@ -337,7 +337,7 @@ function bookingsFor(
       // When re-validating a reschedule, the booking being moved must not count
       // itself as busy (it would falsely reject nearby/overlapping new slots).
       excludeBookingId ? ne(schema.bookings.id, excludeBookingId) : undefined,
-      // A group event type's own shared-slot bookings must not block its slots —
+      // A group event type's own shared-slot bookings must not block its slots -
       // capacity is what closes them (see filterOpenGroupSlots).
       ignoreGroupEventTypeId
         ? sql`NOT (${schema.bookings.eventTypeId} = ${ignoreGroupEventTypeId} AND ${schema.bookings.isGroup} = true)`
@@ -477,7 +477,7 @@ async function hostCommitments(userId: string, rangeStart: Date, rangeEnd: Date)
 
 /**
  * Smart-scheduling: pick the top recommended slots for an event type from an
- * already-computed slot list. Only for individual (owner) event types — team
+ * already-computed slot list. Only for individual (owner) event types - team
  * scheduling has no single host whose day we're consolidating. Returns the
  * recommended slots' ISO start instants (a subset of `slots`).
  */

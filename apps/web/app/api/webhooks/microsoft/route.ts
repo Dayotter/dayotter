@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-/** Max notifications we process per request — Graph batches are small; a huge
+/** Max notifications we process per request - Graph batches are small; a huge
  * array is a job-amplification attempt. */
 const MAX_NOTIFICATIONS = 100;
 

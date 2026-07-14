@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 
 /**
- * The DayOtter brand mark — the otter-with-calendar app icon.
+ * The DayOtter brand mark - the otter-with-calendar app icon.
  *
  * Renders the shared asset at /brand/dayotter-icon.svg, cropped so the rounded
  * tile fills the box. This is the single source of the logo across the app

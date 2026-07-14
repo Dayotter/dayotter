@@ -7,7 +7,7 @@ const BADGES = [
   { img: "/brand/illustrations/badge-track.png", label: "Never double-booked" },
 ];
 
-/** A playful badge strip — the otter's take on "why DayOtter". */
+/** A playful badge strip - the otter's take on "why DayOtter". */
 export function WhyOtter() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-20">
@@ -30,7 +30,7 @@ export function WhyOtter() {
   );
 }
 
-/** Full-width otter banner — a warm closing note before the final CTA. */
+/** Full-width otter banner - a warm closing note before the final CTA. */
 export function OtterBand() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-6">

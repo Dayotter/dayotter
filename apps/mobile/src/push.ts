@@ -13,7 +13,7 @@ export type PushResult =
  * the Expo push token, and stores it as a `push` notification channel via the
  * existing /api/settings/channels endpoint (which sends a real test push to
  * verify it before persisting). Real push needs a physical device + a dev build
- * — the simulator/Expo-Go paths degrade gracefully.
+ * - the simulator/Expo-Go paths degrade gracefully.
  */
 export async function registerPushChannel(): Promise<PushResult> {
   if (!Device.isDevice) return { ok: false, reason: "simulator" };

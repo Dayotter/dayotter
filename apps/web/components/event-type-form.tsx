@@ -419,7 +419,7 @@ export function EventTypeForm({
             className="flex w-full items-center justify-between rounded-md border border-[var(--color-border)] px-4 py-2.5 text-sm font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
           >
             <span>
-              {showMore ? "Fewer options" : "More options — buffers, limits, price, questions…"}
+              {showMore ? "Fewer options" : "More options - buffers, limits, price, questions…"}
             </span>
             <ChevronDown
               size={16}
@@ -604,12 +604,12 @@ export function EventTypeForm({
                         className="w-24"
                       />
                       <span className="text-sm text-[var(--color-faint)]">
-                        seats per slot — the slot stays open until full
+                        seats per slot - the slot stays open until full
                       </span>
                     </div>
                   ) : (
                     <p className="mt-1 text-xs text-[var(--color-faint)]">
-                      For webinars, classes, office hours — many people book the same time. Booked
+                      For webinars, classes, office hours - many people book the same time. Booked
                       group events aren't written to your connected calendar.
                     </p>
                   )}
@@ -658,7 +658,7 @@ export function EventTypeForm({
                     </div>
                   ) : (
                     <p className="mt-1 text-xs text-[var(--color-faint)]">
-                      Booking once schedules the whole series — great for coaching or standing 1:1s.
+                      Booking once schedules the whole series - great for coaching or standing 1:1s.
                     </p>
                   )}
                 </div>

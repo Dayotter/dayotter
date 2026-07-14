@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 /* ------------------------------------------------------------------ */
-/* A day with Otter — a timeline of the product living in a real day.  */
+/* A day with Otter - a timeline of the product living in a real day.  */
 /* ------------------------------------------------------------------ */
 
 const MOMENTS = [
@@ -31,7 +31,7 @@ const MOMENTS = [
   {
     time: "2:20",
     label: "Running behind",
-    body: "Your 1:1 ran long. Otter quietly pings your 2:30 that you're ten minutes out — no awkward apology needed.",
+    body: "Your 1:1 ran long. Otter quietly pings your 2:30 that you're ten minutes out - no awkward apology needed.",
   },
   {
     time: "6:00",
@@ -49,7 +49,7 @@ export function DayWithOtter() {
           It works the whole day, so you don't have to.
         </h2>
         <p className="mt-4 text-lg text-[var(--color-muted)]">
-          Not a booking link you forget about — an assistant that shows up from your first coffee to
+          Not a booking link you forget about - an assistant that shows up from your first coffee to
           your last meeting.
         </p>
       </Reveal>
@@ -89,12 +89,12 @@ export function DayWithOtter() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Otter demo — a scripted look at the assistant, styled like the app. */
+/* Otter demo - a scripted look at the assistant, styled like the app. */
 /* ------------------------------------------------------------------ */
 
 /**
  * A safe, client-side "try Otter" sandbox. Matches a typed command to a canned
- * proposed action — no backend, no AI cost, no auth — so a visitor can feel the
+ * proposed action - no backend, no AI cost, no auth - so a visitor can feel the
  * confirm-first behaviour before signing up. (In the product this is a real,
  * availability-aware model call.)
  */
@@ -171,13 +171,13 @@ export function OtterDemo() {
             Say it once. Watch it happen.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-[var(--color-muted)]">
-            Type a request — or tap an example. Otter drafts the change and waits for your OK. In
+            Type a request - or tap an example. Otter drafts the change and waits for your OK. In
             the app it reads your real availability and works over chat, voice, WhatsApp and SMS.
           </p>
           <ul className="mt-6 space-y-3">
             {[
               "Understands plain language, across every timezone",
-              "Confirm-first — it proposes, you approve",
+              "Confirm-first - it proposes, you approve",
               "Works over chat, voice, WhatsApp and SMS",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm">
@@ -254,7 +254,7 @@ export function OtterDemo() {
               ) : null}
             </div>
             <p className="mt-2 text-center text-xs text-[var(--color-faint)]">
-              A preview — nothing's booked.{" "}
+              A preview - nothing's booked.{" "}
               <Link href="/sign-up" className="text-[var(--color-accent)] hover:underline">
                 Sign up
               </Link>{" "}
@@ -268,7 +268,7 @@ export function OtterDemo() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Compare teaser — a compact table linking to the full /vs pages.     */
+/* Compare teaser - a compact table linking to the full /vs pages.     */
 /* ------------------------------------------------------------------ */
 
 type Cell = { text: string; edge?: "us" | "them" };

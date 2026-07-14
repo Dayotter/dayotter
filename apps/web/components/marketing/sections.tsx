@@ -15,14 +15,14 @@ const BEFORE = [
   "A basic team round-robin costs $16 a seat.",
 ];
 const AFTER = [
-  "Share one link — or just ask Otter to find the time.",
+  "Share one link - or just ask Otter to find the time.",
   "Otter holds hours for deep work and defends them.",
   "It messages your next meeting before you even notice.",
   "Every calendar, one honest view of when you're free.",
-  "Team scheduling, routing and polls — free to self-host.",
+  "Team scheduling, routing and polls - free to self-host.",
 ];
 
-/** The before/after story — the calm case for switching, plainly told. */
+/** The before/after story - the calm case for switching, plainly told. */
 export function Shift() {
   return (
     <section className="mx-auto max-w-5xl px-6 py-24">
@@ -78,7 +78,7 @@ const STEPS = [
   {
     icon: LinkIcon,
     title: "Share your link",
-    body: "Send one link. People pick a time that works for everyone — you get the booking.",
+    body: "Send one link. People pick a time that works for everyone - you get the booking.",
   },
 ];
 
@@ -128,23 +128,23 @@ export function Manifesto() {
 const HOME_FAQ = [
   {
     q: "Do I have to talk to the AI to use it?",
-    a: "Not at all. DayOtter is a complete scheduling tool on its own — booking pages, team round-robin, reminders, calendar sync. Otter is there when you want it: ask it to book, reschedule or hold focus time and it drafts the change for you. Never the other way around.",
+    a: "Not at all. DayOtter is a complete scheduling tool on its own - booking pages, team round-robin, reminders, calendar sync. Otter is there when you want it: ask it to book, reschedule or hold focus time and it drafts the change for you. Never the other way around.",
   },
   {
     q: "Will Otter ever change my calendar on its own?",
-    a: "No. Otter is confirm-first by design — it proposes, you approve. Nothing lands on your calendar, and nothing moves, without your explicit OK.",
+    a: "No. Otter is confirm-first by design - it proposes, you approve. Nothing lands on your calendar, and nothing moves, without your explicit OK.",
   },
   {
     q: "Is DayOtter really free?",
-    a: "Yes. Individuals get unlimited event types, calendar sync, group polls and reminders free, forever. Teams are $9 a seat each month — and if you self-host, every feature is free.",
+    a: "Yes. Individuals get unlimited event types, calendar sync, group polls and reminders free, forever. Teams are $9 a seat each month - and if you self-host, every feature is free.",
   },
   {
     q: "Which calendars does it work with?",
-    a: "Google, Outlook, Apple iCloud and any ICS feed — unified into one honest view of when you're actually free, across every timezone.",
+    a: "Google, Outlook, Apple iCloud and any ICS feed - unified into one honest view of when you're actually free, across every timezone.",
   },
   {
     q: "Can my whole team use it?",
-    a: "Yes. Weighted round-robin, collective availability, routing forms and group polls are built in — the team toolkit that runs $16–20 a seat elsewhere, here for $9.",
+    a: "Yes. Weighted round-robin, collective availability, routing forms and group polls are built in - the team toolkit that runs $16–20 a seat elsewhere, here for $9.",
   },
   {
     q: "Can I self-host it?",
@@ -152,7 +152,7 @@ const HOME_FAQ = [
   },
 ];
 
-/** Home-page FAQ — plain answers to the questions people actually ask. */
+/** Home-page FAQ - plain answers to the questions people actually ask. */
 export function FAQ() {
   return (
     <section id="faq" className="mx-auto max-w-3xl px-6 py-24">
@@ -198,7 +198,7 @@ export function CTA() {
               Take back your calendar.
             </h2>
             <p className="mx-auto mt-5 max-w-lg text-lg text-[var(--color-muted)]">
-              Free for individuals, $9/seat for teams. Up and running in minutes — on the cloud or
+              Free for individuals, $9/seat for teams. Up and running in minutes - on the cloud or
               your own server. Your time, your rules.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">

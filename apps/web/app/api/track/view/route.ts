@@ -43,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
       visitorId: parsed.data.visitorId,
     });
   } catch {
-    // Unknown event type (FK violation) or transient error — ignore.
+    // Unknown event type (FK violation) or transient error - ignore.
   }
   return ok;
 }

@@ -51,7 +51,7 @@ function Pill({
  * Manage a connection's calendars: rename, include/exclude from availability,
  * pick the booking write target, and hide from the list. Toggles update
  * optimistically (snappy) and reconcile against the server, surfacing a toast
- * and rolling back if the PATCH fails — instead of a full-page refresh per click.
+ * and rolling back if the PATCH fails - instead of a full-page refresh per click.
  */
 export function CalendarManager({ calendars }: { calendars: ManagedCalendar[] }) {
   const { toast } = useToast();

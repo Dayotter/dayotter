@@ -15,7 +15,7 @@ export interface MemberSchedule {
 }
 
 /**
- * The combined busy schedule for a set of team members over a window — the data
+ * The combined busy schedule for a set of team members over a window - the data
  * behind the shared team calendar. Merges each member's DayOtter bookings (they
  * host) with their connected calendars' busy blocks, so you can see when the
  * whole team is occupied. Privacy-preserving: external blocks carry no title.

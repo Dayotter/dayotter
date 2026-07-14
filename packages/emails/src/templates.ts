@@ -60,7 +60,7 @@ export function bookingConfirmation(d: BookingEmailData): Rendered {
       ? `Location: ${d.location}`
       : "";
   return {
-    subject: `Confirmed: ${d.eventTitle} — ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
+    subject: `Confirmed: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
     text: `Your booking is confirmed.\n\n${d.eventTitle}\nWith: ${d.hostName}\nWhen: ${when}\n${where}\n\nManage or cancel: ${d.manageUrl}`,
     html: shell(
       "Your booking is confirmed 🎉",
@@ -78,7 +78,7 @@ export function bookingReminder(d: BookingEmailData & { leadLabel: string }): Re
   const when = fmt(d.start, d.timezone);
   return {
     subject: `Reminder: ${d.eventTitle} ${d.leadLabel}`,
-    text: `Reminder — ${d.eventTitle} with ${d.hostName} is ${d.leadLabel}.\nWhen: ${when}\n${d.meetingUrl ? `Join: ${d.meetingUrl}` : ""}\n\nManage: ${d.manageUrl}`,
+    text: `Reminder - ${d.eventTitle} with ${d.hostName} is ${d.leadLabel}.\nWhen: ${when}\n${d.meetingUrl ? `Join: ${d.meetingUrl}` : ""}\n\nManage: ${d.manageUrl}`,
     html: shell(
       `Reminder: your meeting is ${esc(d.leadLabel)}`,
       [`<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)}`, `🗓 ${when}`],
@@ -91,29 +91,29 @@ export function bookingReminder(d: BookingEmailData & { leadLabel: string }): Re
 
 export function bookingFollowUp(d: BookingEmailData): Rendered {
   return {
-    subject: `Thanks for meeting — ${d.eventTitle}`,
-    text: `Thanks for taking the time to meet about ${d.eventTitle} with ${d.hostName}. If anything came up or you'd like to follow up, just reply — or book another time: ${d.manageUrl}`,
+    subject: `Thanks for meeting - ${d.eventTitle}`,
+    text: `Thanks for taking the time to meet about ${d.eventTitle} with ${d.hostName}. If anything came up or you'd like to follow up, just reply - or book another time: ${d.manageUrl}`,
     html: shell(
       "Thanks for meeting 🙌",
       [
         `Thanks for taking the time to meet about <strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)}.`,
-        "If anything came up, just reply to this email — or grab another time below.",
+        "If anything came up, just reply to this email - or grab another time below.",
       ],
       { label: "Book another time", url: d.manageUrl },
     ),
   };
 }
 
-/** Sent after a meeting the attendee missed — warm, with a rebook link. */
+/** Sent after a meeting the attendee missed - warm, with a rebook link. */
 export function bookingNoShowFollowUp(d: BookingEmailData): Rendered {
   return {
-    subject: `Sorry we missed you — ${d.eventTitle}`,
-    text: `We had ${d.eventTitle} with ${d.hostName} on the calendar but didn't get to connect. No worries — grab a new time whenever it suits you: ${d.manageUrl}`,
+    subject: `Sorry we missed you - ${d.eventTitle}`,
+    text: `We had ${d.eventTitle} with ${d.hostName} on the calendar but didn't get to connect. No worries - grab a new time whenever it suits you: ${d.manageUrl}`,
     html: shell(
       "Sorry we missed you",
       [
         `We had <strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} on the calendar but didn't get to connect.`,
-        "No worries at all — grab a new time whenever it suits you.",
+        "No worries at all - grab a new time whenever it suits you.",
       ],
       { label: "Pick a new time", url: d.manageUrl },
     ),
@@ -128,7 +128,7 @@ export function bookingRescheduled(d: BookingEmailData): Rendered {
       ? `Location: ${d.location}`
       : "";
   return {
-    subject: `Rescheduled: ${d.eventTitle} — ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
+    subject: `Rescheduled: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
     text: `Your booking has been moved to a new time.\n\n${d.eventTitle} with ${d.hostName}\nNew time: ${when}\n${where}\n\nManage: ${d.manageUrl}`,
     html: shell(
       "Your booking was rescheduled",
@@ -147,13 +147,13 @@ export function bookingRunningLate(d: BookingEmailData & { minutes?: number }): 
   const when = fmt(d.start, d.timezone);
   return {
     subject: `Running late: ${d.eventTitle}`,
-    text: `Heads up — ${d.hostName} is ${late} for ${d.eventTitle} (${when}). Thanks for your patience.${d.meetingUrl ? `\nJoin: ${d.meetingUrl}` : ""}`,
+    text: `Heads up - ${d.hostName} is ${late} for ${d.eventTitle} (${when}). Thanks for your patience.${d.meetingUrl ? `\nJoin: ${d.meetingUrl}` : ""}`,
     html: shell(
       "A quick heads-up ⏳",
       [
         `<strong>${esc(d.hostName)}</strong> is ${esc(late)} for <strong>${esc(d.eventTitle)}</strong>.`,
         `🗓 ${when}`,
-        "Thanks for your patience — they'll be with you shortly.",
+        "Thanks for your patience - they'll be with you shortly.",
       ],
       d.meetingUrl ? { label: "Join call", url: d.meetingUrl } : undefined,
     ),
@@ -164,8 +164,8 @@ export function bookingMessage(d: BookingEmailData & { body: string }): Rendered
   const when = fmt(d.start, d.timezone);
   return {
     subject: `Re: ${d.eventTitle}`,
-    text: `${d.body}\n\n— ${d.hostName}\n\n${d.eventTitle}\nWhen: ${when}\nManage or reschedule: ${d.manageUrl}`,
-    html: shell(`About ${esc(d.eventTitle)}`, [esc(d.body), `— ${esc(d.hostName)}`, `🗓 ${when}`], {
+    text: `${d.body}\n\n- ${d.hostName}\n\n${d.eventTitle}\nWhen: ${when}\nManage or reschedule: ${d.manageUrl}`,
+    html: shell(`About ${esc(d.eventTitle)}`, [esc(d.body), `- ${esc(d.hostName)}`, `🗓 ${when}`], {
       label: "View or reschedule",
       url: d.manageUrl,
     }),
@@ -174,7 +174,7 @@ export function bookingMessage(d: BookingEmailData & { body: string }): Rendered
 
 export function bookingCancellation(d: BookingEmailData): Rendered {
   return {
-    subject: `Cancelled: ${d.eventTitle} — ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
+    subject: `Cancelled: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
     text: `This booking has been cancelled.\n\n${d.eventTitle} with ${d.hostName}\nWas: ${fmt(d.start, d.timezone)}`,
     html: shell("Booking cancelled", [
       `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} has been cancelled.`,
@@ -227,10 +227,10 @@ export function workflowEmail(
   const paragraphs = bodyText.split(/\n{2,}/).map((p) => p.replace(/\n/g, " ").trim());
   return {
     subject,
-    text: `${bodyText}\n\n— ${d.hostName}\n\nView or reschedule: ${d.manageUrl}`,
+    text: `${bodyText}\n\n- ${d.hostName}\n\nView or reschedule: ${d.manageUrl}`,
     html: shell(
       esc(d.heading),
-      [...paragraphs.map((p) => esc(p)), `— ${esc(d.hostName)}`].filter(Boolean),
+      [...paragraphs.map((p) => esc(p)), `- ${esc(d.hostName)}`].filter(Boolean),
       { label: "View or reschedule", url: d.manageUrl },
     ),
   };
@@ -249,7 +249,7 @@ export interface DailyBriefingData {
 }
 
 /**
- * The daily "morning briefing" — a calm summary of the day ahead, sent each
+ * The daily "morning briefing" - a calm summary of the day ahead, sent each
  * morning to hosts who opt in. Mirrors the multi-channel nudge the worker also
  * delivers over SMS/WhatsApp/Slack/push.
  */
@@ -263,15 +263,15 @@ export function dailyBriefing(d: DailyBriefingData): Rendered {
   const lines = [
     greeting,
     count === 0
-      ? "No meetings scheduled — a clear runway ahead."
+      ? "No meetings scheduled - a clear runway ahead."
       : `You have ${count} meeting${count === 1 ? "" : "s"} today:`,
-    ...d.meetings.map((m) => `<strong>${esc(m.time)}</strong> — ${esc(m.title)}`),
+    ...d.meetings.map((m) => `<strong>${esc(m.time)}</strong> - ${esc(m.title)}`),
   ];
   if (d.focusLabel) lines.push(esc(d.focusLabel));
   const textBody =
     count === 0
       ? "No meetings scheduled today."
-      : d.meetings.map((m) => `${m.time} — ${m.title}`).join("\n");
+      : d.meetings.map((m) => `${m.time} - ${m.title}`).join("\n");
   return {
     subject,
     text: `${d.dateLabel}\n${textBody}${d.focusLabel ? `\n${d.focusLabel}` : ""}\n\nOpen DayOtter: ${d.manageUrl}`,
@@ -295,7 +295,7 @@ export interface MeetingRecapData {
 }
 
 /**
- * Post-meeting recap ("Scribe") — sent to the HOST shortly after a meeting ends.
+ * Post-meeting recap ("Scribe") - sent to the HOST shortly after a meeting ends.
  * A calm prompt to capture notes and take the obvious next steps, with one-tap
  * links into the actions DayOtter already supports.
  */

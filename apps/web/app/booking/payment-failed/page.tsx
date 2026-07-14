@@ -7,7 +7,7 @@ export default function PaymentFailedPage() {
       <h1 className="font-display mt-5 text-2xl">That time was just taken</h1>
       <p className="mt-2 text-sm text-[var(--color-muted)]">
         Someone booked this slot while you were paying, so we couldn't confirm your booking. Your
-        payment has been refunded in full — please pick another time.
+        payment has been refunded in full - please pick another time.
       </p>
     </main>
   );

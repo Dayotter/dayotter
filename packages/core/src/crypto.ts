@@ -17,12 +17,12 @@ export function safeEqual(a: string, b: string): boolean {
   return ab.length === bb.length && timingSafeEqual(ab, bb);
 }
 
-/** SHA-256 hex digest — used to store API keys as irreversible lookup hashes. */
+/** SHA-256 hex digest - used to store API keys as irreversible lookup hashes. */
 export function sha256hex(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-/** HMAC-SHA-256 hex digest — used to sign outbound webhook payloads. */
+/** HMAC-SHA-256 hex digest - used to sign outbound webhook payloads. */
 export function hmacSha256hex(secret: string, body: string): string {
   return createHmac("sha256", secret).update(body).digest("hex");
 }

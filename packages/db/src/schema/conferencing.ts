@@ -5,7 +5,7 @@ import { users } from "./orgs";
 
 /**
  * A connected video-conferencing account (currently Zoom). Separate from
- * `calendar_connections` — conferencing isn't a calendar. `credentials` is an
+ * `calendar_connections` - conferencing isn't a calendar. `credentials` is an
  * encrypted JSON blob of the OAuth tokens (AES-256-GCM), same as calendars.
  * When a booking's event type uses that provider's location, we create a real
  * meeting on the fly and use its join URL.

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >
-  dayotter — one-click self-host on a single EC2 instance. Provisions an Ubuntu
+  dayotter - one-click self-host on a single EC2 instance. Provisions an Ubuntu
   server with Docker, a security group, and a stable public IP, then boots the
   full stack (Postgres, Redis, web, worker, Caddy/HTTPS) via deploy/install.sh.
 
@@ -12,7 +12,7 @@ Metadata:
       - Label: { default: "Server" }
         Parameters: [InstanceType, VolumeSize, KeyName, SSHLocation, LatestAmiId]
     ParameterLabels:
-      DomainName: { default: "Domain (optional — enables automatic HTTPS)" }
+      DomainName: { default: "Domain (optional - enables automatic HTTPS)" }
       InstanceType: { default: "EC2 instance type" }
       KeyName: { default: "SSH key pair (optional)" }
       SSHLocation: { default: "Allow SSH from (CIDR)" }
@@ -60,7 +60,7 @@ Resources:
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: dayotter — web (80/443) and SSH
+      GroupDescription: dayotter - web (80/443) and SSH
       SecurityGroupIngress:
         - { IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: 0.0.0.0/0, Description: HTTP }
         - { IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0, Description: HTTPS }

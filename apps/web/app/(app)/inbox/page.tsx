@@ -32,10 +32,10 @@ export default async function InboxPage() {
       <PageHeader
         eyebrow="Needs you"
         title="Inbox"
-        description="Everything about your calendar that needs a decision — in one place."
+        description="Everything about your calendar that needs a decision - in one place."
       />
 
-      {/* Broken sync — needs re-auth */}
+      {/* Broken sync - needs re-auth */}
       {reconnect.length > 0 ? (
         <div className="mb-4 space-y-2">
           {reconnect.map((c) => (
@@ -51,7 +51,7 @@ export default async function InboxPage() {
                   </p>
                   <p className="text-xs text-[var(--color-muted)]">
                     {c.account}
-                    {c.error ? ` · ${c.error}` : ""} — reconnect to keep availability accurate.
+                    {c.error ? ` · ${c.error}` : ""} - reconnect to keep availability accurate.
                   </p>
                 </div>
               </div>
@@ -95,7 +95,7 @@ export default async function InboxPage() {
         </div>
       ) : null}
 
-      {/* Duplicate events — the same meeting on multiple calendars, blocking time twice */}
+      {/* Duplicate events - the same meeting on multiple calendars, blocking time twice */}
       {duplicates.length > 0 ? (
         <div className="mb-4 space-y-2">
           {duplicates.map((d) => (
@@ -109,7 +109,7 @@ export default async function InboxPage() {
                   <p className="text-sm font-medium">Duplicate: {d.title}</p>
                   <p className="text-xs text-[var(--color-muted)]">
                     {DateTime.fromISO(d.startsAt).setZone(tz).toFormat("ccc, LLL d · h:mm a")}{" "}
-                    appears on {d.calendars.join(" + ")} — it blocks your availability twice.
+                    appears on {d.calendars.join(" + ")} - it blocks your availability twice.
                   </p>
                 </div>
               </div>
@@ -124,7 +124,7 @@ export default async function InboxPage() {
         </div>
       ) : null}
 
-      {/* Timezone health — booking write-target calendar in a different timezone */}
+      {/* Timezone health - booking write-target calendar in a different timezone */}
       {timezoneMismatches.length > 0 ? (
         <div className="mb-4 space-y-2">
           {timezoneMismatches.map((t) => (

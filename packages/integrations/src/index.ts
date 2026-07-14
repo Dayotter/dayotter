@@ -31,7 +31,7 @@ async function persistCredentials(connectionId: string, creds: OAuthCredentials)
 }
 
 /**
- * Build a live provider adapter from a stored, encrypted connection — the single
+ * Build a live provider adapter from a stored, encrypted connection - the single
  * source of truth shared by the sync worker and the web booking flow. Decrypts
  * credentials, refreshes tokens when needed, and persists rotations.
  */

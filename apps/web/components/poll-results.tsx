@@ -62,7 +62,7 @@ export function PollResults({
       });
       return;
     }
-    toast({ title: "Locked in — everyone who's coming has been notified.", variant: "success" });
+    toast({ title: "Locked in - everyone who's coming has been notified.", variant: "success" });
     router.refresh();
   }
 

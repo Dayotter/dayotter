@@ -51,7 +51,7 @@ export function AccountSecurity() {
       <section className="rounded-[var(--radius-lg)] border border-[color-mix(in_srgb,var(--color-danger)_40%,transparent)] bg-[color-mix(in_srgb,var(--color-danger)_5%,transparent)] p-5">
         <h2 className="text-sm font-semibold text-[var(--color-danger)]">Delete account</h2>
         <p className="mt-1 max-w-lg text-sm text-[var(--color-muted)]">
-          Permanently delete your account and everything in it — bookings, booking types, connected
+          Permanently delete your account and everything in it - bookings, booking types, connected
           calendars, and settings. This can't be undone.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">

@@ -1,7 +1,7 @@
 # Turning on integrations
 
 Every integration is **off until you add its keys** to `deploy/.env`, then apply.
-All URLs below assume your `APP_URL` is `https://dayotter.com` — swap in your own
+All URLs below assume your `APP_URL` is `https://dayotter.com` - swap in your own
 domain.
 
 ## How to apply a change
@@ -10,10 +10,10 @@ domain.
 cd ~/dayotter/deploy
 FILES="-f docker-compose.prod.yml -f docker-compose.nginx.yml --env-file .env"
 
-# server-only keys — just recreate the containers:
+# server-only keys - just recreate the containers:
 docker compose $FILES up -d
 
-# any key starting with NEXT_PUBLIC_ is BAKED into the web build — rebuild:
+# any key starting with NEXT_PUBLIC_ is BAKED into the web build - rebuild:
 docker compose $FILES up -d --build web
 ```
 
@@ -23,7 +23,7 @@ docker compose $FILES up -d --build web
 
 ---
 
-## Google — Sign-in **and** Calendar (one OAuth client covers both)
+## Google - Sign-in **and** Calendar (one OAuth client covers both)
 
 [Google Cloud Console](https://console.cloud.google.com) → create/select a project.
 
@@ -32,8 +32,8 @@ docker compose $FILES up -d --build web
    and email/profile scopes; add yourself as a Test user (or Publish).
 3. **Credentials → Create credentials → OAuth client ID → Web application.** Add
    **both** authorized redirect URIs:
-   - `https://dayotter.com/api/auth/callback/google` — sign-in
-   - `https://dayotter.com/api/calendars/connect/google/callback` — calendar connect
+   - `https://dayotter.com/api/auth/callback/google` - sign-in
+   - `https://dayotter.com/api/calendars/connect/google/callback` - calendar connect
 
 ```ini
 GOOGLE_CLIENT_ID=<client id>

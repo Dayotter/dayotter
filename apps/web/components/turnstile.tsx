@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
-/** Whether captcha is enabled — the booking form uses this to gate submit. */
+/** Whether captcha is enabled - the booking form uses this to gate submit. */
 export const captchaEnabled = Boolean(SITE_KEY);
 
 interface TurnstileApi {

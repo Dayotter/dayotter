@@ -158,7 +158,7 @@ export default async function CalendarsPage({
         </CardBody>
       </Card>
 
-      {/* Video conferencing (Zoom) — only when configured on this server. */}
+      {/* Video conferencing (Zoom) - only when configured on this server. */}
       {zoomEnabled ? (
         <Card className="mt-6">
           <CardHeader

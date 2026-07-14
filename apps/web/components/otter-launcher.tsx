@@ -5,7 +5,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 /**
- * The primary way to reach Otter — a floating otter button on every app page
+ * The primary way to reach Otter - a floating otter button on every app page
  * that opens the assistant in a slide-over (right drawer on desktop, bottom
  * sheet on mobile). Talk or type; Otter does the scheduling. Rendered globally
  * from the app layout, gated on `aiEnabled`.

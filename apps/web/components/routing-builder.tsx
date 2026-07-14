@@ -151,7 +151,7 @@ export function RoutingBuilder({
 
       {noEventTypes ? (
         <p className="rounded-[var(--radius-lg)] border border-[var(--color-amber)]/40 bg-[var(--color-amber)]/[0.08] px-4 py-3 text-sm text-[var(--color-amber)]">
-          Create at least one booking type first — routes send people to a booking page.
+          Create at least one booking type first - routes send people to a booking page.
         </p>
       ) : null}
 
@@ -265,7 +265,7 @@ export function RoutingBuilder({
       <section className="space-y-3">
         <h2 className="text-sm font-semibold">Where answers go</h2>
         <p className="-mt-1 text-xs text-[var(--color-faint)]">
-          Checked top to bottom — the first rule that matches wins.
+          Checked top to bottom - the first rule that matches wins.
         </p>
         {routes.map((r) => {
           const field = selectFields.find((f) => f.id === r.fieldId);
@@ -349,7 +349,7 @@ export function RoutingBuilder({
           <Label htmlFor="rf-fallback">Otherwise, send everyone to</Label>
           <div className="max-w-sm">
             <Select id="rf-fallback" value={fallback} onChange={(e) => setFallback(e.target.value)}>
-              <option value="">No default — show a thank-you</option>
+              <option value="">No default - show a thank-you</option>
               {eventTypes.map((et) => (
                 <option key={et.id} value={et.id}>
                   {et.title}

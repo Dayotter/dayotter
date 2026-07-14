@@ -14,7 +14,7 @@ const body = z.object({ text: z.string().min(1).max(500) });
 export const POST = withUser(async (u, request) => {
   if (!aiEnabled) return jsonError("AI scheduling isn't enabled on this server.", 503);
 
-  // LLM calls cost money — throttle per user.
+  // LLM calls cost money - throttle per user.
   const limited = await enforceRateLimit(request, {
     name: "ai-schedule",
     limit: 20,

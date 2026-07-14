@@ -32,7 +32,7 @@ export default async function BillingPage() {
   const session = await getSession();
   const userId = session!.user!.id;
 
-  // Self-hosted: no billing — everything is unlocked.
+  // Self-hosted: no billing - everything is unlocked.
   if (!isCloud) {
     return (
       <div>
@@ -40,7 +40,7 @@ export default async function BillingPage() {
         <Card className="max-w-2xl">
           <CardBody className="space-y-4 p-6">
             <div className="flex items-center gap-2 font-medium">
-              <Heart size={16} className="text-[var(--color-accent)]" /> Self-hosted — everything
+              <Heart size={16} className="text-[var(--color-accent)]" /> Self-hosted - everything
               unlocked
             </div>
             <p className="text-sm text-[var(--color-muted)]">

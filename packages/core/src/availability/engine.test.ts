@@ -80,7 +80,7 @@ describe("computeAvailability", () => {
   });
 });
 
-describe("computeAvailability — constraints", () => {
+describe("computeAvailability - constraints", () => {
   it("applies bufferBefore (guards the lead-in of a slot)", () => {
     // Busy 10:00–10:30 EST (15:00–15:30Z). Without a buffer the 10:30 slot is free.
     const busy = [
@@ -192,7 +192,7 @@ describe("timezone / DST correctness", () => {
   it("keeps 09:00 local after DST (EDT, UTC-4)", () => {
     // Mon 2026-03-09, New York midnight == 04:00Z (clocks sprang forward).
     const slots = computeAvailability(singleDay("2026-03-09T04:00:00Z", "2026-03-10T04:00:00Z"));
-    // Correct engine: 09:00 EDT == 13:00Z (NOT 14:00Z — that would be the naive bug).
+    // Correct engine: 09:00 EDT == 13:00Z (NOT 14:00Z - that would be the naive bug).
     expect(slots[0]!.start.toISOString()).toBe("2026-03-09T13:00:00.000Z");
   });
 });

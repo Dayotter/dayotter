@@ -22,7 +22,7 @@ export default function SignUpPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    // Field-level validation before hitting the API — clearer, faster feedback.
+    // Field-level validation before hitting the API - clearer, faster feedback.
     if (password.length < 8) {
       setPasswordError("Use at least 8 characters.");
       return;

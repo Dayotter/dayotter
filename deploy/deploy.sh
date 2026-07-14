@@ -4,7 +4,7 @@
 #
 # Why this exists: `docker compose up -d` REUSES the already-completed one-shot
 # `migrate` container instead of re-running it, so a plain redeploy can start new
-# app code against an un-migrated database — 500s everywhere. This script always
+# app code against an un-migrated database - 500s everywhere. This script always
 # runs `run --rm migrate` (a fresh one-shot) before starting the app, so pending
 # migrations are guaranteed to apply. If a migration fails, the script stops
 # before touching the running app.

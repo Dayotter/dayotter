@@ -3,7 +3,7 @@ import { and, eq, getDb, inArray, schema } from "@dayotter/db";
 import { cancelReminder, scheduleReminder } from "@dayotter/jobs";
 
 /**
- * The reminder lead times (minutes before the event) to use for a host — their
+ * The reminder lead times (minutes before the event) to use for a host - their
  * saved preference, or the product default. This is the wiring that makes the
  * Preferences → "Default reminders" setting actually affect bookings.
  */
@@ -144,7 +144,7 @@ export async function scheduleWorkflowMessages(
 
 /**
  * Proactive overflow guard (#1): schedule a check at the meeting's scheduled END
- * so that — if a back-to-back meeting follows — the host's next attendees get a
+ * so that - if a back-to-back meeting follows - the host's next attendees get a
  * "running a few minutes behind" heads-up automatically, the way an EA would.
  * The worker re-checks the host's opt-in and whether a next meeting actually
  * exists at fire time, so this is safe to schedule for every booking.

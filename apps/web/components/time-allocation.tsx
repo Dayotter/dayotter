@@ -57,7 +57,7 @@ function Breakdown({ metric }: { metric: BreakdownResult }) {
 }
 
 /**
- * "Where your time goes" — renders the time-allocation metrics generically, so
+ * "Where your time goes" - renders the time-allocation metrics generically, so
  * any new metric (lib/analytics/time-allocation) shows up with no UI change.
  */
 export function TimeAllocation() {

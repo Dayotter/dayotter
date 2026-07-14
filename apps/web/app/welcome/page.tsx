@@ -10,7 +10,7 @@ const SLIDES = [
   {
     img: "/brand/illustrations/otter-plan.png",
     title: "Welcome to DayOtter",
-    body: "The calm home for your time — scheduling that respects every calendar you own.",
+    body: "The calm home for your time - scheduling that respects every calendar you own.",
   },
   {
     img: "/brand/illustrations/otter-agenda.png",
@@ -20,7 +20,7 @@ const SLIDES = [
   {
     img: "/brand/illustrations/otter-relax.png",
     title: "Protect your calm",
-    body: "Buffers, focus blocks, and gentle reminders keep your day yours — not your calendar's.",
+    body: "Buffers, focus blocks, and gentle reminders keep your day yours - not your calendar's.",
   },
   {
     img: "/brand/illustrations/otter-remind.png",

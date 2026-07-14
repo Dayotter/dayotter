@@ -6,7 +6,7 @@ export default function ProcessingPage() {
       </div>
       <h1 className="font-display mt-5 text-2xl">Payment received</h1>
       <p className="mt-2 text-sm text-[var(--color-muted)]">
-        We're confirming your booking now — a confirmation email with the details is on its way. You
+        We're confirming your booking now - a confirmation email with the details is on its way. You
         can safely close this page.
       </p>
     </main>

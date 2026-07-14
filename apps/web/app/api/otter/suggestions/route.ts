@@ -25,7 +25,7 @@ const actSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("enable_briefing") }),
 ]);
 
-/** Act on a suggestion (confirm-first — always from an explicit user tap). */
+/** Act on a suggestion (confirm-first - always from an explicit user tap). */
 export const POST = withUser(async (u, request) => {
   const parsed = actSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Unknown suggestion", 400);
@@ -60,7 +60,7 @@ export const POST = withUser(async (u, request) => {
       return NextResponse.json({ ok: true, message: "Focus time held." });
     }
 
-    // Preference toggles — upsert so a user without a prefs row still works.
+    // Preference toggles - upsert so a user without a prefs row still works.
     const set =
       d.type === "enable_overflow"
         ? { overflowNotifyEnabled: true }

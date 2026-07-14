@@ -17,13 +17,13 @@ function parseHM(v: string | null): { hour: number; minute: number } | null {
 }
 
 /**
- * Automation Engine — time-based (weekly) triggers. For each enabled `weekly`
+ * Automation Engine - time-based (weekly) triggers. For each enabled `weekly`
  * rule, reserve its recurring window as a `focus` time_block on every matching
  * weekday within the horizon, in the host's timezone. Idempotent: skips any
  * occurrence that already has a block starting at that instant, so it's safe to
  * run on every maintenance tick.
  *
- * Composes the Planning Engine (time_blocks) — the availability engine already
+ * Composes the Planning Engine (time_blocks) - the availability engine already
  * treats those as busy, so "every Friday, block the afternoon" just works.
  */
 export async function materializeWeeklyBlocks(now = new Date()): Promise<number> {

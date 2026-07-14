@@ -1,6 +1,6 @@
 /**
  * Lightweight i18n for the public booking surface. The booker sees the whole
- * booking flow — time selection AND the attendee form — in their own language
+ * booking flow - time selection AND the attendee form - in their own language
  * and locale date formats.
  *
  * Deliberately small and dependency-free: a complete message dictionary per
@@ -63,8 +63,8 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     overlayApply: "Overlay",
     overlayReading: "Reading…",
     overlayClear: "Clear",
-    overlaySummaryOne: "Overlaid 1 commitment — greyed times clash with your calendar.",
-    overlaySummaryMany: "Overlaid {n} commitments — greyed times clash with your calendar.",
+    overlaySummaryOne: "Overlaid 1 commitment - greyed times clash with your calendar.",
+    overlaySummaryMany: "Overlaid {n} commitments - greyed times clash with your calendar.",
     loading: "Loading availability…",
     noTimes: "No times available in the next two weeks.",
     busyTooltip: "You have something on your calendar then",
@@ -100,9 +100,9 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     overlayApply: "Superponer",
     overlayReading: "Leyendo…",
     overlayClear: "Borrar",
-    overlaySummaryOne: "Se superpuso 1 compromiso — las horas atenuadas chocan con tu calendario.",
+    overlaySummaryOne: "Se superpuso 1 compromiso - las horas atenuadas chocan con tu calendario.",
     overlaySummaryMany:
-      "Se superpusieron {n} compromisos — las horas atenuadas chocan con tu calendario.",
+      "Se superpusieron {n} compromisos - las horas atenuadas chocan con tu calendario.",
     loading: "Cargando disponibilidad…",
     noTimes: "No hay horas disponibles en las próximas dos semanas.",
     busyTooltip: "Tienes algo en tu calendario a esa hora",
@@ -139,9 +139,9 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     overlayReading: "Lecture…",
     overlayClear: "Effacer",
     overlaySummaryOne:
-      "1 engagement superposé — les horaires grisés entrent en conflit avec votre agenda.",
+      "1 engagement superposé - les horaires grisés entrent en conflit avec votre agenda.",
     overlaySummaryMany:
-      "{n} engagements superposés — les horaires grisés entrent en conflit avec votre agenda.",
+      "{n} engagements superposés - les horaires grisés entrent en conflit avec votre agenda.",
     loading: "Chargement des disponibilités…",
     noTimes: "Aucun horaire disponible dans les deux prochaines semaines.",
     busyTooltip: "Vous avez déjà quelque chose à cet horaire",
@@ -178,9 +178,9 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     overlayReading: "Lädt…",
     overlayClear: "Löschen",
     overlaySummaryOne:
-      "1 Termin eingeblendet — ausgegraute Zeiten kollidieren mit deinem Kalender.",
+      "1 Termin eingeblendet - ausgegraute Zeiten kollidieren mit deinem Kalender.",
     overlaySummaryMany:
-      "{n} Termine eingeblendet — ausgegraute Zeiten kollidieren mit deinem Kalender.",
+      "{n} Termine eingeblendet - ausgegraute Zeiten kollidieren mit deinem Kalender.",
     loading: "Verfügbarkeit wird geladen…",
     noTimes: "In den nächsten zwei Wochen sind keine Zeiten verfügbar.",
     busyTooltip: "Du hast zu dieser Zeit bereits etwas im Kalender",
@@ -217,9 +217,9 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
     overlayReading: "Lendo…",
     overlayClear: "Limpar",
     overlaySummaryOne:
-      "1 compromisso sobreposto — horários esmaecidos conflitam com seu calendário.",
+      "1 compromisso sobreposto - horários esmaecidos conflitam com seu calendário.",
     overlaySummaryMany:
-      "{n} compromissos sobrepostos — horários esmaecidos conflitam com seu calendário.",
+      "{n} compromissos sobrepostos - horários esmaecidos conflitam com seu calendário.",
     loading: "Carregando disponibilidade…",
     noTimes: "Nenhum horário disponível nas próximas duas semanas.",
     busyTooltip: "Você já tem algo no calendário nesse horário",

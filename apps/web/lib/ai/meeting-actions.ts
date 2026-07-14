@@ -7,7 +7,7 @@ const replySchema = z.object({
 });
 export type MeetingReply = z.infer<typeof replySchema>;
 
-const SYSTEM = `You help a meeting host write a short, polite message to send to the other attendees, about ONE specific upcoming meeting. Your scope is STRICTLY that meeting and scheduling — rescheduling, running late, confirming, keeping it short, or a brief scheduling-relevant note. You do NOT write general emails, marketing, long messages, or anything off-topic.
+const SYSTEM = `You help a meeting host write a short, polite message to send to the other attendees, about ONE specific upcoming meeting. Your scope is STRICTLY that meeting and scheduling - rescheduling, running late, confirming, keeping it short, or a brief scheduling-relevant note. You do NOT write general emails, marketing, long messages, or anything off-topic.
 
 Given the meeting details and the host's instruction, draft the message via the draft_reply tool:
 - understood: true if the instruction is an in-scope, meeting-related message you can draft; false otherwise.
@@ -27,7 +27,7 @@ const INPUT_SCHEMA = {
 
 /**
  * Draft a meeting-scoped reply from the host to the attendees. Confirm-first:
- * this only drafts — it never sends. Goes through the shared LLM layer.
+ * this only drafts - it never sends. Goes through the shared LLM layer.
  */
 export function draftMeetingReply(params: {
   meeting: { title: string; whenText: string; hostName: string; attendeeName: string };

@@ -4,7 +4,7 @@ import { DateTime } from "luxon";
 const DAYS = 7;
 
 /**
- * Shared team calendar — a 7-day grid (members × days) showing when each member
+ * Shared team calendar - a 7-day grid (members × days) showing when each member
  * is busy, rendered in the viewer's timezone. Read-only; horizontally scrollable
  * on small screens. This is the "see everyone's schedule" wedge view.
  */
@@ -69,7 +69,7 @@ export function TeamScheduleView({
                 return (
                   <td key={d.toISODate()} className="px-2 py-3">
                     {blocks.length === 0 ? (
-                      <span className="text-xs text-[var(--color-faint)]">—</span>
+                      <span className="text-xs text-[var(--color-faint)]">-</span>
                     ) : (
                       <div className="space-y-1">
                         {blocks.slice(0, 4).map((iv, i) => (

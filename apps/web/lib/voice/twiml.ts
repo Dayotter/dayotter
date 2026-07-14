@@ -9,7 +9,7 @@ function esc(s: string): string {
 
 const VOICE = 'voice="Polly.Joanna-Neural"';
 
-/** Scheduling words we bias the recognizer toward — improves phone accuracy. */
+/** Scheduling words we bias the recognizer toward - improves phone accuracy. */
 const SPEECH_HINTS =
   "book, appointment, reschedule, cancel, availability, hours, meeting, consultation, price, times";
 

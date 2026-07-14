@@ -1,7 +1,7 @@
 import { isCloud } from "../billing/edition";
 
 /**
- * Managed AI — cloud-only. DayOtter Cloud runs the AI features with DayOtter's own
+ * Managed AI - cloud-only. DayOtter Cloud runs the AI features with DayOtter's own
  * Anthropic key so Pro customers don't configure their own. Self-hosters bring
  * their own `ANTHROPIC_API_KEY` (the AI *code* is open source; the managed key +
  * credits are the commercial part).

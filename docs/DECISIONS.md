@@ -1,4 +1,4 @@
-# dayotter — Architecture Decisions
+# dayotter - Architecture Decisions
 
 Load-bearing principles. Violating these gets expensive to undo, so they're
 recorded here and enforced in review.
@@ -10,7 +10,7 @@ disagree, and a naive comparison books the wrong hour.
 
 Rules:
 - **Store every instant in UTC** (`timestamptz`). A `Date`/`timestamptz` is always
-  an absolute instant — never a wall-clock time.
+  an absolute instant - never a wall-clock time.
 - **Wall-clock values always carry an explicit IANA timezone.** Availability
   windows ("09:00") are stored as `time` + the schedule's `timezone`; they are
   only ever resolved to an instant *through Luxon with that zone*.
@@ -22,7 +22,7 @@ Rules:
 - **DST is covered by tests** (`engine.test.ts` → "timezone / DST correctness").
   Any change to slot math must keep those green.
 
-## 2. API-first — web and mobile are peer clients
+## 2. API-first - web and mobile are peer clients
 
 Android and iOS apps are coming. So:
 - **All domain logic lives in `packages/*`, never in `apps/web`.** The Next.js app
@@ -31,12 +31,12 @@ Android and iOS apps are coming. So:
   that both the web app and the mobile apps consume. tRPC may be used internally,
   but the mobile-facing contract is REST/OpenAPI.
 - **Auth is token-based** (bearer/JWT + refresh) so native apps authenticate the
-  same way the web does — not cookie-only.
+  same way the web does - not cookie-only.
 - Shared DTOs/validation (Zod) live in a package so a future `apps/mobile`
   (React Native / Expo) reuses them. Push tokens are a notification channel
   (`notification_channels.type = 'push'`), not a web afterthought.
 
-## 3. AI scope — scheduling only, confirm-first
+## 3. AI scope - scheduling only, confirm-first
 
 We add AI, but **strictly within calendar & scheduling**. In scope:
 - Natural-language scheduling: "schedule a call with mom Friday afternoon",
@@ -65,7 +65,7 @@ The AI never silently mutates the calendar.
 
 ## 5. Reminders are part of scheduling, and multi-channel
 
-Reminders are not a separate product area — they live inside the scheduling
+Reminders are not a separate product area - they live inside the scheduling
 domain (`workflows` + `scheduled_reminders`). Delivery is **channel-agnostic**:
 the worker resolves a user's enabled `notification_channels`
 (email / push / WhatsApp / Slack / SMS) at send time and fans out per preference.

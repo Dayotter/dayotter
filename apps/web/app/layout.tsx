@@ -7,19 +7,19 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 
-// Geist (Vercel) — a clean, modern grotesque sans used across professional
+// Geist (Vercel) - a clean, modern grotesque sans used across professional
 // software products. One family carries body + headings; Geist Mono handles the
 // small uppercase eyebrow labels. Self-hosted via the `geist` package (no runtime
 // network request).
 
 const DESCRIPTION =
-  "DayOtter is the AI-native, open-source scheduling platform. Otter books meetings, protects your focus, and clears the back-and-forth — confirm-first. Sync every calendar, run your team, self-host it all under AGPLv3.";
+  "DayOtter is the AI-native, open-source scheduling platform. Otter books meetings, protects your focus, and clears the back-and-forth - confirm-first. Sync every calendar, run your team, self-host it all under AGPLv3.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND.url),
   title: {
-    default: "DayOtter — the AI-native, open-source scheduling platform",
-    template: "%s — DayOtter",
+    default: "DayOtter - the AI-native, open-source scheduling platform",
+    template: "%s - DayOtter",
   },
   description: DESCRIPTION,
   applicationName: BRAND.name,
@@ -43,14 +43,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: BRAND.name,
-    title: "DayOtter — the AI-native, open-source scheduling platform",
+    title: "DayOtter - the AI-native, open-source scheduling platform",
     description: DESCRIPTION,
     url: BRAND.url,
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DayOtter — the AI-native, open-source scheduling platform",
+    title: "DayOtter - the AI-native, open-source scheduling platform",
     description: DESCRIPTION,
     creator: "@dayotter",
   },

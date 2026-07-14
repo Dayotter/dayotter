@@ -118,7 +118,7 @@ export default function DeveloperScreen() {
         <Text style={styles.hint}>Bearer auth for the REST API (base /api/v1).</Text>
         {newKeySecret ? (
           <SecretReveal
-            label="Copy your key now — it won't be shown again."
+            label="Copy your key now - it won't be shown again."
             value={newKeySecret}
             onDone={() => setNewKeySecret(null)}
           />
@@ -165,7 +165,7 @@ export default function DeveloperScreen() {
         <Text style={styles.hint}>Signed POST on booking.created / cancelled / rescheduled.</Text>
         {newHookSecret ? (
           <SecretReveal
-            label="Signing secret — copy it now, it won't be shown again."
+            label="Signing secret - copy it now, it won't be shown again."
             value={newHookSecret}
             onDone={() => setNewHookSecret(null)}
           />

@@ -64,7 +64,7 @@ Rules:
 - Event types: you are given the user's event types (title + default duration). If a create request clearly matches one (e.g. "book a sync" → the "Sync" type), set eventTypeSlug to its slug and use that type's default duration. Otherwise eventTypeSlug = "" and default durationMinutes to 30 (meeting) / 60 (focus).
 - For reschedule/cancel: set bookingRef to the exact ref of the intended booking. If several bookings could match and you can't tell, use intent "none" and ask which one in message.
 - bookingRef must be 0 for create/none.
-- message: for "none", one short sentence — either that you only help with scheduling, or a clarifying question naming the ambiguous options. Otherwise empty.`;
+- message: for "none", one short sentence - either that you only help with scheduling, or a clarifying question naming the ambiguous options. Otherwise empty.`;
 
 export const commandInputSchema = {
   type: "object",
@@ -130,7 +130,7 @@ export function buildCommandUser(params: {
     ? params.bookings
         .map(
           (b) =>
-            `#${b.ref}: "${b.title}" — ${b.whenLocal}${b.attendees.length ? ` (with ${b.attendees.join(", ")})` : ""}`,
+            `#${b.ref}: "${b.title}" - ${b.whenLocal}${b.attendees.length ? ` (with ${b.attendees.join(", ")})` : ""}`,
         )
         .join("\n")
     : "(none)";
@@ -152,7 +152,7 @@ Request: ${params.text}`;
 }
 
 /**
- * Parse a natural-language command into an editable draft — create, reschedule,
+ * Parse a natural-language command into an editable draft - create, reschedule,
  * or cancel. Confirm-first: only interprets, never writes. Goes through the
  * shared LLM layer. For requests that need real availability, use the agentic
  * loop (`runSchedulingAgent`) instead.

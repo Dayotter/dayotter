@@ -13,7 +13,7 @@ export interface TimeDataset {
   focusBlocks: { start: Date; end: Date }[];
 }
 
-/** A single headline number, e.g. "Meeting load — 12h / week". */
+/** A single headline number, e.g. "Meeting load - 12h / week". */
 export interface StatResult {
   key: string;
   kind: "stat";

@@ -7,10 +7,10 @@ const sum = (arr: { start: Date; end: Date }[]) => arr.reduce((s, b) => s + minu
 /**
  * The "where your time goes" metrics. Each reads the shared dataset and returns
  * one card, or null when there isn't enough to say. To add an insight, append a
- * TimeMetric here — the API and UI pick it up automatically.
+ * TimeMetric here - the API and UI pick it up automatically.
  */
 export const METRICS: TimeMetric[] = [
-  // Meeting time vs. focus time held — the core balance.
+  // Meeting time vs. focus time held - the core balance.
   {
     key: "meeting_focus_balance",
     compute(d: TimeDataset): MetricResult | null {

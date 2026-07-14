@@ -2,7 +2,7 @@ import { View } from "react-native";
 import Logo from "../../assets/dayotter-icon.svg";
 
 /**
- * The DayOtter otter mark for the mobile app — renders the shared icon SVG,
+ * The DayOtter otter mark for the mobile app - renders the shared icon SVG,
  * cropped so the rounded tile fills the box (matches the web BrandMark).
  */
 export function BrandMark({ size = 22 }: { size?: number }) {

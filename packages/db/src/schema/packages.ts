@@ -5,7 +5,7 @@ import { organizations } from "./orgs";
 import { eventTypes } from "./scheduling";
 
 /**
- * A prepaid bundle a host sells against an event type — e.g. "5 coaching
+ * A prepaid bundle a host sells against an event type - e.g. "5 coaching
  * sessions". Buying it grants the client a `package_credits` balance; each
  * booking of the event type spends one credit.
  */
@@ -50,7 +50,7 @@ export const packageCredits = pgTable(
     clientEmail: text("client_email").notNull(),
     totalCredits: integer("total_credits").notNull(),
     usedCredits: integer("used_credits").notNull().default(0),
-    /** Stripe payment intent that funded this grant — dedupes webhook retries. */
+    /** Stripe payment intent that funded this grant - dedupes webhook retries. */
     stripePaymentIntentId: text("stripe_payment_intent_id"),
     ...timestamps,
   },

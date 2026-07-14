@@ -9,7 +9,7 @@ import { MessageSquare, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 /**
- * AI meeting assistant — the host describes what to say about a meeting, the AI
+ * AI meeting assistant - the host describes what to say about a meeting, the AI
  * drafts a short message, and the host reviews/edits before sending. Confirm-
  * first: nothing is sent until the host clicks Send.
  */
@@ -85,7 +85,7 @@ export function MeetingAssistant({ uid, title }: { uid: string; title: string })
         <div className="mb-3 flex items-center gap-2">
           <MessageSquare size={15} className="text-[var(--color-accent)]" />
           <p className="text-sm font-medium">Message attendees of "{title}"</p>
-          <span className="text-xs text-[var(--color-faint)]">— you review before it sends</span>
+          <span className="text-xs text-[var(--color-faint)]">- you review before it sends</span>
         </div>
 
         <form onSubmit={draft} className="flex gap-2">

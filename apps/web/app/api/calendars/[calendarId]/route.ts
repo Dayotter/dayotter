@@ -26,7 +26,7 @@ async function ownedCalendar(userId: string, calendarId: string) {
  * Manage a single calendar: rename, toggle whether it blocks availability
  * (checkForConflicts), hide it from lists, or make it the booking write target.
  * A read-only source (ICS feed) can never be a booking target, and there is a
- * single global booking target — setting one clears the rest.
+ * single global booking target - setting one clears the rest.
  */
 export const PATCH = withUser(
   async (user, request, ctx: { params: Promise<{ calendarId: string }> }) => {

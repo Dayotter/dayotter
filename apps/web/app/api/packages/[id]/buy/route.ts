@@ -10,7 +10,7 @@ const bodySchema = z.object({ clientEmail: z.string().email() });
 
 /**
  * Buy a session package. Creates a Stripe Checkout session; on payment the
- * webhook grants the client their credits (see webhooks/stripe). Public — a
+ * webhook grants the client their credits (see webhooks/stripe). Public - a
  * client purchases against a host's public package.
  */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -29,7 +29,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const session = await createCheckoutSession({
     amount: pkg.priceAmount,
     currency: pkg.currency,
-    productName: `${pkg.name} — ${pkg.sessionCount} sessions`,
+    productName: `${pkg.name} - ${pkg.sessionCount} sessions`,
     successUrl: `${appUrl}/packages/thanks`,
     cancelUrl: `${appUrl}`,
     customerEmail: parsed.data.clientEmail,

@@ -7,7 +7,7 @@ import { logger } from "@dayotter/core";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
-// Streaming needs the Node runtime (not edge) — the Anthropic SDK + DB access.
+// Streaming needs the Node runtime (not edge) - the Anthropic SDK + DB access.
 export const runtime = "nodejs";
 
 const body = z.object({
@@ -24,7 +24,7 @@ const body = z.object({
 });
 
 /**
- * Conversational scheduling assistant — streams the reply token-by-token over
+ * Conversational scheduling assistant - streams the reply token-by-token over
  * SSE, and emits a confirm-first `action` event when it proposes a calendar
  * change. Read-only: it never writes; the client confirms via the write
  * endpoints. Reuses the same AI layer + retrieval as the quick-add command bar.

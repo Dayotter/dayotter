@@ -21,13 +21,13 @@ export default async function TeamsPage() {
       <PageHeader
         eyebrow="Collaborate"
         title="Teams"
-        description="Shared availability for your whole raft — every founder and teammate's free time in one place."
+        description="Shared availability for your whole raft - every founder and teammate's free time in one place."
         action={<CreateTeamButton />}
       />
       {teams.length === 0 ? (
         <EmptyState
           title="No teams yet"
-          description="Create a team to find times you're all free — collective and round-robin scheduling, no paywall."
+          description="Create a team to find times you're all free - collective and round-robin scheduling, no paywall."
           action={<CreateTeamButton />}
         />
       ) : (

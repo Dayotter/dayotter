@@ -12,7 +12,7 @@ import { useState } from "react";
 const phoneAuthEnabled = process.env.NEXT_PUBLIC_PHONE_AUTH === "1";
 
 /**
- * "Ask Otter by text" — register/verify the phone number that inbound WhatsApp/
+ * "Ask Otter by text" - register/verify the phone number that inbound WhatsApp/
  * SMS messages are matched to (users.phone_number). Verifying uses the same OTP
  * flow as phone sign-in; on an active session it attaches the number to this
  * account.
@@ -74,7 +74,7 @@ export function OtterTextPanel({
           <h2 className="text-lg font-semibold">Ask Otter by text</h2>
         </div>
         <p className="mt-1.5 text-sm text-[var(--color-muted)]">
-          Text Otter to book, reschedule, or check your day over WhatsApp and SMS — confirm-first,
+          Text Otter to book, reschedule, or check your day over WhatsApp and SMS - confirm-first,
           just like in the app.
         </p>
 

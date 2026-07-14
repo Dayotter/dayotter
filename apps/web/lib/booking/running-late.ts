@@ -10,7 +10,7 @@ const OVERFLOW_WINDOW_MS = 90 * 60_000;
 
 /**
  * The overflow "running late" nudge: notify a booking's attendees that the host
- * is running late. Host-only. No provider calls — purely off our own bookings.
+ * is running late. Host-only. No provider calls - purely off our own bookings.
  */
 export async function notifyRunningLate(
   uid: string,

@@ -8,11 +8,11 @@ const triageSchema = z.object({
 });
 export type InviteTriage = z.infer<typeof triageSchema>;
 
-const SYSTEM = `You help a user triage a single calendar invitation. Based only on the meeting details and whether it conflicts with their existing schedule, suggest whether to accept, decline, or tentatively accept. Stay strictly within scheduling — no other advice.
+const SYSTEM = `You help a user triage a single calendar invitation. Based only on the meeting details and whether it conflicts with their existing schedule, suggest whether to accept, decline, or tentatively accept. Stay strictly within scheduling - no other advice.
 - First, in "reasoning", note the key factor (conflict? routine?) in one short sentence.
 - If it conflicts with an existing commitment, lean toward "declined" or "tentative".
 - If the time is free and the meeting looks routine, "accepted".
-You only ADVISE — the user makes the final call and clicks the action themselves.`;
+You only ADVISE - the user makes the final call and clicks the action themselves.`;
 
 const INPUT_SCHEMA = {
   type: "object",
@@ -27,7 +27,7 @@ const INPUT_SCHEMA = {
   required: ["reasoning", "suggestion"],
 };
 
-/** Suggest how to respond to one invitation. Advisory only — goes through the shared LLM layer. */
+/** Suggest how to respond to one invitation. Advisory only - goes through the shared LLM layer. */
 export function suggestInviteResponse(params: {
   title: string;
   whenText: string;

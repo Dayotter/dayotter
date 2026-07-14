@@ -32,7 +32,7 @@ const SUGGEST_LABEL: Record<Response, string> = {
 
 /**
  * Pending calendar invitations with accept / decline / tentative actions and an
- * optional AI suggestion. The AI only advises — the user clicks the action.
+ * optional AI suggestion. The AI only advises - the user clicks the action.
  */
 export function PendingInvites({ aiEnabled }: { aiEnabled: boolean }) {
   const [invites, setInvites] = useState<Invite[] | null>(null);
@@ -202,7 +202,7 @@ export function PendingInvites({ aiEnabled }: { aiEnabled: boolean }) {
 
               {s ? (
                 <p className="mt-2 rounded-sm bg-[var(--color-accent-soft)] px-3 py-2 text-xs text-[var(--color-accent)]">
-                  AI suggests <strong>{SUGGEST_LABEL[s.suggestion]}</strong> — {s.reasoning}
+                  AI suggests <strong>{SUGGEST_LABEL[s.suggestion]}</strong> - {s.reasoning}
                 </p>
               ) : null}
 

@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       limit: 10,
       with: { attendees: true, eventType: { columns: { color: true } } },
     }),
-    // A meeting happening right now (started, not yet ended) — the overflow case.
+    // A meeting happening right now (started, not yet ended) - the overflow case.
     db.query.bookings.findFirst({
       where: and(
         eq(schema.bookings.hostId, userId),
@@ -64,7 +64,7 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  // Setup progress — drives the "get bookable" checklist for new accounts.
+  // Setup progress - drives the "get bookable" checklist for new accounts.
   const [conns, defaultSchedule, activeEvents] = await Promise.all([
     db.query.calendarConnections.findMany({
       where: eq(schema.calendarConnections.userId, userId),
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
   const hasEventType = activeEvents.length > 0;
   const setupComplete = hasCalendar && hasHours && hasEventType;
 
-  // Glance stats — cheap, personal counts (not the Pro analytics). One query for
+  // Glance stats - cheap, personal counts (not the Pro analytics). One query for
   // this week + today + the 30-day horizon, bucketed in the user's timezone.
   const zoneNow = DateTime.now().setZone(tz);
   const weekStart = zoneNow.startOf("week");
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
     next.startsAt.getTime() > inProgress.endsAt.getTime() &&
     next.startsAt.getTime() - inProgress.endsAt.getTime() < 90 * 60_000;
   // Show the "running late" nudge when the next meeting is about to start (or just
-  // did) — the window where you'd realistically be running behind.
+  // did) - the window where you'd realistically be running behind.
   const nextIsImminent = next
     ? next.startsAt.getTime() - Date.now() < 20 * 60_000 &&
       next.startsAt.getTime() - Date.now() > -30 * 60_000
@@ -200,7 +200,7 @@ export default async function DashboardPage() {
               </p>
               <p className="mt-1 truncate font-display text-xl">{linkDisplay}</p>
               <p className="mt-0.5 text-sm text-[var(--color-muted)]">
-                Share it and people pick a time you're free — no back-and-forth.
+                Share it and people pick a time you're free - no back-and-forth.
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">

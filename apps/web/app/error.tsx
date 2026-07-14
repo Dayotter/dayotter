@@ -25,7 +25,7 @@ export default function Error({
       />
       <h1 className="font-display text-4xl tracking-tight sm:text-5xl">Something slipped.</h1>
       <p className="mt-3 max-w-sm leading-relaxed text-[var(--color-muted)]">
-        An unexpected error washed up. The otter's on it — try again in a moment.
+        An unexpected error washed up. The otter's on it - try again in a moment.
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <button

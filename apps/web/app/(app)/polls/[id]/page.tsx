@@ -39,7 +39,7 @@ export default async function PollResultsPage({ params }: { params: Promise<{ id
         title={poll.title}
         description={
           poll.status === "finalized"
-            ? "Finalized — the time is on your calendar and everyone's been notified."
+            ? "Finalized - the time is on your calendar and everyone's been notified."
             : `${uniqueVoters} ${uniqueVoters === 1 ? "person has" : "people have"} voted so far.`
         }
       />

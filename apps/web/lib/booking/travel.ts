@@ -19,7 +19,7 @@ interface TravelContext {
  * availability engine already treats time_blocks as busy, so this stops the host
  * being offered back-to-back slots that leave no room to physically get there.
  *
- * Composes the Planning Engine (time_blocks) — no maps/geocoding. Best-effort:
+ * Composes the Planning Engine (time_blocks) - no maps/geocoding. Best-effort:
  * never blocks or fails the booking.
  */
 export async function reserveTravelBlocks(ctx: TravelContext): Promise<void> {
@@ -34,7 +34,7 @@ export async function reserveTravelBlocks(ctx: TravelContext): Promise<void> {
     if (mins <= 0) return;
 
     const ms = mins * 60_000;
-    const title = ctx.place ? `Travel — ${ctx.place}` : "Travel";
+    const title = ctx.place ? `Travel - ${ctx.place}` : "Travel";
     await db.insert(schema.timeBlocks).values([
       {
         userId: ctx.hostId,

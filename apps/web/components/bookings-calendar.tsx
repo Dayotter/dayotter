@@ -39,7 +39,7 @@ function localKey(iso: string, tz: string): string {
 }
 
 /**
- * Multi-view calendar for the host's bookings — Month / Week / Agenda, colour-coded
+ * Multi-view calendar for the host's bookings - Month / Week / Agenda, colour-coded
  * by event type, in the viewer's timezone. Fetches only the visible range.
  */
 export function BookingsCalendar({ tz }: { tz: string }) {
@@ -292,7 +292,7 @@ function WeekGrid({
             </div>
             <div className="space-y-1">
               {evs.length === 0 ? (
-                <p className="text-xs text-[var(--color-faint)]">—</p>
+                <p className="text-xs text-[var(--color-faint)]">-</p>
               ) : (
                 evs.map((b) => <EventChip key={b.uid} b={b} tz={tz} />)
               )}

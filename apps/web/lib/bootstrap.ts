@@ -22,7 +22,7 @@ async function uniqueValue(base: string, exists: (v: string) => Promise<boolean>
 /**
  * Ensure a user has the minimum workspace to schedule: a personal organization
  * + owner membership, a public booking handle, and a default 9–5 schedule.
- * Idempotent — safe to call before any create action.
+ * Idempotent - safe to call before any create action.
  */
 export async function ensureUserWorkspace(userId: string): Promise<{
   organizationId: string;

@@ -1,6 +1,6 @@
 # Self-host stack for dayotter.
 #
-#   Datastores only (local dev — run the app with `pnpm dev`):
+#   Datastores only (local dev - run the app with `pnpm dev`):
 #       docker compose up -d
 #
 #   Full stack (web + worker + datastores, for self-hosting):

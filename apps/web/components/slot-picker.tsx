@@ -31,7 +31,7 @@ export function SlotPicker({
   durationOptions?: number[];
   /** When booking through a single-use link, carried so the server consumes it. */
   linkToken?: string;
-  /** Event type is password-protected — gate the flow behind an access code. */
+  /** Event type is password-protected - gate the flow behind an access code. */
   requiresCode?: boolean;
 }) {
   const router = useRouter();

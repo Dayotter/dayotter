@@ -7,8 +7,8 @@ import { retrieveCalendarContext } from "./retrieval";
 /**
  * The single Otter "brain" for turning a natural-language scheduling request
  * into a confirm-first draft. Shared by every surface that isn't the streaming
- * chat — the web command bar (/api/ai/command), the mobile Ask bar, and inbound
- * WhatsApp/SMS — so they all interpret identically. The caller renders/executes
+ * chat - the web command bar (/api/ai/command), the mobile Ask bar, and inbound
+ * WhatsApp/SMS - so they all interpret identically. The caller renders/executes
  * the draft; this never writes.
  */
 

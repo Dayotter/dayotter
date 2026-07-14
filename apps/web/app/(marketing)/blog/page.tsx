@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Blog — DayOtter",
+  title: "Blog - DayOtter",
   description: "Notes on calendars, focus, and getting your time back.",
 };
 

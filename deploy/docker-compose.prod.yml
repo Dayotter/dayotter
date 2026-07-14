@@ -1,4 +1,4 @@
-# Production self-host stack for dayotter — everything behind one command.
+# Production self-host stack for dayotter - everything behind one command.
 #
 #   cd deploy && docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 #
@@ -29,7 +29,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # No published port — only reachable from the other containers.
+    # No published port - only reachable from the other containers.
 
   redis:
     image: redis:7-alpine
@@ -84,7 +84,7 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
-    # No published port — Caddy fronts it on the dayotter network.
+    # No published port - Caddy fronts it on the dayotter network.
 
   worker:
     build:

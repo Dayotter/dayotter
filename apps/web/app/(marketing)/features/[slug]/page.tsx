@@ -23,7 +23,7 @@ export async function generateMetadata({
     title: f.title,
     description: f.subtitle,
     alternates: { canonical: path },
-    openGraph: { title: `${f.title} — DayOtter`, description: f.subtitle, url: path },
+    openGraph: { title: `${f.title} - DayOtter`, description: f.subtitle, url: path },
   };
 }
 
@@ -95,7 +95,7 @@ export default async function FeaturePage({ params }: { params: Promise<{ slug: 
 
         <section className="mt-16 text-center">
           <Link href="/sign-up" className={buttonVariants({ variant: "primary", size: "lg" })}>
-            Start free — no credit card
+            Start free - no credit card
           </Link>
         </section>
 

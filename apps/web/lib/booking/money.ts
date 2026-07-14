@@ -1,4 +1,4 @@
-/** Currency + money helpers — client-safe (no Stripe SDK), shared by the form,
+/** Currency + money helpers - client-safe (no Stripe SDK), shared by the form,
  *  booking pages, and the server payment layer. */
 
 export const CURRENCIES = ["usd", "eur", "gbp", "cad", "aud", "inr"] as const;

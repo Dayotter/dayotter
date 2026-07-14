@@ -28,7 +28,7 @@ async function main(): Promise<void> {
       logger.info(`${name} worker ready`, { event: "worker_ready", worker: name }),
     );
     worker.on("failed", (job, err) => {
-      // Sync jobs carry rich context — surface it so an operator can see which
+      // Sync jobs carry rich context - surface it so an operator can see which
       // connection/provider/reason failed without cross-referencing job ids.
       const data = (job?.data ?? {}) as Partial<SyncJob>;
       logger.error(`${name} job failed`, {

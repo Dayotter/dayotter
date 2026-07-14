@@ -4,7 +4,7 @@ import { managedAnthropicKey } from "../ee/managed-ai";
 
 /**
  * The single LLM layer for the whole platform. Every AI feature goes through
- * here — no feature instantiates its own client, picks its own model, or hand-
+ * here - no feature instantiates its own client, picks its own model, or hand-
  * rolls its own request. This centralizes: model tiering, the API key gate,
  * structured-extraction mechanics (forced tool-use → validated object),
  * chain-of-thought, prompt caching, streaming, error handling, and logging.
@@ -18,14 +18,14 @@ import { managedAnthropicKey } from "../ee/managed-ai";
  */
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || managedAnthropicKey;
 
-/** AI is optional platform-wide — nothing calls out unless a key is available. */
+/** AI is optional platform-wide - nothing calls out unless a key is available. */
 export const aiEnabled = Boolean(ANTHROPIC_KEY);
 
 /**
  * Model tiers. Pick per task, not per feature:
- * - `deep` — highest quality, for genuine reasoning (planning a reschedule,
+ * - `deep` - highest quality, for genuine reasoning (planning a reschedule,
  *   resolving an ambiguous request, drafting a message).
- * - `fast` — low-latency + low-cost, for simple, well-bounded extraction or
+ * - `fast` - low-latency + low-cost, for simple, well-bounded extraction or
  *   classification (parse a date, pick accept/decline). "Fast inference."
  * Change the actual model string in exactly one place.
  */
@@ -44,7 +44,7 @@ function getClient(): Anthropic {
 /**
  * Build the `system` param. When cached, the (large, static) system prompt is
  * marked with `cache_control` so repeated calls with the same prompt read it
- * from cache — lower latency and ~10× cheaper on the cached prefix. Keep the
+ * from cache - lower latency and ~10× cheaper on the cached prefix. Keep the
  * system prompt static (no per-request timestamps) for the cache to hit.
  */
 function buildSystem(system: string, cache: boolean): string | Anthropic.TextBlockParam[] {
@@ -56,7 +56,7 @@ function buildSystem(system: string, cache: boolean): string | Anthropic.TextBlo
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 
 export interface ExtractOptions<T> {
-  /** System prompt — set the assistant's scope and rules here. Keep it static so it caches. */
+  /** System prompt - set the assistant's scope and rules here. Keep it static so it caches. */
   system: string;
   /** The user's request / the content to interpret. */
   user: string;
@@ -84,10 +84,10 @@ export interface ExtractOptions<T> {
  * validated object. Used by every AI feature that needs structured output.
  *
  * Chain-of-thought: on the deep tier this runs with adaptive thinking, so the
- * model reasons (internally) before producing the constrained JSON — better
+ * model reasons (internally) before producing the constrained JSON - better
  * results. Consumers may ALSO keep a leading `reasoning` field in the schema to
  * surface a short rationale (the raw thinking is not returned by default).
- * The fast tier (Haiku) omits thinking/effort — it doesn't support them.
+ * The fast tier (Haiku) omits thinking/effort - it doesn't support them.
  */
 export async function extract<T>(opts: ExtractOptions<T>): Promise<T> {
   const tier = opts.tier ?? "deep";
@@ -98,7 +98,7 @@ export async function extract<T>(opts: ExtractOptions<T>): Promise<T> {
   const response = await getClient().messages.create({
     model,
     // Adaptive thinking shares the budget with the output, so give the deep tier
-    // generous headroom above the small JSON — otherwise heavy reasoning on a
+    // generous headroom above the small JSON - otherwise heavy reasoning on a
     // complex request could truncate the structured output (→ a parse failure).
     max_tokens: opts.maxTokens ?? (deep ? 4096 : 1024),
     system: buildSystem(opts.system, opts.cacheSystem !== false),

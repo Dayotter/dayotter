@@ -9,7 +9,7 @@ import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-// Editorial grouping of the flat NAV list — gives the rail eyebrow-labelled
+// Editorial grouping of the flat NAV list - gives the rail eyebrow-labelled
 // sections (like the marketing section heads) instead of one flat list.
 const GROUPS: { label: string; items: string[] }[] = [
   {

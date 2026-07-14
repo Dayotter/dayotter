@@ -3,7 +3,7 @@ import { and, asc, eq, getDb, gte, lt, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 
 /**
- * Proactive Otter — the assistant noticing things worth doing, unprompted, and
+ * Proactive Otter - the assistant noticing things worth doing, unprompted, and
  * proposing them confirm-first. Everything here only READS; the surface (the
  * dashboard card + /api/otter/suggestions) executes on the user's explicit OK.
  */
@@ -50,7 +50,7 @@ const FOCUS_BLOCK_MINUTES = 90;
 
 /**
  * Compute the proactive nudges to show a user right now. Capped and ordered so
- * the surface stays calm — a couple of high-value proposals, not a firehose.
+ * the surface stays calm - a couple of high-value proposals, not a firehose.
  */
 export async function getProactiveSuggestions(userId: string): Promise<ProactiveSuggestion[]> {
   const db = getDb();
@@ -91,14 +91,14 @@ export async function getProactiveSuggestions(userId: string): Promise<Proactive
     });
   }
 
-  // 3. No morning briefing yet — only worth it once there's a day to brief.
+  // 3. No morning briefing yet - only worth it once there's a day to brief.
   if (!prefs?.briefingEnabled && upcoming.length > 0) {
     out.push({
       id: "enable_briefing",
       type: "enable_briefing",
       title: "Start the day with a briefing",
       detail:
-        "Each morning I can text you the day ahead — your meetings and the focus time you've held.",
+        "Each morning I can text you the day ahead - your meetings and the focus time you've held.",
     });
   }
 

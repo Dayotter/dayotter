@@ -1,5 +1,5 @@
 /** Local documentation content. Add a guide here and it appears on /docs +
- *  /docs/[slug]. Keep it task-oriented — what a person does, not how the code works. */
+ *  /docs/[slug]. Keep it task-oriented - what a person does, not how the code works. */
 
 export interface DocBlock {
   heading?: string;
@@ -38,7 +38,7 @@ export const GUIDES: DocGuide[] = [
         heading: "The five-minute setup",
         steps: [
           "Create your account at /sign-up (email, Google, or phone).",
-          "Connect a calendar so DayOtter knows when you're busy — Settings → Calendars.",
+          "Connect a calendar so DayOtter knows when you're busy - Settings → Calendars.",
           "Set the hours you're open under Availability.",
           "Create a booking type (e.g. a 30-minute intro) under Booking Types.",
           "Copy your booking link from the dashboard and share it.",
@@ -70,7 +70,7 @@ export const GUIDES: DocGuide[] = [
     body: [
       {
         paragraphs: [
-          "DayOtter never invents availability — it reads your real calendars. Connect every calendar that holds commitments so a booking can't land on top of one.",
+          "DayOtter never invents availability - it reads your real calendars. Connect every calendar that holds commitments so a booking can't land on top of one.",
         ],
       },
       {
@@ -92,7 +92,7 @@ export const GUIDES: DocGuide[] = [
       {
         heading: "Busy, not private",
         paragraphs: [
-          "DayOtter only sees that you're busy, never the details of your events. You also choose exactly which calendar new bookings are written to — keep the rest read-only, just for conflict checks. Connection tokens are encrypted at rest.",
+          "DayOtter only sees that you're busy, never the details of your events. You also choose exactly which calendar new bookings are written to - keep the rest read-only, just for conflict checks. Connection tokens are encrypted at rest.",
         ],
       },
     ],
@@ -100,7 +100,7 @@ export const GUIDES: DocGuide[] = [
   {
     slug: "create-a-booking-type",
     title: "Create a booking type",
-    summary: "One booking type per kind of meeting — shaped exactly how you work.",
+    summary: "One booking type per kind of meeting - shaped exactly how you work.",
     category: "Features",
     readMinutes: 4,
     body: [
@@ -122,13 +122,13 @@ export const GUIDES: DocGuide[] = [
       {
         heading: "Private and one-off links",
         paragraphs: [
-          "Mark a type private to keep it off your public page and share it only with the people you choose. Or generate a one-off link for a single meeting that expires once it's used — handy when you don't want to expose your whole calendar.",
+          "Mark a type private to keep it off your public page and share it only with the people you choose. Or generate a one-off link for a single meeting that expires once it's used - handy when you don't want to expose your whole calendar.",
         ],
       },
       {
         heading: "Paid bookings",
         paragraphs: [
-          "Connect Stripe and set a price to take payment at booking time — useful for consultations or paid sessions. Free types stay free.",
+          "Connect Stripe and set a price to take payment at booking time - useful for consultations or paid sessions. Free types stay free.",
         ],
       },
     ],
@@ -150,7 +150,7 @@ export const GUIDES: DocGuide[] = [
       {
         heading: "Date overrides and schedules",
         paragraphs: [
-          "Override specific dates — a day off, a one-time early start. Running different offerings? Create multiple named schedules (e.g. “Consulting hours”) and assign each booking type to the right one.",
+          "Override specific dates - a day off, a one-time early start. Running different offerings? Create multiple named schedules (e.g. “Consulting hours”) and assign each booking type to the right one.",
         ],
       },
       {
@@ -180,13 +180,13 @@ export const GUIDES: DocGuide[] = [
         heading: "Channels",
         bullets: [
           "Slack, SMS, WhatsApp, mobile push, and browser (web) push.",
-          "Add and verify each under Settings → Notifications — DayOtter sends a test to confirm it works.",
+          "Add and verify each under Settings → Notifications - DayOtter sends a test to confirm it works.",
         ],
       },
       {
         heading: "Timing",
         paragraphs: [
-          "Choose the lead times that fit you — a day before to plan, an hour before to get moving. Every new booking inherits them, so you set it once.",
+          "Choose the lead times that fit you - a day before to plan, an hour before to get moving. Every new booking inherits them, so you set it once.",
         ],
       },
     ],
@@ -194,7 +194,7 @@ export const GUIDES: DocGuide[] = [
   {
     slug: "team-scheduling",
     title: "Team scheduling",
-    summary: "Round-robin, collective availability, and shared team rules — from one link.",
+    summary: "Round-robin, collective availability, and shared team rules - from one link.",
     category: "Features",
     readMinutes: 3,
     body: [
@@ -209,13 +209,13 @@ export const GUIDES: DocGuide[] = [
       {
         heading: "Collective vs round-robin",
         paragraphs: [
-          "A collective type finds a slot when everyone required is free. A round-robin type spreads incoming bookings across the team so no one carries them all. Either way it's a single link — DayOtter picks the right host and time.",
+          "A collective type finds a slot when everyone required is free. A round-robin type spreads incoming bookings across the team so no one carries them all. Either way it's a single link - DayOtter picks the right host and time.",
         ],
       },
       {
         heading: "Shared view and rules",
         paragraphs: [
-          "See the whole team's free/busy for the week in one place, and set team rules — holidays, no-meeting windows — that every member's links respect.",
+          "See the whole team's free/busy for the week in one place, and set team rules - holidays, no-meeting windows - that every member's links respect.",
         ],
       },
     ],
@@ -223,13 +223,13 @@ export const GUIDES: DocGuide[] = [
   {
     slug: "the-otter-assistant",
     title: "Ask Otter (the AI assistant)",
-    summary: "Chat or talk to your calendar — it drafts every change and never acts without a tap.",
+    summary: "Chat or talk to your calendar - it drafts every change and never acts without a tap.",
     category: "Advanced",
     readMinutes: 3,
     body: [
       {
         paragraphs: [
-          "Otter is the assistant on your dashboard. Ask it in plain language — by typing or by voice — and it reads your real availability to get things done.",
+          "Otter is the assistant on your dashboard. Ask it in plain language - by typing or by voice - and it reads your real availability to get things done.",
         ],
       },
       {
@@ -244,7 +244,7 @@ export const GUIDES: DocGuide[] = [
       {
         heading: "Confirm-first, always",
         paragraphs: [
-          "Otter can create booking types, hold focus time, change your availability and preferences, manage reminder channels, and more — but it only ever proposes. Every change is an editable card you approve, and anything destructive asks twice.",
+          "Otter can create booking types, hold focus time, change your availability and preferences, manage reminder channels, and more - but it only ever proposes. Every change is an editable card you approve, and anything destructive asks twice.",
         ],
       },
       {

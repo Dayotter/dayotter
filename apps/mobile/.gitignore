@@ -21,6 +21,6 @@ npm-debug.*
 *.mobileprovision
 .DS_Store
 
-# Signing + store-submit secrets — never commit (public repo)
+# Signing + store-submit secrets - never commit (public repo)
 *.keystore
 *service-account*.json

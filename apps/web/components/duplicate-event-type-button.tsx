@@ -32,7 +32,7 @@ export function DuplicateEventTypeButton({ id }: { id: string }) {
       type="button"
       onClick={duplicate}
       disabled={busy}
-      title={failed ? "Something went wrong — try again" : undefined}
+      title={failed ? "Something went wrong - try again" : undefined}
       className={`inline-flex items-center gap-1 text-sm disabled:opacity-60 ${
         failed
           ? "text-[var(--color-danger)]"

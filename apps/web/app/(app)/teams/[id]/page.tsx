@@ -38,7 +38,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
   const myRole = team.members.find((m) => m.userId === session!.user.id)?.role;
   const canManage = myRole === "owner" || myRole === "admin";
 
-  // Shared team calendar — everyone's busy times for the next 7 days.
+  // Shared team calendar - everyone's busy times for the next 7 days.
   const viewerTz = (session!.user as { timezone?: string }).timezone ?? "UTC";
   const now = new Date();
   const weekEnd = new Date(now.getTime() + 7 * 86_400_000);
@@ -80,7 +80,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
         <Card>
           <CardHeader
             title="Members"
-            description="Everyone whose availability counts for this team. Weight tunes round-robin — higher gets booked more often; 0 pauses them."
+            description="Everyone whose availability counts for this team. Weight tunes round-robin - higher gets booked more often; 0 pauses them."
           />
           <CardBody className="space-y-4">
             <ul className="space-y-2">
@@ -136,7 +136,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
               </ul>
             ) : (
               <p className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
-                <Users size={15} /> No team events yet — create one below.
+                <Users size={15} /> No team events yet - create one below.
               </p>
             )}
             <div className="border-t border-[var(--color-border)] pt-5">

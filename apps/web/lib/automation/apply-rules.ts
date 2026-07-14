@@ -52,7 +52,7 @@ export async function reserveRuleBlocks(ctx: BookingContext): Promise<number> {
 
 /**
  * Automation Engine: run the host's enabled rules against a just-created booking.
- * Best-effort — never blocks or fails the booking. Prep/buffer rules reserve
+ * Best-effort - never blocks or fails the booking. Prep/buffer rules reserve
  * time_blocks; follow-up rules schedule a post-meeting email.
  */
 export async function applyBookingRules(ctx: BookingContext): Promise<void> {

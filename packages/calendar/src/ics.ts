@@ -6,11 +6,11 @@ import type { BusyInterval, SyncedEvent } from "./types";
 /**
  * The platform's single ICS (iCalendar) fetch + parse implementation. Used both
  * by the SavvyCal booker overlay (apps/web) and the ICS-feed calendar provider
- * (the sync worker). Recurrence-aware and SSRF-hardened — no other module should
+ * (the sync worker). Recurrence-aware and SSRF-hardened - no other module should
  * fetch or parse `.ics` by hand.
  */
 
-const MAX_BYTES = 3_000_000; // 3 MB — plenty for a personal calendar feed
+const MAX_BYTES = 3_000_000; // 3 MB - plenty for a personal calendar feed
 const TIMEOUT_MS = 8_000;
 const MAX_REDIRECTS = 3;
 
@@ -92,7 +92,7 @@ interface RawVEvent {
  * instances). CANCELLED events are dropped; TRANSPARENT (free) events are kept
  * but flagged `transparency: "transparent"` so callers can include or exclude
  * them. Each occurrence gets a stable `externalEventId` (UID, plus the instant
- * for recurrence instances) so it upserts idempotently. Best-effort — exotic
+ * for recurrence instances) so it upserts idempotently. Best-effort - exotic
  * timezone/recurrence edge cases may be approximate.
  */
 export function parseIcsEvents(icsText: string, from: Date, to: Date): SyncedEvent[] {

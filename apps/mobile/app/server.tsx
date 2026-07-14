@@ -41,7 +41,7 @@ export default function ServerScreen() {
             kind: "ok",
             msg: r.degraded
               ? "Reachable, but the server reports a database/queue issue."
-              : "Connected — this is a DayOtter server.",
+              : "Connected - this is a DayOtter server.",
           }
         : { kind: "error", msg: r.error },
     );

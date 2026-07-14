@@ -11,7 +11,7 @@ export interface VoiceHost {
 
 /**
  * A knowledge source contributes lines the receptionist can ground its answers
- * in. This is the extension point — add a source (e.g. a custom FAQ table, hours,
+ * in. This is the extension point - add a source (e.g. a custom FAQ table, hours,
  * pricing) and the receptionist can answer from it. Return [] when nothing.
  */
 export interface KnowledgeSource {
@@ -21,7 +21,7 @@ export interface KnowledgeSource {
 
 /** Built-in sources. Keep them cheap and grounded (never invent). */
 export const KNOWLEDGE_SOURCES: KnowledgeSource[] = [
-  // What the host offers — their bookable services.
+  // What the host offers - their bookable services.
   {
     key: "services",
     async gather(host) {
@@ -59,7 +59,7 @@ export const KNOWLEDGE_SOURCES: KnowledgeSource[] = [
     key: "booking",
     async gather(host) {
       return host.bookingUrl
-        ? [`To book, visit ${host.bookingUrl} — the receptionist can also text this link.`]
+        ? [`To book, visit ${host.bookingUrl} - the receptionist can also text this link.`]
         : [];
     },
   },

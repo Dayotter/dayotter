@@ -5,7 +5,7 @@ import { Github, Mail, MessageSquare } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact — DayOtter",
+  title: "Contact - DayOtter",
   description: "Get in touch with the DayOtter team.",
 };
 

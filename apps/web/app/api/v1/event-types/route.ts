@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/v1/event-types — the account's active event types. */
+/** GET /api/v1/event-types - the account's active event types. */
 export const GET = withApiKey(async (caller) => {
   const rows = await getDb().query.eventTypes.findMany({
     where: and(eq(schema.eventTypes.ownerId, caller.userId), eq(schema.eventTypes.isActive, true)),

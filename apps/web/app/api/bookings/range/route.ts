@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 /**
- * Bookings for the host within [start, end) — powers the calendar views.
+ * Bookings for the host within [start, end) - powers the calendar views.
  * Cancelled bookings are excluded. Colour comes from the event type.
  */
 export const GET = withUser(async (u, request) => {

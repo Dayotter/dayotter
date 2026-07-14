@@ -1,5 +1,5 @@
 /**
- * DayOtter Cloud (commercial) edition features. See ./LICENSE.md — this module is
+ * DayOtter Cloud (commercial) edition features. See ./LICENSE.md - this module is
  * NOT covered by the repo's open-source license.
  *
  * Everything here is hard-gated on `isCloud`: in the open-source self-hosted

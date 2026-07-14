@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 /**
  * Disconnect a calendar account: delete the connection (its calendars, synced
  * events, busy blocks and webhook subscriptions cascade away). Any provider-side
- * push channels simply expire — we stop renewing them. Ownership-checked.
+ * push channels simply expire - we stop renewing them. Ownership-checked.
  */
 export const DELETE = withUser(
   async (user, _request, ctx: { params: Promise<{ connectionId: string }> }) => {

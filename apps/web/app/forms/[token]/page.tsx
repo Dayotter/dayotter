@@ -14,7 +14,7 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }): Promise<Metadata> {
   const form = await getFormByToken((await params).token);
-  return { title: form ? `${form.title} — DayOtter` : "DayOtter" };
+  return { title: form ? `${form.title} - DayOtter` : "DayOtter" };
 }
 
 export default async function PublicRoutingFormPage({

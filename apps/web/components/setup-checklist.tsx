@@ -10,7 +10,7 @@ interface Step {
 }
 
 /**
- * "Get bookable in 3 steps" — the new-user setup guide. Shown on the dashboard
+ * "Get bookable in 3 steps" - the new-user setup guide. Shown on the dashboard
  * until every step is done, then it disappears so the dashboard stays calm.
  * Purely presentational; the page computes the three booleans.
  */
@@ -41,7 +41,7 @@ export function SetupChecklist({
     {
       done: hasEventType,
       title: "Create a booking type",
-      detail: "A link people use to grab time — a 30-min intro, a demo, anything.",
+      detail: "A link people use to grab time - a 30-min intro, a demo, anything.",
       href: "/event-types",
       cta: "Create",
     },

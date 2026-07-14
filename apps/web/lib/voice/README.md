@@ -2,7 +2,7 @@
 
 A 24/7 phone receptionist. Callers dial a Twilio number; the receptionist greets
 them, answers questions grounded in the host's knowledge, and texts a booking
-link when they want to make an appointment — confirm-first (it hands over a link,
+link when they want to make an appointment - confirm-first (it hands over a link,
 it never books blind).
 
 ## Flow
@@ -24,15 +24,15 @@ Caller dials Twilio number
 Conversation state (history + knowledge) lives in Redis per `CallSid`.
 
 ## Pieces
-- `receptionist.ts` — the LLM turn (fast tier for phone latency), grounded on
+- `receptionist.ts` - the LLM turn (fast tier for phone latency), grounded on
   knowledge, returns `{ reply, next }`.
-- `knowledge.ts` — `KNOWLEDGE_SOURCES[]`: pluggable grounding (services, welcome,
-  booking). **Extension point** — add a source (hours, pricing, a custom FAQ
+- `knowledge.ts` - `KNOWLEDGE_SOURCES[]`: pluggable grounding (services, welcome,
+  booking). **Extension point** - add a source (hours, pricing, a custom FAQ
   table) and the receptionist can answer from it.
-- `resolver.ts` — maps the called number → host. MVP is single-tenant via
+- `resolver.ts` - maps the called number → host. MVP is single-tenant via
   `VOICE_RECEPTIONIST_HANDLE`; swap for a `voice_numbers` table for multi-tenant.
-- `twiml.ts` — `<Gather>` / `<Say>` / `<Hangup>` builders.
-- route `app/api/webhooks/twilio/voice` — signature-verified webhook + the
+- `twiml.ts` - `<Gather>` / `<Say>` / `<Hangup>` builders.
+- route `app/api/webhooks/twilio/voice` - signature-verified webhook + the
   action switch (`listen` / `send_booking_link` / `hangup`).
 
 ## Extending
@@ -42,7 +42,7 @@ Conversation state (history + knowledge) lives in Redis per `CallSid`.
   (e.g. `transfer` → `<Dial>` the host).
 - **Multi-tenant:** implement `resolveVoiceHost` against a number→host table.
 
-## Setup (deploy-time — can't be tested without a live call)
+## Setup (deploy-time - can't be tested without a live call)
 1. Buy a Twilio Voice number.
 2. Point its **A Call Comes In** webhook at `https://<APP_URL>/api/webhooks/twilio/voice` (HTTP POST).
 3. Set `TWILIO_AUTH_TOKEN` (signature), `ANTHROPIC_API_KEY` (the turn), `TWILIO_SMS_FROM` (the link text), and `VOICE_RECEPTIONIST_HANDLE`.

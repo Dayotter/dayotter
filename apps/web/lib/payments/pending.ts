@@ -12,7 +12,7 @@ export async function stashPendingBooking(input: CreateBookingInput): Promise<st
   return token;
 }
 
-/** Atomically claim (GET + DEL) the stashed booking — one-time use so the success
+/** Atomically claim (GET + DEL) the stashed booking - one-time use so the success
  *  handler and the webhook can't both create it. */
 export async function claimPendingBooking(token: string): Promise<CreateBookingInput | null> {
   const raw = await connection.getdel(`${PREFIX}${token}`);

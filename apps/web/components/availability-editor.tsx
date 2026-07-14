@@ -87,7 +87,7 @@ export function AvailabilityEditor({
 
   // Hours use an explicit Save (unlike the instant schedule actions), so guard
   // against navigating away with unsaved edits. Derive "dirty" by comparing the
-  // current state to what was loaded — no need to flag every handler.
+  // current state to what was loaded - no need to flag every handler.
   const dirty = useMemo(
     () =>
       JSON.stringify({ timezone, days, overrides }) !==
@@ -134,7 +134,7 @@ export function AvailabilityEditor({
     setSaved(false);
   }
 
-  /** One-tap presets — the common cases, so nobody sets seven days by hand. */
+  /** One-tap presets - the common cases, so nobody sets seven days by hand. */
   function applyPreset(preset: "weekdays" | "everyday" | "clear") {
     const nineToFive: Range[] = [{ start: "09:00", end: "17:00" }];
     setDays((prev) =>
@@ -147,7 +147,7 @@ export function AvailabilityEditor({
     setSaved(false);
   }
 
-  /** Copy one day's hours onto every day — the other "I do the same thing daily" shortcut. */
+  /** Copy one day's hours onto every day - the other "I do the same thing daily" shortcut. */
   function copyToAll(dow: number) {
     setDays((prev) => {
       const src = prev[dow] ?? [];

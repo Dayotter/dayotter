@@ -133,7 +133,7 @@ export default function CalendarsScreen() {
               </Pressable>
             )}
 
-            {/* Google / Microsoft need the OAuth redirect — open the web app. */}
+            {/* Google / Microsoft need the OAuth redirect - open the web app. */}
             <Pressable
               style={styles.addRow}
               onPress={() => Linking.openURL(`${getServerUrl()}/settings/calendars`)}

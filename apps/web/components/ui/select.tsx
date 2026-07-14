@@ -45,7 +45,7 @@ function parseOptions(children: ReactNode): Opt[] {
 }
 
 /**
- * Design-system select — a fully themed listbox (not the OS-native dropdown),
+ * Design-system select - a fully themed listbox (not the OS-native dropdown),
  * so the open menu matches the app instead of rendering system chrome. Keeps the
  * native `<select>` API: pass `<option>` children, read `e.target.value` in
  * `onChange`. Long lists (>8 options, e.g. timezones) get a filter box.

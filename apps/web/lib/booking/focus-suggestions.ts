@@ -9,7 +9,7 @@ export interface FocusSuggestion {
 /**
  * Suggest protectable deep-work blocks: the earliest free block of `blockMinutes`
  * on each of the next few working days, computed from the user's schedule minus
- * their real busy times. Confirm-first — these are proposals; nothing is written
+ * their real busy times. Confirm-first - these are proposals; nothing is written
  * until the user protects one.
  */
 export async function deepWorkSuggestions(
@@ -75,7 +75,7 @@ export interface FocusBlock {
  * Auto-scheduling core: pick concrete, non-overlapping open blocks that add up
  * toward `hoursNeeded`, honouring an optional deadline. This is what lets Otter
  * "protect 6 hours of focus this week" or "find 4 hours for the deck by Friday"
- * in one shot — it does the finding; the user confirms before anything is held.
+ * in one shot - it does the finding; the user confirms before anything is held.
  * Returns the chosen blocks (never writes). At most 2 blocks per day so a single
  * request can't swallow a whole day.
  */

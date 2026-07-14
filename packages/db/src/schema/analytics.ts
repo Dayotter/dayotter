@@ -4,7 +4,7 @@ import { eventTypes } from "./scheduling";
 
 /**
  * A single view of a public event-type booking page. This is the top of the
- * booking funnel — recorded by a lightweight client beacon (`/api/track/view`),
+ * booking funnel - recorded by a lightweight client beacon (`/api/track/view`),
  * so Analytics can compute view→booking conversion. `visitorId` is an opaque
  * client-generated id (localStorage) used only to count unique visitors; it
  * carries no PII.

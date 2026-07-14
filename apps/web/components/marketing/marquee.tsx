@@ -9,7 +9,7 @@ const WORKS_WITH = [
   "Stripe",
 ];
 
-/** Infinite logo/word marquee — social proof of integrations. */
+/** Infinite logo/word marquee - social proof of integrations. */
 export function Marquee() {
   const row = [...WORKS_WITH, ...WORKS_WITH];
   return (

@@ -60,7 +60,7 @@ function AIMock() {
       </div>
       <div className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
         <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-          <Sparkles size={13} className="text-[var(--color-accent)]" /> Draft — nothing's booked
+          <Sparkles size={13} className="text-[var(--color-accent)]" /> Draft - nothing's booked
           until you say so
         </div>
         <p className="mt-1.5 text-sm font-medium">Deep work · Tomorrow, 9:00–11:00 AM</p>
@@ -91,7 +91,7 @@ export function Features() {
         <Card
           className="md:col-span-4 md:row-span-2"
           title="Ask Otter anything"
-          body="“Book a call with Priya Thursday.” “Hold two hours for deep work.” “Move my 3pm.” Say it in plain words — Otter drafts it and waits for your OK. It never touches your calendar on its own."
+          body="“Book a call with Priya Thursday.” “Hold two hours for deep work.” “Move my 3pm.” Say it in plain words - Otter drafts it and waits for your OK. It never touches your calendar on its own."
         >
           <AIMock />
         </Card>
@@ -99,7 +99,7 @@ export function Features() {
         <Card
           className="md:col-span-2"
           title="Every calendar, in sync"
-          body="Google, Outlook and Apple — one source of truth."
+          body="Google, Outlook and Apple - one source of truth."
         >
           <ProviderChips />
         </Card>
@@ -115,7 +115,7 @@ export function Features() {
         <Card
           className="md:col-span-3"
           title="Let people book you"
-          body="A booking page as calm as it is capable — buffers, intake questions, recurring meetings, instant video links."
+          body="A booking page as calm as it is capable - buffers, intake questions, recurring meetings, instant video links."
         >
           <BookingMock />
         </Card>
@@ -123,7 +123,7 @@ export function Features() {
         <Card
           className="md:col-span-3"
           title="Schedule as a team"
-          body="Round-robin and collective booking, weighted your way. Routing forms send each visitor to the right person — never behind a paywall."
+          body="Round-robin and collective booking, weighted your way. Routing forms send each visitor to the right person - never behind a paywall."
         >
           <TeamAvailabilityMock />
         </Card>

@@ -3,7 +3,7 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — DayOtter",
+  title: "Privacy Policy - DayOtter",
   description: "How DayOtter collects, uses, and protects your data.",
 };
 
@@ -25,49 +25,49 @@ export default function PrivacyPage() {
         <h2>What we collect</h2>
         <ul>
           <li>
-            <strong>Account data</strong> — your name, email, timezone, and booking handle.
+            <strong>Account data</strong> - your name, email, timezone, and booking handle.
           </li>
           <li>
-            <strong>Calendar data</strong> — connections and busy/free times we sync to compute your
+            <strong>Calendar data</strong> - connections and busy/free times we sync to compute your
             availability. OAuth tokens are encrypted at rest (AES-256-GCM).
           </li>
           <li>
-            <strong>Booking data</strong> — event types, bookings, attendees' names/emails, and any
+            <strong>Booking data</strong> - event types, bookings, attendees' names/emails, and any
             intake answers.
           </li>
           <li>
-            <strong>Usage data</strong> — basic analytics about how the product is used, and (on
+            <strong>Usage data</strong> - basic analytics about how the product is used, and (on
             public booking pages) anonymous view counts to power your funnel analytics.
           </li>
           <li>
-            <strong>Payment data</strong> — handled by Stripe; we store only a customer/subscription
+            <strong>Payment data</strong> - handled by Stripe; we store only a customer/subscription
             reference, never card numbers.
           </li>
         </ul>
 
         <h2>How we use it</h2>
         <p>
-          To provide scheduling — syncing calendars, computing availability, creating bookings,
-          sending reminders and confirmations — and to operate, secure, and improve the Service. We
+          To provide scheduling - syncing calendars, computing availability, creating bookings,
+          sending reminders and confirmations - and to operate, secure, and improve the Service. We
           process data to perform our contract with you and for our legitimate interest in running a
           reliable product.
         </p>
 
         <h2>Otter, our AI assistant</h2>
         <p>
-          When you use Otter — {BRAND.name}'s built-in assistant — the message you send and the
+          When you use Otter - {BRAND.name}'s built-in assistant - the message you send and the
           relevant scheduling context (your event types, availability, and upcoming bookings) are
           sent to our AI provider, Anthropic, to generate a response. Otter is{" "}
           <strong>confirm-first</strong>: it only ever drafts a change and waits for your explicit
-          confirmation — it never books, moves, or cancels anything on its own. Our AI provider does
+          confirmation - it never books, moves, or cancels anything on its own. Our AI provider does
           not use your data to train its models, and we don't use Otter conversations for
-          advertising. AI features are optional — if you never use Otter, none of your data is sent
+          advertising. AI features are optional - if you never use Otter, none of your data is sent
           to an AI provider.
         </p>
 
         <h2>How we share it</h2>
         <p>
-          We share data only with the processors needed to run the Service — never for advertising,
+          We share data only with the processors needed to run the Service - never for advertising,
           and we never sell your personal data. Those processors are listed below.
         </p>
 
@@ -75,23 +75,23 @@ export default function PrivacyPage() {
         <p>We rely on a small set of vendors to operate the Service:</p>
         <ul>
           <li>
-            <strong>Calendar &amp; conferencing</strong> — Google, Microsoft, Apple, and Zoom, for
+            <strong>Calendar &amp; conferencing</strong> - Google, Microsoft, Apple, and Zoom, for
             the accounts you choose to connect.
           </li>
           <li>
-            <strong>Anthropic</strong> — powers Otter's AI responses, only when you use Otter.
+            <strong>Anthropic</strong> - powers Otter's AI responses, only when you use Otter.
           </li>
           <li>
-            <strong>Stripe</strong> — payments and subscription billing.
+            <strong>Stripe</strong> - payments and subscription billing.
           </li>
           <li>
-            <strong>Resend</strong> — transactional email (confirmations and reminders).
+            <strong>Resend</strong> - transactional email (confirmations and reminders).
           </li>
           <li>
-            <strong>Twilio</strong> — SMS one-time codes and reminders, if you enable them.
+            <strong>Twilio</strong> - SMS one-time codes and reminders, if you enable them.
           </li>
           <li>
-            <strong>Cloudflare</strong> — bot protection on public booking pages.
+            <strong>Cloudflare</strong> - bot protection on public booking pages.
           </li>
         </ul>
         <p>
@@ -108,7 +108,7 @@ export default function PrivacyPage() {
 
         <h2>Cookies</h2>
         <p>
-          We use a session cookie to keep you signed in, and — where enabled — a bot-protection
+          We use a session cookie to keep you signed in, and - where enabled - a bot-protection
           cookie on public booking pages. We don't use advertising or cross-site tracking cookies.
         </p>
 
@@ -129,7 +129,7 @@ export default function PrivacyPage() {
         <h2>Self-hosting</h2>
         <p>
           If you self-host {BRAND.name}, your data lives on your own infrastructure and this policy
-          does not apply — you are the data controller.
+          does not apply - you are the data controller.
         </p>
 
         <h2>Contact</h2>

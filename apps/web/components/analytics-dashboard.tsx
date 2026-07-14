@@ -69,7 +69,7 @@ export function AnalyticsDashboard() {
         <Stat label="Page views" value={t?.views ?? 0} />
         <Stat label="Unique visitors" value={t?.uniqueVisitors ?? 0} />
         <Stat label="Bookings" value={t?.confirmed ?? 0} hint="confirmed" />
-        <Stat label="Conversion" value={t ? pct(t.conversionRate) : "—"} hint="visitor → booking" />
+        <Stat label="Conversion" value={t ? pct(t.conversionRate) : "-"} hint="visitor → booking" />
       </div>
 
       {revenue ? (
@@ -164,7 +164,7 @@ export function AnalyticsDashboard() {
                       <td className="px-4 py-3 text-right tabular-nums">
                         {r.revenueCents > 0
                           ? formatMoney(r.revenueCents, r.currency ?? "usd")
-                          : "—"}
+                          : "-"}
                       </td>
                     </tr>
                   ))

@@ -171,7 +171,7 @@ export function WorkflowsForm() {
     <Card className="max-w-2xl">
       <CardHeader
         title="Workflows"
-        description="Automated emails to attendees around each booking — a reminder before, a thank-you or follow-up after. Applies to every event type unless you scope it."
+        description="Automated emails to attendees around each booking - a reminder before, a thank-you or follow-up after. Applies to every event type unless you scope it."
       />
       <CardBody className="space-y-5">
         {workflows.length > 0 ? (
@@ -222,7 +222,7 @@ export function WorkflowsForm() {
           </ul>
         ) : (
           <p className="text-sm text-[var(--color-muted)]">
-            No workflows yet. Create one below — e.g. a friendly reminder one hour before every
+            No workflows yet. Create one below - e.g. a friendly reminder one hour before every
             meeting.
           </p>
         )}

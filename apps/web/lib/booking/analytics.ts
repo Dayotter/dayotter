@@ -9,7 +9,7 @@ export interface FunnelRow {
   views: number;
   /** Distinct visitors (deduped by client id). */
   uniqueVisitors: number;
-  /** Paid checkouts started (Stripe session created) — paid-funnel drop-off. */
+  /** Paid checkouts started (Stripe session created) - paid-funnel drop-off. */
   checkoutStarted: number;
   /** Bookings created in the window, any status. */
   bookings: number;

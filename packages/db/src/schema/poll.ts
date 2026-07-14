@@ -6,7 +6,7 @@ import { users } from "./orgs";
 /**
  * A group scheduling poll ("find a time"): the host proposes several candidate
  * times, shares a public link, invitees vote, and the host finalizes the winner
- * into a real booking. Standalone from event types — the host sets title,
+ * into a real booking. Standalone from event types - the host sets title,
  * duration and location directly.
  */
 export const meetingPolls = pgTable(
@@ -50,7 +50,7 @@ export const pollOptions = pgTable(
 
 /**
  * One voter's response to one option. A voter (identified by email) has at most
- * one vote per option — re-voting updates the response.
+ * one vote per option - re-voting updates the response.
  */
 export const pollVotes = pgTable(
   "poll_votes",

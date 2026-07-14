@@ -552,7 +552,7 @@ export default function EventTypeForm() {
           <View style={styles.linkBox}>
             <Text style={styles.linkTitle}>One-off booking link</Text>
             <Text style={styles.linkHint}>
-              A single-use link to share privately — expires after one booking.
+              A single-use link to share privately - expires after one booking.
             </Text>
             {linkUrl ? (
               <Text selectable style={styles.linkUrl}>

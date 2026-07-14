@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const STATUSES = ["pending", "confirmed", "cancelled", "rejected", "no_show", "completed"];
 
-/** GET /api/v1/bookings?status=&limit= — the account's bookings, newest first. */
+/** GET /api/v1/bookings?status=&limit= - the account's bookings, newest first. */
 export const GET = withApiKey(async (caller, request) => {
   const url = new URL(request.url);
   const status = url.searchParams.get("status");
@@ -67,7 +67,7 @@ const body = z.object({
   durationMinutes: z.number().int().min(5).max(1440).optional(),
 });
 
-/** POST /api/v1/bookings — create a booking programmatically on your own event type. */
+/** POST /api/v1/bookings - create a booking programmatically on your own event type. */
 export const POST = withApiKey(async (caller, request) => {
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {

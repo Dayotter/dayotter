@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Documentation — DayOtter",
+  title: "Documentation - DayOtter",
   description: "Guides for setting up, using, and building on DayOtter.",
 };
 
@@ -39,7 +39,7 @@ export default function DocsPage() {
       <MarketingHeader
         eyebrow="Docs"
         title="Documentation"
-        subtitle="Short, task-focused guides to get you booked — and a few pointers for building on DayOtter."
+        subtitle="Short, task-focused guides to get you booked - and a few pointers for building on DayOtter."
       />
       <section className="mx-auto max-w-3xl px-6 py-16">
         {DOC_CATEGORIES.map((cat) => {

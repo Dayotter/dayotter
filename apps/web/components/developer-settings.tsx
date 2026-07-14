@@ -130,7 +130,7 @@ function EndpointRow({
                 <span className={`font-medium ${DELIVERY_COLOR[d.status] ?? ""}`}>{d.status}</span>
                 <span className="text-[var(--color-muted)]">{d.event}</span>
                 <span className="text-[var(--color-faint)]">
-                  {d.responseStatus ?? "—"} · try {d.attempts}
+                  {d.responseStatus ?? "-"} · try {d.attempts}
                 </span>
                 <span className="ml-auto text-[var(--color-faint)]">
                   {new Date(d.createdAt).toLocaleTimeString()}
@@ -264,7 +264,7 @@ export function DeveloperSettings({ appUrl, handle }: { appUrl: string; handle: 
           {newSecret ? (
             <div className="rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)]/5 p-3">
               <p className="mb-2 text-xs font-medium">
-                Copy your key now — it won't be shown again.
+                Copy your key now - it won't be shown again.
               </p>
               <CopyField value={newSecret} />
               <button
@@ -336,7 +336,7 @@ export function DeveloperSettings({ appUrl, handle }: { appUrl: string; handle: 
           {newHookSecret ? (
             <div className="rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)]/5 p-3">
               <p className="mb-2 text-xs font-medium">
-                Signing secret — copy it now, it won't be shown again.
+                Signing secret - copy it now, it won't be shown again.
               </p>
               <CopyField value={newHookSecret} />
               <button
@@ -386,7 +386,7 @@ export function DeveloperSettings({ appUrl, handle }: { appUrl: string; handle: 
       <Card>
         <CardHeader
           title="Embed on your site"
-          description="Drop your booking page into any website — inline or as a popup."
+          description="Drop your booking page into any website - inline or as a popup."
         />
         <CardBody className="space-y-4">
           <div>

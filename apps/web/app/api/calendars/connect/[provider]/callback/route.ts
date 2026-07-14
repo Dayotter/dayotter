@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   // Build the redirect target from the configured public origin, NOT request.url
-  // — behind a reverse proxy the request host is the internal container name
+  // - behind a reverse proxy the request host is the internal container name
   // (e.g. c5b9330a…:3000), which would send the user to an unreachable URL.
   const settings = new URL("/settings/calendars", env.APP_URL);
 

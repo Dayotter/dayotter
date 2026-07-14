@@ -9,8 +9,8 @@
 #     --env-file .env up -d --build web worker
 #
 # Then point an nginx server block at http://127.0.0.1:3000 and terminate TLS
-# there — see deploy/nginx/dayotter.com.conf and the README section
-# "Option D — Behind your own nginx (Let's Encrypt)".
+# there - see deploy/nginx/dayotter.com.conf and the README section
+# "Option D - Behind your own nginx (Let's Encrypt)".
 #
 # Note: the bundled Postgres never publishes a host port, so it does NOT conflict
 # with anything else already using 5432 on the host (e.g. a local Supabase).

@@ -1,4 +1,4 @@
-# dayotter — Feature Plan
+# dayotter - Feature Plan
 
 > Open-source (permissive, Apache-2.0) team scheduling & calendar platform.
 > Superset of Calendly / Cal.com / SavvyCal / Reclaim / Motion / Clockwise, with
@@ -6,11 +6,11 @@
 
 ## Priority tiers
 
-- **P0 — MVP / core loop.** The minimum that proves the product: connect a calendar → set
+- **P0 - MVP / core loop.** The minimum that proves the product: connect a calendar → set
   availability → someone books → event lands on the calendar → reminders fire. Multi-tenant foundation.
-- **P1 — v1 launch.** Competitive and sellable: all three providers, team features (the wedge),
+- **P1 - v1 launch.** Competitive and sellable: all three providers, team features (the wedge),
   workflows, video, payments, public booking polish.
-- **P2 — post-launch / differentiators.** Smart scheduling, enterprise/security, deep integrations, analytics.
+- **P2 - post-launch / differentiators.** Smart scheduling, enterprise/security, deep integrations, analytics.
 
 ### The MVP golden path (P0)
 `Sign up → create org → connect Google → set working hours → create a 30-min event type →
@@ -83,13 +83,13 @@ confirmation email → 1-day & 1-hour reminders fire → reschedule/cancel works
 | SavvyCal-style: overlay booker's own calendar on the picker | P2 ⭐ |
 | Ranked / preferred time slots | P2 ⭐ |
 
-## 5. Team & Collaboration — **the wedge** ⭐
+## 5. Team & Collaboration - **the wedge** ⭐
 | Feature | Tier |
 |---|---|
 | Organization / team creation | P0 |
 | Invite members, roles (owner / admin / member) | P0 |
 | Shared team calendar view (see everyone's schedule) | P0 |
-| Collective availability — "find time we're all free" | P1 ⭐ |
+| Collective availability - "find time we're all free" | P1 ⭐ |
 | Round-robin distribution (equal / weighted / by availability) | P1 ⭐ |
 | Team event types (admin-managed, assigned to members) | P1 |
 | Managed event types (admin pushes settings to members) | P2 |
@@ -108,7 +108,7 @@ confirmation email → 1-day & 1-hour reminders fire → reschedule/cancel works
 | Follow-up email after meeting | P1 |
 | Workflow builder (trigger → action → timing) | P1 |
 | Custom email templates | P1 |
-| **Multi-channel delivery** — user chooses per channel | — |
+| **Multi-channel delivery** - user chooses per channel | - |
 | &nbsp;&nbsp;• Mobile push (APNs / FCM) | P1 |
 | &nbsp;&nbsp;• Slack | P2 |
 | &nbsp;&nbsp;• WhatsApp | P2 |
@@ -116,10 +116,10 @@ confirmation email → 1-day & 1-hour reminders fire → reschedule/cancel works
 | No-show tracking | P2 |
 
 > Reminders are part of the **scheduling** domain, not a separate area
-> (`workflows` + `scheduled_reminders`). Delivery is channel-agnostic — the worker
+> (`workflows` + `scheduled_reminders`). Delivery is channel-agnostic - the worker
 > resolves each user's enabled `notification_channels` at send time.
 
-## 7. Time Blocking & Smart Scheduling — differentiators (Motion / Reclaim) ⭐
+## 7. Time Blocking & Smart Scheduling - differentiators (Motion / Reclaim) ⭐
 | Feature | Tier |
 |---|---|
 | Manual time blocks | P1 |
@@ -212,7 +212,7 @@ confirmation email → 1-day & 1-hour reminders fire → reschedule/cancel works
 
 | Feature | Tier |
 |---|---|
-| Natural-language scheduling — "schedule a call with mom Friday afternoon" | P2 |
+| Natural-language scheduling - "schedule a call with mom Friday afternoon" | P2 |
 | NL → pre-filled, editable event/reminder draft (confirm before write) | P2 |
 | Smart calendar blocking / deep-work protection around meetings | P2 |
 | AI calendar-invite handling (accept / decline / propose new time) | P2 |
@@ -226,10 +226,10 @@ References: **Planif.ai** (minimal, color-coded, confirm-first AI) and **Todofi*
 - Clean, minimal, color-coded. Clarity over feature bloat.
 - Multiple calendar views: **day / month / agenda**, with drag-and-drop scheduling.
 - A focused **"now / next"** view (also powers the overflow nudge).
-- Mobile-first interactions (gestures, drag-drop) — see mobile note below.
+- Mobile-first interactions (gestures, drag-drop) - see mobile note below.
 - Meaningful analytics (where your time actually went), **no vanity metrics**.
 
-## Mobile (Android + iOS) — structural readiness now
+## Mobile (Android + iOS) - structural readiness now
 Native apps are planned. The codebase is kept **API-first**: all domain logic in
 `packages/*`, a versioned REST/OpenAPI contract, token-based auth, shared Zod
 DTOs, and push as a notification channel. See
@@ -240,9 +240,9 @@ Sections 1–4, 6, 10, 13, 14 at their **P0** rows only, plus the shared team ca
 That is a multi-tenant, self-hostable, single-user Calendly equivalent with a team calendar and working reminders.
 
 ## What makes us different (bet the roadmap on these ⭐)
-1. **Team availability as a primitive** — collective "all free" + round-robin without a paywall (§5).
-2. **Rock-solid timezone correctness** — no wrong-hour bookings, ever (DST-tested).
-3. **Scheduling-scoped AI** — NL booking + smart blocking + invite handling, confirm-first (§15).
-4. **The overflow "running late" nudge** — a small, delightful, unique touch (§7).
-5. **Smart scheduling** — auto-scheduling & focus defense (§7).
-6. **SavvyCal-grade booking UX** — overlay + ranked slots (§4).
+1. **Team availability as a primitive** - collective "all free" + round-robin without a paywall (§5).
+2. **Rock-solid timezone correctness** - no wrong-hour bookings, ever (DST-tested).
+3. **Scheduling-scoped AI** - NL booking + smart blocking + invite handling, confirm-first (§15).
+4. **The overflow "running late" nudge** - a small, delightful, unique touch (§7).
+5. **Smart scheduling** - auto-scheduling & focus defense (§7).
+6. **SavvyCal-grade booking UX** - overlay + ranked slots (§4).

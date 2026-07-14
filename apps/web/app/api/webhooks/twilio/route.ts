@@ -24,7 +24,7 @@ function xmlEscape(s: string): string {
   );
 }
 
-/** A TwiML response — Twilio delivers the <Message> back on the same channel. */
+/** A TwiML response - Twilio delivers the <Message> back on the same channel. */
 function twiml(message?: string): Response {
   const body = message
     ? `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${xmlEscape(message)}</Message></Response>`
@@ -45,7 +45,7 @@ async function rateLimited(userId: string): Promise<boolean> {
 /**
  * Inbound WhatsApp/SMS → Otter. Twilio POSTs form-encoded params here; we verify
  * the signature, map the sender's number to a DayOtter user, and let Otter
- * interpret the message — confirm-first, via a "reply YES" step for any write.
+ * interpret the message - confirm-first, via a "reply YES" step for any write.
  */
 export async function POST(request: Request): Promise<Response> {
   const raw = await request.text();
@@ -79,7 +79,7 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
   if (await rateLimited(user.id)) {
-    return twiml("You're going a bit fast — give me a minute and try again.");
+    return twiml("You're going a bit fast - give me a minute and try again.");
   }
 
   const pendingKey = `${PENDING_PREFIX}${user.id}`;
@@ -89,7 +89,7 @@ export async function POST(request: Request): Promise<Response> {
   if (YES.has(word) || NO.has(word)) {
     const stored = await connection.getdel(pendingKey);
     if (!stored) return twiml("Nothing's waiting to confirm. Tell me what you'd like to schedule.");
-    if (NO.has(word)) return twiml("Okay — I won't do that.");
+    if (NO.has(word)) return twiml("Okay - I won't do that.");
     const pending = JSON.parse(stored) as PendingAction;
     return twiml(await executePending(user.id, pending));
   }

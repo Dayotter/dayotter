@@ -18,7 +18,7 @@ const body = z.object({
  * slots that clash with the booker's own commitments. Public + unauthenticated
  * (it's a booking-page feature), so it's tightly rate-limited and the fetch is
  * SSRF-guarded (https-only, DNS-pinned, size/time capped). The feed is never
- * stored — only busy/free times are derived and returned.
+ * stored - only busy/free times are derived and returned.
  */
 export async function POST(request: Request) {
   const limited = await enforceRateLimit(request, { name: "overlay", limit: 20, windowSec: 300 });

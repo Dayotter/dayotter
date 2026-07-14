@@ -16,7 +16,7 @@ export const scheduleDraftSchema = z.object({
 });
 export type ScheduleDraft = z.infer<typeof scheduleDraftSchema>;
 
-const SYSTEM = `You are DayOtter's scheduling assistant. Your scope is STRICTLY calendar scheduling — creating meetings, focus/deep-work blocks, and reminders. You do NOT write emails, answer general questions, give advice, or do anything outside calendar scheduling.
+const SYSTEM = `You are DayOtter's scheduling assistant. Your scope is STRICTLY calendar scheduling - creating meetings, focus/deep-work blocks, and reminders. You do NOT write emails, answer general questions, give advice, or do anything outside calendar scheduling.
 
 You NEVER take actions or book anything. You only produce a structured DRAFT that the human reviews, edits, and confirms.
 
@@ -24,7 +24,7 @@ From the user's natural-language request, produce a draft via the propose_draft 
 - understood: true only if this is a scheduling request you can draft; false for anything out of scope.
 - kind: "meeting" (involves other people), "focus" (a personal block / deep work / do-not-schedule / heads-down), or "reminder".
 - title: a short, human event title.
-- startISO: the ABSOLUTE start time as an ISO-8601 instant, resolved against the provided current time and timezone. Interpret vague times in the user's local timezone — "morning" = 09:00, "afternoon" = 14:00, "evening" = 18:00, "tonight" = 19:00. Never pick a time in the past.
+- startISO: the ABSOLUTE start time as an ISO-8601 instant, resolved against the provided current time and timezone. Interpret vague times in the user's local timezone - "morning" = 09:00, "afternoon" = 14:00, "evening" = 18:00, "tonight" = 19:00. Never pick a time in the past.
 - durationMinutes: from the request; default 30 for meetings, 60 for focus blocks.
 - attendees: people named, with name and email if given (empty email if unknown). Empty array if none.
 - notes: any extra detail worth keeping; otherwise empty.
@@ -65,7 +65,7 @@ const INPUT_SCHEMA = {
 
 /**
  * Parse a natural-language scheduling request into an editable draft. Confirm-
- * first: this only interprets — it never writes to a calendar. Goes through the
+ * first: this only interprets - it never writes to a calendar. Goes through the
  * shared LLM layer.
  */
 export function parseScheduleRequest(params: {

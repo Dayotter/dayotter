@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 /**
- * A restrained entrance for logged-in pages — the app counterpart to marketing's
+ * A restrained entrance for logged-in pages - the app counterpart to marketing's
  * `Reveal`. Content here is above the fold, so it animates immediately (not on
  * scroll) with a shorter rise and faster duration than the marketing cascade.
  * Honors `prefers-reduced-motion` (renders static). Use to give app pages a

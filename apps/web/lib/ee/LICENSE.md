@@ -11,15 +11,15 @@ Every file under an `ee/` directory (currently `apps/web/lib/ee/`) implements
 **cloud-only** capabilities of DayOtter Cloud (the hosted product at
 dayotter.com):
 
-- **Managed AI** — Otter running on DayOtter's own model provider, so you don't
+- **Managed AI** - Otter running on DayOtter's own model provider, so you don't
   configure an API key.
-- **SSO** — SAML / Google Workspace sign-in.
-- **White-label** — remove the "Powered by DayOtter" mark and serve booking pages
+- **SSO** - SAML / Google Workspace sign-in.
+- **White-label** - remove the "Powered by DayOtter" mark and serve booking pages
   on a custom domain.
-- **Hosted messaging** — SMS / WhatsApp on DayOtter's Twilio with included credits.
+- **Hosted messaging** - SMS / WhatsApp on DayOtter's Twilio with included credits.
 
 These are inert unless `DAYOTTER_CLOUD=1` is set. **The open-source edition of
-DayOtter — everything outside `ee/` — is the whole product and is fully
+DayOtter - everything outside `ee/` - is the whole product and is fully
 functional on its own, including all of Otter's AI features.**
 
 ## Grant
@@ -37,7 +37,7 @@ commercial features. It does not restrict anything outside `ee/`.
 ## Contributions
 
 Contributions to `ee/` are accepted only under this license and assign the
-necessary rights to DayOtter. Most contributors will never need to touch `ee/` —
+necessary rights to DayOtter. Most contributors will never need to touch `ee/` -
 the open-source core is where the product lives.
 
 ## Commercial licensing

@@ -17,9 +17,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const c = getComparison((await params).slug);
-  if (!c) return { title: "Compare — DayOtter" };
+  if (!c) return { title: "Compare - DayOtter" };
   const path = `/vs/${c.slug}`;
-  const title = `${c.title} (2026) — how they compare`;
+  const title = `${c.title} (2026) - how they compare`;
   return {
     title,
     description: c.subtitle,

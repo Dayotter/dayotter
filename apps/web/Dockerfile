@@ -16,7 +16,7 @@ FROM deps AS build
 ENV NEXT_TELEMETRY_DISABLED=1
 # NEXT_PUBLIC_* are INLINED into the client bundle at build time, so they must be
 # present during `next build` (passed as build args from compose). Setting them in
-# the runtime .env alone has no effect — the value is already baked. Empty = the
+# the runtime .env alone has no effect - the value is already baked. Empty = the
 # feature stays hidden.
 ARG NEXT_PUBLIC_GOOGLE_AUTH=""
 ARG NEXT_PUBLIC_PHONE_AUTH=""

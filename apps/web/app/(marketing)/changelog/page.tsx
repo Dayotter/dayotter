@@ -2,7 +2,7 @@ import { MarketingHeader } from "@/components/marketing/page-shell";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Changelog — DayOtter",
+  title: "Changelog - DayOtter",
   description: "What's new in DayOtter.",
 };
 
@@ -11,8 +11,8 @@ const ENTRIES = [
     date: "July 2026",
     title: "Ask Otter, a refreshed interface & new sign-in",
     items: [
-      "Ask Otter: a conversational assistant in your dashboard — by chat or voice — that reads your schedule and can act on your whole setup (bookings, booking types, availability, focus time, preferences, teams, reminder channels, automations). Always confirm-first; deletes ask twice.",
-      "A refreshed, premium interface end to end — a cleaner typeface, in-theme dialogs and toasts, and a tidier mobile navigation.",
+      "Ask Otter: a conversational assistant in your dashboard - by chat or voice - that reads your schedule and can act on your whole setup (bookings, booking types, availability, focus time, preferences, teams, reminder channels, automations). Always confirm-first; deletes ask twice.",
+      "A refreshed, premium interface end to end - a cleaner typeface, in-theme dialogs and toasts, and a tidier mobile navigation.",
       "Phone number + one-time-code sign-in, email verification, and self-serve account deletion.",
       "Browser (web push) reminders alongside mobile push, Slack, SMS, and WhatsApp.",
     ],
@@ -42,7 +42,7 @@ const ENTRIES = [
     items: [
       "Native iOS/Android app: bookings, event types, availability, insights, push.",
       "Unified calendar event model and the Calendar Inbox.",
-      "Multi-channel reminders — Slack, WhatsApp, SMS, and push.",
+      "Multi-channel reminders - Slack, WhatsApp, SMS, and push.",
     ],
   },
 ];

@@ -46,7 +46,7 @@ export function startRemindersWorker(): Worker<ReminderJob> {
       if (!booking) return;
       const appUrl = process.env.APP_URL ?? "http://localhost:3000";
 
-      // Host-authored workflow message — render the workflow's own template.
+      // Host-authored workflow message - render the workflow's own template.
       // "reminder" (before_event) sends only for a still-confirmed booking;
       // "followup" (after_event) sends unless the booking was cancelled/rejected.
       if (reminder.workflowId) {
@@ -90,7 +90,7 @@ export function startRemindersWorker(): Worker<ReminderJob> {
       // Proactive overflow (#1): this booking's scheduled end just arrived. If a
       // back-to-back meeting follows within the tight window and the host opted
       // in, auto-notify the NEXT meeting's attendees that the host is running a
-      // few minutes behind — the "quick snap at the end of a meeting" an EA does.
+      // few minutes behind - the "quick snap at the end of a meeting" an EA does.
       if (reminder.kind === "overflow") {
         const OVERFLOW_TIGHT_MS = 20 * 60_000;
         if (booking.hostId && booking.status !== "cancelled" && booking.status !== "rejected") {
@@ -140,7 +140,7 @@ export function startRemindersWorker(): Worker<ReminderJob> {
         return;
       }
 
-      // Post-meeting recap ("Scribe") — nudge the HOST just after the meeting
+      // Post-meeting recap ("Scribe") - nudge the HOST just after the meeting
       // ends to capture notes and take the obvious next step. Skipped if the
       // meeting was cancelled/rejected.
       if (reminder.kind === "scribe") {
@@ -172,7 +172,7 @@ export function startRemindersWorker(): Worker<ReminderJob> {
         return;
       }
 
-      // Post-meeting follow-up — send unless the meeting was cancelled/rejected.
+      // Post-meeting follow-up - send unless the meeting was cancelled/rejected.
       // Branch the copy on the outcome: a no-show gets a warm "let's rebook"
       // note; a completed/confirmed meeting gets the usual "thanks for meeting".
       if (reminder.kind === "followup") {
@@ -226,14 +226,14 @@ export function startRemindersWorker(): Worker<ReminderJob> {
       );
 
       // Also nudge the host on any extra channels they configured (Slack /
-      // WhatsApp / push). Best-effort — never blocks the attendee emails above.
+      // WhatsApp / push). Best-effort - never blocks the attendee emails above.
       if (booking.hostId) {
         const when = DateTime.fromJSDate(booking.startsAt)
           .setZone(booking.host?.timezone ?? booking.timezone)
           .toFormat("ccc, LLL d 'at' h:mm a");
         await deliverUserReminder(booking.hostId, {
           title: `Upcoming: ${booking.title}`,
-          body: `Starts ${label} — ${when}.`,
+          body: `Starts ${label} - ${when}.`,
           url: `${appUrl}/booking/${booking.uid}`,
         }).catch(() => 0);
       }

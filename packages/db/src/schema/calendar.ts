@@ -76,7 +76,7 @@ export const calendars = pgTable(
 
 /**
  * Push-notification subscriptions so we get real-time change events.
- * Google `watch` channels expire ~7d, MS Graph subscriptions ~3d — a renewal
+ * Google `watch` channels expire ~7d, MS Graph subscriptions ~3d - a renewal
  * job re-subscribes before `expiresAt`. Apple/CalDAV has none (poll instead).
  */
 export const webhookSubscriptions = pgTable(
@@ -129,7 +129,7 @@ export const busyBlocks = pgTable(
 export type SyncedAttendee = { email: string; name?: string; responseStatus?: string };
 
 /**
- * The unified full event model — the single source of truth for external
+ * The unified full event model - the single source of truth for external
  * calendar data. Every provider maps into this shape. `busy_blocks` above is a
  * lean availability-only projection of this table (written in the same sync pass).
  */

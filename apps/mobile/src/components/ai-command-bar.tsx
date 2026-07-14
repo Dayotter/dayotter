@@ -7,7 +7,7 @@ import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-spe
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
-/** Tappable example prompts — teach the voice/text vocabulary at a glance. */
+/** Tappable example prompts - teach the voice/text vocabulary at a glance. */
 const EXAMPLES = [
   "Hold two hours for deep work tomorrow",
   "Book a 30-min call with Sam Thursday 2pm",
@@ -34,7 +34,7 @@ interface Target {
 }
 
 /**
- * "Ask DayOtter" — natural-language command bar (create / reschedule / cancel),
+ * "Ask DayOtter" - natural-language command bar (create / reschedule / cancel),
  * confirm-first. Renders nothing unless the server has AI enabled. The AI only
  * proposes; the user confirms before anything happens.
  */
@@ -74,7 +74,7 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
     const transcript = e.results?.[0]?.transcript?.trim();
     if (!transcript) return;
     // Show the words as they're spoken (interim), and only run the command once
-    // the recognizer marks the result final — so it feels live but fires once.
+    // the recognizer marks the result final - so it feels live but fires once.
     setText(transcript);
     if (e.isFinal) submitRef.current(transcript);
   });
@@ -184,10 +184,10 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
       } else if (draft.intent === "reschedule" && target) {
         const newStart = pickedStart ? pickedStart.toISOString() : draft.newStartISO;
         await api.post(`/api/bookings/${target.uid}/reschedule`, { start: newStart });
-        finish("Rescheduled — attendees notified.");
+        finish("Rescheduled - attendees notified.");
       } else if (draft.intent === "cancel" && target) {
         await api.post(`/api/bookings/${target.uid}/cancel`, {});
-        finish("Cancelled — attendees notified.");
+        finish("Cancelled - attendees notified.");
       }
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Couldn't complete that.");

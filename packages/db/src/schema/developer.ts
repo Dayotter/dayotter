@@ -5,7 +5,7 @@ import { users } from "./orgs";
 
 /**
  * A personal API key for the public REST API. We only ever store the SHA-256
- * hash of the key — the plaintext is shown once at creation and never again.
+ * hash of the key - the plaintext is shown once at creation and never again.
  * `prefix` is a short non-secret label ("csk_live_ab12…") for the UI.
  */
 export const apiKeys = pgTable(

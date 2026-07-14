@@ -19,7 +19,7 @@ type Provider = "google" | "microsoft" | "apple" | "ics";
 
 /**
  * Store a connection + its calendars and enqueue an initial sync. Shared by the
- * OAuth (Google/Microsoft) and CalDAV (Apple) connect flows. Idempotent —
+ * OAuth (Google/Microsoft) and CalDAV (Apple) connect flows. Idempotent -
  * reconnecting the same account refreshes credentials.
  */
 async function persistConnection(params: {
@@ -28,7 +28,7 @@ async function persistConnection(params: {
   externalAccountId: string;
   encryptedCredentials: string;
   externalCalendars: ExternalCalendar[];
-  /** Mark the created calendars read-only (ICS feeds) — never booking targets. */
+  /** Mark the created calendars read-only (ICS feeds) - never booking targets. */
   readOnly?: boolean;
 }): Promise<{ connectionId: string; calendarCount: number }> {
   const db = getDb();
@@ -142,7 +142,7 @@ export class IcsFeedError extends Error {}
 /**
  * Subscribe to an external ICS / webcal feed as a read-only busy source. The
  * feed is fetched once to validate it (SSRF-guarded, must parse as iCalendar);
- * the URL — which may embed a secret token — is stored encrypted, and only a
+ * the URL - which may embed a secret token - is stored encrypted, and only a
  * hash of it is used as the account identifier. Poll-only: the maintenance tick
  * re-fetches it on the normal sync cadence.
  */
@@ -170,7 +170,7 @@ export async function connectIcsFeed(params: {
     userId: params.userId,
     provider: "ics",
     // Hash the URL for the account id so the (possibly secret) feed token is
-    // never stored in plaintext — the real URL lives encrypted in credentials.
+    // never stored in plaintext - the real URL lives encrypted in credentials.
     externalAccountId: createHash("sha256").update(url).digest("hex"),
     encryptedCredentials: encryptJson({ url, name }),
     externalCalendars: [{ externalId: ICS_FEED_CALENDAR_ID, name }],

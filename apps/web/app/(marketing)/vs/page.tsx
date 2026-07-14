@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "DayOtter vs the alternatives — honest comparisons",
+  title: "DayOtter vs the alternatives - honest comparisons",
   description:
     "How DayOtter compares to Calendly, Cal.com, Motion and Reclaim. Where each one wins, plainly told.",
 };
@@ -16,7 +16,7 @@ export default function ComparisonsHub() {
       <MarketingHeader
         eyebrow="Compare"
         title="Honest comparisons"
-        subtitle="No hand-waving. Here's where each tool wins — and where DayOtter is the better call."
+        subtitle="No hand-waving. Here's where each tool wins - and where DayOtter is the better call."
       />
       <section className="mx-auto max-w-4xl px-6 py-16">
         <div className="grid gap-4 sm:grid-cols-2">

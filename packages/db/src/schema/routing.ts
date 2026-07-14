@@ -31,7 +31,7 @@ export interface RoutingRoute {
 
 /**
  * A routing form ("qualify then route"): visitors answer a few questions and are
- * sent to the right booking page — a specific event type / host — based on their
+ * sent to the right booking page - a specific event type / host - based on their
  * answers. The inbound-qualification flow both Cal.com and Calendly lead with.
  */
 export const routingForms = pgTable(
@@ -57,7 +57,7 @@ export const routingForms = pgTable(
   ],
 );
 
-/** A submitted answer set + where it routed — for the responses view / analytics. */
+/** A submitted answer set + where it routed - for the responses view / analytics. */
 export const routingFormResponses = pgTable(
   "routing_form_responses",
   {

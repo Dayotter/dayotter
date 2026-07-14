@@ -154,7 +154,7 @@ export default function DashboardScreen() {
         ) : !data || data.length === 0 ? (
           <EmptyState
             title="Nothing scheduled yet"
-            body="Calm waters — when people book you, meetings surface here."
+            body="Calm waters - when people book you, meetings surface here."
           />
         ) : (
           data.map((b) => (

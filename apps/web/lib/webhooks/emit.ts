@@ -7,7 +7,7 @@ export type WebhookEvent = "booking.created" | "booking.cancelled" | "booking.re
 
 /**
  * Fan out an event to a user's enabled webhook endpoints: persist a delivery
- * row per endpoint and enqueue it for signed delivery. Best-effort — a webhook
+ * row per endpoint and enqueue it for signed delivery. Best-effort - a webhook
  * problem must never break the booking flow, so all errors are swallowed.
  */
 export async function emitWebhook(

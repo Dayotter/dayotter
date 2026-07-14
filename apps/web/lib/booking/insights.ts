@@ -23,7 +23,7 @@ export interface InsightsData {
 
 /**
  * Compute scheduling-scoped time insights for a host over [-30d, +30d].
- * Shared by the web insights page and the mobile insights API — one source of
+ * Shared by the web insights page and the mobile insights API - one source of
  * truth so both surfaces always agree.
  */
 export async function computeInsights(params: {

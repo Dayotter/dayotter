@@ -19,7 +19,7 @@ import { MODELS, getAnthropicClient } from "./llm";
  * week", "move my 1:1 to my next open afternoon slot"). The model may call
  * `find_free_slots` to look up when the host is actually free, reason across the
  * results, then emit the SAME confirm-first `propose_command` draft the
- * single-shot parser produces. It NEVER writes — the only tool is a read.
+ * single-shot parser produces. It NEVER writes - the only tool is a read.
  */
 
 export const FREE_SLOTS_TOOL: Anthropic.Tool = {
@@ -114,7 +114,7 @@ You also have a read-only tool, find_free_slots, that returns times the host is 
       tool_choice: { type: "auto" },
       // Adaptive thinking (compatible with auto tool-choice) so the model reasons
       // across the availability it looks up before proposing a time. Assistant
-      // content — including thinking blocks — is echoed back below, as required.
+      // content - including thinking blocks - is echoed back below, as required.
       output_config: { effort: "high" },
       thinking: { type: "adaptive" },
       messages,

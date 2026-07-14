@@ -52,7 +52,7 @@ async function loadDataset(userId: string, tz: string, windowDays: number): Prom
 }
 
 /**
- * "Where your time goes" — run every metric over the user's last `windowDays`
+ * "Where your time goes" - run every metric over the user's last `windowDays`
  * and return the non-empty cards. Extensible: metrics come from METRICS.
  */
 export async function computeTimeAllocation(params: {

@@ -1,7 +1,7 @@
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import type { ReactNode } from "react";
 
-/** Submit-level error banner — themed, with an icon and role="alert" for a11y. */
+/** Submit-level error banner - themed, with an icon and role="alert" for a11y. */
 export function FormError({ children }: { children?: ReactNode }) {
   if (!children) return null;
   return (

@@ -6,7 +6,7 @@ export interface Interval {
 }
 
 export interface RankOptions {
-  /** Host schedule timezone — time-of-day scoring is done in local time. */
+  /** Host schedule timezone - time-of-day scoring is done in local time. */
   timezone: string;
   now: Date;
   /** Minimum gap the host keeps around their own meetings (minutes). */
@@ -33,7 +33,7 @@ export function localDay(date: Date, timezone: string): string {
 /**
  * Score one bookable slot for "smart scheduling". Higher is better. The intent is
  * to recommend times that keep the host's day tidy rather than just the earliest
- * opening. Signals (all deterministic — no LLM):
+ * opening. Signals (all deterministic - no LLM):
  *  - Consolidation: a slot back-to-back with an existing commitment (respecting
  *    the host's gap) scores highest; it grows a contiguous busy block and so
  *    protects the host's remaining focus time. Near-but-not-adjacent gives a
@@ -54,7 +54,7 @@ export function scoreSlot(slot: Interval, commitments: Interval[], opts: RankOpt
       adjacency = Math.max(adjacency, 100);
       continue;
     }
-    // Same-ish part of the day (within 2h of a commitment) — mild consolidation.
+    // Same-ish part of the day (within 2h of a commitment) - mild consolidation.
     const near = Math.min(Math.abs(afterGap), Math.abs(beforeGap));
     if (near <= 2 * HOUR) adjacency = Math.max(adjacency, 30 * (1 - near / (2 * HOUR)));
   }

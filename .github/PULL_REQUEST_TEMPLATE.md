@@ -1,4 +1,4 @@
-<!-- Thanks for contributing to DayOtter! Keep PRs focused — one logical change. -->
+<!-- Thanks for contributing to DayOtter! Keep PRs focused - one logical change. -->
 
 ## What & why
 
@@ -8,7 +8,7 @@ Closes #
 
 ## How I verified it
 
-<!-- Not just "it typechecks" — how did you exercise the behaviour end to end? -->
+<!-- Not just "it typechecks" - how did you exercise the behaviour end to end? -->
 
 - [ ] `pnpm turbo typecheck` passes
 - [ ] `pnpm biome check` passes (formatted + linted)

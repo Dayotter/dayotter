@@ -8,25 +8,25 @@ open-core boundary see [`ENTERPRISE.md`](./ENTERPRISE.md).
 
 Every feature builds on these; nothing duplicates their logic.
 
-1. **Timezone** — Luxon everywhere; all times stored UTC, rendered per-viewer.
-2. **Sync** (`packages/calendar` + `apps/worker/sync`) — bidirectional sync across
+1. **Timezone** - Luxon everywhere; all times stored UTC, rendered per-viewer.
+2. **Sync** (`packages/calendar` + `apps/worker/sync`) - bidirectional sync across
    Google / Microsoft / Apple (CalDAV) / ICS behind one `CalendarAdapter`.
    Real-time via provider webhooks; Apple/ICS is poll-based. Busy times land in a
-   Postgres cache (`busy_blocks`) — the availability engine reads only the cache.
-3. **Availability** (`packages/core/availability`) — a pure function: schedule +
+   Postgres cache (`busy_blocks`) - the availability engine reads only the cache.
+3. **Availability** (`packages/core/availability`) - a pure function: schedule +
    busy blocks + constraints → bookable slots. DST-correct, unit-tested.
-4. **Notification** (`packages/jobs` + `apps/worker/reminders` + `packages/notifications`) —
+4. **Notification** (`packages/jobs` + `apps/worker/reminders` + `packages/notifications`) -
    durable BullMQ delayed jobs; multi-channel delivery.
-5. **LLM** (`apps/web/lib/ai/llm.ts`) — the single Anthropic choke point; model
+5. **LLM** (`apps/web/lib/ai/llm.ts`) - the single Anthropic choke point; model
    tiering, prompt caching, structured output. Every AI feature goes through it.
 
 ## Monorepo layout
 
 ```
 apps/
-  web       Next.js 15 — dashboard, public booking pages, REST API, Otter
-  worker    Node + BullMQ — reminders, sync, maintenance, briefings, scribe, webhooks
-  mobile    Expo / React Native (expo-router) — iOS + Android
+  web       Next.js 15 - dashboard, public booking pages, REST API, Otter
+  worker    Node + BullMQ - reminders, sync, maintenance, briefings, scribe, webhooks
+  mobile    Expo / React Native (expo-router) - iOS + Android
 packages/
   core          availability engine, weighted round-robin, crypto, SSRF guards (pure)
   db            Drizzle schema (split by domain) + Postgres client
@@ -38,13 +38,13 @@ packages/
   auth          Better Auth server instance (identity + organizations)
 ```
 
-## `apps/web/lib` — by domain
+## `apps/web/lib` - by domain
 
 ### booking/
 The scheduling core. `create-booking.ts` (validate slot → write booking +
 attendees → calendar → reminders → webhooks), `availability.ts` (adapts the core
 engine to event types: `hostSlots`), `host-booking.ts` (host-initiated/Otter
-bookings, hung off the hidden `__personal` event type — see
+bookings, hung off the hidden `__personal` event type - see
 `personal-event-type.ts`), `cancel-booking.ts` / `reschedule-booking.ts`,
 `reminders.ts` (schedules reminders, workflow messages, overflow checks, scribe),
 `insights.ts` + `analytics.ts` + `focus-insights.ts` (metrics), `focus-suggestions.ts`
@@ -57,7 +57,7 @@ calendar overlay), `rank-slots.ts`, `team-schedule.ts`.
 `proactive.ts`, `invite-triage.ts`, `meeting-actions.ts`.
 
 ### analytics/time-allocation/
-"Where your time goes" — a pluggable metric registry (`METRICS[]`) over one
+"Where your time goes" - a pluggable metric registry (`METRICS[]`) over one
 dataset. Extensible; see its README.
 
 ### voice/  → see [`AI.md`](./AI.md)

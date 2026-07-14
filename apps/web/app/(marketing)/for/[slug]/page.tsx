@@ -23,7 +23,7 @@ export async function generateMetadata({
     title: p.title,
     description: p.subtitle,
     alternates: { canonical: path },
-    openGraph: { title: `${p.title} — DayOtter`, description: p.subtitle, url: path },
+    openGraph: { title: `${p.title} - DayOtter`, description: p.subtitle, url: path },
   };
 }
 
@@ -127,7 +127,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ slug: 
         {/* CTA */}
         <section className="mt-16 text-center">
           <Link href="/sign-up" className={buttonVariants({ variant: "primary", size: "lg" })}>
-            Start free — no credit card
+            Start free - no credit card
           </Link>
         </section>
 

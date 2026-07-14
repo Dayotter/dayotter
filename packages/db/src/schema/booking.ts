@@ -59,7 +59,7 @@ export const bookings = pgTable(
 
     // Payments (Stripe). paymentStatus="none" for free event types.
     paymentStatus: paymentStatus("payment_status").notNull().default("none"),
-    /** Stripe PaymentIntent id — used to issue refunds on cancel. */
+    /** Stripe PaymentIntent id - used to issue refunds on cancel. */
     paymentIntentId: text("payment_intent_id"),
     /** Amount actually charged, in the currency's minor units (cents). */
     amountPaid: integer("amount_paid"),
@@ -75,7 +75,7 @@ export const bookings = pgTable(
     // the same host at the same instant. Enforced only for live bookings so a
     // cancelled slot can be re-booked. NB: a stronger GiST EXCLUSION constraint
     // (`bookings_no_overlap`, migration 0019) additionally rejects cross-duration
-    // OVERLAPS — it can't be expressed in the drizzle DSL, so it lives in raw SQL.
+    // OVERLAPS - it can't be expressed in the drizzle DSL, so it lives in raw SQL.
     uniqueIndex("bookings_host_slot_active_idx")
       .on(t.hostId, t.startsAt)
       .where(sql`${t.status} = 'confirmed' AND ${t.isGroup} = false`),

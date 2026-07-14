@@ -10,7 +10,7 @@ export class RoutingError extends Error {
   }
 }
 
-/** Active event types owned by the host — the routing targets shown in the builder. */
+/** Active event types owned by the host - the routing targets shown in the builder. */
 export async function hostEventTypes(hostId: string) {
   return getDb().query.eventTypes.findMany({
     where: and(eq(schema.eventTypes.ownerId, hostId), eq(schema.eventTypes.isActive, true)),

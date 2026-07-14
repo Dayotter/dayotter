@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
  * identifying the channel; we map the channel to its calendar and enqueue a
  * sync. Must return 2xx quickly. The `X-Goog-Channel-Token` we registered with
  * `events.watch` is the shared secret that proves the notification is genuinely
- * from Google — without it, anyone who guesses a channel id could force syncs.
+ * from Google - without it, anyone who guesses a channel id could force syncs.
  */
 export async function POST(request: Request) {
   const state = request.headers.get("x-goog-resource-state");

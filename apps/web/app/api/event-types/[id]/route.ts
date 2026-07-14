@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Return the event type only if `userId` may manage it: the personal owner, or
- * — for a team-owned event type (`ownerId` null, `teamId` set) — an owner/admin
+ * - for a team-owned event type (`ownerId` null, `teamId` set) - an owner/admin
  * of that team. Returns null otherwise (treated as 404 to avoid leaking ids).
  */
 async function manageableEventType(id: string, userId: string) {
@@ -54,7 +54,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       dailyBookingLimit: et.dailyBookingLimit,
       weeklyBookingLimit: et.weeklyBookingLimit,
       maxAttendees: et.maxAttendees,
-      // Never leak the hash — only whether a code is required.
+      // Never leak the hash - only whether a code is required.
       hasAccessCode: et.accessCodeHash != null,
       isPrivate: et.isPrivate,
       redirectUrl: et.redirectUrl,

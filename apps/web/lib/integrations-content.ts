@@ -1,6 +1,6 @@
 /**
  * Integration landing pages, rendered at /integrations and /integrations/[slug].
- * One page per integration — Calendly's highest-volume programmatic-SEO play
+ * One page per integration - Calendly's highest-volume programmatic-SEO play
  * ("DayOtter + Outlook", etc.). Each targets "<tool> scheduling / integration"
  * search intent and links into the product.
  */
@@ -23,10 +23,10 @@ export const INTEGRATIONS: Integration[] = [
     category: "Calendar",
     blurb: "Two-way, real-time sync with your Google Calendar.",
     subtitle:
-      "Connect Google Calendar and DayOtter keeps your availability honest and writes every booking back — in real time.",
+      "Connect Google Calendar and DayOtter keeps your availability honest and writes every booking back - in real time.",
     intro: [
       "DayOtter reads your Google Calendar busy times so you're never double-booked, and writes new bookings straight to your calendar with a Google Meet link attached. Sync is real-time via Google's push notifications.",
-      "It's a scheduling layer on top of Google Calendar, not a replacement — everything stays in the calendar you already live in.",
+      "It's a scheduling layer on top of Google Calendar, not a replacement - everything stays in the calendar you already live in.",
     ],
     points: [
       {
@@ -45,7 +45,7 @@ export const INTEGRATIONS: Integration[] = [
     faq: [
       {
         q: "Does DayOtter replace Google Calendar?",
-        a: "No — it works with it. Your bookings show up in the Google Calendar you already use.",
+        a: "No - it works with it. Your bookings show up in the Google Calendar you already use.",
       },
     ],
   },
@@ -71,7 +71,7 @@ export const INTEGRATIONS: Integration[] = [
     faq: [
       {
         q: "Does it work with Microsoft 365 and Outlook.com?",
-        a: "Yes — connect your Microsoft account and DayOtter syncs your calendar via Microsoft Graph.",
+        a: "Yes - connect your Microsoft account and DayOtter syncs your calendar via Microsoft Graph.",
       },
     ],
   },
@@ -79,12 +79,12 @@ export const INTEGRATIONS: Integration[] = [
     slug: "apple-calendar",
     name: "Apple iCloud Calendar",
     category: "Calendar",
-    blurb: "Sync your Apple iCloud calendar — which some tools dropped.",
+    blurb: "Sync your Apple iCloud calendar - which some tools dropped.",
     subtitle:
-      "Connect Apple iCloud via CalDAV and keep your availability accurate — a calendar some competitors stopped supporting.",
+      "Connect Apple iCloud via CalDAV and keep your availability accurate - a calendar some competitors stopped supporting.",
     intro: [
       "DayOtter syncs your Apple iCloud calendar over CalDAV using an app-specific password. Your iCloud busy times count toward your availability, and bookings land where you want them.",
-      "Unlike some scheduling tools that dropped iCloud support, DayOtter keeps it — one honest view across Google, Outlook, and Apple.",
+      "Unlike some scheduling tools that dropped iCloud support, DayOtter keeps it - one honest view across Google, Outlook, and Apple.",
     ],
     points: [
       { title: "CalDAV sync", body: "Connect with an app-specific password; no extra app needed." },
@@ -97,7 +97,7 @@ export const INTEGRATIONS: Integration[] = [
     faq: [
       {
         q: "How do I connect Apple/iCloud?",
-        a: "Generate an app-specific password in your Apple ID settings and add it in DayOtter — that's it.",
+        a: "Generate an app-specific password in your Apple ID settings and add it in DayOtter - that's it.",
       },
     ],
   },
@@ -109,7 +109,7 @@ export const INTEGRATIONS: Integration[] = [
     subtitle:
       "Connect Zoom and DayOtter generates a Zoom meeting link for each booking, added to the calendar invite automatically.",
     intro: [
-      "Set an event type's location to Zoom and every booking gets a fresh Zoom meeting created and attached to the invite — no manual link-copying.",
+      "Set an event type's location to Zoom and every booking gets a fresh Zoom meeting created and attached to the invite - no manual link-copying.",
       "Works alongside Google Meet and Teams; pick per event type.",
     ],
     points: [
@@ -125,7 +125,7 @@ export const INTEGRATIONS: Integration[] = [
     faq: [
       {
         q: "Does each booking get its own Zoom link?",
-        a: "Yes — a fresh Zoom meeting is created per booking and added to the calendar invite.",
+        a: "Yes - a fresh Zoom meeting is created per booking and added to the calendar invite.",
       },
     ],
   },
@@ -135,19 +135,19 @@ export const INTEGRATIONS: Integration[] = [
     category: "Video",
     blurb: "Google Meet links on every Google-calendar booking, automatically.",
     subtitle:
-      "With Google Calendar connected, DayOtter attaches a Google Meet link to every booking — no configuration needed.",
+      "With Google Calendar connected, DayOtter attaches a Google Meet link to every booking - no configuration needed.",
     intro: [
       "Google Meet works out of the box with a connected Google Calendar: set the location to Meet and DayOtter attaches a video link to each booking automatically.",
       "The simplest video option if your team is on Google Workspace.",
     ],
     points: [
-      { title: "Zero setup", body: "No separate connection — it rides on your Google Calendar." },
+      { title: "Zero setup", body: "No separate connection - it rides on your Google Calendar." },
       { title: "Automatic links", body: "Every Meet booking gets a link in the invite." },
     ],
     faq: [
       {
         q: "Do I need to connect Google Meet separately?",
-        a: "No — connecting Google Calendar is enough; Meet links are attached automatically.",
+        a: "No - connecting Google Calendar is enough; Meet links are attached automatically.",
       },
     ],
   },
@@ -159,7 +159,7 @@ export const INTEGRATIONS: Integration[] = [
     subtitle:
       "Add a Slack channel and DayOtter can send you reminders and running-late nudges where your team already works.",
     intro: [
-      "Connect Slack via an incoming webhook and receive meeting reminders and Otter's nudges in Slack — alongside email, SMS, WhatsApp, and push.",
+      "Connect Slack via an incoming webhook and receive meeting reminders and Otter's nudges in Slack - alongside email, SMS, WhatsApp, and push.",
       "Handy for staying on top of your day without another inbox.",
     ],
     points: [
@@ -183,11 +183,11 @@ export const INTEGRATIONS: Integration[] = [
     slug: "stripe",
     name: "Stripe",
     category: "Payments",
-    blurb: "Charge or take a deposit to book — powered by Stripe.",
+    blurb: "Charge or take a deposit to book - powered by Stripe.",
     subtitle:
       "Connect Stripe to require payment or a deposit before a slot is held, and to sell prepaid session packages.",
     intro: [
-      "With Stripe connected, DayOtter can charge the full price or a deposit as part of booking via Stripe Checkout — the slot confirms only once payment succeeds.",
+      "With Stripe connected, DayOtter can charge the full price or a deposit as part of booking via Stripe Checkout - the slot confirms only once payment succeeds.",
       "You can also sell prepaid session bundles that clients buy once and spend as they book.",
     ],
     points: [
@@ -201,7 +201,7 @@ export const INTEGRATIONS: Integration[] = [
     faq: [
       {
         q: "Is Stripe required to take payments?",
-        a: "Yes — connect a Stripe account and you can charge for bookings and sell packages.",
+        a: "Yes - connect a Stripe account and you can charge for bookings and sell packages.",
       },
     ],
   },
@@ -209,11 +209,11 @@ export const INTEGRATIONS: Integration[] = [
     slug: "whatsapp",
     name: "WhatsApp",
     category: "Messaging",
-    blurb: "Reminders on WhatsApp — and talk to Otter there too.",
+    blurb: "Reminders on WhatsApp - and talk to Otter there too.",
     subtitle:
       "Send booking reminders over WhatsApp, and let people chat with Otter to book and reschedule right from WhatsApp.",
     intro: [
-      "With Twilio configured, DayOtter delivers reminders over WhatsApp — where response rates beat email. And Otter is available inbound: text it to book, reschedule, or check your day, confirm-first.",
+      "With Twilio configured, DayOtter delivers reminders over WhatsApp - where response rates beat email. And Otter is available inbound: text it to book, reschedule, or check your day, confirm-first.",
       "A differentiator neither Calendly nor Cal.com offers.",
     ],
     points: [
@@ -223,13 +223,13 @@ export const INTEGRATIONS: Integration[] = [
       },
       {
         title: "Talk to Otter",
-        body: "Text Otter to book or reschedule — it drafts and waits for your OK.",
+        body: "Text Otter to book or reschedule - it drafts and waits for your OK.",
       },
     ],
     faq: [
       {
         q: "Can I message the assistant on WhatsApp?",
-        a: "Yes — inbound WhatsApp lets you ask Otter to book, move, or check meetings, confirm-first.",
+        a: "Yes - inbound WhatsApp lets you ask Otter to book, move, or check meetings, confirm-first.",
       },
     ],
   },
@@ -257,7 +257,7 @@ export const INTEGRATIONS: Integration[] = [
     faq: [
       {
         q: "Do I need extra setup for Teams links?",
-        a: "No — connect Microsoft 365 and choose Teams as the location; links are attached automatically.",
+        a: "No - connect Microsoft 365 and choose Teams as the location; links are attached automatically.",
       },
     ],
   },

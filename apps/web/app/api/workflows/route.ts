@@ -8,7 +8,7 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-/** Event-type ids owned by the user's org — used to validate workflow scoping. */
+/** Event-type ids owned by the user's org - used to validate workflow scoping. */
 async function ownedEventTypeIds(organizationId: string): Promise<Set<string>> {
   const rows = await getDb().query.eventTypes.findMany({
     where: and(eq(schema.eventTypes.organizationId, organizationId), notPersonalType),

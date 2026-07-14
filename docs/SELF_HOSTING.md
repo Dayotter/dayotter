@@ -1,13 +1,13 @@
 # Self-hosting DayOtter
 
-Run the whole product — including all of Otter's AI — on your own infrastructure,
+Run the whole product - including all of Otter's AI - on your own infrastructure,
 free, under AGPLv3. This is the setup guide.
 
 ## Requirements
 
-- **Node 20+** and **pnpm 10+** (for local/dev) — or just **Docker** (for prod)
+- **Node 20+** and **pnpm 10+** (for local/dev) - or just **Docker** (for prod)
 - **Postgres 15+** and **Redis 7+**
-- Provider credentials for the features you want (all optional — unconfigured
+- Provider credentials for the features you want (all optional - unconfigured
   features stay inert, they don't crash)
 
 ## Quick start (local / evaluation)
@@ -32,7 +32,7 @@ cp .env.example .env            # fill in production values
 ./deploy.sh                     # build → run migrations → start
 ```
 
-`deploy.sh` **always runs migrations before starting the app** — a plain
+`deploy.sh` **always runs migrations before starting the app** - a plain
 `docker compose up -d` reuses the completed migrate container and can boot new
 code against an un-migrated DB. Full walkthrough (nginx + TLS options) in
 [`deploy/README.md`](../deploy/README.md). To update: `git pull` then re-run
@@ -40,7 +40,7 @@ code against an un-migrated DB. Full walkthrough (nginx + TLS options) in
 
 ## Configuration
 
-Set these in `.env`. **Everything is optional** — DayOtter runs with just a
+Set these in `.env`. **Everything is optional** - DayOtter runs with just a
 database, and each capability lights up when you add its credentials.
 
 ### Core (required)
@@ -53,10 +53,10 @@ BETTER_AUTH_SECRET=<32+ random bytes>     # openssl rand -base64 32
 ENCRYPTION_KEY=<32 bytes>                  # encrypts OAuth tokens at rest
 ```
 
-### Otter (AI) — bring your own key
+### Otter (AI) - bring your own key
 
 ```ini
-ANTHROPIC_API_KEY=sk-ant-...              # that's it — every AI feature works
+ANTHROPIC_API_KEY=sk-ant-...              # that's it - every AI feature works
 ```
 
 Because all AI flows through one layer (`lib/ai/llm.ts`), you can point it at a
@@ -67,10 +67,10 @@ different provider or a self-hosted model with a small change. See [`AI.md`](./A
 ```ini
 GOOGLE_CLIENT_ID=...        GOOGLE_CLIENT_SECRET=...
 MICROSOFT_CLIENT_ID=...     MICROSOFT_CLIENT_SECRET=...
-# Apple/CalDAV needs no app — users add an app-specific password
+# Apple/CalDAV needs no app - users add an app-specific password
 ```
 
-Google sign-in also needs `NEXT_PUBLIC_*` build args baked at build time — the
+Google sign-in also needs `NEXT_PUBLIC_*` build args baked at build time - the
 Docker build handles this.
 
 ### Messaging & notifications
@@ -81,8 +81,8 @@ TWILIO_ACCOUNT_SID=...  TWILIO_AUTH_TOKEN=...
 TWILIO_SMS_FROM=+1...    TWILIO_WHATSAPP_FROM=whatsapp:+1...
 ```
 
-**Inbound Otter (SMS/WhatsApp)** — point your Twilio number's inbound webhook at
-`https://<APP_URL>/api/webhooks/twilio`. **Voice receptionist** — point the
+**Inbound Otter (SMS/WhatsApp)** - point your Twilio number's inbound webhook at
+`https://<APP_URL>/api/webhooks/twilio`. **Voice receptionist** - point the
 number's *A Call Comes In* webhook at `.../api/webhooks/twilio/voice` and set
 `VOICE_RECEPTIONIST_HANDLE=<the host handle>`. Both are signature-verified.
 
@@ -105,7 +105,7 @@ ZOOM_CLIENT_ID=...  ZOOM_CLIENT_SECRET=...     # Google Meet / Teams need no ext
 
 Leave `DAYOTTER_CLOUD` **unset** for the open-source edition: every Pro feature is
 unlocked and there's no billing. Only set `DAYOTTER_CLOUD=1` if you're running the
-hosted/commercial edition (which also needs the `ee/` commercial license — see
+hosted/commercial edition (which also needs the `ee/` commercial license - see
 [`ENTERPRISE.md`](./ENTERPRISE.md)).
 
 ## Upgrading & migrations
@@ -118,7 +118,7 @@ schema directly.
 
 - Back up Postgres (all app data) regularly. Redis holds jobs + ephemeral state
   and can be rebuilt.
-- Rotate `BETTER_AUTH_SECRET` / `ENCRYPTION_KEY` carefully — changing
+- Rotate `BETTER_AUTH_SECRET` / `ENCRYPTION_KEY` carefully - changing
   `ENCRYPTION_KEY` invalidates stored OAuth tokens (users reconnect calendars).
 - The worker writes a Redis heartbeat; monitor it for liveness.
 

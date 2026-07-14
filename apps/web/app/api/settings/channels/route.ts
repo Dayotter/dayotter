@@ -28,7 +28,7 @@ export const GET = withUser(async (u) => {
         decryptJson<ChannelConfig>(c.encryptedConfig),
       );
     } catch {
-      // Corrupt/undecryptable config — still list it so the user can delete it.
+      // Corrupt/undecryptable config - still list it so the user can delete it.
     }
     return {
       id: c.id,

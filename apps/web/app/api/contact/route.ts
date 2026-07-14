@@ -27,12 +27,12 @@ export async function POST(request: Request) {
     await sendEmail({
       to: SUPPORT,
       replyTo: email,
-      subject: `Contact form — ${name}`,
+      subject: `Contact form - ${name}`,
       text: `From: ${name} <${email}>\n\n${message}`,
       html: `<p><strong>${name}</strong> &lt;${email}&gt;</p><p>${message.replace(/</g, "&lt;").replace(/\n/g, "<br>")}</p>`,
     });
   } catch (err) {
-    // Never fail the form on a mail hiccup — just log it.
+    // Never fail the form on a mail hiccup - just log it.
     logger.error("contact email failed", { event: "contact_email_failed", err });
   }
 

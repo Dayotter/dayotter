@@ -15,7 +15,7 @@ import { users } from "./orgs";
 /**
  * Per-user preferences. Non-sensitive display prefs are plain columns (so we can
  * query/render them cheaply); anything sensitive or free-form lives in
- * `encryptedData` — an AES-256-GCM blob (see @dayotter/core crypto). Decrypt only
+ * `encryptedData` - an AES-256-GCM blob (see @dayotter/core crypto). Decrypt only
  * where needed (e.g. the worker when composing a reminder).
  */
 export const userPreferences = pgTable(
@@ -44,7 +44,7 @@ export const userPreferences = pgTable(
     briefingEnabled: boolean("briefing_enabled").notNull().default(false),
     /** Local hour (0–23) at which to send the morning briefing. */
     briefingHour: smallint("briefing_hour").notNull().default(8),
-    /** Local date (YYYY-MM-DD) of the last briefing sent — once-per-day guard. */
+    /** Local date (YYYY-MM-DD) of the last briefing sent - once-per-day guard. */
     briefingLastSent: text("briefing_last_sent"),
     /** Post-meeting recap ("Scribe"): after a meeting ends, send the host a
      * recap + next-step nudges. */

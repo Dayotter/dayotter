@@ -59,7 +59,7 @@ export interface HostBookingResult {
 }
 
 /**
- * Create a real DayOtter booking on behalf of the host — the path Otter's
+ * Create a real DayOtter booking on behalf of the host - the path Otter's
  * "book / hold" confirmations run through (and any future manual "add event").
  * Unlike a public booking it skips availability gating (the host is
  * deliberately blocking their own time) but it gets the full treatment: a

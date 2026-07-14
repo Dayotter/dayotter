@@ -17,7 +17,7 @@ const body = z.object({
 
 /**
  * Execute a confirmed AI action. The chat only ever PROPOSES an action (shows a
- * confirm card); this endpoint runs it after the user taps Confirm — so nothing
+ * confirm card); this endpoint runs it after the user taps Confirm - so nothing
  * the assistant suggests happens without an explicit click. Reads never come
  * here (they run inline in the chat stream); only write/destructive tools do,
  * and deletes are gated behind the danger confirm on the client.

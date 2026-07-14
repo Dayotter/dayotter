@@ -1,6 +1,6 @@
 "use client";
 
-// global-error replaces the root layout, so it can't rely on app CSS/fonts —
+// global-error replaces the root layout, so it can't rely on app CSS/fonts -
 // keep it self-contained with inline brand styling.
 export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
   return (

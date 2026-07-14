@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/v1/me — the authenticated account. */
+/** GET /api/v1/me - the authenticated account. */
 export const GET = withApiKey(async (caller) => {
   const user = await getDb().query.users.findFirst({
     where: eq(schema.users.id, caller.userId),

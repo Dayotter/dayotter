@@ -7,7 +7,7 @@ export interface MemoryFact {
   value: unknown;
   /** One-line human summary injected into Otter's prompt. */
   label: string;
-  /** 0..1 — how sure we are. Low-confidence facts can be filtered out. */
+  /** 0..1 - how sure we are. Low-confidence facts can be filtered out. */
   confidence: number;
   source?: "derived" | "user" | "inferred";
 }
@@ -17,7 +17,7 @@ export interface MemoryFact {
  * is the extension point: add a new extractor to EXTRACTORS (extractors.ts) and
  * Otter gets a new thing it can learn. Each extractor owns one stable `key`.
  *
- * Return `null` when there isn't enough signal (e.g. a brand-new user) — the
+ * Return `null` when there isn't enough signal (e.g. a brand-new user) - the
  * refresh simply skips it, so memory only ever holds facts we can stand behind.
  */
 export interface MemoryExtractor {

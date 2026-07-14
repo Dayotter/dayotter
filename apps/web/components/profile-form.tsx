@@ -37,7 +37,7 @@ export function ProfileForm({
 }) {
   const router = useRouter();
   const { toast } = useToast();
-  // Ensure the stored timezone is always selectable — some runtimes omit "UTC"
+  // Ensure the stored timezone is always selectable - some runtimes omit "UTC"
   // and a few aliases from Intl.supportedValuesOf.
   const zones = useMemo(() => {
     const list = timezones();

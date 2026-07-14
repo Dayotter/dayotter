@@ -33,7 +33,7 @@ describe("t", () => {
   });
 
   it("falls back to English for an unmapped locale", () => {
-    // @ts-expect-error — exercising the runtime fallback path
+    // @ts-expect-error - exercising the runtime fallback path
     expect(t("zz", "selectTime")).toBe("Select a time");
   });
 });

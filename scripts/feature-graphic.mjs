@@ -64,4 +64,4 @@ await sharp(Buffer.from(svg))
   .toFile(out);
 
 const meta = await sharp(out).metadata();
-console.log(`wrote ${out} — ${meta.width}x${meta.height}, channels=${meta.channels}, alpha=${meta.hasAlpha}`);
+console.log(`wrote ${out} - ${meta.width}x${meta.height}, channels=${meta.channels}, alpha=${meta.hasAlpha}`);

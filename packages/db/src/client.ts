@@ -19,7 +19,7 @@ const globalForDb = globalThis as unknown as { __dayotterDb?: Database };
 export function getDb(): Database {
   if (!globalForDb.__dayotterDb) {
     if (!process.env.DATABASE_URL) {
-      console.warn("[db] DATABASE_URL is not set — queries will fail until it is configured");
+      console.warn("[db] DATABASE_URL is not set - queries will fail until it is configured");
     }
     globalForDb.__dayotterDb = createDatabase(process.env.DATABASE_URL);
   }

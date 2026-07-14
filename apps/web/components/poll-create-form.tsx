@@ -44,7 +44,7 @@ export function PollCreateForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    // datetime-local values are local wall-clock — convert to ISO instants.
+    // datetime-local values are local wall-clock - convert to ISO instants.
     const iso = times
       .map((t) => t.trim())
       .filter(Boolean)
@@ -70,7 +70,7 @@ export function PollCreateForm() {
       return;
     }
     const data = await res.json();
-    toast({ title: "Poll created — share the link to collect votes.", variant: "success" });
+    toast({ title: "Poll created - share the link to collect votes.", variant: "success" });
     router.push(data.url as `/${string}`);
   }
 

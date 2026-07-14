@@ -35,7 +35,7 @@ function loadDismissed(): Set<string> {
 }
 
 /**
- * Proactive Otter — the assistant surfacing a couple of high-value things to do
+ * Proactive Otter - the assistant surfacing a couple of high-value things to do
  * right now (protect open focus time, turn on running-late alerts, start a
  * morning briefing), each confirm-first. Renders nothing when there's nothing
  * worth nudging. Dismissed suggestions are remembered locally so it stays calm.
@@ -70,7 +70,7 @@ export function ProactiveOtter() {
       next.add(id);
       localStorage.setItem(DISMISS_KEY, JSON.stringify([...next]));
     } catch {
-      // best-effort — still hide it this session
+      // best-effort - still hide it this session
     }
     track("Otter Suggestion Dismissed");
     remove(id);
@@ -113,7 +113,7 @@ export function ProactiveOtter() {
             <Sparkles size={15} className="text-[var(--color-accent)]" /> Otter noticed
           </span>
         }
-        description="A few things worth doing — nothing happens until you say so."
+        description="A few things worth doing - nothing happens until you say so."
       />
       <CardBody className="space-y-2">
         {error ? <FormError>{error}</FormError> : null}

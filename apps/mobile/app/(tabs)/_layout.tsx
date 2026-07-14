@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
 import { Platform } from "react-native";
 
-/** One tab. Icon shown filled when active, outline when not — a common iOS/Android idiom. */
+/** One tab. Icon shown filled when active, outline when not - a common iOS/Android idiom. */
 function tabIcon(base: keyof typeof Ionicons.glyphMap, active: keyof typeof Ionicons.glyphMap) {
   return ({ color, focused }: { color: string; focused: boolean }) => (
     <Ionicons name={focused ? active : base} color={color} size={24} />

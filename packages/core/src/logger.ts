@@ -1,6 +1,6 @@
 /**
  * Minimal zero-dependency structured logger. Emits one JSON object per line with
- * a level, message, timestamp, and arbitrary context — greppable and ready for
+ * a level, message, timestamp, and arbitrary context - greppable and ready for
  * any log aggregator. Use `logger.child({...})` to bind context (e.g. a request
  * or job id) that's included on every subsequent line.
  */

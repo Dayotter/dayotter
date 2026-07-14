@@ -1,21 +1,21 @@
 # Deploying dayotter
 
-Self-host the whole platform — web app, background worker, Postgres, Redis, and
-automatic HTTPS — on one server. Three ways in, easiest first.
+Self-host the whole platform - web app, background worker, Postgres, Redis, and
+automatic HTTPS - on one server. Three ways in, easiest first.
 
 > Replace `OWNER/dayotter` below with your GitHub repo (or fork) before sharing
 > these links.
 
 ---
 
-## Option A — One-click on AWS (recommended)
+## Option A - One-click on AWS (recommended)
 
 Launches a single EC2 instance that boots the full stack automatically.
 
 [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/quickcreate?templateURL=https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/aws/cloudformation.yaml&stackName=dayotter)
 
 1. Click **Launch Stack** (defaults are fine).
-2. Optionally set **Domain** to a hostname you control for automatic HTTPS —
+2. Optionally set **Domain** to a hostname you control for automatic HTTPS -
    otherwise it starts on plain HTTP at the instance's public IP.
 3. Create the stack. First boot builds the images and takes ~5–10 minutes.
 4. Open the **URL** in the stack's *Outputs* tab.
@@ -33,7 +33,7 @@ adds swap so the build survives on small instances.
 
 ---
 
-## Option B — One command on any Ubuntu/Debian server
+## Option B - One command on any Ubuntu/Debian server
 
 On a fresh box (a VPS, a home server, anything with Docker-able Linux):
 
@@ -47,11 +47,11 @@ installs Docker, generates secrets once, and starts everything.
 
 ---
 
-## Option C — Manual (you already have a checkout)
+## Option C - Manual (you already have a checkout)
 
 ```bash
 cp deploy/.env.prod.example deploy/.env
-# edit deploy/.env — set APP_URL, DAYOTTER_SITE_ADDRESS, POSTGRES_PASSWORD,
+# edit deploy/.env - set APP_URL, DAYOTTER_SITE_ADDRESS, POSTGRES_PASSWORD,
 # AUTH_SECRET, BETTER_AUTH_SECRET, ENCRYPTION_KEY (generators are in the file)
 
 cd deploy
@@ -60,7 +60,7 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 
 ---
 
-## Option D — Behind your own nginx (Let's Encrypt)
+## Option D - Behind your own nginx (Let's Encrypt)
 
 For a server that already runs **host nginx** fronting other sites (e.g. an EC2
 box). Run everything except the bundled Caddy, publish the app on
@@ -68,7 +68,7 @@ box). Run everything except the bundled Caddy, publish the app on
 
 > The bundled Postgres publishes **no host port** (it's private to the compose
 > network), so it never conflicts with anything else on the host's `5432`
-> — e.g. a local Supabase. Nothing to change.
+> - e.g. a local Supabase. Nothing to change.
 
 **1. Point DNS at the box.** With Namecheap: *Domain List -> Manage -> Advanced
 DNS -> Host Records*, add `A @ -> <server IP>` and `A www -> <server IP>` (use an
@@ -116,7 +116,7 @@ completed one-shot `migrate` container instead of re-running it, so new app code
 can boot against an un-migrated database (missing columns → 500s everywhere).
 
 Use the script, which always builds, then runs a **fresh** migration one-shot,
-then (re)starts the stack — in that order:
+then (re)starts the stack - in that order:
 
 ```bash
 git -C .. pull
@@ -145,7 +145,7 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d
 |------------|-----------------------------------------------------------------|
 | `caddy`    | Reverse proxy + automatic HTTPS (Let's Encrypt) on 80/443       |
 | `web`      | Next.js app (booking pages, dashboard, API)                     |
-| `worker`   | BullMQ worker — reminders, calendar sync, webhooks              |
+| `worker`   | BullMQ worker - reminders, calendar sync, webhooks              |
 | `migrate`  | One-shot: applies DB migrations on boot, then exits             |
 | `postgres` | Database (persisted in the `dayotter_pgdata` volume)             |
 | `redis`    | Queues + cache (persisted in `dayotter_redisdata`)               |
@@ -169,14 +169,14 @@ docker compose -f docker-compose.prod.yml exec postgres \
 Everything except the calendar core is optional and off until you add its keys
 to `deploy/.env`, then `docker compose -f docker-compose.prod.yml up -d`:
 
-- **Google / Microsoft calendar + Google sign-in** — OAuth client id/secret
+- **Google / Microsoft calendar + Google sign-in** - OAuth client id/secret
   (register `${APP_URL}/api/auth/callback/google` as a redirect URI).
-- **Email** (confirmations, reminders, password resets) — `SMTP_URL`.
-- **AI scheduling** — `ANTHROPIC_API_KEY`.
-- **Zoom, Stripe payments, Twilio SMS/WhatsApp, Turnstile captcha** — see the
+- **Email** (confirmations, reminders, password resets) - `SMTP_URL`.
+- **AI scheduling** - `ANTHROPIC_API_KEY`.
+- **Zoom, Stripe payments, Twilio SMS/WhatsApp, Turnstile captcha** - see the
   comments in `.env.prod.example`.
 
-> `NEXT_PUBLIC_*` values are baked into the web build — after changing one,
+> `NEXT_PUBLIC_*` values are baked into the web build - after changing one,
 > rebuild with `... up -d --build`.
 
 ## Notes

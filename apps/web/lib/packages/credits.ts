@@ -25,7 +25,7 @@ export async function creditBalance(eventTypeId: string, clientEmail: string): P
 /**
  * Atomically spend one credit for a client's event type, oldest grant first.
  * Returns true if a credit was consumed, false if they had none left. Safe
- * against concurrent bookings — the decrement is a single conditional UPDATE.
+ * against concurrent bookings - the decrement is a single conditional UPDATE.
  */
 export async function consumeCredit(eventTypeId: string, clientEmail: string): Promise<boolean> {
   const email = clientEmail.toLowerCase();

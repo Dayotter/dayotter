@@ -31,7 +31,7 @@ const inputSchema = {
     },
     reply: {
       type: "string",
-      description: "What to say back — short, natural for speech (1–2 sentences).",
+      description: "What to say back - short, natural for speech (1–2 sentences).",
     },
     next: {
       type: "string",
@@ -47,13 +47,13 @@ function systemPrompt(host: VoiceHost): string {
   return `You are the friendly, natural-sounding phone receptionist for ${host.name}. People call with questions or to book time. Talk the way a warm, competent human receptionist does on the phone.
 
 How to talk:
-- Keep it SHORT — one or two spoken sentences. No lists, and never read out a URL or email address.
+- Keep it SHORT - one or two spoken sentences. No lists, and never read out a URL or email address.
 - Sound human: use contractions ("I'll", "you're", "let me see"), and say times and numbers the way people say them out loud ("two thirty", "half an hour", not "2:30 PM").
 - Briefly acknowledge what the caller said before you answer, so it feels like a real back-and-forth.
 - One question at a time. If you didn't quite catch something, ask them to repeat it.
 
 What you actually know:
-- Answer ONLY from the KNOWLEDGE below. If something isn't there — exact hours, prices, live availability — say you'll have ${host.name} follow up, rather than guessing. Never invent details.
+- Answer ONLY from the KNOWLEDGE below. If something isn't there - exact hours, prices, live availability - say you'll have ${host.name} follow up, rather than guessing. Never invent details.
 
 Booking:
 - If the caller wants to book or make an appointment, first confirm which service they mean (from the services you know). Then set next = "send_booking_link" and tell them you're texting a link to their phone so they can pick a time that works.
@@ -68,7 +68,7 @@ function buildUser(knowledge: string, history: VoiceTurn[], speech: string): str
     .map((t) => `${t.role === "caller" ? "Caller" : "You"}: ${t.text}`)
     .join("\n");
   return `KNOWLEDGE:
-${knowledge || "(no specific info on file — offer to have the host follow up)"}
+${knowledge || "(no specific info on file - offer to have the host follow up)"}
 
 CONVERSATION SO FAR:
 ${convo || "(this is the start of the call)"}

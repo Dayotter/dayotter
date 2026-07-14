@@ -28,7 +28,7 @@ export default async function PollsPage() {
       {polls.length === 0 ? (
         <EmptyState
           title="No polls yet"
-          description="Create a poll to find a time that works across a group — no back-and-forth."
+          description="Create a poll to find a time that works across a group - no back-and-forth."
         />
       ) : (
         <div className="space-y-3">

@@ -4,7 +4,7 @@ import type { DispatchResult, NotificationMessage, WebPushSubscription } from ".
 
 /**
  * Desktop/browser notifications via the Web Push protocol (RFC 8291) with VAPID.
- * Requires a VAPID keypair — generate once with `npx web-push generate-vapid-keys`
+ * Requires a VAPID keypair - generate once with `npx web-push generate-vapid-keys`
  * and set VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY. The public key is also exposed to
  * the browser as NEXT_PUBLIC_VAPID_PUBLIC_KEY so it can subscribe.
  */

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Downloadable .ics for a booking. Public by the same capability-token model as
- * the rest of the booking flow — the unguessable `uid` from the email link is
+ * the rest of the booking flow - the unguessable `uid` from the email link is
  * the credential (attendees have no accounts).
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ uid: string }> }) {

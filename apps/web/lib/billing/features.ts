@@ -3,10 +3,10 @@
  * gets what, so gating never drifts across routes/UI.
  *
  * Tiers:
- * - `free`  — always available (core scheduling). Never gated.
- * - `pro`   — the differentiators. FREE on self-host; on cloud requires the
+ * - `free`  - always available (core scheduling). Never gated.
+ * - `pro`   - the differentiators. FREE on self-host; on cloud requires the
  *             $9/seat Pro plan.
- * - `cloud` — commercial `ee/` features that only exist in the hosted build
+ * - `cloud` - commercial `ee/` features that only exist in the hosted build
  *             (absent from the open-source repo); require cloud + Pro.
  */
 export type FeatureTier = "free" | "pro" | "cloud";
@@ -24,7 +24,7 @@ export type Feature =
   | "accept_payments" // charge attendees for bookings
   | "developer" // API keys, webhooks, embed
   // Cloud-only (ee/, commercial license)
-  | "managed_ai" // AI with DayOtter's key — no BYO key
+  | "managed_ai" // AI with DayOtter's key - no BYO key
   | "sso" // SAML / Google Workspace sign-in
   | "white_label" // remove branding + custom booking domain
   | "hosted_messaging"; // SMS/WhatsApp via DayOtter's Twilio credits

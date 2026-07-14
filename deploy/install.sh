@@ -2,12 +2,12 @@
 # One-command dayotter self-host installer.
 #
 #   curl -fsSL https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/install.sh | bash
-#   — or, from a checkout —
+#   - or, from a checkout -
 #   bash deploy/install.sh
 #
 # Installs Docker (if missing), generates strong secrets on first run, and brings
 # up the full stack (Postgres, Redis, migrations, web, worker, Caddy/HTTPS).
-# Re-running it pulls the latest changes and restarts — your data and secrets are
+# Re-running it pulls the latest changes and restarts - your data and secrets are
 # kept. Configure via environment variables:
 #
 #   DAYOTTER_DOMAIN     a domain pointing at this server → automatic HTTPS
@@ -50,7 +50,7 @@ if ! command -v docker >/dev/null; then
   curl -fsSL https://get.docker.com | $SUDO sh
 fi
 if ! docker compose version >/dev/null 2>&1; then
-  err "Docker Compose v2 plugin missing — install docker-compose-plugin and re-run"
+  err "Docker Compose v2 plugin missing - install docker-compose-plugin and re-run"
 fi
 command -v openssl >/dev/null || { $SUDO apt-get update -y && $SUDO apt-get install -y openssl; }
 
@@ -72,10 +72,10 @@ if [ -n "$DAYOTTER_DOMAIN" ]; then
   APP_URL="https://$DAYOTTER_DOMAIN"
 else
   IP="$(public_ip)"
-  [ -n "$IP" ] || err "Could not determine a public IP — set DAYOTTER_DOMAIN instead"
+  [ -n "$IP" ] || err "Could not determine a public IP - set DAYOTTER_DOMAIN instead"
   SITE_ADDRESS=":80"
   APP_URL="http://$IP"
-  log "No DAYOTTER_DOMAIN set — serving plain HTTP at $APP_URL (set a domain later for HTTPS)"
+  log "No DAYOTTER_DOMAIN set - serving plain HTTP at $APP_URL (set a domain later for HTTPS)"
 fi
 
 # --- 4. Generate deploy/.env once (keeps secrets stable across re-runs) --------

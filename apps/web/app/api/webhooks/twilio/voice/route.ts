@@ -28,7 +28,7 @@ interface CallState {
  * greet) and again after each `<Gather>` (with SpeechResult). We keep the
  * conversation in Redis per CallSid, ground each reply in the host's knowledge,
  * and can text the caller a booking link. Confirm-first stays intact: the
- * receptionist never books on its own — it hands the caller a link to choose.
+ * receptionist never books on its own - it hands the caller a link to choose.
  */
 export async function POST(request: Request): Promise<Response> {
   const raw = await request.text();
@@ -56,7 +56,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!host) return sayAndHangup("Sorry, this number isn't set up to take calls yet. Goodbye.");
     if (!aiEnabled) {
       return sayAndHangup(
-        `Thanks for calling ${host.name}. Our assistant is offline right now — please try again later.`,
+        `Thanks for calling ${host.name}. Our assistant is offline right now - please try again later.`,
       );
     }
     const knowledge = await buildKnowledge(host);
@@ -67,7 +67,7 @@ export async function POST(request: Request): Promise<Response> {
       knowledge,
       history: [],
     };
-    const greeting = `Hi, thanks for calling ${host.name}. I can answer a few questions or help you book a time — what can I do for you?`;
+    const greeting = `Hi, thanks for calling ${host.name}. I can answer a few questions or help you book a time - what can I do for you?`;
     state.history.push({ role: "receptionist", text: greeting });
     await connection.set(stateKey, JSON.stringify(state), "EX", STATE_TTL);
     return sayAndGather(greeting, ACTION_PATH);
@@ -80,7 +80,7 @@ export async function POST(request: Request): Promise<Response> {
 
   // Guard against a runaway loop.
   if (state.history.filter((t) => t.role === "caller").length >= MAX_TURNS) {
-    return sayAndHangup("Let's pick this up another time — thanks for calling. Goodbye.");
+    return sayAndHangup("Let's pick this up another time - thanks for calling. Goodbye.");
   }
 
   state.history.push({ role: "caller", text: speech });

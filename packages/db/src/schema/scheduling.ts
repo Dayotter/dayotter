@@ -83,7 +83,7 @@ export const timeBlocks = pgTable(
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     /** The booking that reserved this block (travel/prep/buffer), so it can be
      * removed on cancel and re-created on reschedule. Null = a manual block.
-     * No hard FK (same convention as event_types.team_id) — cleanup is explicit. */
+     * No hard FK (same convention as event_types.team_id) - cleanup is explicit. */
     bookingId: uuid("booking_id"),
     /** Shared id across the weekly occurrences of a recurring block, so the whole
      * series can be shown as one row and deleted together. Null = one-off. */
@@ -99,7 +99,7 @@ export const timeBlocks = pgTable(
 
 /**
  * Automation rule (Automation Engine): when a booking matches, automatically
- * take an action — e.g. "every interview → 15-min prep block before". Composes
+ * take an action - e.g. "every interview → 15-min prep block before". Composes
  * the Planning Engine (creates time_blocks). trigger is currently booking-created.
  */
 export const automationRules = pgTable(

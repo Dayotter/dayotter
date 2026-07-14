@@ -8,13 +8,13 @@ import type { ReactNode } from "react";
 const HIGHLIGHTS = [
   { icon: CalendarCheck, text: "Sync Google, Outlook & iCloud in one place" },
   { icon: Users, text: "Share availability across your whole team" },
-  { icon: Sparkles, text: "AI, automations & analytics — confirm-first" },
+  { icon: Sparkles, text: "AI, automations & analytics - confirm-first" },
 ];
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      {/* Brand panel — hidden on small screens. */}
+      {/* Brand panel - hidden on small screens. */}
       <aside
         className="relative hidden flex-col justify-between overflow-hidden p-12 text-white lg:flex"
         style={{

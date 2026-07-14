@@ -32,7 +32,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   // Creating a booking is expensive (availability recompute, calendar write,
-  // emails) — throttle hard per IP and require captcha when enabled.
+  // emails) - throttle hard per IP and require captcha when enabled.
   const limited = await enforceRateLimit(request, { name: "book", limit: 10, windowSec: 600 });
   if (limited) return limited;
 

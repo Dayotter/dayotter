@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Settings sub-nav — a scrollable underline tab strip on mobile, a vertical
+ * Settings sub-nav - a scrollable underline tab strip on mobile, a vertical
  * pill rail on large screens (so the settings pane fills the width instead of
  * stranding a narrow column against the left edge).
  */

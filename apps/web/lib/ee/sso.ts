@@ -1,7 +1,7 @@
 import { isCloud } from "../billing/edition";
 
 /**
- * SSO (SAML / Google Workspace) — cloud-only, commercial. Lets a team sign in
+ * SSO (SAML / Google Workspace) - cloud-only, commercial. Lets a team sign in
  * through their identity provider. Availability is gated on the cloud edition +
  * the `sso` entitlement (cloud + Pro).
  *

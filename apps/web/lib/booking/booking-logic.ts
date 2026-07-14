@@ -1,4 +1,4 @@
-/** Pure booking helpers — no I/O — so they can be unit-tested directly. */
+/** Pure booking helpers - no I/O - so they can be unit-tested directly. */
 
 export class BookingError extends Error {
   constructor(
@@ -37,7 +37,7 @@ export function validateResponses(
 /**
  * Classify an error thrown while inserting a booking:
  * - a `BookingError` passes through unchanged,
- * - a Postgres unique violation (23505 — the double-book guard) becomes a 409,
+ * - a Postgres unique violation (23505 - the double-book guard) becomes a 409,
  * - anything else is rethrown as-is.
  * Always throws; never returns.
  */

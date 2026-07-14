@@ -9,7 +9,7 @@ export function PageHeader({
   action,
 }: {
   title: string;
-  /** Mono/uppercase kicker above the title — the editorial signal from marketing. */
+  /** Mono/uppercase kicker above the title - the editorial signal from marketing. */
   eyebrow?: string;
   description?: string;
   action?: ReactNode;

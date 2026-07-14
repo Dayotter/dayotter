@@ -43,12 +43,12 @@ function naturalList(names: string[]): string {
 
 /**
  * The built-in extractors. Each derives one fact from a user's history. To teach
- * Otter something new, add an extractor here — nothing else needs to change.
+ * Otter something new, add an extractor here - nothing else needs to change.
  * Keep them cheap (they run on refresh) and honest: only claim a pattern when
  * it's a *clear* one, so Otter never states something wobbly as fact.
  */
 export const EXTRACTORS: MemoryExtractor[] = [
-  // How long the user's meetings usually run — only when it's genuinely typical.
+  // How long the user's meetings usually run - only when it's genuinely typical.
   {
     key: "typical_duration",
     async extract(userId): Promise<MemoryFact | null> {
@@ -98,7 +98,7 @@ export const EXTRACTORS: MemoryExtractor[] = [
     },
   },
 
-  // The part of the day the user takes most meetings — only if it clearly leans.
+  // The part of the day the user takes most meetings - only if it clearly leans.
   {
     key: "active_hours",
     async extract(userId): Promise<MemoryFact | null> {
@@ -116,7 +116,7 @@ export const EXTRACTORS: MemoryExtractor[] = [
       );
       const [topLabel, topN] = entries[0]!;
       const share = topN / rows.length;
-      if (share < 0.5) return null; // no clear lean — don't guess
+      if (share < 0.5) return null; // no clear lean - don't guess
       return {
         kind: "pattern",
         key: "active_hours",
@@ -127,7 +127,7 @@ export const EXTRACTORS: MemoryExtractor[] = [
     },
   },
 
-  // The weekday the user meets most — helps Otter avoid piling onto a busy day.
+  // The weekday the user meets most - helps Otter avoid piling onto a busy day.
   {
     key: "busiest_weekday",
     async extract(userId): Promise<MemoryFact | null> {
@@ -138,7 +138,7 @@ export const EXTRACTORS: MemoryExtractor[] = [
         byDay[DateTime.fromJSDate(b.startsAt).setZone(b.timezone).weekday % 7]++;
       const max = Math.max(...byDay);
       const day = byDay.indexOf(max);
-      if (max / rows.length < 0.3) return null; // spread evenly — no standout
+      if (max / rows.length < 0.3) return null; // spread evenly - no standout
       return {
         kind: "pattern",
         key: "busiest_weekday",

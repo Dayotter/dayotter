@@ -17,7 +17,7 @@ export default async function RoutingPage() {
       <PageHeader
         eyebrow="Routing forms"
         title="Qualify &amp; route"
-        description="Ask a few questions up front, then send each visitor to the right booking page — the inbound flow sales teams live on."
+        description="Ask a few questions up front, then send each visitor to the right booking page - the inbound flow sales teams live on."
         action={
           <Link href="/routing/new" className={buttonVariants()}>
             <Plus size={16} /> New form
@@ -28,7 +28,7 @@ export default async function RoutingPage() {
       {forms.length === 0 ? (
         <EmptyState
           title="No routing forms yet"
-          description="Route enterprise leads to you and everyone else to the team — automatically, based on their answers."
+          description="Route enterprise leads to you and everyone else to the team - automatically, based on their answers."
         />
       ) : (
         <div className="space-y-3">

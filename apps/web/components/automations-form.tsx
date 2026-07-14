@@ -111,7 +111,7 @@ export function AutomationsForm() {
     <Card className="max-w-2xl">
       <CardHeader
         title="Automations"
-        description="Rules that protect your time automatically — reserve prep before interviews, or block every Friday afternoon for deep work."
+        description="Rules that protect your time automatically - reserve prep before interviews, or block every Friday afternoon for deep work."
       />
       <CardBody className="space-y-5">
         {rules.length > 0 ? (
@@ -155,7 +155,7 @@ export function AutomationsForm() {
           </ul>
         ) : (
           <p className="text-sm text-[var(--color-muted)]">
-            No rules yet. Create one below — e.g. protect 15 minutes of prep before every interview.
+            No rules yet. Create one below - e.g. protect 15 minutes of prep before every interview.
           </p>
         )}
 

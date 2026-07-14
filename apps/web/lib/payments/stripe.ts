@@ -4,7 +4,7 @@ import Stripe from "stripe";
 /**
  * The single Stripe layer. Env-gated: paid bookings are disabled unless
  * STRIPE_SECRET_KEY is set, so a self-hoster without Stripe is unaffected.
- * Every payment path goes through here — no route instantiates its own client.
+ * Every payment path goes through here - no route instantiates its own client.
  */
 export const paymentsEnabled = Boolean(process.env.STRIPE_SECRET_KEY);
 

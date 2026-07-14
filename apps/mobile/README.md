@@ -41,9 +41,9 @@ they're gitignored. Test account: `archit@example.com` / `supersecret123`.
 
 Both are hidden by default; set the flag to `1` (and configure the server side):
 
-- `EXPO_PUBLIC_GOOGLE_AUTH=1` — shows "Continue with Google" (needs `GOOGLE_CLIENT_ID`
+- `EXPO_PUBLIC_GOOGLE_AUTH=1` - shows "Continue with Google" (needs `GOOGLE_CLIENT_ID`
   on the server). Hidden on iOS builds pending Sign in with Apple.
-- `EXPO_PUBLIC_PHONE_AUTH=1` — shows "Continue with phone" (SMS OTP). The server
+- `EXPO_PUBLIC_PHONE_AUTH=1` - shows "Continue with phone" (SMS OTP). The server
   enables the endpoints automatically when Twilio is configured (`TWILIO_ACCOUNT_SID`,
   `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`). iOS/Android auto-fill the code from the SMS.
 

@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
       redirectTo: "/reset-password",
     });
     setLoading(false);
-    // Always show success — never reveal whether an email is registered.
+    // Always show success - never reveal whether an email is registered.
     if (error && error.status !== 200) {
       // Only surface hard failures (network/500); not "no such account".
     }

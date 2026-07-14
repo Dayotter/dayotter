@@ -20,7 +20,7 @@ const REC_ICON: Record<Recommendation["icon"], typeof Sun> = {
   shield: Shield,
 };
 
-/** A minimal SVG progress ring — Planif's signature, honest not vanity. */
+/** A minimal SVG progress ring - Planif's signature, honest not vanity. */
 function Ring({ value, max, label }: { value: number; max: number; label: string }) {
   const r = 42;
   const c = 2 * Math.PI * r;
@@ -90,7 +90,7 @@ export default async function InsightsPage() {
       <PageHeader
         eyebrow="Insights"
         title="Insights"
-        description="Where your scheduling time actually goes — the last 30 days."
+        description="Where your scheduling time actually goes - the last 30 days."
       />
 
       <InsightsTabs />
@@ -108,7 +108,7 @@ export default async function InsightsPage() {
             <Card className="p-5">
               <h3 className="mb-1 text-sm font-semibold">Recommendations</h3>
               <p className="mb-4 text-xs text-[var(--color-faint)]">
-                Learned from your last 30 days — suggestions, never rules.
+                Learned from your last 30 days - suggestions, never rules.
               </p>
               <div className="space-y-3">
                 {recommendations.map((r) => {
@@ -133,7 +133,7 @@ export default async function InsightsPage() {
             <Stat value={String(upcomingCount)} label="Upcoming" sub="next 30 days" />
             <Stat value={fmtHours(bookedMinutes)} label="Booked" sub="last 30 days" />
             <Stat
-              value={busiestWeekday !== null ? WEEKDAYS[busiestWeekday]! : "—"}
+              value={busiestWeekday !== null ? WEEKDAYS[busiestWeekday]! : "-"}
               label="Busiest day"
               sub="last 30 days"
             />
@@ -212,7 +212,7 @@ export default async function InsightsPage() {
             <Card className="p-5">
               <h3 className="mb-1 text-sm font-semibold">Focus &amp; fragmentation</h3>
               <p className="mb-4 text-xs text-[var(--color-faint)]">
-                How broken-up your meeting days are — over {focus.busyDays} day
+                How broken-up your meeting days are - over {focus.busyDays} day
                 {focus.busyDays === 1 ? "" : "s"} with meetings.
               </p>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

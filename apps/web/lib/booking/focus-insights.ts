@@ -9,7 +9,7 @@ export interface FocusMetrics {
   fragmentedDaysPct: number;
   /** % of consecutive same-day meeting pairs separated by < 15 min (rushed). */
   backToBackPct: number;
-  /** Avg (over days with 2+ meetings) of the largest gap between meetings — a
+  /** Avg (over days with 2+ meetings) of the largest gap between meetings - a
    * proxy for the biggest focus window left on a busy day, in minutes. */
   avgLongestGapMin: number;
 }
@@ -17,7 +17,7 @@ export interface FocusMetrics {
 const RUSHED_GAP_MIN = 15;
 
 /**
- * Focus metrics derived purely from a host's meeting intervals — how fragmented
+ * Focus metrics derived purely from a host's meeting intervals - how fragmented
  * their meeting days are and how much contiguous focus time survives. Groups by
  * local calendar day in `tz`. Pure + deterministic (unit-tested).
  */

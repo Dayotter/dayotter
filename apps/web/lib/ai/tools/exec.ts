@@ -112,7 +112,7 @@ export async function executeReadTool(
         blocks,
         note: blocks.length
           ? "Show these times to the host, then call protect_focus_time with the same blocks to hold them."
-          : "No open blocks in that window — suggest a longer window, a shorter block, or fewer hours.",
+          : "No open blocks in that window - suggest a longer window, a shorter block, or fewer hours.",
       });
     }
     case "list_notification_channels": {
@@ -418,7 +418,7 @@ export async function executeActionTool(
             .where(eq(schema.eventTypes.id, id));
           return {
             ok: true,
-            message: `Archived “${et.title}” — it has bookings, so it was deactivated rather than deleted.`,
+            message: `Archived “${et.title}” - it has bookings, so it was deactivated rather than deleted.`,
           };
         }
         await db.delete(schema.eventTypes).where(eq(schema.eventTypes.id, id));
@@ -508,7 +508,7 @@ export async function executeActionTool(
           url: `${appUrl}/settings/notifications`,
         });
         if (!test.ok) {
-          return { ok: false, message: "Couldn't reach that channel — double-check the details." };
+          return { ok: false, message: "Couldn't reach that channel - double-check the details." };
         }
         await db.insert(schema.notificationChannels).values({
           userId,
@@ -603,7 +603,7 @@ export async function executeActionTool(
         if (!invitee) {
           return {
             ok: false,
-            message: "No DayOtter account with that email yet — they need to sign up first.",
+            message: "No DayOtter account with that email yet - they need to sign up first.",
           };
         }
         await db
@@ -722,6 +722,6 @@ export async function executeActionTool(
     }
   } catch (err) {
     logger.error("ai action failed", { event: "ai_action_failed", tool: name, userId, err });
-    return { ok: false, message: "That didn't go through — please try again." };
+    return { ok: false, message: "That didn't go through - please try again." };
   }
 }

@@ -134,7 +134,7 @@ export async function cancelReminder(reminderId: string): Promise<void> {
 /**
  * Fixed-window rate limiter backed by the shared Redis connection. Atomic
  * INCR+EXPIRE via a Lua script so concurrent requests can't race the window
- * reset. Fails OPEN (allows the request) if Redis is unreachable — a rate
+ * reset. Fails OPEN (allows the request) if Redis is unreachable - a rate
  * limiter should never take down the booking flow.
  */
 const RATE_LIMIT_LUA = `
@@ -175,7 +175,7 @@ export async function rateLimit(
 /**
  * Enqueue a calendar sync. Jobs are keyed per calendar (or connection) so a
  * burst of duplicate webhooks coalesces into a single pending job instead of
- * amplifying into thousands — BullMQ ignores an add whose jobId is already
+ * amplifying into thousands - BullMQ ignores an add whose jobId is already
  * waiting. Incremental syncs are cursor-based, so a coalesced run still catches
  * every change; the maintenance poll backstops anything missed.
  */

@@ -20,7 +20,7 @@ function visitorId(): string | undefined {
 
 /**
  * Fires a one-shot funnel beacon when a public booking page mounts. Renders
- * nothing. Failures are swallowed — analytics must never break booking.
+ * nothing. Failures are swallowed - analytics must never break booking.
  */
 export function ViewTracker({ eventTypeId }: { eventTypeId: string }) {
   useEffect(() => {

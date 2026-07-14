@@ -7,13 +7,13 @@ import { and, asc, eq, getDb, gte, schema } from "@dayotter/db";
  * about (by keyword overlap and by recency) plus the event types they might
  * want to schedule. Smaller prompts are faster, cheaper, and more accurate.
  *
- * No vector store — a calendar is small and time-anchored, so keyword + recency
+ * No vector store - a calendar is small and time-anchored, so keyword + recency
  * selection is the right tool. The retrieved list is the source of truth for
  * booking references, so the caller resolves the model's ref against it.
  */
 
 export interface RetrievedBooking {
-  /** Capability token / public id — used to act on the booking after confirm. */
+  /** Capability token / public id - used to act on the booking after confirm. */
   uid: string;
   title: string;
   startsAt: Date;
@@ -74,7 +74,7 @@ const STOPWORDS = new Set([
   "our",
 ]);
 
-/** Query terms worth matching on — lowercased words of length ≥ 3, minus stopwords. */
+/** Query terms worth matching on - lowercased words of length ≥ 3, minus stopwords. */
 function terms(query: string): string[] {
   return [
     ...new Set(
@@ -107,10 +107,10 @@ export function selectRelevantBookings(
   const anchorCount = Math.min(6, limit);
   const selected = new Map<string, RetrievedBooking>();
 
-  // 1. Soonest few — the time anchor (assumes `all` is already chronological).
+  // 1. Soonest few - the time anchor (assumes `all` is already chronological).
   for (const b of all.slice(0, anchorCount)) selected.set(b.uid, b);
 
-  // 2. Best keyword matches — fill the rest, highest score first.
+  // 2. Best keyword matches - fill the rest, highest score first.
   const ranked = all
     .map((b) => ({ b, s: score(b, queryTerms) }))
     .filter((x) => x.s > 0)

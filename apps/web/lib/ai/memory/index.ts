@@ -43,7 +43,7 @@ export async function recallMemory(userId: string): Promise<MemoryEntry[]> {
 export function summarizeMemory(entries: MemoryEntry[]): string {
   if (entries.length === 0) return "";
   const lines = entries.map((e) => `- ${e.label}`).join("\n");
-  return `What you've learned about this user (use it to make sharper, more personalised proposals — never state it back verbatim):\n${lines}`;
+  return `What you've learned about this user (use it to make sharper, more personalised proposals - never state it back verbatim):\n${lines}`;
 }
 
 /** Persist one derived/stated fact (upsert on user+key). */

@@ -28,7 +28,7 @@ export function useToast(): ToastApi {
 
 /**
  * App-wide toast host. One provider at the app root gives every client component
- * a single, consistent success/error surface — replacing the ad-hoc inline
+ * a single, consistent success/error surface - replacing the ad-hoc inline
  * "Saved" checks and silent failures scattered across the app.
  */
 export function ToastProvider({ children }: { children: ReactNode }) {

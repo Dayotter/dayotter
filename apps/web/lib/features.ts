@@ -1,6 +1,6 @@
 /**
  * Feature landing pages, rendered at /features and /features/[slug]. One page per
- * capability — the programmatic-SEO play (like Calendly's per-feature pages).
+ * capability - the programmatic-SEO play (like Calendly's per-feature pages).
  * Each targets the search intent for that feature and links back into the product.
  */
 
@@ -24,22 +24,22 @@ export const FEATURES: Feature[] = [
   {
     slug: "ai-scheduling",
     label: "AI scheduling",
-    blurb: "Talk to Otter — it books, reschedules, and protects your time, confirm-first.",
+    blurb: "Talk to Otter - it books, reschedules, and protects your time, confirm-first.",
     title: "AI scheduling with Otter",
     subtitle:
-      "Otter is your AI executive assistant for the calendar. Say what you want in plain words — it drafts the change and waits for your OK. Never books anything on its own.",
+      "Otter is your AI executive assistant for the calendar. Say what you want in plain words - it drafts the change and waits for your OK. Never books anything on its own.",
     intro: [
       'Most "AI scheduling" is a chatbot bolted onto a booking link. Otter is built into DayOtter from the ground up: it reads your real availability, understands "book 30 minutes with Priya Thursday" or "hold two hours for deep work," and turns it into a calendar change you confirm.',
-      "It works in the app, by voice on mobile, and over WhatsApp and SMS — and it learns your patterns so its suggestions get sharper over time.",
+      "It works in the app, by voice on mobile, and over WhatsApp and SMS - and it learns your patterns so its suggestions get sharper over time.",
     ],
     points: [
       {
         title: "Confirm-first, always",
-        body: "Otter proposes; you approve. Nothing lands on your calendar and nothing moves without your explicit OK — no silent auto-scheduling.",
+        body: "Otter proposes; you approve. Nothing lands on your calendar and nothing moves without your explicit OK - no silent auto-scheduling.",
       },
       {
         title: "Grounded in your real calendar",
-        body: "It reads your actual availability and bookings, so the times it suggests are ones you're truly free for — across every timezone.",
+        body: "It reads your actual availability and bookings, so the times it suggests are ones you're truly free for - across every timezone.",
       },
       {
         title: "Everywhere you are",
@@ -49,7 +49,7 @@ export const FEATURES: Feature[] = [
     faq: [
       {
         q: "Will the AI change my calendar without asking?",
-        a: "No. Otter is confirm-first — it only ever drafts a change and waits for your confirmation.",
+        a: "No. Otter is confirm-first - it only ever drafts a change and waits for your confirmation.",
       },
       {
         q: "Does AI scheduling cost extra per use?",
@@ -64,15 +64,15 @@ export const FEATURES: Feature[] = [
     blurb: "Distribute meetings across your team, weighted and load-balanced.",
     title: "Weighted round-robin scheduling",
     subtitle:
-      "Spread inbound meetings fairly across your team — weight your best closers, pause anyone who's out, and keep it load-balanced automatically.",
+      "Spread inbound meetings fairly across your team - weight your best closers, pause anyone who's out, and keep it load-balanced automatically.",
     intro: [
-      "Round-robin routing sends each new booking to the next available team member. DayOtter's is weighted: give senior reps a higher share, set someone to zero to pause them, and it stays balanced over time — not just a naive rotation.",
+      "Round-robin routing sends each new booking to the next available team member. DayOtter's is weighted: give senior reps a higher share, set someone to zero to pause them, and it stays balanced over time - not just a naive rotation.",
       "Combine it with routing forms and collective availability to build a real team booking flow, all free to self-host.",
     ],
     points: [
       {
         title: "Weighted distribution",
-        body: "Assign each member a weight to book some people more than others — by seniority, territory, or performance.",
+        body: "Assign each member a weight to book some people more than others - by seniority, territory, or performance.",
       },
       {
         title: "Pause without breaking the rotation",
@@ -86,11 +86,11 @@ export const FEATURES: Feature[] = [
     faq: [
       {
         q: "Can I weight some reps higher than others?",
-        a: "Yes — every member has a weight you can tune any time; set it to zero to pause them.",
+        a: "Yes - every member has a weight you can tune any time; set it to zero to pause them.",
       },
       {
         q: "Is round-robin behind a paywall?",
-        a: "It's included in Pro, and completely free when you self-host — unlike tools that gate team scheduling on expensive tiers.",
+        a: "It's included in Pro, and completely free when you self-host - unlike tools that gate team scheduling on expensive tiers.",
       },
     ],
     related: ["routing-forms", "team-scheduling", "collective"],
@@ -101,10 +101,10 @@ export const FEATURES: Feature[] = [
     blurb: "Qualify inbound and send each visitor to the right person or event type.",
     title: "Routing forms",
     subtitle:
-      "Ask a couple of questions up front, then route each visitor to the right person, team, or event type — so leads never land on the wrong desk.",
+      "Ask a couple of questions up front, then route each visitor to the right person, team, or event type - so leads never land on the wrong desk.",
     intro: [
-      "A routing form is a short set of questions on your booking page. Based on the answers, DayOtter sends the visitor to the right destination — a specific rep, a round-robin pool, or a particular event type.",
-      "It's how sales teams qualify inbound instantly and route enterprise leads to closers, and how support teams get people to the right specialist — no reply-and-wait.",
+      "A routing form is a short set of questions on your booking page. Based on the answers, DayOtter sends the visitor to the right destination - a specific rep, a round-robin pool, or a particular event type.",
+      "It's how sales teams qualify inbound instantly and route enterprise leads to closers, and how support teams get people to the right specialist - no reply-and-wait.",
     ],
     points: [
       {
@@ -113,7 +113,7 @@ export const FEATURES: Feature[] = [
       },
       {
         title: "Rules, checked top to bottom",
-        body: 'Write simple rules — "if Enterprise, send to sales" — with a fallback. No code, no wrong-desk bookings.',
+        body: 'Write simple rules - "if Enterprise, send to sales" - with a fallback. No code, no wrong-desk bookings.',
       },
       {
         title: "Route to a person or a pool",
@@ -123,7 +123,7 @@ export const FEATURES: Feature[] = [
     faq: [
       {
         q: "Do I need to write code for routing?",
-        a: "No — routing is no-code: add questions, then rules that map answers to destinations.",
+        a: "No - routing is no-code: add questions, then rules that map answers to destinations.",
       },
     ],
     related: ["round-robin", "team-scheduling", "ai-scheduling"],
@@ -131,13 +131,13 @@ export const FEATURES: Feature[] = [
   {
     slug: "focus-time",
     label: "Focus time",
-    blurb: "Otter finds and protects blocks for deep work — held as real events.",
+    blurb: "Otter finds and protects blocks for deep work - held as real events.",
     title: "Focus-time protection",
     subtitle:
-      "Ask Otter to hold time for deep work and it defends it as a real calendar event — so meetings route around your focus instead of eating into it.",
+      "Ask Otter to hold time for deep work and it defends it as a real calendar event - so meetings route around your focus instead of eating into it.",
     intro: [
       'Say "hold two hours for deep work tomorrow morning" and Otter finds an open block that fits your schedule and protects it. Because it becomes a real busy block, your booking page and team availability route around it automatically.',
-      "This is Reclaim/Motion territory — but confirm-first, and part of a full scheduling platform rather than a separate app.",
+      "This is Reclaim/Motion territory - but confirm-first, and part of a full scheduling platform rather than a separate app.",
     ],
     points: [
       {
@@ -146,17 +146,17 @@ export const FEATURES: Feature[] = [
       },
       {
         title: "Proactively suggested",
-        body: "Otter notices open windows worth protecting and offers to hold them — you just confirm.",
+        body: "Otter notices open windows worth protecting and offers to hold them - you just confirm.",
       },
       {
         title: "Across every calendar",
-        body: "It works whether you're on Google, Outlook, or Apple — one honest view of your real free time.",
+        body: "It works whether you're on Google, Outlook, or Apple - one honest view of your real free time.",
       },
     ],
     faq: [
       {
         q: "Does it move my meetings around to make room?",
-        a: "No — it protects open time, confirm-first. It never silently rearranges your calendar.",
+        a: "No - it protects open time, confirm-first. It never silently rearranges your calendar.",
       },
     ],
     related: ["ai-scheduling", "running-late", "analytics"],
@@ -167,7 +167,7 @@ export const FEATURES: Feature[] = [
     blurb: "Automatic reminders over email, SMS, WhatsApp, Slack, and push.",
     title: "Meeting reminders & notifications",
     subtitle:
-      "Cut no-shows with automatic reminders on the channels people actually check — email, SMS, WhatsApp, Slack, and mobile push.",
+      "Cut no-shows with automatic reminders on the channels people actually check - email, SMS, WhatsApp, Slack, and mobile push.",
     intro: [
       "Set your lead times once and DayOtter reminds you and your attendees before every meeting. Reminders are durable (backed by a real job queue), multi-channel, and reschedule cleanly when a meeting moves.",
       "Add before/after-event workflow messages on your own templates for confirmations, prep, and follow-ups.",
@@ -175,7 +175,7 @@ export const FEATURES: Feature[] = [
     points: [
       {
         title: "Every channel",
-        body: "Email and — on Pro/self-host — SMS, WhatsApp, Slack, and push, so reminders land where people look.",
+        body: "Email and - on Pro/self-host - SMS, WhatsApp, Slack, and push, so reminders land where people look.",
       },
       {
         title: "Reschedule-aware",
@@ -183,7 +183,7 @@ export const FEATURES: Feature[] = [
       },
       {
         title: "Custom workflows",
-        body: "Send templated before/after-event messages — prep notes, follow-ups — automatically.",
+        body: "Send templated before/after-event messages - prep notes, follow-ups - automatically.",
       },
     ],
     faq: [
@@ -197,18 +197,18 @@ export const FEATURES: Feature[] = [
   {
     slug: "calendar-sync",
     label: "Calendar sync",
-    blurb: "Google, Outlook, Apple, and ICS — one honest view of your time.",
+    blurb: "Google, Outlook, Apple, and ICS - one honest view of your time.",
     title: "Calendar sync",
     subtitle:
-      "Connect Google, Microsoft 365, Apple iCloud, and any ICS feed. DayOtter unifies them into one source of truth for your availability — two-way, real-time.",
+      "Connect Google, Microsoft 365, Apple iCloud, and any ICS feed. DayOtter unifies them into one source of truth for your availability - two-way, real-time.",
     intro: [
-      "DayOtter reads your busy times from every calendar you connect and writes new bookings back — so you're never double-booked and everything lives in the calendar you already check.",
+      "DayOtter reads your busy times from every calendar you connect and writes new bookings back - so you're never double-booked and everything lives in the calendar you already check.",
       "Google and Microsoft sync in real time via provider webhooks; Apple/CalDAV and ICS feeds are kept fresh by polling. Tokens are encrypted at rest.",
     ],
     points: [
       {
         title: "Every provider",
-        body: "Google Calendar, Microsoft 365 / Outlook, Apple iCloud (CalDAV), and read-only ICS feeds — behind one interface.",
+        body: "Google Calendar, Microsoft 365 / Outlook, Apple iCloud (CalDAV), and read-only ICS feeds - behind one interface.",
       },
       {
         title: "Two-way and real-time",
@@ -222,7 +222,7 @@ export const FEATURES: Feature[] = [
     faq: [
       {
         q: "Does it work with Apple/iCloud?",
-        a: "Yes — via CalDAV with an app-specific password. Unlike some tools that dropped iCloud support, DayOtter keeps it.",
+        a: "Yes - via CalDAV with an app-specific password. Unlike some tools that dropped iCloud support, DayOtter keeps it.",
       },
     ],
     related: ["booking-pages", "ai-scheduling", "focus-time"],
@@ -230,18 +230,18 @@ export const FEATURES: Feature[] = [
   {
     slug: "payments",
     label: "Payments",
-    blurb: "Charge or take a deposit to book — powered by Stripe.",
+    blurb: "Charge or take a deposit to book - powered by Stripe.",
     title: "Accept payments for bookings",
     subtitle:
-      "Require payment or a deposit before a slot is held. Fewer no-shows, paid up front — with prepaid session packages for recurring clients.",
+      "Require payment or a deposit before a slot is held. Fewer no-shows, paid up front - with prepaid session packages for recurring clients.",
     intro: [
       "Connect Stripe and charge the full price or a deposit as part of booking. The slot is only confirmed once payment succeeds, so flaky free bookings stop costing you income.",
-      'Sell prepaid session packages too — a bundle of sessions a client buys once, tracked as they book ("3 of 5 used").',
+      'Sell prepaid session packages too - a bundle of sessions a client buys once, tracked as they book ("3 of 5 used").',
     ],
     points: [
       {
         title: "Full price or deposit",
-        body: "Take the whole fee or just a deposit to secure the slot — your call per event type.",
+        body: "Take the whole fee or just a deposit to secure the slot - your call per event type.",
       },
       {
         title: "Session packages",
@@ -249,13 +249,13 @@ export const FEATURES: Feature[] = [
       },
       {
         title: "Stripe, secure",
-        body: "Payments run on Stripe Checkout — DayOtter never stores card numbers.",
+        body: "Payments run on Stripe Checkout - DayOtter never stores card numbers.",
       },
     ],
     faq: [
       {
         q: "Do I need a Stripe account?",
-        a: "Yes — connect Stripe and you can charge for bookings and sell packages. It's included in Pro and free to self-host.",
+        a: "Yes - connect Stripe and you can charge for bookings and sell packages. It's included in Pro and free to self-host.",
       },
     ],
     related: ["session-packages", "reminders", "booking-pages"],
@@ -266,19 +266,19 @@ export const FEATURES: Feature[] = [
     blurb: "A 24/7 AI phone line that answers questions and books appointments.",
     title: "AI voice receptionist",
     subtitle:
-      "Give your booking line an AI receptionist. It answers common questions, and texts callers a link to book — 24/7, grounded in your real services.",
+      "Give your booking line an AI receptionist. It answers common questions, and texts callers a link to book - 24/7, grounded in your real services.",
     intro: [
-      "Callers reach a warm, natural AI receptionist that answers from your knowledge base and, when they want to book, texts them a link to pick a time. It never books blind — confirm-first, over the phone.",
+      "Callers reach a warm, natural AI receptionist that answers from your knowledge base and, when they want to book, texts them a link to pick a time. It never books blind - confirm-first, over the phone.",
       "Perfect for solo service businesses, coaches, and clinics that miss calls after hours.",
     ],
     points: [
       {
         title: "Answers, grounded",
-        body: "It responds only from your services and info — and defers to you rather than inventing details.",
+        body: "It responds only from your services and info - and defers to you rather than inventing details.",
       },
       {
         title: "Texts a booking link",
-        body: "When a caller wants an appointment, it sends them a link to choose a time — no blind bookings.",
+        body: "When a caller wants an appointment, it sends them a link to choose a time - no blind bookings.",
       },
       {
         title: "24/7, natural speech",
@@ -288,7 +288,7 @@ export const FEATURES: Feature[] = [
     faq: [
       {
         q: "Can it actually book on the call?",
-        a: "It hands the caller a booking link to confirm a time themselves — confirm-first. Conversational booking is on the roadmap.",
+        a: "It hands the caller a booking link to confirm a time themselves - confirm-first. Conversational booking is on the roadmap.",
       },
     ],
     related: ["ai-scheduling", "reminders", "booking-pages"],
@@ -299,19 +299,19 @@ export const FEATURES: Feature[] = [
     blurb: "Calm, branded pages with intake, buffers, and instant video links.",
     title: "Booking pages",
     subtitle:
-      "Share one link and let people book you — on a page as calm as it is capable, with intake questions, buffers, and automatic video links.",
+      "Share one link and let people book you - on a page as calm as it is capable, with intake questions, buffers, and automatic video links.",
     intro: [
       "Your booking page is a branded, fast, mobile-friendly place for anyone to grab a time that works. Add intake questions, buffers, notice periods, and multiple durations; DayOtter attaches a Google Meet, Zoom, or Teams link automatically.",
-      "Unlimited event types on every plan — including free — instead of the one-event-only trap.",
+      "Unlimited event types on every plan - including free - instead of the one-event-only trap.",
     ],
     points: [
       {
         title: "Unlimited event types",
-        body: "Create as many booking types as you need, free forever — intro calls, demos, office hours, whatever.",
+        body: "Create as many booking types as you need, free forever - intro calls, demos, office hours, whatever.",
       },
       {
         title: "Yours, branded",
-        body: "Your name, accent color, welcome message, and intake questions — calm and professional, not a generic form.",
+        body: "Your name, accent color, welcome message, and intake questions - calm and professional, not a generic form.",
       },
       {
         title: "Video links, automatic",
@@ -321,7 +321,7 @@ export const FEATURES: Feature[] = [
     faq: [
       {
         q: "How many event types can I create?",
-        a: "Unlimited, on every plan including Free — unlike Calendly's one-event free tier.",
+        a: "Unlimited, on every plan including Free - unlike Calendly's one-event free tier.",
       },
     ],
     related: ["calendar-sync", "payments", "group-polls"],
@@ -329,10 +329,10 @@ export const FEATURES: Feature[] = [
   {
     slug: "group-polls",
     label: "Group polls",
-    blurb: "Find a time across a group — propose slots, collect votes, lock it in.",
+    blurb: "Find a time across a group - propose slots, collect votes, lock it in.",
     title: "Group polls",
     subtitle:
-      "Find one time that works across a group. Propose a few slots, let everyone vote, and finalize the winner into a real booking — no email thread.",
+      "Find one time that works across a group. Propose a few slots, let everyone vote, and finalize the winner into a real booking - no email thread.",
     intro: [
       "Group polls (Doodle-style) solve the many-people problem: propose candidate times, share the link, collect yes/no/maybe votes, and turn the most-supported slot into a booking on everyone's calendar.",
       "Great for panel interviews, team calls, and any meeting where a single link won't do.",
@@ -340,7 +340,7 @@ export const FEATURES: Feature[] = [
     points: [
       {
         title: "Propose, vote, finalize",
-        body: "Offer a handful of times, let people vote, and lock in the winner — it becomes a real booking.",
+        body: "Offer a handful of times, let people vote, and lock in the winner - it becomes a real booking.",
       },
       {
         title: "No back-and-forth",
@@ -350,7 +350,7 @@ export const FEATURES: Feature[] = [
     faq: [
       {
         q: "Is this like Doodle?",
-        a: "Same idea, but it finalizes straight into a booking on your calendar with reminders — not just a poll.",
+        a: "Same idea, but it finalizes straight into a booking on your calendar with reminders - not just a poll.",
       },
     ],
     related: ["booking-pages", "team-scheduling", "routing-forms"],

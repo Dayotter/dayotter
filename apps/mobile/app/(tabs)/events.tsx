@@ -39,7 +39,7 @@ export default function EventsScreen() {
         ) : !data || data.length === 0 ? (
           <EmptyState
             title="No booking types yet"
-            body="Create bookable meetings from the web app — they show up here."
+            body="Create bookable meetings from the web app - they show up here."
           />
         ) : (
           data.map((e) => (

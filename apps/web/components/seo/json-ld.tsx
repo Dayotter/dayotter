@@ -4,7 +4,7 @@ import { BRAND } from "@/lib/marketing";
  * Structured data (schema.org JSON-LD) helpers. Rendered as inline scripts so
  * search engines get rich context: org identity, the app as a product, FAQ
  * rich-results, breadcrumbs, and blog articles. Keep the emitted objects small
- * and truthful — Google penalizes markup that doesn't match visible content.
+ * and truthful - Google penalizes markup that doesn't match visible content.
  */
 
 function JsonLd({ data }: { data: Record<string, unknown> }) {
@@ -37,7 +37,7 @@ export function OrganizationJsonLd() {
           applicationCategory: "BusinessApplication",
           operatingSystem: "Web, iOS, Android",
           description:
-            "AI-native, open-source scheduling platform. Otter books meetings, protects focus, and clears the back-and-forth — confirm-first.",
+            "AI-native, open-source scheduling platform. Otter books meetings, protects focus, and clears the back-and-forth - confirm-first.",
           offers: [
             { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" },
             { "@type": "Offer", price: "9", priceCurrency: "USD", name: "Pro (per seat / month)" },
@@ -49,7 +49,7 @@ export function OrganizationJsonLd() {
   );
 }
 
-/** FAQ rich results — pass the same Q&As shown on the page. */
+/** FAQ rich results - pass the same Q&As shown on the page. */
 export function FaqJsonLd({ items }: { items: { q: string; a: string }[] }) {
   if (items.length === 0) return null;
   return (

@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 /**
- * Apple iCloud connect — a form-based flow (app-specific password) rather than an
+ * Apple iCloud connect - a form-based flow (app-specific password) rather than an
  * OAuth redirect. Verifies credentials server-side and shows inline feedback.
  */
 export function AppleConnectForm({ name, color }: { name: string; color: string }) {
@@ -84,7 +84,7 @@ export function AppleConnectForm({ name, color }: { name: string; color: string 
               placeholder="xxxx-xxxx-xxxx-xxxx"
             />
             <p className="mt-1 text-xs text-[var(--color-faint)]">
-              Not your Apple password — generate one at{" "}
+              Not your Apple password - generate one at{" "}
               <a
                 href="https://account.apple.com/account/manage"
                 target="_blank"

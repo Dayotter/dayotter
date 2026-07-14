@@ -15,8 +15,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const g = getGuide((await params).slug);
-  if (!g) return { title: "Docs — DayOtter" };
-  return { title: `${g.title} — DayOtter Docs`, description: g.summary };
+  if (!g) return { title: "Docs - DayOtter" };
+  return { title: `${g.title} - DayOtter Docs`, description: g.summary };
 }
 
 export default async function DocGuidePage({ params }: { params: Promise<{ slug: string }> }) {

@@ -7,7 +7,7 @@ import { sendDueBriefings } from "./morning-briefing";
 
 /**
  * Meeting Lifecycle: a booking that's still `confirmed` after it has ended is
- * treated as having happened — mark it `completed`. This makes the `completed`
+ * treated as having happened - mark it `completed`. This makes the `completed`
  * state (and analytics) meaningful without a human clicking. A host can still
  * override to `no_show` afterwards. Idempotent.
  */
@@ -30,7 +30,7 @@ export async function markPastBookingsCompleted(): Promise<void> {
  * polls webhook-less providers (Apple/CalDAV), renews expiring push
  * subscriptions (via the sync worker's ensureSubscription), and is a safety net
  * for any change a webhook might have missed. Also materializes recurring
- * (weekly) automation blocks for the horizon — idempotent, so the tick cadence
+ * (weekly) automation blocks for the horizon - idempotent, so the tick cadence
  * doesn't matter.
  */
 export function startMaintenanceWorker(): Worker {
@@ -48,7 +48,7 @@ export function startMaintenanceWorker(): Worker {
 
       await materializeWeeklyBlocks();
       await markPastBookingsCompleted();
-      // Daily morning briefing — self-guards on local time + once-per-day.
+      // Daily morning briefing - self-guards on local time + once-per-day.
       await sendDueBriefings().catch((err) => {
         logger.error("morning briefing tick failed", { event: "briefing_tick_failed", err });
       });

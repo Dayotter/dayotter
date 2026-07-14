@@ -142,7 +142,7 @@ export function MobileApps() {
             Your calendar, <em className="text-[var(--color-accent)]">in your pocket.</em>
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-[var(--color-muted)]">
-            Native apps for iPhone and Android are on the way — the same calm scheduling, built for
+            Native apps for iPhone and Android are on the way - the same calm scheduling, built for
             the moments you're on the move. Push reminders, one-tap booking, and your whole team's
             availability, wherever you are.
           </p>

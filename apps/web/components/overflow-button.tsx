@@ -6,7 +6,7 @@ import { Check, Clock } from "lucide-react";
 import { useState } from "react";
 
 /**
- * Overflow nudge (#6): the current meeting is running long — one tap tells the
+ * Overflow nudge (#6): the current meeting is running long - one tap tells the
  * *next* meeting's attendees the host may join a few minutes late.
  */
 export function OverflowButton({ uid }: { uid: string }) {

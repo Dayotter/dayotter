@@ -12,7 +12,7 @@ export const ICS_FEED_CALENDAR_ID = "feed";
 
 /**
  * A read-only calendar backed by an external ICS / webcal feed URL. Poll-only
- * (no push subscriptions, no RSVP, no writes) — the maintenance tick re-fetches
+ * (no push subscriptions, no RSVP, no writes) - the maintenance tick re-fetches
  * it like a CalDAV account. Every sync is a full snapshot: ICS has no delta, so
  * we return `fullResync` and let the sync worker wipe + reinsert, which handles
  * removed events for free.
@@ -42,7 +42,7 @@ export class IcsFeedAdapter implements CalendarAdapter {
   ): Promise<SyncResult> {
     const text = await fetchIcsFeed(this.feedUrl);
     const events = parseIcsEvents(text, windowStart, windowEnd);
-    // No incremental cursor for ICS — treat every sync as a fresh snapshot so the
+    // No incremental cursor for ICS - treat every sync as a fresh snapshot so the
     // worker wipes stale rows and reinserts, correctly dropping removed events.
     return { events, deletedExternalIds: [], fullResync: true };
   }

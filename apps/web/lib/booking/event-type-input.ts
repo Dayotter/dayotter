@@ -38,7 +38,7 @@ export const LOCATION_DETAIL_PLACEHOLDER: Record<LocationTypeValue, string> = {
 };
 
 /**
- * Preset event colours — stored as token names (not hex) so they resolve through
+ * Preset event colours - stored as token names (not hex) so they resolve through
  * the design system's `--color-*` vars and adapt to light/dark automatically.
  */
 export const EVENT_COLORS = ["violet", "mint", "amber", "coral", "sky"] as const;
@@ -61,7 +61,7 @@ export function eventColorVar(color: string | null | undefined): string {
 }
 
 /**
- * The full editable field set for an event type — shared by the create (`POST`)
+ * The full editable field set for an event type - shared by the create (`POST`)
  * and update (`PUT`) API routes and the client form so validation stays in one
  * place. Every field maps directly to a column the availability engine already
  * honours (buffers, minimum notice, booking window).

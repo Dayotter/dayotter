@@ -46,7 +46,7 @@ export default function NotificationsScreen() {
   const hasPush = channels.some((c) => c.type === "push");
 
   function enablePush() {
-    // Prime with the value *before* the OS permission dialog — fewer reflexive denials.
+    // Prime with the value *before* the OS permission dialog - fewer reflexive denials.
     Alert.alert(
       "Turn on reminders?",
       "DayOtter sends a gentle nudge before each meeting so nothing slips. You can turn it off anytime.",
@@ -76,7 +76,7 @@ export default function NotificationsScreen() {
         : res.reason === "denied"
           ? "Enable notifications for DayOtter in your device settings."
           : res.reason === "token"
-            ? "Couldn't get a push token — this needs a dev build, not Expo Go."
+            ? "Couldn't get a push token - this needs a dev build, not Expo Go."
             : (res.message ?? "Couldn't verify the device. Please try again.");
     Alert.alert("Couldn't enable push", msg);
   }
@@ -161,7 +161,7 @@ export default function NotificationsScreen() {
       <Stack.Screen options={{ headerShown: true, title: "Notifications" }} />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.intro}>
-          Get meeting reminders where you are — push, Slack, WhatsApp, or SMS. Email reminders are
+          Get meeting reminders where you are - push, Slack, WhatsApp, or SMS. Email reminders are
           always on.
         </Text>
 

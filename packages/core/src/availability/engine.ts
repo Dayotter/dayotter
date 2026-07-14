@@ -47,7 +47,7 @@ function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number): b
 
 /**
  * Compute bookable slots for one host given their schedule, external busy
- * times, and the event constraints. Pure and deterministic — the same inputs
+ * times, and the event constraints. Pure and deterministic - the same inputs
  * always yield the same slots, which makes it trivial to unit-test.
  */
 export function computeAvailability(input: AvailabilityInput): Slot[] {
@@ -117,7 +117,7 @@ export function computeAvailability(input: AvailabilityInput): Slot[] {
 }
 
 /**
- * Intersect multiple hosts' free slots — the basis for collective team
+ * Intersect multiple hosts' free slots - the basis for collective team
  * scheduling ("find a time when we're all free"). Returns slots present for
  * every host (matched by start instant).
  */

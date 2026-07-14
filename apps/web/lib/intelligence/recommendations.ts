@@ -18,8 +18,8 @@ interface Meeting {
 
 /**
  * The Intelligence engine's calendar-health + habit ("Calendar Memory") analysis.
- * Looks at the host's real meeting history — BOTH DayOtter bookings and external
- * events from the unified event model — over the last 30 days and returns soft,
+ * Looks at the host's real meeting history - BOTH DayOtter bookings and external
+ * events from the unified event model - over the last 30 days and returns soft,
  * advisory recommendations (never hard rules; respects the confirm-first ethos).
  */
 export async function getRecommendations(params: {
@@ -104,7 +104,7 @@ export async function getRecommendations(params: {
       id: "prefers-afternoon",
       icon: "sun",
       title: "You meet mostly in the afternoons",
-      detail: `Only ${morningPct}% of your meetings are before noon — you could protect your mornings for deep work.`,
+      detail: `Only ${morningPct}% of your meetings are before noon - you could protect your mornings for deep work.`,
     });
   }
 
@@ -133,7 +133,7 @@ export async function getRecommendations(params: {
       id: "fragmented",
       icon: "layers",
       title: "Your calendar is fragmented",
-      detail: `You had ${shortGaps} gaps shorter than 30 minutes between meetings — too short for real focus. Batching meetings back-to-back frees longer deep-work windows.`,
+      detail: `You had ${shortGaps} gaps shorter than 30 minutes between meetings - too short for real focus. Batching meetings back-to-back frees longer deep-work windows.`,
     });
   }
 
@@ -144,7 +144,7 @@ export async function getRecommendations(params: {
       id: "high-cancellations",
       icon: "calendar-x",
       title: "A lot of bookings fall through",
-      detail: `${dropRate}% of your bookings were cancelled or no-showed. A confirmation reminder — or a deposit on paid events — usually helps.`,
+      detail: `${dropRate}% of your bookings were cancelled or no-showed. A confirmation reminder - or a deposit on paid events - usually helps.`,
     });
   }
 

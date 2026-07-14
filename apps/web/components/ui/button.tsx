@@ -24,7 +24,7 @@ const sizes: Record<Size, string> = {
   lg: "h-11 px-5 text-[15px]",
 };
 
-/** Class string for the button look — reuse on `<Link>` for link-buttons. */
+/** Class string for the button look - reuse on `<Link>` for link-buttons. */
 export function buttonVariants({
   variant = "primary",
   size = "md",
