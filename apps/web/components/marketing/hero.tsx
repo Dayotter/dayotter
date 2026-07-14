@@ -25,15 +25,15 @@ export function Hero() {
           <span className="eyebrow">Meet Otter, your scheduling assistant</span>
         </FadeUp>
         <FadeUp delay={0.08}>
-          <h1 className="font-display mx-auto mt-5 max-w-4xl text-[2.6rem] leading-[1.04] tracking-[-0.02em] sm:text-6xl lg:text-[4.5rem]">
+          <h1 className="font-display mx-auto mt-5 max-w-4xl text-balance text-[2.6rem] leading-[1.04] tracking-[-0.02em] sm:text-6xl lg:text-[4.5rem]">
             Say it once. <em className="text-[var(--color-accent)]">Otter handles the rest.</em>
           </h1>
         </FadeUp>
         <FadeUp delay={0.16}>
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[var(--color-muted)]">
-            Talk to your calendar like you'd talk to an assistant. Otter books the meeting, holds
-            your focus time, and clears the back-and-forth - and never changes a thing without your
-            OK. Or share one link and let people book you themselves.
+          <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-[var(--color-muted)] sm:text-xl">
+            Talk to your calendar like you'd talk to an assistant. Otter books meetings, protects
+            your focus, and clears the back-and-forth - confirm-first. Or share one link and let
+            people book you themselves.
           </p>
         </FadeUp>
         <FadeUp delay={0.24}>

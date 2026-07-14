@@ -5,8 +5,8 @@ import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import type { ChatAction, ChatToolAction } from "@/lib/ai/chat";
 import { track } from "@/lib/analytics";
-import { useSpeechInput } from "@/lib/use-speech";
-import { Mic, Send, Sparkles, Volume2, VolumeX, X } from "lucide-react";
+import { useSpeechInput, useSpeechOutput } from "@/lib/use-speech";
+import { Mic, Send, Sparkles, Volume2, VolumeX, Waves, X } from "lucide-react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -38,15 +38,6 @@ function fmtWhen(iso: string): string {
   return dt.isValid ? dt.toFormat("ccc, LLL d 'at' h:mm a") : iso;
 }
 
-/** Speak text via the browser's speech synthesis (no-op where unavailable). */
-function speak(text: string) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return;
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 1.02;
-  window.speechSynthesis.speak(u);
-}
-
 /**
  * Otter - the conversational scheduling assistant. Streams replies from
  * /api/ai/chat, supports voice in (speech-to-text) and spoken replies, and
@@ -56,9 +47,16 @@ function speak(text: string) {
 export function AiAssistant({
   variant = "card",
   onClose,
-}: { variant?: "card" | "panel"; onClose?: () => void } = {}) {
+  onSwitchToVoice,
+}: {
+  variant?: "card" | "panel";
+  onClose?: () => void;
+  onSwitchToVoice?: () => void;
+} = {}) {
   const panel = variant === "panel";
   const router = useRouter();
+  const out = useSpeechOutput();
+  const speak = useCallback((text: string) => out.speak(text), [out]);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -90,9 +88,7 @@ export function AiAssistant({
     setSpeakReplies((v) => {
       const next = !v;
       localStorage.setItem("dayotter_tts", next ? "1" : "0");
-      if (!next && typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+      if (!next) out.cancel();
       return next;
     });
   }
@@ -103,6 +99,7 @@ export function AiAssistant({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, action]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: speak is stable enough; re-creating send per voice change is unnecessary
   const send = useCallback(
     async (raw: string) => {
       const content = raw.trim();
@@ -330,6 +327,16 @@ export function AiAssistant({
             Your scheduling assistant - you confirm before anything changes
           </p>
         </div>
+        {onSwitchToVoice ? (
+          <button
+            type="button"
+            onClick={onSwitchToVoice}
+            title="Switch to hands-free voice"
+            className="rounded-md p-1.5 text-[var(--color-faint)] hover:text-[var(--color-text)]"
+          >
+            <Waves size={16} />
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={toggleSpeak}

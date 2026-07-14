@@ -1,17 +1,21 @@
 "use client";
 
 import { AiAssistant } from "@/components/ai-assistant";
+import { OtterVoice } from "@/components/otter-voice";
 import { type ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+
+type Mode = "voice" | "chat";
 
 /**
  * The primary way to reach Otter - a floating otter button on every app page
  * that opens the assistant in a slide-over (right drawer on desktop, bottom
- * sheet on mobile). Talk or type; Otter does the scheduling. Rendered globally
- * from the app layout, gated on `aiEnabled`.
+ * sheet on mobile). Opens in hands-free voice mode by default; a tap switches to
+ * text chat. Rendered globally from the app layout, gated on `aiEnabled`.
  */
 export function OtterLauncher() {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<Mode>("voice");
 
   useEffect(() => {
     if (!open) return;
@@ -49,12 +53,12 @@ export function OtterLauncher() {
         </button>
       )}
 
-      {open ? <Portal>{drawer(() => setOpen(false))}</Portal> : null}
+      {open ? <Portal>{drawer(() => setOpen(false), mode, setMode)}</Portal> : null}
     </>
   );
 }
 
-function drawer(onClose: () => void): ReactNode {
+function drawer(onClose: () => void, mode: Mode, setMode: (m: Mode) => void): ReactNode {
   return (
     <div className="fixed inset-0 z-50">
       <button
@@ -64,7 +68,11 @@ function drawer(onClose: () => void): ReactNode {
         className="absolute inset-0 cursor-default bg-[color-mix(in_srgb,var(--color-text)_38%,transparent)] backdrop-blur-[2px]"
       />
       <div className="animate-dialog-in absolute inset-x-0 bottom-0 flex h-[85vh] flex-col overflow-hidden rounded-t-[var(--radius-xl)] border-t border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-pop)] sm:inset-y-0 sm:right-0 sm:left-auto sm:h-full sm:w-[440px] sm:rounded-none sm:border-l sm:border-t-0">
-        <AiAssistant variant="panel" onClose={onClose} />
+        {mode === "voice" ? (
+          <OtterVoice onSwitchToChat={() => setMode("chat")} onClose={onClose} />
+        ) : (
+          <AiAssistant variant="panel" onClose={onClose} onSwitchToVoice={() => setMode("voice")} />
+        )}
       </div>
     </div>
   );
