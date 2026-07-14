@@ -2,6 +2,7 @@ import { POSTS } from "@/lib/blog";
 import { COMPARISONS } from "@/lib/comparisons";
 import { GUIDES } from "@/lib/docs";
 import { FEATURES } from "@/lib/features";
+import { GLOSSARY } from "@/lib/glossary";
 import { INTEGRATIONS } from "@/lib/integrations-content";
 import { BRAND } from "@/lib/marketing";
 import { PERSONAS } from "@/lib/personas";
@@ -24,9 +25,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry("/features", 0.9),
     entry("/integrations", 0.9),
     entry("/vs", 0.8),
+    entry("/for", 0.7),
     entry("/self-hosting", 0.8),
     entry("/blog", 0.7),
     entry("/docs", 0.7),
+    entry("/glossary", 0.6),
     entry("/about", 0.5),
     entry("/security", 0.5),
     entry("/contact", 0.5),
@@ -40,5 +43,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...PERSONAS.map((p) => entry(`/for/${p.slug}`, 0.7)),
     ...POSTS.map((p) => entry(`/blog/${p.slug}`, 0.6)),
     ...GUIDES.map((g) => entry(`/docs/${g.slug}`, 0.5)),
+    ...GLOSSARY.map((t) => entry(`/glossary/${t.slug}`, 0.5)),
   ];
 }

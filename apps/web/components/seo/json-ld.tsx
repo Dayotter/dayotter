@@ -85,6 +85,26 @@ export function BreadcrumbJsonLd({ items }: { items: { name: string; path: strin
   );
 }
 
+/** A glossary term (schema.org DefinedTerm), for /glossary/[slug] pages. */
+export function DefinedTermJsonLd(props: { term: string; definition: string; path: string }) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "DefinedTerm",
+        name: props.term,
+        description: props.definition,
+        url: `${BRAND.url}${props.path}`,
+        inDefinedTermSet: {
+          "@type": "DefinedTermSet",
+          name: "DayOtter Scheduling Glossary",
+          url: `${BRAND.url}/glossary`,
+        },
+      }}
+    />
+  );
+}
+
 /** A blog post / article. */
 export function ArticleJsonLd(props: {
   title: string;

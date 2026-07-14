@@ -406,6 +406,222 @@ export const PERSONAS: Persona[] = [
       },
     ],
   },
+  {
+    slug: "customer-success",
+    label: "Customer success",
+    title: "Onboarding, QBRs and check-ins - booked without the chase.",
+    subtitle:
+      "Let customers self-book onboarding and reviews, route accounts to the right CSM, and let Otter handle the reschedules - so your team spends time on customers, not calendars.",
+    problems: [
+      {
+        title: "Chasing customers to book",
+        body: "Onboarding and QBRs stall in email threads. Every delayed kickoff is time-to-value slipping and a renewal risk growing.",
+      },
+      {
+        title: "Accounts land on the wrong CSM",
+        body: "One shared link means enterprise accounts and self-serve customers hit the same person, so the wrong CSM fields the wrong call.",
+      },
+      {
+        title: "Reschedules eat the week",
+        body: "Customers move meetings constantly. Re-finding a slot across timezones is a daily tax on a team that should be driving adoption.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Self-book onboarding and reviews",
+        body: "Share a booking page so customers grab their kickoff or QBR themselves, on your real availability - no reply-and-wait, no stalled starts.",
+      },
+      {
+        title: "Route accounts to the right CSM",
+        body: "A short routing form sends each customer to the right owner or pod by tier or product, so the right person always takes the call.",
+      },
+      {
+        title: "Otter handles the reshuffle",
+        body: '"Move the Acme QBR to next Tuesday." Otter finds the slot and reschedules across timezones - you just confirm.',
+      },
+      {
+        title: "Reminders that cut no-shows",
+        body: "Automated nudges over email, SMS and Slack keep onboarding and reviews on the calendar, so momentum doesn't slip.",
+      },
+    ],
+    steps: [
+      "Add your CSMs and connect their calendars.",
+      "Build a routing form by tier or product and set round-robin.",
+      "Share one link - customers book the right owner, every time.",
+    ],
+    faq: [
+      {
+        q: "Can customers book their own onboarding?",
+        a: "Yes - share a booking page and customers pick a real, free slot themselves, with the video link and reminders attached. No back-and-forth kickoff thread.",
+      },
+      {
+        q: "Can I route accounts to a specific CSM?",
+        a: "Yes - a routing form asks a question or two (tier, product, region) and sends each customer to the right owner or pod automatically.",
+      },
+    ],
+  },
+  {
+    slug: "tutors",
+    label: "Tutors & educators",
+    title: "Lessons booked and paid for - so you can teach, not schedule.",
+    subtitle:
+      "Let students book recurring lessons, take payment up front, and let Otter handle the reschedules - on a calm page that works across every timezone.",
+    problems: [
+      {
+        title: "Re-booking the same lesson every week",
+        body: "Standing weekly sessions mean confirming the same slot over and over, and chasing anyone who forgets.",
+      },
+      {
+        title: "No-shows and unpaid lessons",
+        body: "A missed session with no deposit is just lost income - and awkward to chase after the fact.",
+      },
+      {
+        title: "Timezones with remote students",
+        body: "A student three timezones away turns every reschedule into mental math and the odd double-booking.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Recurring lessons in one booking",
+        body: "Offer a weekly or biweekly series - one confirmation books the whole term, on your calendar and theirs.",
+      },
+      {
+        title: "Payment up front",
+        body: "Charge per lesson or take a deposit through Stripe before a slot is held - or sell a prepaid package of sessions students draw down.",
+      },
+      {
+        title: "Otter handles the moves",
+        body: '"Move Maya\'s Thursday lesson to Friday 4pm." Otter finds the slot and reschedules - you just confirm.',
+      },
+      {
+        title: "Timezone-safe for every student",
+        body: "Each student sees times in their own timezone, so remote lessons never land at the wrong hour.",
+      },
+    ],
+    steps: [
+      "Create a lesson type - set duration, price and whether it recurs.",
+      "Share your link; students book (and pay) themselves.",
+      "Let Otter handle reschedules and send reminders.",
+    ],
+    faq: [
+      {
+        q: "Can students book a recurring weekly lesson?",
+        a: "Yes - mark a lesson type recurring (weekly, biweekly or monthly) and one booking schedules the whole series on both calendars.",
+      },
+      {
+        q: "Can I sell a package of lessons up front?",
+        a: "Yes - connect Stripe and sell prepaid session packages; each booking draws down a credit, so students pay once and book as they go.",
+      },
+    ],
+  },
+  {
+    slug: "freelancers",
+    label: "Freelancers",
+    title: "Client calls, discovery and paid consults - handled on one page.",
+    subtitle:
+      "Let clients book discovery and working sessions, charge for paid consults, and let Otter run the back-and-forth - so more of your day is billable work, not calendar admin.",
+    problems: [
+      {
+        title: "Scheduling isn't billable",
+        body: "Every project starts with a scheduling thread. Across clients, that's hours a month you can't invoice.",
+      },
+      {
+        title: "Free consults get flaky",
+        body: "Without a deposit, a free discovery call is easy to no-show - and your time is the product.",
+      },
+      {
+        title: "Juggling clients and focus time",
+        body: "Client calls sprawl across the week and the deep work you're actually paid for never gets a protected block.",
+      },
+    ],
+    solutions: [
+      {
+        title: "One link for every kind of call",
+        body: "Discovery, working sessions, paid consults - separate booking types on one page, each with its own length, price and intake questions.",
+      },
+      {
+        title: "Charge for your time",
+        body: "Take full payment or a deposit through Stripe before a consult is held - fewer no-shows, paid before you show up.",
+      },
+      {
+        title: "Protect the billable work",
+        body: "Ask Otter to hold focus blocks for project work and it defends them as real events, so client calls don't swallow the week.",
+      },
+      {
+        title: "Otter runs the back-and-forth",
+        body: '"Move my 2pm with the client to Thursday." Otter finds the time and reschedules - you confirm and get back to work.',
+      },
+    ],
+    steps: [
+      "Create booking types for discovery, sessions and paid consults.",
+      "Share your link; clients book (and pay) themselves.",
+      "Hold focus time with Otter and let it handle reschedules.",
+    ],
+    faq: [
+      {
+        q: "Can I charge for a consultation?",
+        a: "Yes - connect Stripe and require full payment or a deposit before a paid consult is confirmed. Free discovery calls can stay free.",
+      },
+      {
+        q: "Is it really free for a solo freelancer?",
+        a: "Yes - unlimited event types, calendar sync, reminders and paid bookings, free forever. You only pay when you add teammates.",
+      },
+    ],
+  },
+  {
+    slug: "support-teams",
+    label: "Support teams",
+    title: "Escalations and callbacks booked on the right agent, fast.",
+    subtitle:
+      "Let customers book callbacks and screen-shares, route by product or tier, and spread the load fairly with weighted round-robin - so support conversations happen when they should.",
+    problems: [
+      {
+        title: "Ticket ping-pong instead of a call",
+        body: "Some issues need a real conversation, but agreeing a time over ticket replies drags a five-minute fix into a two-day thread.",
+      },
+      {
+        title: "Escalations reach the wrong agent",
+        body: "A billing issue and a technical bug hit the same callback link, so the wrong agent picks up the wrong problem.",
+      },
+      {
+        title: "Load lands unevenly",
+        body: "A few agents absorb most callbacks while others sit idle, and there's no clean way to pause someone who's swamped.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Let customers book a callback",
+        body: "Drop a booking link into a ticket or help widget and the customer grabs a real slot on an agent's live availability - no more time-zone tennis.",
+      },
+      {
+        title: "Route by product or tier",
+        body: "A short routing form sends each request to the right queue - billing, technical, priority - so it lands with an agent who can actually help.",
+      },
+      {
+        title: "Weighted round-robin",
+        body: "Spread callbacks fairly across the team, weight by seniority or specialty, and pause anyone at capacity - always load-balanced.",
+      },
+      {
+        title: "Reminders that keep both sides on time",
+        body: "Automated nudges over email and SMS mean fewer missed callbacks and less rescheduling.",
+      },
+    ],
+    steps: [
+      "Add your agents and connect their calendars.",
+      "Build a routing form by product or tier and set round-robin weights.",
+      "Drop the link into tickets - customers book the right agent instantly.",
+    ],
+    faq: [
+      {
+        q: "Can customers book a support callback themselves?",
+        a: "Yes - share a booking link in a ticket or help widget and the customer picks a real, free slot on the right agent's calendar, with reminders attached.",
+      },
+      {
+        q: "Can I route escalations to the right queue?",
+        a: "Yes - a routing form asks a question or two (product, tier, issue type) and sends each request to the right agent or team automatically.",
+      },
+    ],
+  },
 ];
 
 export function getPersona(slug: string): Persona | undefined {

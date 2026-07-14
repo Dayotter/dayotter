@@ -1,39 +1,39 @@
 import { MarketingHeader } from "@/components/marketing/page-shell";
-import { COMPARISONS } from "@/lib/comparisons";
+import { PERSONAS } from "@/lib/personas";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "DayOtter vs the alternatives - honest comparisons",
+  title: "Who DayOtter is for",
   description:
-    "How DayOtter compares to Calendly, Cal.com, Acuity, SavvyCal, Motion, Reclaim, Clockwise, Doodle and more. Where each one wins, plainly told.",
-  alternates: { canonical: "/vs" },
+    "How DayOtter fits founders, teams, sales, agencies, consultants, recruiters, customer success, tutors, freelancers, support teams and busy minds - scheduling shaped around how you actually work.",
+  alternates: { canonical: "/for" },
 };
 
-export default function ComparisonsHub() {
+export default function ForHub() {
   return (
     <>
       <MarketingHeader
-        eyebrow="Compare"
-        title="Honest comparisons"
-        subtitle="No hand-waving. Here's where each tool wins - and where DayOtter is the better call."
+        eyebrow="For you"
+        title="Scheduling, shaped around how you work"
+        subtitle="Same calm platform, tuned to your world. Find the version of DayOtter that fits what your days actually look like."
       />
       <section className="mx-auto max-w-4xl px-6 py-16">
         <div className="grid gap-4 sm:grid-cols-2">
-          {COMPARISONS.map((c) => (
+          {PERSONAS.map((p) => (
             <Link
-              key={c.slug}
-              href={`/vs/${c.slug}`}
+              key={p.slug}
+              href={`/for/${p.slug}`}
               className="group flex flex-col rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-card)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-raise)]"
             >
-              <p className="text-sm font-semibold text-[var(--color-faint)]">DayOtter vs</p>
-              <h2 className="font-display mt-1 text-2xl tracking-[-0.01em]">{c.name}</h2>
+              <p className="text-sm font-semibold text-[var(--color-faint)]">DayOtter for</p>
+              <h2 className="font-display mt-1 text-2xl tracking-[-0.01em]">{p.label}</h2>
               <p className="mt-2 flex-1 text-sm leading-relaxed text-[var(--color-muted)]">
-                {c.blurb}
+                {p.subtitle}
               </p>
               <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-accent)]">
-                See the comparison{" "}
+                See how it fits{" "}
                 <ArrowRight
                   size={15}
                   className="transition-transform group-hover:translate-x-0.5"
