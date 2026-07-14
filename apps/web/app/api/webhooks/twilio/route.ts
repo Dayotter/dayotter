@@ -1,7 +1,7 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { aiEnabled } from "@/lib/ai/llm";
 import { userHasFeature } from "@/lib/billing/entitlements";
 import { type PendingAction, executePending, interpretForSms } from "@/lib/messaging/otter-sms";
+import { twilioWebhookUrl, validTwilioSignature } from "@/lib/messaging/twilio-signature";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { connection } from "@dayotter/jobs";
@@ -35,23 +35,6 @@ function twiml(message?: string): Response {
   });
 }
 
-/**
- * Validate Twilio's request signature. Twilio signs the exact public webhook URL
- * plus the POST params (sorted by key, concatenated), HMAC-SHA1 with the auth
- * token, base64. See twilio.com/docs/usage/security.
- */
-function validSignature(url: string, params: URLSearchParams, signature: string | null): boolean {
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  if (!token || !signature) return false;
-  const sorted = [...params.keys()].sort();
-  let data = url;
-  for (const k of sorted) data += k + params.get(k);
-  const expected = createHmac("sha1", token).update(Buffer.from(data, "utf-8")).digest("base64");
-  const a = Buffer.from(expected);
-  const b = Buffer.from(signature);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 async function rateLimited(userId: string): Promise<boolean> {
   const key = `${RL_PREFIX}${userId}`;
   const n = await connection.incr(key);
@@ -69,9 +52,8 @@ export async function POST(request: Request): Promise<Response> {
   const params = new URLSearchParams(raw);
 
   // Validate against the canonical public URL (what Twilio was configured with).
-  const base = process.env.TWILIO_WEBHOOK_URL ?? process.env.APP_URL ?? "";
-  const url = base ? new URL("/api/webhooks/twilio", base).toString() : request.url;
-  if (!validSignature(url, params, request.headers.get("x-twilio-signature"))) {
+  const url = twilioWebhookUrl("/api/webhooks/twilio", request.url);
+  if (!validTwilioSignature(url, params, request.headers.get("x-twilio-signature"))) {
     logger.warn("twilio signature rejected", { event: "twilio_sig_rejected" });
     return new Response("Forbidden", { status: 403 });
   }

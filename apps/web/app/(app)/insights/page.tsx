@@ -1,5 +1,6 @@
 import { InsightsTabs } from "@/components/insights-tabs";
 import { PageHeader } from "@/components/page-header";
+import { TimeAllocation } from "@/components/time-allocation";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
@@ -93,6 +94,8 @@ export default async function InsightsPage() {
       />
 
       <InsightsTabs />
+
+      <TimeAllocation />
 
       {!hasData ? (
         <Card className="p-8 text-center text-sm text-[var(--color-muted)]">

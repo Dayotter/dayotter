@@ -123,6 +123,8 @@ export function buildCommandUser(params: {
   now: Date;
   bookings: BookingContext[];
   eventTypes?: EventTypeContext[];
+  /** Otter's memory summary (lib/ai/memory), injected when available. */
+  memory?: string;
 }): string {
   const list = params.bookings.length
     ? params.bookings
@@ -137,8 +139,9 @@ export function buildCommandUser(params: {
         .map((e) => `- "${e.title}" (${e.durationMinutes} min) [slug: ${e.slug}]`)
         .join("\n")
     : "(none)";
+  const memoryBlock = params.memory ? `\n${params.memory}\n` : "";
   return `Current time: ${params.now.toISOString()} (timezone: ${params.timezone})
-
+${memoryBlock}
 Your event types:
 ${types}
 
@@ -160,6 +163,7 @@ export function parseCommand(params: {
   now: Date;
   bookings: BookingContext[];
   eventTypes?: EventTypeContext[];
+  memory?: string;
 }): Promise<CommandDraft> {
   return extract({
     feature: "command-parse",

@@ -96,6 +96,7 @@ export async function runSchedulingAgent(params: {
   now: Date;
   bookings: BookingContext[];
   eventTypes?: EventTypeContext[];
+  memory?: string;
 }): Promise<CommandDraft> {
   const client = getAnthropicClient();
   const system = `${commandSystem}
