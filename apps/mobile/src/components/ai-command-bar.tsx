@@ -7,6 +7,13 @@ import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-spe
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
+/** Tappable example prompts — teach the voice/text vocabulary at a glance. */
+const EXAMPLES = [
+  "Hold two hours for deep work tomorrow",
+  "Book a 30-min call with Sam Thursday 2pm",
+  "Move my 3pm to tomorrow",
+];
+
 type Intent = "create" | "reschedule" | "cancel" | "none";
 interface Draft {
   understood: boolean;
@@ -65,10 +72,11 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
   useSpeechRecognitionEvent("error", () => setListening(false));
   useSpeechRecognitionEvent("result", (e) => {
     const transcript = e.results?.[0]?.transcript?.trim();
-    if (transcript) {
-      setText(transcript);
-      submitRef.current(transcript);
-    }
+    if (!transcript) return;
+    // Show the words as they're spoken (interim), and only run the command once
+    // the recognizer marks the result final — so it feels live but fires once.
+    setText(transcript);
+    if (e.isFinal) submitRef.current(transcript);
   });
 
   async function toggleVoice() {
@@ -85,7 +93,7 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
       setError(null);
       ExpoSpeechRecognitionModule.start({
         lang: "en-US",
-        interimResults: false,
+        interimResults: true,
         continuous: false,
       });
     } catch {
@@ -229,6 +237,23 @@ export function AiCommandBar({ onDone }: { onDone?: () => void }) {
         </Pressable>
       </View>
 
+      {!draft && !loading && text.length === 0 && !done ? (
+        <View style={styles.chips}>
+          {EXAMPLES.map((ex) => (
+            <Pressable
+              key={ex}
+              style={styles.chip}
+              onPress={() => {
+                setText(ex);
+                submit(ex);
+              }}
+            >
+              <Text style={styles.chipText}>{ex}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {done ? <Text style={styles.done}>{done}</Text> : null}
 
@@ -344,6 +369,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   micActive: { borderColor: colors.danger, backgroundColor: `${colors.danger}14` },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 },
+  chip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  chipText: { color: colors.muted, fontSize: 12 },
   error: { color: colors.danger, marginTop: 10, fontSize: 13 },
   done: { color: colors.success, marginTop: 10, fontSize: 13 },
   card: {

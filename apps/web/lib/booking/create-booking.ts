@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { consumeCredit } from "@/lib/packages/credits";
 import { logger, roundRobinPick, safeEqual, sha256hex } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
 import { bookingConfirmation, sendEmail } from "@dayotter/emails";
@@ -17,9 +18,11 @@ import { BookingError, mapInsertError, validateResponses } from "./booking-logic
 import { AUTO_CONFERENCE } from "./event-type-input";
 import {
   hostWantsOverflowNotice,
+  hostWantsScribe,
   reminderOffsetsForHost,
   scheduleBookingReminders,
   scheduleOverflowCheck,
+  scheduleScribe,
   scheduleWorkflowMessages,
 } from "./reminders";
 import { reserveTravelBlocks } from "./travel";
@@ -410,8 +413,18 @@ export async function createBooking(
     await scheduleOverflowCheck(booking.id, end);
   }
 
+  // Post-meeting recap ("Scribe"): if the host opted in, nudge them just after
+  // the meeting ends to capture notes and line up the next step.
+  if (await hostWantsScribe(host.id)) {
+    await scheduleScribe(booking.id, end);
+  }
+
   // Schedule the host's workflow messages (custom reminders / follow-ups).
   await scheduleWorkflowMessages(booking.id, eventType.organizationId, eventType.id, start, end);
+
+  // Prepaid packages: if this booker holds a credit balance for the event type,
+  // spend one session. Best-effort — never blocks the booking.
+  await consumeCredit(eventType.id, input.attendee.email).catch(() => false);
 
   // Automation rules (prep blocks / buffers / follow-ups). Best-effort.
   await applyBookingRules({

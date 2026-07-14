@@ -156,6 +156,9 @@ export default function PricingPage() {
             </div>
           ))}
         </div>
+        <p className="mt-8 text-center text-sm text-[var(--color-muted)]">
+          No credit card to start · The free plan is forever, not a trial · Cancel anytime
+        </p>
       </section>
 
       <section className="mx-auto max-w-2xl px-6 pb-24">

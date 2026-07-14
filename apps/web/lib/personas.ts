@@ -348,6 +348,64 @@ export const PERSONAS: Persona[] = [
       },
     ],
   },
+  {
+    slug: "adhd",
+    label: "ADHD & busy minds",
+    title: "Scheduling that works with your brain, not against it.",
+    subtitle:
+      "Brain-dump it out loud, let Otter turn it into a plan, and get gentle nudges instead of a wall of overdue tasks. Built for minds that juggle a lot.",
+    problems: [
+      {
+        title: "Getting started is the hardest part",
+        body: "Opening the calendar, picking a time, doing the timezone math — the setup cost alone is enough to make you put it off.",
+      },
+      {
+        title: "Time blindness eats the day",
+        body: "Meetings sneak up, focus time never gets protected, and by evening you're not sure where the hours actually went.",
+      },
+      {
+        title: "Planners become guilt machines",
+        body: "A screen full of overdue tasks doesn't help — it just makes you want to close the app and avoid it.",
+      },
+    ],
+    solutions: [
+      {
+        title: "Just say it — Otter does the setup",
+        body: '"Book the dentist and hold an hour to prep the deck." Say it once; Otter turns it into real calendar events. No forms, no friction.',
+      },
+      {
+        title: "Focus time, actually protected",
+        body: "Ask Otter to hold blocks for deep work and it defends them as real events — so the day has room for the hard stuff, not just meetings.",
+      },
+      {
+        title: "Gentle nudges, not a pile of red",
+        body: "Reminders when they matter — plus a running-late ping to your next meeting — instead of a growing list of things you've failed to do.",
+      },
+      {
+        title: "One calm surface",
+        body: "No forty settings to configure. Connect a calendar, talk to Otter, and get on with your day.",
+      },
+    ],
+    steps: [
+      "Connect your calendar — Otter learns when you're actually free.",
+      "Brain-dump by voice or text; Otter turns it into events you confirm.",
+      "Get nudged at the right moment. Nothing slips, nothing shames.",
+    ],
+    faq: [
+      {
+        q: "Is this actually different from a to-do app?",
+        a: "Yes — instead of a list you have to maintain, you talk to Otter and it puts real, time-boxed events on your calendar, then reminds you at the right moment. Less managing, more doing.",
+      },
+      {
+        q: "Will it nag me?",
+        a: "No. Otter is confirm-first and quiet by default — it nudges when something's genuinely coming up, and never buries you in overdue-task guilt.",
+      },
+      {
+        q: "Can I just talk to it?",
+        a: "Yes. On mobile, tap the mic and say what you need — Otter turns speech into scheduled events, so you can capture a thought before it's gone.",
+      },
+    ],
+  },
 ];
 
 export function getPersona(slug: string): Persona | undefined {

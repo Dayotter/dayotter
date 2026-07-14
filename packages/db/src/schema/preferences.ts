@@ -40,6 +40,16 @@ export const userPreferences = pgTable(
     /** Auto-notify the next meeting's attendees when a meeting overruns. */
     overflowNotifyEnabled: boolean("overflow_notify_enabled").notNull().default(false),
 
+    /** Daily morning briefing: send a "here's your day" summary each morning. */
+    briefingEnabled: boolean("briefing_enabled").notNull().default(false),
+    /** Local hour (0–23) at which to send the morning briefing. */
+    briefingHour: smallint("briefing_hour").notNull().default(8),
+    /** Local date (YYYY-MM-DD) of the last briefing sent — once-per-day guard. */
+    briefingLastSent: text("briefing_last_sent"),
+    /** Post-meeting recap ("Scribe"): after a meeting ends, send the host a
+     * recap + next-step nudges. */
+    scribeEnabled: boolean("scribe_enabled").notNull().default(false),
+
     /** Adaptive availability: hide remaining slots on days already at the cap. */
     adaptiveAvailability: boolean("adaptive_availability").notNull().default(false),
     /** Max meetings/day before adaptive availability stops offering slots that day. */

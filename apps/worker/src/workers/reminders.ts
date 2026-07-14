@@ -4,6 +4,7 @@ import {
   bookingNoShowFollowUp,
   bookingReminder,
   bookingRunningLate,
+  meetingRecap,
   sendEmail,
   workflowEmail,
 } from "@dayotter/emails";
@@ -131,6 +132,38 @@ export function startRemindersWorker(): Worker<ReminderJob> {
               );
             }
           }
+        }
+        await db
+          .update(schema.scheduledReminders)
+          .set({ sentAt: new Date() })
+          .where(eq(schema.scheduledReminders.id, reminder.id));
+        return;
+      }
+
+      // Post-meeting recap ("Scribe") — nudge the HOST just after the meeting
+      // ends to capture notes and take the obvious next step. Skipped if the
+      // meeting was cancelled/rejected.
+      if (reminder.kind === "scribe") {
+        if (
+          booking.hostId &&
+          booking.host?.email &&
+          booking.status !== "cancelled" &&
+          booking.status !== "rejected"
+        ) {
+          await sendEmail({
+            ...meetingRecap({
+              hostName: booking.host.name?.split(" ")[0] ?? "",
+              eventTitle: booking.title,
+              start: booking.startsAt,
+              end: booking.endsAt,
+              timezone: booking.host.timezone ?? booking.timezone,
+              attendees: booking.attendees.map((a) => a.name ?? a.email),
+              bookAgainUrl: `${appUrl}/dashboard`,
+              messageUrl: `${appUrl}/bookings/${booking.uid}`,
+              manageUrl: `${appUrl}/bookings/${booking.uid}`,
+            }),
+            to: booking.host.email,
+          }).catch(() => 0);
         }
         await db
           .update(schema.scheduledReminders)

@@ -235,3 +235,84 @@ export function workflowEmail(
     ),
   };
 }
+
+export interface DailyBriefingData {
+  /** Recipient's first name (may be empty). */
+  name: string;
+  /** Local date label, e.g. "Tuesday, July 14". */
+  dateLabel: string;
+  /** Today's meetings, pre-formatted in the recipient's timezone. */
+  meetings: { time: string; title: string }[];
+  /** Optional focus-time summary, e.g. "2 hours of focus held". */
+  focusLabel?: string;
+  manageUrl: string;
+}
+
+/**
+ * The daily "morning briefing" — a calm summary of the day ahead, sent each
+ * morning to hosts who opt in. Mirrors the multi-channel nudge the worker also
+ * delivers over SMS/WhatsApp/Slack/push.
+ */
+export function dailyBriefing(d: DailyBriefingData): Rendered {
+  const count = d.meetings.length;
+  const subject =
+    count === 0
+      ? "Your day: a clear calendar"
+      : `Your day: ${count} meeting${count === 1 ? "" : "s"}`;
+  const greeting = `Good morning${d.name ? `, ${esc(d.name)}` : ""}. Here's ${esc(d.dateLabel)}.`;
+  const lines = [
+    greeting,
+    count === 0
+      ? "No meetings scheduled — a clear runway ahead."
+      : `You have ${count} meeting${count === 1 ? "" : "s"} today:`,
+    ...d.meetings.map((m) => `<strong>${esc(m.time)}</strong> — ${esc(m.title)}`),
+  ];
+  if (d.focusLabel) lines.push(esc(d.focusLabel));
+  const textBody =
+    count === 0
+      ? "No meetings scheduled today."
+      : d.meetings.map((m) => `${m.time} — ${m.title}`).join("\n");
+  return {
+    subject,
+    text: `${d.dateLabel}\n${textBody}${d.focusLabel ? `\n${d.focusLabel}` : ""}\n\nOpen DayOtter: ${d.manageUrl}`,
+    html: shell("Your morning briefing", lines, { label: "Open DayOtter", url: d.manageUrl }),
+  };
+}
+
+export interface MeetingRecapData {
+  /** Host's first name (may be empty). */
+  hostName: string;
+  eventTitle: string;
+  start: Date;
+  end: Date;
+  timezone: string;
+  /** Attendee display names/emails. */
+  attendees: string[];
+  /** Deep links for the one-tap next steps. */
+  bookAgainUrl: string;
+  messageUrl: string;
+  manageUrl: string;
+}
+
+/**
+ * Post-meeting recap ("Scribe") — sent to the HOST shortly after a meeting ends.
+ * A calm prompt to capture notes and take the obvious next steps, with one-tap
+ * links into the actions DayOtter already supports.
+ */
+export function meetingRecap(d: MeetingRecapData): Rendered {
+  const when = fmt(d.start, d.timezone);
+  const who = d.attendees.length > 0 ? d.attendees.map(esc).join(", ") : "your guest";
+  const lines = [
+    `Your meeting <strong>${esc(d.eventTitle)}</strong> just wrapped.`,
+    `${esc(when)} · with ${who}.`,
+    "A good moment to capture what you agreed and line up the next step:",
+    `• <a href="${esc(d.bookAgainUrl)}">Book a follow-up</a>`,
+    `• <a href="${esc(d.messageUrl)}">Send a recap to attendees</a>`,
+    `• <a href="${esc(d.manageUrl)}">View the meeting</a>`,
+  ];
+  return {
+    subject: `Recap: ${d.eventTitle}`,
+    text: `Your meeting "${d.eventTitle}" just wrapped.\n${when} · with ${d.attendees.join(", ") || "your guest"}.\n\nBook a follow-up: ${d.bookAgainUrl}\nSend a recap: ${d.messageUrl}\nView: ${d.manageUrl}`,
+    html: shell(`How did it go${d.hostName ? `, ${esc(d.hostName)}` : ""}?`, lines),
+  };
+}

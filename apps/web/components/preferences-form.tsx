@@ -61,6 +61,9 @@ export function PreferencesForm({
     travelBufferMinutes?: number;
     reclaimCancelledTime?: boolean;
     overflowNotifyEnabled?: boolean;
+    briefingEnabled?: boolean;
+    briefingHour?: number;
+    scribeEnabled?: boolean;
     lunchEnabled?: boolean;
     lunchStartMinute?: number;
     lunchEndMinute?: number;
@@ -75,6 +78,9 @@ export function PreferencesForm({
   const [travelBuffer, setTravelBuffer] = useState(initial.travelBufferMinutes ?? 0);
   const [reclaim, setReclaim] = useState(initial.reclaimCancelledTime ?? false);
   const [overflowNotify, setOverflowNotify] = useState(initial.overflowNotifyEnabled ?? false);
+  const [briefingOn, setBriefingOn] = useState(initial.briefingEnabled ?? false);
+  const [briefingHour, setBriefingHour] = useState(initial.briefingHour ?? 8);
+  const [scribeOn, setScribeOn] = useState(initial.scribeEnabled ?? false);
   const [lunchOn, setLunchOn] = useState(initial.lunchEnabled ?? false);
   const [lunchStart, setLunchStart] = useState(initial.lunchStartMinute ?? 720);
   const [lunchEnd, setLunchEnd] = useState(initial.lunchEndMinute ?? 780);
@@ -120,6 +126,9 @@ export function PreferencesForm({
         travelBufferMinutes: travelBuffer,
         reclaimCancelledTime: reclaim,
         overflowNotifyEnabled: overflowNotify,
+        briefingEnabled: briefingOn,
+        briefingHour,
+        scribeEnabled: scribeOn,
         lunchEnabled: lunchOn,
         lunchStartMinute: lunchStart,
         lunchEndMinute: lunchEnd,
@@ -320,6 +329,69 @@ export function PreferencesForm({
                   When a meeting is booked back-to-back, we'll email the next meeting's guests a
                   quick "running a few minutes behind" heads-up at the first meeting's end — so
                   nobody's left waiting. Like a great EA would.
+                </span>
+              </span>
+            </label>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={briefingOn}
+                onChange={(e) => {
+                  setBriefingOn(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Send me a daily morning briefing
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  Each morning, Otter sends a calm summary of your day — today's meetings and the
+                  focus time you've held — over email and your notification channels.
+                </span>
+              </span>
+            </label>
+            {briefingOn ? (
+              <label className="mt-3 flex items-center gap-2 pl-6 text-sm text-[var(--color-muted)]">
+                Send at
+                <select
+                  value={briefingHour}
+                  onChange={(e) => {
+                    setBriefingHour(Number(e.target.value));
+                    setSaved(false);
+                  }}
+                  className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-sm"
+                  aria-label="Briefing hour"
+                >
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <option key={h} value={h}>
+                      {h === 0 ? "12 AM" : h < 12 ? `${h} AM` : h === 12 ? "12 PM" : `${h - 12} PM`}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-xs text-[var(--color-faint)]">your local time</span>
+              </label>
+            ) : null}
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={scribeOn}
+                onChange={(e) => {
+                  setScribeOn(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Send me a recap after each meeting
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  Just after a meeting ends, Otter emails you a recap with one-tap next steps — book
+                  a follow-up, send notes to attendees, or review the meeting.
                 </span>
               </span>
             </label>
