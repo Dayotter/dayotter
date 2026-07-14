@@ -21,11 +21,11 @@ export type ProactiveSuggestion =
   | { id: string; type: "enable_overflow"; title: string; detail: string }
   | { id: string; type: "enable_briefing"; title: string; detail: string };
 
-/** Are there back-to-back meetings in the next week (a running-late risk)? */
-async function hasBackToBack(userId: string): Promise<boolean> {
+/** The user's confirmed meetings over the next week (shared across checks). */
+async function upcomingWeek(userId: string): Promise<{ startsAt: Date; endsAt: Date }[]> {
   const now = new Date();
   const weekOut = new Date(now.getTime() + 7 * 86_400_000);
-  const rows = await getDb().query.bookings.findMany({
+  return getDb().query.bookings.findMany({
     where: and(
       eq(schema.bookings.hostId, userId),
       eq(schema.bookings.status, "confirmed"),
@@ -35,6 +35,10 @@ async function hasBackToBack(userId: string): Promise<boolean> {
     orderBy: asc(schema.bookings.startsAt),
     columns: { startsAt: true, endsAt: true },
   });
+}
+
+/** Does the week contain a tight, back-to-back pair (a running-late risk)? */
+function hasBackToBack(rows: { startsAt: Date; endsAt: Date }[]): boolean {
   for (let i = 0; i < rows.length - 1; i++) {
     const gapMin = (rows[i + 1]!.startsAt.getTime() - rows[i]!.endsAt.getTime()) / 60_000;
     if (gapMin >= 0 && gapMin <= 5) return true;
@@ -50,12 +54,13 @@ const FOCUS_BLOCK_MINUTES = 90;
  */
 export async function getProactiveSuggestions(userId: string): Promise<ProactiveSuggestion[]> {
   const db = getDb();
-  const [user, prefs] = await Promise.all([
+  const [user, prefs, upcoming] = await Promise.all([
     db.query.users.findFirst({ where: eq(schema.users.id, userId), columns: { timezone: true } }),
     db.query.userPreferences.findFirst({
       where: eq(schema.userPreferences.userId, userId),
       columns: { overflowNotifyEnabled: true, briefingEnabled: true },
     }),
+    upcomingWeek(userId),
   ]);
   const tz = user?.timezone ?? "UTC";
   const out: ProactiveSuggestion[] = [];
@@ -69,31 +74,31 @@ export async function getProactiveSuggestions(userId: string): Promise<Proactive
       id: `focus:${s.startISO}`,
       type: "focus",
       title: "Protect deep-work time",
-      detail: `${start.toFormat("ccc, LLL d")} · ${start.toFormat("h:mm")}–${end.toFormat("h:mm a")} is free`,
+      detail: `${start.toFormat("cccc")} ${start.toFormat("h:mm")}–${end.toFormat("h:mm a")} is open`,
       startISO: s.startISO,
       durationMinutes: Math.round(end.diff(start, "minutes").minutes),
     });
   }
 
   // 2. Back-to-back meetings but running-late alerts are off.
-  if (!prefs?.overflowNotifyEnabled && (await hasBackToBack(userId))) {
+  if (!prefs?.overflowNotifyEnabled && hasBackToBack(upcoming)) {
     out.push({
       id: "enable_overflow",
       type: "enable_overflow",
       title: "Turn on running-late alerts",
       detail:
-        "You've got back-to-back meetings coming up. I can warn your next guests if one runs over.",
+        "You've got back-to-back meetings this week. I can warn your next guests if one runs over.",
     });
   }
 
-  // 3. No morning briefing yet.
-  if (!prefs?.briefingEnabled) {
+  // 3. No morning briefing yet — only worth it once there's a day to brief.
+  if (!prefs?.briefingEnabled && upcoming.length > 0) {
     out.push({
       id: "enable_briefing",
       type: "enable_briefing",
       title: "Start the day with a briefing",
       detail:
-        "Each morning I can text you the day ahead — meetings and the focus time you've held.",
+        "Each morning I can text you the day ahead — your meetings and the focus time you've held.",
     });
   }
 
