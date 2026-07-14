@@ -9,7 +9,13 @@ import type Stripe from "stripe";
 export async function fulfillPackagePurchase(session: Stripe.Checkout.Session): Promise<void> {
   const m = session.metadata ?? {};
   const total = Number(m.totalCredits);
-  if (!m.organizationId || !m.eventTypeId || !m.clientEmail || !Number.isFinite(total) || total <= 0) {
+  if (
+    !m.organizationId ||
+    !m.eventTypeId ||
+    !m.clientEmail ||
+    !Number.isFinite(total) ||
+    total <= 0
+  ) {
     logger.warn("package checkout missing metadata", { event: "package_checkout_bad_meta" });
     return;
   }

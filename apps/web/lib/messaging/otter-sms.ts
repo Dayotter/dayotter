@@ -55,7 +55,13 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
     whenLocal: DateTime.fromJSDate(b.startsAt).setZone(tz).toFormat("ccc, LLL d 'at' h:mm a"),
     attendees: b.attendees,
   }));
-  const args = { text, timezone: tz, now: new Date(), bookings: contexts, eventTypes: ctx.eventTypes };
+  const args = {
+    text,
+    timezone: tz,
+    now: new Date(),
+    bookings: contexts,
+    eventTypes: ctx.eventTypes,
+  };
 
   const draft = needsAvailability(text)
     ? await runSchedulingAgent({ ...args, userId })
@@ -65,7 +71,7 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
     return {
       reply:
         draft.message ||
-        "I help with scheduling — try things like \"book a 30-min call with Sam Thursday 2pm\" or \"move my 3pm to tomorrow\".",
+        'I help with scheduling — try things like "book a 30-min call with Sam Thursday 2pm" or "move my 3pm to tomorrow".',
     };
   }
 
@@ -94,7 +100,13 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
     const when = whenLabel(draft.newStartISO, tz);
     return {
       reply: `I'll move "${b.title}" to ${when}. Reply YES to confirm, or NO to cancel.`,
-      pending: { intent: "reschedule", uid: b.uid, newStartISO: draft.newStartISO, title: b.title, timezone: tz },
+      pending: {
+        intent: "reschedule",
+        uid: b.uid,
+        newStartISO: draft.newStartISO,
+        title: b.title,
+        timezone: tz,
+      },
     };
   }
 
@@ -134,7 +146,9 @@ export async function executePending(userId: string, pending: PendingAction): Pr
     }
 
     const ok = await cancelBooking(pending.uid, "Cancelled via Otter");
-    return ok ? `Done ✓ "${pending.title}" is cancelled.` : "That meeting couldn't be cancelled — it may already be gone.";
+    return ok
+      ? `Done ✓ "${pending.title}" is cancelled.`
+      : "That meeting couldn't be cancelled — it may already be gone.";
   } catch (err) {
     logger.error("otter sms execute failed", { event: "otter_sms_execute_failed", userId, err });
     return "Something went wrong carrying that out. Please try again, or use the app.";

@@ -84,7 +84,8 @@ export async function sendDueBriefings(now = new Date()): Promise<number> {
       columns: { startsAt: true, endsAt: true },
     });
     const focusMinutes = blocks.reduce(
-      (sum, b) => sum + Math.max(0, Math.round((b.endsAt.getTime() - b.startsAt.getTime()) / 60_000)),
+      (sum, b) =>
+        sum + Math.max(0, Math.round((b.endsAt.getTime() - b.startsAt.getTime()) / 60_000)),
       0,
     );
     const focus = focusLabel(focusMinutes);
@@ -107,7 +108,11 @@ export async function sendDueBriefings(now = new Date()): Promise<number> {
         to: user.email,
       });
     } catch (err) {
-      logger.error("briefing email failed", { event: "briefing_email_failed", userId: pref.userId, err });
+      logger.error("briefing email failed", {
+        event: "briefing_email_failed",
+        userId: pref.userId,
+        err,
+      });
     }
 
     // Plus the user's configured channels (SMS / WhatsApp / Slack / push).

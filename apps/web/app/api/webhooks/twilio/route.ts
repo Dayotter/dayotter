@@ -1,10 +1,10 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { aiEnabled } from "@/lib/ai/llm";
 import { userHasFeature } from "@/lib/billing/entitlements";
 import { type PendingAction, executePending, interpretForSms } from "@/lib/messaging/otter-sms";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { connection } from "@dayotter/jobs";
-import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,10 @@ const YES = new Set(["yes", "y", "ok", "okay", "confirm", "yep", "sure", "👍"]
 const NO = new Set(["no", "n", "cancel", "stop", "nope"]);
 
 function xmlEscape(s: string): string {
-  return s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c] ?? c);
+  return s.replace(
+    /[<>&'"]/g,
+    (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c] ?? c,
+  );
 }
 
 /** A TwiML response — Twilio delivers the <Message> back on the same channel. */
@@ -26,7 +29,10 @@ function twiml(message?: string): Response {
   const body = message
     ? `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${xmlEscape(message)}</Message></Response>`
     : `<?xml version="1.0" encoding="UTF-8"?><Response></Response>`;
-  return new Response(body, { status: 200, headers: { "content-type": "text/xml; charset=utf-8" } });
+  return new Response(body, {
+    status: 200,
+    headers: { "content-type": "text/xml; charset=utf-8" },
+  });
 }
 
 /**
@@ -86,7 +92,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (!aiEnabled || !(await userHasFeature(user.id, "ai"))) {
-    return twiml("Otter isn't available on your plan. Upgrade in DayOtter to chat with your assistant.");
+    return twiml(
+      "Otter isn't available on your plan. Upgrade in DayOtter to chat with your assistant.",
+    );
   }
   if (await rateLimited(user.id)) {
     return twiml("You're going a bit fast — give me a minute and try again.");

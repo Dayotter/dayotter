@@ -256,7 +256,9 @@ export interface DailyBriefingData {
 export function dailyBriefing(d: DailyBriefingData): Rendered {
   const count = d.meetings.length;
   const subject =
-    count === 0 ? "Your day: a clear calendar" : `Your day: ${count} meeting${count === 1 ? "" : "s"}`;
+    count === 0
+      ? "Your day: a clear calendar"
+      : `Your day: ${count} meeting${count === 1 ? "" : "s"}`;
   const greeting = `Good morning${d.name ? `, ${esc(d.name)}` : ""}. Here's ${esc(d.dateLabel)}.`;
   const lines = [
     greeting,

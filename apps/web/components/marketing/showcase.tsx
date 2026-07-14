@@ -1,7 +1,7 @@
 "use client";
 
-import { Reveal, Stagger } from "@/components/marketing/motion";
 import { BrandMark } from "@/components/brand-mark";
+import { Reveal, Stagger } from "@/components/marketing/motion";
 import { buttonVariants } from "@/components/ui/button";
 import { COMPARISONS } from "@/lib/comparisons";
 import { ArrowRight, CalendarClock, Check, Focus, Info, Minus, Sparkles } from "lucide-react";
@@ -171,8 +171,8 @@ export function OtterDemo() {
             Say it once. Watch it happen.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-[var(--color-muted)]">
-            Type a request — or tap an example. Otter drafts the change and waits for your OK. In the
-            app it reads your real availability and works over chat, voice, WhatsApp and SMS.
+            Type a request — or tap an example. Otter drafts the change and waits for your OK. In
+            the app it reads your real availability and works over chat, voice, WhatsApp and SMS.
           </p>
           <ul className="mt-6 space-y-3">
             {[
@@ -211,7 +211,10 @@ export function OtterDemo() {
                 aria-label="Ask Otter"
                 className="min-w-0 flex-1 rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--color-accent)]"
               />
-              <button type="submit" className={`${buttonVariants({ variant: "primary" })} h-9 px-4 text-sm`}>
+              <button
+                type="submit"
+                className={`${buttonVariants({ variant: "primary" })} h-9 px-4 text-sm`}
+              >
                 Go
               </button>
             </form>
@@ -237,17 +240,25 @@ export function OtterDemo() {
               <p className="text-sm text-[var(--color-muted)]">{reply.detail}</p>
               {!isInfo ? (
                 <div className="mt-3 flex gap-2">
-                  <span className={`${buttonVariants({ variant: "primary" })} pointer-events-none h-8 px-3 text-xs`}>
+                  <span
+                    className={`${buttonVariants({ variant: "primary" })} pointer-events-none h-8 px-3 text-xs`}
+                  >
                     Confirm
                   </span>
-                  <span className={`${buttonVariants({ variant: "ghost" })} pointer-events-none h-8 px-3 text-xs`}>
+                  <span
+                    className={`${buttonVariants({ variant: "ghost" })} pointer-events-none h-8 px-3 text-xs`}
+                  >
                     Edit
                   </span>
                 </div>
               ) : null}
             </div>
             <p className="mt-2 text-center text-xs text-[var(--color-faint)]">
-              A preview — nothing's booked. <Link href="/sign-up" className="text-[var(--color-accent)] hover:underline">Sign up</Link> to use the real thing.
+              A preview — nothing's booked.{" "}
+              <Link href="/sign-up" className="text-[var(--color-accent)] hover:underline">
+                Sign up
+              </Link>{" "}
+              to use the real thing.
             </p>
           </div>
         </Reveal>
@@ -349,10 +360,7 @@ export function CompareTeaser() {
             </thead>
             <tbody>
               {TEASER_ROWS.map((r) => (
-                <tr
-                  key={r.label}
-                  className="border-b border-[var(--color-border)] last:border-0"
-                >
+                <tr key={r.label} className="border-b border-[var(--color-border)] last:border-0">
                   <td className="px-4 py-3.5 text-sm font-medium">{r.label}</td>
                   <TeaserCell cell={r.dayotter} strong />
                   <TeaserCell cell={r.calendly} />

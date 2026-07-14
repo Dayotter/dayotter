@@ -390,8 +390,8 @@ export function PreferencesForm({
               <span>
                 Send me a recap after each meeting
                 <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
-                  Just after a meeting ends, Otter emails you a recap with one-tap next steps —
-                  book a follow-up, send notes to attendees, or review the meeting.
+                  Just after a meeting ends, Otter emails you a recap with one-tap next steps — book
+                  a follow-up, send notes to attendees, or review the meeting.
                 </span>
               </span>
             </label>
