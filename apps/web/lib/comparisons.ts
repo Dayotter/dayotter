@@ -415,6 +415,302 @@ export const COMPARISONS: Comparison[] = [
       },
     ],
   },
+  {
+    slug: "acuity",
+    name: "Acuity Scheduling",
+    blurb: "Deep appointment tooling for service businesses - but Squarespace-owned, paid-only, and no AI.",
+    title: "DayOtter vs Acuity Scheduling",
+    subtitle:
+      "Acuity is built for salons, clinics and studios that live on appointments. DayOtter covers the same booking-and-pay basics, adds team scheduling and an AI assistant, and starts free - not at $16 a month.",
+    intro: [
+      "Acuity Scheduling (owned by Squarespace) is a mature appointment tool aimed at service businesses - classes, intake forms, packages, calendar sync. If your whole business is back-to-back appointments, it's deep and well-worn.",
+      "DayOtter handles the same essentials - paid bookings, intake questions, packages, reminders - then adds team round-robin, routing, and Otter, a confirm-first assistant you can just talk to. There's a genuinely free plan, and you can self-host the whole thing.",
+    ],
+    theirStrength:
+      "Acuity's appointment features run deep - class scheduling, intake forms, gift certificates, subscriptions and point-of-sale style add-ons - and it's tightly integrated with Squarespace sites. For an established salon or clinic already on Squarespace, it's a proven fit.",
+    rows: [
+      { label: "Free plan", dayotter: "Yes - unlimited event types", them: "No - paid from ~$16/mo", edge: "us" },
+      { label: "Price entry point", dayotter: "Free / $9 seat", them: "~$16–49 / month", edge: "us" },
+      {
+        label: "AI assistant",
+        dayotter: "Otter - chat to book, protect focus",
+        them: "None",
+        edge: "us",
+      },
+      { label: "Paid bookings & packages", dayotter: "Yes (Stripe)", them: "Yes (mature)", edge: "tie" },
+      { label: "Intake forms", dayotter: "Yes", them: "Yes (deep)", edge: "tie" },
+      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "Limited", edge: "us" },
+      { label: "Class / group scheduling", dayotter: "Group polls + limits", them: "Native classes", edge: "them" },
+      { label: "Focus / time protection", dayotter: "Yes", them: "None", edge: "us" },
+      { label: "Open source / self-host", dayotter: "Yes", them: "No", edge: "us" },
+    ],
+    whyUs: [
+      {
+        title: "Free where Acuity is paid-only",
+        body: "Acuity has no free tier - you pay from day one. DayOtter is free for individuals with unlimited event types, paid bookings included, and $9/seat when you add a team.",
+      },
+      {
+        title: "An assistant, not just forms",
+        body: 'Tell Otter "add a 60-minute massage type at $90, Tuesdays and Thursdays" - it drafts it and waits for your OK. Acuity is powerful, but you configure everything by hand.',
+      },
+      {
+        title: "Team scheduling built in",
+        body: "Weighted round-robin and routing come standard, so a multi-practitioner studio can send each client to the right person - without Acuity's higher tiers.",
+      },
+    ],
+    chooseThem:
+      "You run a class-heavy or retail service business, you're already on Squarespace, and you need Acuity's mature class booking, gift certificates and POS-style add-ons today.",
+    chooseUs:
+      "You want appointment booking and payments that start free, an AI assistant that sets things up for you, and team routing built in - with the option to self-host.",
+    faq: [
+      {
+        q: "Is DayOtter a good Acuity alternative for a clinic or studio?",
+        a: "Yes - it does paid bookings, intake questions, packages, reminders and calendar sync, plus team round-robin. The main gap is Acuity's native class scheduling and POS-style extras.",
+      },
+      {
+        q: "Does DayOtter have a free plan? Acuity doesn't.",
+        a: "Yes - individuals are free with unlimited event types and paid bookings via Stripe. Acuity is paid-only from around $16/month.",
+      },
+    ],
+  },
+  {
+    slug: "savvycal",
+    name: "SavvyCal",
+    blurb: "A lovely booking experience - but solo-focused, paid-only, closed, and no AI.",
+    title: "DayOtter vs SavvyCal",
+    subtitle:
+      "SavvyCal is loved for a polished, invitee-friendly booking flow. DayOtter matches the scheduling, adds an AI assistant and time protection, starts free, and can be self-hosted.",
+    intro: [
+      "SavvyCal earned its fans with a genuinely nice booking experience - overlay-your-calendar scheduling, personalized links, tasteful design. For an individual who cares about how booking feels, it's a favourite.",
+      "DayOtter shares that care for the invitee, then goes further: Otter can do the scheduling for you, defend your focus time, and handle team round-robin and routing - free for individuals, and self-hostable under AGPLv3.",
+    ],
+    theirStrength:
+      "SavvyCal's invitee experience is a highlight - letting people overlay their own calendar on yours to find a mutual time is genuinely elegant, and its personalization and polish are well ahead of the basics.",
+    rows: [
+      { label: "Free plan", dayotter: "Yes - unlimited event types", them: "No - paid from ~$12/mo", edge: "us" },
+      { label: "Price", dayotter: "Free / $9 seat", them: "~$12–20 / seat", edge: "us" },
+      {
+        label: "AI assistant",
+        dayotter: "Otter - chat, confirm-first",
+        them: "None",
+        edge: "us",
+      },
+      { label: "Overlay-calendar booking", dayotter: "Availability preview", them: "Yes (signature)", edge: "them" },
+      { label: "Personalized links", dayotter: "Yes", them: "Yes (polished)", edge: "tie" },
+      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "Basic teams", edge: "us" },
+      { label: "Focus / time protection", dayotter: "Yes", them: "None", edge: "us" },
+      { label: "Open source / self-host", dayotter: "Yes", them: "No", edge: "us" },
+    ],
+    whyUs: [
+      {
+        title: "Free, where SavvyCal is paid-only",
+        body: "SavvyCal has no free tier. DayOtter gives individuals unlimited event types, calendar sync and reminders free, forever - pay only when a team joins.",
+      },
+      {
+        title: "An assistant does the work",
+        body: 'SavvyCal makes booking pleasant; Otter takes it off your plate entirely - "find 30 minutes with Sam next week" and it drafts the booking for your OK.',
+      },
+      {
+        title: "Time protection and self-hosting",
+        body: "DayOtter defends focus time and warns your next meeting when you're running late, and its core is open-source and self-hostable. SavvyCal is closed and cloud-only.",
+      },
+    ],
+    chooseThem:
+      "You're an individual who wants the most polished, invitee-delighting booking flow - especially the overlay-your-calendar experience - and you don't need teams or AI.",
+    chooseUs:
+      "You want that same care for the invitee plus an AI assistant, time protection and team routing - starting free, with the option to self-host.",
+    faq: [
+      {
+        q: "Does DayOtter have SavvyCal's overlay-calendar booking?",
+        a: "DayOtter shows a clear availability preview and timezone-aware slots; SavvyCal's signature overlay-your-own-calendar view is uniquely theirs. For most bookers the experience is comparably smooth.",
+      },
+      {
+        q: "Is DayOtter cheaper than SavvyCal?",
+        a: "Yes - individuals are free (SavvyCal is paid-only from ~$12/month), and teams are $9/seat with self-hosting free.",
+      },
+    ],
+  },
+  {
+    slug: "doodle",
+    name: "Doodle",
+    blurb: "The classic group poll - but ad-supported free, dated, and thin on real scheduling.",
+    title: "DayOtter vs Doodle",
+    subtitle:
+      "Doodle is the group-poll everyone remembers. DayOtter does group polls too - then adds real booking pages, team routing, reminders and an AI assistant, without the ads.",
+    intro: [
+      "Doodle made finding a group time popular: propose a few slots, everyone ticks what works, pick the winner. For a one-off group meeting, it still does the job.",
+      "But Doodle is thin beyond the poll - its free tier shows ads, its booking pages are basic, and there's no team routing or assistant. DayOtter includes group polls and wraps them in a full, calm scheduling platform.",
+    ],
+    theirStrength:
+      "Doodle's group poll is simple, universally understood, and quick to fire off - if all you need is a one-time vote on a meeting time among a handful of people, it's familiar and low-friction.",
+    rows: [
+      { label: "Group polls / meeting votes", dayotter: "Yes", them: "Yes (core)", edge: "tie" },
+      { label: "Ad-free", dayotter: "Yes, always", them: "Ads on free tier", edge: "us" },
+      { label: "Real booking pages", dayotter: "Unlimited, branded", them: "Basic", edge: "us" },
+      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "None", edge: "us" },
+      {
+        label: "AI assistant",
+        dayotter: "Otter - chat, confirm-first",
+        them: "None",
+        edge: "us",
+      },
+      { label: "Reminders (SMS/Slack/WhatsApp)", dayotter: "Yes", them: "Email only", edge: "us" },
+      { label: "Payments to book", dayotter: "Yes (Stripe)", them: "No", edge: "us" },
+      { label: "Open source / self-host", dayotter: "Yes", them: "No", edge: "us" },
+    ],
+    whyUs: [
+      {
+        title: "The poll, plus everything after it",
+        body: "Group polls are one feature in DayOtter, not the whole product. You also get branded booking pages, team round-robin, routing, cross-channel reminders and payments.",
+      },
+      {
+        title: "No ads, ever",
+        body: "Doodle's free tier serves ads to your invitees. DayOtter's free plan is clean and calm - your booking page represents you, not an ad network.",
+      },
+      {
+        title: "An assistant and real teams",
+        body: "Ask Otter to set up a poll or a booking type, and run weighted round-robin across a team - things Doodle simply doesn't do.",
+      },
+    ],
+    chooseThem:
+      "You only ever need a quick, familiar one-off group vote on a meeting time and don't want any of the surrounding tooling.",
+    chooseUs:
+      "You want group polls as part of a real scheduling platform - booking pages, team routing, reminders, payments and an assistant - with no ads and the option to self-host.",
+    faq: [
+      {
+        q: "Does DayOtter do group polls like Doodle?",
+        a: "Yes - propose several times, let everyone vote, and lock in the most-supported slot as a real booking with invites and reminders. No ads on any tier.",
+      },
+      {
+        q: "What does DayOtter add over Doodle?",
+        a: "Branded booking pages, weighted team round-robin, routing forms, cross-channel reminders, payments, and Otter - the confirm-first AI assistant.",
+      },
+    ],
+  },
+  {
+    slug: "youcanbookme",
+    name: "YouCanBook.me",
+    blurb: "Flexible booking customization - but fiddly, dated, and no team AI.",
+    title: "DayOtter vs YouCanBook.me",
+    subtitle:
+      "YouCanBook.me is a customizable booking page with lots of knobs. DayOtter gives you the same control with a calmer setup, adds an AI assistant and time protection, and starts free.",
+    intro: [
+      "YouCanBook.me has been around a long time and leans into customization - branding, notifications, tweak-everything booking pages. If you love configuring, it's flexible.",
+      "DayOtter offers the same essentials with far less fiddling: sensible defaults, a clean page out of the box, and Otter to set things up by chat. Plus team round-robin, routing and focus protection - free for individuals.",
+    ],
+    theirStrength:
+      "YouCanBook.me's depth of customization on the booking page and notifications is real - if you want to control every string, colour and email, it gives you a lot of levers to pull.",
+    rows: [
+      { label: "Free plan", dayotter: "Yes - unlimited event types", them: "Limited free / paid tiers", edge: "us" },
+      { label: "Price (paid)", dayotter: "$9 / seat", them: "~$10.8 / seat", edge: "tie" },
+      {
+        label: "AI assistant",
+        dayotter: "Otter - chat, confirm-first",
+        them: "None",
+        edge: "us",
+      },
+      { label: "Booking-page customization", dayotter: "Clean, sensible defaults", them: "Deep, fiddly", edge: "tie" },
+      { label: "Ease of setup", dayotter: "Minutes", them: "More configuration", edge: "us" },
+      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "Team booking", edge: "us" },
+      { label: "Focus / time protection", dayotter: "Yes", them: "None", edge: "us" },
+      { label: "Open source / self-host", dayotter: "Yes", them: "No", edge: "us" },
+    ],
+    whyUs: [
+      {
+        title: "Calm by default, not a config maze",
+        body: "DayOtter looks right out of the box and lets Otter handle setup by chat. YouCanBook.me gives you endless knobs - powerful, but a lot to tune.",
+      },
+      {
+        title: "An assistant and time protection",
+        body: "Otter books, reschedules and protects focus time, and warns your next meeting when you're running late - things YouCanBook.me doesn't touch.",
+      },
+      {
+        title: "Open and self-hostable",
+        body: "Run DayOtter on your own servers under AGPLv3 with every feature unlocked. YouCanBook.me is closed and cloud-only.",
+      },
+    ],
+    chooseThem:
+      "You want to hand-tune every detail of the booking page and notifications and you enjoy the configuration.",
+    chooseUs:
+      "You want a clean booking experience that just works, an AI assistant to set it up, team routing and focus protection - free to start and self-hostable.",
+    faq: [
+      {
+        q: "Is DayOtter easier to set up than YouCanBook.me?",
+        a: "Generally yes - it ships with sensible defaults and a clean page, and Otter can create booking types by chat, so there's far less to configure.",
+      },
+      {
+        q: "Can DayOtter customize the booking page too?",
+        a: "Yes - brand colour, welcome message, intake questions, buffers, notice and per-type rules. It aims for calm defaults rather than infinite knobs.",
+      },
+    ],
+  },
+  {
+    slug: "clockwise",
+    name: "Clockwise",
+    blurb: "Smart focus-time defense for teams - but Google/Slack-bound, and it doesn't take bookings.",
+    title: "DayOtter vs Clockwise",
+    subtitle:
+      "Clockwise optimizes a team's calendar for focus time. DayOtter protects focus too - but asks before it acts, works across every calendar, and also does booking links and team scheduling.",
+    intro: [
+      "Clockwise is a calendar optimizer for teams: it shuffles flexible meetings to create shared focus time and syncs status to Slack. For a Google-and-Slack company chasing more deep-work hours, it's clever.",
+      "DayOtter shares the focus-protection instinct but takes a confirm-first approach - Otter proposes, you approve - and it isn't Google-only. It's also a full scheduling tool: booking pages, team round-robin, routing and polls, which Clockwise doesn't do.",
+    ],
+    theirStrength:
+      "Clockwise's automatic focus-time optimization across a whole team's calendars, plus its smart meeting-moving and Slack status sync, is genuinely useful for large Google Workspace orgs trying to claw back concentration time.",
+    rows: [
+      { label: "Focus / deep-work protection", dayotter: "Yes", them: "Yes (core)", edge: "tie" },
+      {
+        label: "Approach",
+        dayotter: "Confirm-first - you approve moves",
+        them: "Auto-moves flexible meetings",
+        edge: "us",
+      },
+      {
+        label: "Calendars supported",
+        dayotter: "Google, Outlook, Apple, ICS",
+        them: "Google (Outlook limited)",
+        edge: "us",
+      },
+      { label: "Booking links (let others book you)", dayotter: "Yes", them: "No", edge: "us" },
+      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "No", edge: "us" },
+      { label: "Running-late overflow alerts", dayotter: "Yes", them: "No", edge: "us" },
+      {
+        label: "Conversational AI assistant",
+        dayotter: "Otter - chat, confirm-first",
+        them: "Rules-based automation",
+        edge: "us",
+      },
+      { label: "Open source / self-host", dayotter: "Yes", them: "No", edge: "us" },
+    ],
+    whyUs: [
+      {
+        title: "It asks before it moves things",
+        body: "Clockwise auto-shuffles flexible meetings to make focus time. Otter proposes focus blocks and reschedules and waits for your OK - no surprise calendar changes.",
+      },
+      {
+        title: "Scheduling, not just optimization",
+        body: "DayOtter also lets people book you and runs team round-robin, routing forms and polls. Clockwise optimizes your existing calendar; it doesn't take bookings.",
+      },
+      {
+        title: "Every calendar, and open",
+        body: "Focus protection works across Google, Outlook and Apple, and the core is self-hostable under AGPLv3. Clockwise is Google-centric and closed.",
+      },
+    ],
+    chooseThem:
+      "You're a large Google Workspace org that wants automatic, team-wide focus-time optimization and Slack status sync, and you don't need booking links.",
+    chooseUs:
+      "You want focus protection that asks first, across every calendar, plus booking pages and team scheduling in one open, self-hostable platform.",
+    faq: [
+      {
+        q: "Does DayOtter protect focus time like Clockwise?",
+        a: "Yes - Otter finds and holds deep-work time and adds running-late alerts. The difference is it proposes and you confirm, rather than automatically moving your meetings.",
+      },
+      {
+        q: "Can DayOtter take bookings? Clockwise can't.",
+        a: "Yes - booking pages, team round-robin, routing and group polls are all built in, alongside focus protection.",
+      },
+    ],
+  },
 ];
 
 export function getComparison(slug: string): Comparison | undefined {
