@@ -4,6 +4,7 @@ import { MeetingAssistant } from "@/components/meeting-assistant";
 import { OverflowButton } from "@/components/overflow-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { PendingInvites } from "@/components/pending-invites";
+import { ProactiveOtter } from "@/components/proactive-otter";
 import { RunningLateButton } from "@/components/running-late-button";
 import { SectionHeading } from "@/components/section-heading";
 import { SetupChecklist } from "@/components/setup-checklist";
@@ -156,6 +157,8 @@ export default async function DashboardPage() {
 
       <SetupChecklist hasCalendar={hasCalendar} hasHours={hasHours} hasEventType={hasEventType} />
       <DashboardTour />
+
+      <ProactiveOtter />
 
       {showStats ? (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

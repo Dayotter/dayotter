@@ -1,12 +1,6 @@
-import { ProGate } from "@/components/upgrade-prompt";
-import { WorkflowsForm } from "@/components/workflows-form";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
+/** Workflows merged into the unified Automations page. Keep the URL working. */
 export default function WorkflowsSettingsPage() {
-  return (
-    <ProGate feature="workflows">
-      <WorkflowsForm />
-    </ProGate>
-  );
+  redirect("/settings/automations#messages");
 }
