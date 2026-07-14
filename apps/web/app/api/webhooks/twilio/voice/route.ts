@@ -67,7 +67,7 @@ export async function POST(request: Request): Promise<Response> {
       knowledge,
       history: [],
     };
-    const greeting = `Thanks for calling ${host.name}. How can I help you today?`;
+    const greeting = `Hi, thanks for calling ${host.name}. I can answer a few questions or help you book a time — what can I do for you?`;
     state.history.push({ role: "receptionist", text: greeting });
     await connection.set(stateKey, JSON.stringify(state), "EX", STATE_TTL);
     return sayAndGather(greeting, ACTION_PATH);

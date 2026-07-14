@@ -77,12 +77,13 @@ export const METRICS: TimeMetric[] = [
     compute(d: TimeDataset): MetricResult | null {
       if (d.bookings.length === 0) return null;
       const hoursPerWeek = (sum(d.bookings) / 60 / d.windowDays) * 7;
+      const n = d.bookings.length;
       return {
         key: "weekly_load",
         kind: "stat",
         label: "Meeting load",
         value: `${hoursPerWeek.toFixed(1)}h / week`,
-        hint: `${d.bookings.length} meetings in the last ${d.windowDays} days`,
+        hint: `${n} meeting${n === 1 ? "" : "s"} in the last ${d.windowDays} days`,
       };
     },
   },
