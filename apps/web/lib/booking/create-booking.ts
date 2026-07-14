@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { consumeCredit } from "@/lib/packages/credits";
 import { logger, roundRobinPick, safeEqual, sha256hex } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
 import { bookingConfirmation, sendEmail } from "@dayotter/emails";
@@ -420,6 +421,10 @@ export async function createBooking(
 
   // Schedule the host's workflow messages (custom reminders / follow-ups).
   await scheduleWorkflowMessages(booking.id, eventType.organizationId, eventType.id, start, end);
+
+  // Prepaid packages: if this booker holds a credit balance for the event type,
+  // spend one session. Best-effort — never blocks the booking.
+  await consumeCredit(eventType.id, input.attendee.email).catch(() => false);
 
   // Automation rules (prep blocks / buffers / follow-ups). Best-effort.
   await applyBookingRules({

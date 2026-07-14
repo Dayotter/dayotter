@@ -1,4 +1,5 @@
 import { syncOrgSubscription, syncSubscriptionById } from "@/lib/billing/subscription";
+import { fulfillPackagePurchase } from "@/lib/packages/fulfill";
 import { fulfillCheckout } from "@/lib/payments/fulfill";
 import { constructWebhookEvent, paymentsEnabled } from "@/lib/payments/stripe";
 import { logger } from "@dayotter/core";
@@ -31,6 +32,9 @@ export async function POST(request: Request) {
         if (session.mode === "subscription" && session.subscription) {
           // A Pro subscription checkout — activate the org's plan.
           await syncSubscriptionById(session.subscription as string);
+        } else if (session.metadata?.kind === "package") {
+          // A prepaid session-package purchase — grant the client's credits.
+          await fulfillPackagePurchase(session);
         } else {
           // A one-off booking payment.
           await fulfillCheckout(session.id);
