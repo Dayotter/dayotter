@@ -9,20 +9,23 @@
  * Geist sans (display + body) + Geist Mono labels. Light is default.
  */
 @theme {
-  /* Surfaces - warm, not sterile white */
+  /* Surfaces - warm ground, clean panels. surface-2 is the recessed tone: a
+     light, faintly cool neutral (leans to the violet accent) rather than a
+     muddy beige, so inset blocks read crisp and modern, not dated. */
   --color-bg: #faf9f6;
   --color-surface: #ffffff;
-  --color-surface-2: #f4f2ec;
+  --color-surface-2: #f3f2f8;
   --color-elevated: #ffffff;
 
-  /* Lines */
-  --color-border: #ebe8e0;
-  --color-border-strong: #dcd8cd;
+  /* Lines - clean, low-contrast neutrals that match the panels. */
+  --color-border: #e7e6ef;
+  --color-border-strong: #d7d5e1;
 
-  /* Text - warm near-black */
+  /* Text - warm near-black. muted = body/secondary, faint = tertiary/labels.
+     Kept richer (darker + warmer) than a flat grey so nothing reads washed-out. */
   --color-text: #191720;
-  --color-muted: #6a6660;
-  --color-faint: #9c988e;
+  --color-muted: #55504a;
+  --color-faint: #837d72;
 
   /* Accent - otter violet (matches the illustration palette) */
   --color-accent: #6743e6;

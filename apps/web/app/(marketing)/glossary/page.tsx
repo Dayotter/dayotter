@@ -19,7 +19,7 @@ export default function GlossaryHub() {
         title="The scheduling glossary"
         subtitle="Every term you'll meet in modern scheduling, defined plainly - and how DayOtter does each one."
       />
-      <section className="mx-auto max-w-4xl px-6 py-16">
+      <section className="mx-auto max-w-5xl px-6 py-16">
         {GLOSSARY_CATEGORIES.map((cat) => {
           const terms = GLOSSARY.filter((t) => t.category === cat);
           if (terms.length === 0) return null;

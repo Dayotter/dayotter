@@ -52,27 +52,43 @@ function ProviderChips() {
   );
 }
 
+function UserBubble({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="ml-auto w-fit max-w-[85%] rounded-[14px] rounded-br-sm bg-[var(--color-accent)] px-3.5 py-2 text-sm text-white">
+      {children}
+    </div>
+  );
+}
+
+function DraftCard({ kind, when }: { kind: string; when: string }) {
+  return (
+    <div className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
+      <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
+        <Sparkles size={13} className="text-[var(--color-accent)]" /> Draft - nothing's booked until
+        you say so
+      </div>
+      <p className="mt-1.5 text-sm font-medium">
+        {kind} · {when}
+      </p>
+      <div className="mt-2.5 flex gap-2">
+        <span className="rounded-sm bg-[var(--color-accent)] px-3 py-1 text-xs font-medium text-white">
+          Confirm
+        </span>
+        <span className="rounded-sm border border-[var(--color-border-strong)] px-3 py-1 text-xs">
+          Edit
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function AIMock() {
   return (
-    <div className="space-y-2.5">
-      <div className="ml-auto w-fit max-w-[85%] rounded-[14px] rounded-br-sm bg-[var(--color-accent)] px-3.5 py-2 text-sm text-white">
-        "Hold two hours for deep work tomorrow"
-      </div>
-      <div className="rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
-        <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-          <Sparkles size={13} className="text-[var(--color-accent)]" /> Draft - nothing's booked
-          until you say so
-        </div>
-        <p className="mt-1.5 text-sm font-medium">Deep work · Tomorrow, 9:00–11:00 AM</p>
-        <div className="mt-2.5 flex gap-2">
-          <span className="rounded-sm bg-[var(--color-accent)] px-3 py-1 text-xs font-medium text-white">
-            Confirm
-          </span>
-          <span className="rounded-sm border border-[var(--color-border-strong)] px-3 py-1 text-xs">
-            Edit
-          </span>
-        </div>
-      </div>
+    <div className="flex h-full flex-col justify-center gap-3">
+      <UserBubble>"Hold two hours for deep work tomorrow"</UserBubble>
+      <DraftCard kind="Deep work" when="Tomorrow, 9:00–11:00 AM" />
+      <UserBubble>"And move my 3pm with Dana to Thursday"</UserBubble>
+      <DraftCard kind="Reschedule · 1:1 with Dana" when="Thu, 2:30 PM" />
     </div>
   );
 }

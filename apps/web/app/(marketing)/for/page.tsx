@@ -19,7 +19,7 @@ export default function ForHub() {
         title="Scheduling, shaped around how you work"
         subtitle="Same calm platform, tuned to your world. Find the version of DayOtter that fits what your days actually look like."
       />
-      <section className="mx-auto max-w-4xl px-6 py-16">
+      <section className="mx-auto max-w-5xl px-6 py-16">
         <div className="grid gap-4 sm:grid-cols-2">
           {PERSONAS.map((p) => (
             <Link
