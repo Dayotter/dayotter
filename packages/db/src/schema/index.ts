@@ -13,3 +13,4 @@ export * from "./conferencing";
 export * from "./poll";
 export * from "./routing";
 export * from "./packages";
+export * from "./memory";

@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import { runSchedulingAgent } from "./agent";
 import { type BookingContext, type CommandDraft, parseCommand } from "./command-parse";
+import { recallFreshMemory, summarizeMemory } from "./memory";
 import { retrieveCalendarContext } from "./retrieval";
 
 /**
@@ -42,8 +43,12 @@ export async function interpretOtterCommand(
   text: string,
 ): Promise<OtterInterpretation> {
   // RAG-lite: retrieve only the bookings relevant to this request. This
-  // retrieved list is the source of truth for the model's booking refs.
-  const ctx = await retrieveCalendarContext(userId, text);
+  // retrieved list is the source of truth for the model's booking refs. In
+  // parallel, recall (and self-refresh) Otter's memory of this user.
+  const [ctx, memoryEntries] = await Promise.all([
+    retrieveCalendarContext(userId, text),
+    recallFreshMemory(userId).catch(() => []),
+  ]);
   const tz = ctx.timezone;
 
   const bookings: BookingContext[] = ctx.bookings.map((b, i) => ({
@@ -53,7 +58,14 @@ export async function interpretOtterCommand(
     attendees: b.attendees,
   }));
 
-  const args = { text, timezone: tz, now: new Date(), bookings, eventTypes: ctx.eventTypes };
+  const args = {
+    text,
+    timezone: tz,
+    now: new Date(),
+    bookings,
+    eventTypes: ctx.eventTypes,
+    memory: summarizeMemory(memoryEntries),
+  };
   const draft = needsAvailability(text)
     ? await runSchedulingAgent({ ...args, userId })
     : await parseCommand(args);
