@@ -147,6 +147,9 @@ export function PreferencesForm({
     <Card className="max-w-2xl">
       <CardBody className="p-6">
         <form onSubmit={onSubmit} className="space-y-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-faint)]">
+            Display
+          </p>
           <div>
             <Label>Theme</Label>
             <div className="flex gap-2">
@@ -202,6 +205,9 @@ export function PreferencesForm({
             </div>
           </div>
 
+          <p className="border-t border-[var(--color-border)] pt-4 text-xs font-semibold uppercase tracking-wide text-[var(--color-faint)]">
+            Reminders
+          </p>
           <div>
             <Label>Default reminders</Label>
             <p className="mb-2 -mt-1 text-xs text-[var(--color-faint)]">
@@ -229,7 +235,10 @@ export function PreferencesForm({
             </div>
           </div>
 
-          <div className="border-t border-[var(--color-border)] pt-4">
+          <p className="border-t border-[var(--color-border)] pt-4 text-xs font-semibold uppercase tracking-wide text-[var(--color-faint)]">
+            Time protection
+          </p>
+          <div className="pt-1">
             <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
               <input
                 type="checkbox"
@@ -312,7 +321,10 @@ export function PreferencesForm({
             </label>
           </div>
 
-          <div className="border-t border-[var(--color-border)] pt-4">
+          <p className="border-t border-[var(--color-border)] pt-4 text-xs font-semibold uppercase tracking-wide text-[var(--color-faint)]">
+            Otter &amp; notifications
+          </p>
+          <div className="pt-1">
             <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
               <input
                 type="checkbox"
