@@ -1,9 +1,10 @@
 import { getSession } from "@/lib/auth/session";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
+import { notPersonalType } from "@/lib/booking/personal-event-type";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { sha256hex } from "@dayotter/core";
-import { desc, eq, getDb, schema } from "@dayotter/db";
+import { and, desc, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export async function GET() {
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const rows = await getDb().query.eventTypes.findMany({
-    where: eq(schema.eventTypes.ownerId, session.user.id),
+    where: and(eq(schema.eventTypes.ownerId, session.user.id), notPersonalType),
     orderBy: desc(schema.eventTypes.createdAt),
   });
   const handle = (session.user as { handle?: string | null }).handle ?? null;

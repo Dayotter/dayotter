@@ -1,7 +1,8 @@
 import { requireFeature } from "@/lib/billing/require-feature";
+import { notPersonalType } from "@/lib/booking/personal-event-type";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { jsonError, withUser } from "@/lib/server/http";
-import { asc, eq, getDb, inArray, schema } from "@dayotter/db";
+import { and, asc, eq, getDb, inArray, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 /** Event-type ids owned by the user's org — used to validate workflow scoping. */
 async function ownedEventTypeIds(organizationId: string): Promise<Set<string>> {
   const rows = await getDb().query.eventTypes.findMany({
-    where: eq(schema.eventTypes.organizationId, organizationId),
+    where: and(eq(schema.eventTypes.organizationId, organizationId), notPersonalType),
     columns: { id: true },
   });
   return new Set(rows.map((r) => r.id));
