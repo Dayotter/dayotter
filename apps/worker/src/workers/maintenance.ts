@@ -4,6 +4,7 @@ import { QUEUE_NAMES, connection, enqueueSync } from "@dayotter/jobs";
 import { Worker } from "bullmq";
 import { materializeWeeklyBlocks } from "./automation-weekly";
 import { sendDueBriefings } from "./morning-briefing";
+import { sendDueTeamBriefings } from "./team-briefing";
 
 /**
  * Meeting Lifecycle: a booking that's still `confirmed` after it has ended is
@@ -48,9 +49,13 @@ export function startMaintenanceWorker(): Worker {
 
       await materializeWeeklyBlocks();
       await markPastBookingsCompleted();
-      // Daily morning briefing - self-guards on local time + once-per-day.
+      // Daily morning briefing (personal + team) - self-guards on local time +
+      // once-per-day.
       await sendDueBriefings().catch((err) => {
         logger.error("morning briefing tick failed", { event: "briefing_tick_failed", err });
+      });
+      await sendDueTeamBriefings().catch((err) => {
+        logger.error("team briefing tick failed", { event: "team_briefing_tick_failed", err });
       });
     },
     { connection, concurrency: 1 },

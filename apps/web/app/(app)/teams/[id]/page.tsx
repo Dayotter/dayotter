@@ -1,5 +1,6 @@
 import { MemberWeight } from "@/components/member-weight";
 import { PageHeader } from "@/components/page-header";
+import { TeamBriefingSettings } from "@/components/team-briefing-settings";
 import { AddMemberForm, CreateTeamEventForm } from "@/components/team-forms";
 import { TeamRules } from "@/components/team-rules";
 import { TeamScheduleView } from "@/components/team-schedule-view";
@@ -37,6 +38,11 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
   const rules = await db.query.teamRules.findMany({ where: eq(schema.teamRules.teamId, id) });
   const myRole = team.members.find((m) => m.userId === session!.user.id)?.role;
   const canManage = myRole === "owner" || myRole === "admin";
+
+  const briefingPref = await db.query.teamPreferences.findFirst({
+    where: eq(schema.teamPreferences.teamId, id),
+    columns: { briefingEnabled: true, briefingHour: true, briefingRecipients: true },
+  });
 
   // Shared team calendar - everyone's busy times for the next 7 days.
   const viewerTz = (session!.user as { timezone?: string }).timezone ?? "UTC";
@@ -166,6 +172,25 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
             />
           </CardBody>
         </Card>
+
+        {canManage ? (
+          <Card>
+            <CardHeader
+              title="Daily team briefing"
+              description="A shared morning digest of the team's day, sent over email and notification channels."
+            />
+            <CardBody>
+              <TeamBriefingSettings
+                teamId={team.id}
+                initial={{
+                  enabled: briefingPref?.briefingEnabled ?? false,
+                  hour: briefingPref?.briefingHour ?? 8,
+                  recipients: briefingPref?.briefingRecipients === "all" ? "all" : "admins",
+                }}
+              />
+            </CardBody>
+          </Card>
+        ) : null}
       </div>
     </>
   );

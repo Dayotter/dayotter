@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   date,
   index,
   integer,
@@ -94,6 +95,35 @@ export const teamRules = pgTable(
   },
   (t) => [index("team_rules_team_idx").on(t.teamId)],
 );
+
+/**
+ * Per-team settings for the shared daily digest ("team briefing"). Opt-in; sent
+ * once per day at the reference-timezone morning to the chosen recipients, with
+ * a summary of the team's day (meeting load per member, busiest, focus held).
+ */
+export const teamPreferences = pgTable(
+  "team_preferences",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id, { onDelete: "cascade" }),
+    /** Send the shared daily digest. */
+    briefingEnabled: boolean("briefing_enabled").notNull().default(false),
+    /** Local hour (0–23) to send at, in the reference member's timezone. */
+    briefingHour: smallint("briefing_hour").notNull().default(8),
+    /** Local date (YYYY-MM-DD, reference tz) of the last send - once-per-day guard. */
+    briefingLastSent: text("briefing_last_sent"),
+    /** Who receives it: 'admins' (owner + admins) or 'all' members. */
+    briefingRecipients: text("briefing_recipients").notNull().default("admins"),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("team_preferences_team_idx").on(t.teamId)],
+);
+
+export const teamPreferencesRelations = relations(teamPreferences, ({ one }) => ({
+  team: one(teams, { fields: [teamPreferences.teamId], references: [teams.id] }),
+}));
 
 export const teamsRelations = relations(teams, ({ one, many }) => ({
   organization: one(organizations, {
