@@ -7,11 +7,11 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Integrations",
   description:
-    "DayOtter connects with Google Calendar, Outlook, Apple iCloud, Zoom, Google Meet, Teams, Slack, WhatsApp, and Stripe - one calm scheduling layer over the tools you already use.",
+    "DayOtter connects with Google Calendar, Outlook, Apple iCloud, Zoom, Google Meet, Teams, Slack, WhatsApp, Stripe, Salesforce, and HubSpot - one calm scheduling layer over the tools you already use.",
   alternates: { canonical: "/integrations" },
 };
 
-const CATEGORIES = ["Calendar", "Video", "Messaging", "Payments"] as const;
+const CATEGORIES = ["Calendar", "Video", "Messaging", "Payments", "CRM"] as const;
 
 export default function IntegrationsPage() {
   return (

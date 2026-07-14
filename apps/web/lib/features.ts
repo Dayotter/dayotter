@@ -355,6 +355,51 @@ export const FEATURES: Feature[] = [
     ],
     related: ["booking-pages", "team-scheduling", "routing-forms"],
   },
+  {
+    slug: "crm-sync",
+    label: "CRM sync",
+    blurb: "Log every booking to Salesforce or HubSpot - contact and meeting, automatically.",
+    title: "Native CRM sync",
+    subtitle:
+      "Connect Salesforce or HubSpot and every booking becomes a contact + a logged meeting - created on book, updated on reschedule, closed on cancel. No Zapier, no manual logging. (Beta.)",
+    intro: [
+      "When someone books, DayOtter finds or creates them as a contact in your CRM and logs the meeting as an activity against them - a Salesforce Event or a HubSpot meeting engagement. Reschedule a booking and the same activity moves with it; cancel it and the activity is closed. Your CRM stays an accurate record of what actually happened, without anyone typing it in.",
+      "It's a native, first-party OAuth connection - not a bridge through a third-party automation tool - so it's one click to connect and there are no API keys to paste. Currently in beta.",
+    ],
+    points: [
+      {
+        title: "Contact find-or-create",
+        body: "Guests are matched to an existing contact by email, or created if new - no duplicates in your CRM.",
+      },
+      {
+        title: "Meetings logged and kept in sync",
+        body: "Each booking is written as an activity, then updated on reschedule and closed on cancel - automatically.",
+      },
+      {
+        title: "Salesforce & HubSpot",
+        body: "Native support for both, over their official APIs. More CRMs can be added behind the same interface.",
+      },
+      {
+        title: "Free when you self-host",
+        body: "CRM sync is a Pro feature on the cloud and completely free when you run DayOtter yourself.",
+      },
+    ],
+    faq: [
+      {
+        q: "Which CRMs are supported?",
+        a: "Salesforce and HubSpot today, via native OAuth. The provider layer is pluggable, so more can follow.",
+      },
+      {
+        q: "Do I need Zapier?",
+        a: "No - it's a direct, first-party sync. Connect in settings and every booking flows through automatically.",
+      },
+      {
+        q: "Is it available now?",
+        a: "It's in beta. Self-hosters can enable it for free by setting the provider's OAuth credentials; on the cloud it's part of Pro.",
+      },
+    ],
+    related: ["routing-forms", "round-robin", "calendar-sync"],
+  },
 ];
 
 export function getFeature(slug: string): Feature | undefined {

@@ -75,9 +75,9 @@ export const COMPARISONS: Comparison[] = [
       { label: "Routing forms", dayotter: "Yes", them: "Yes", edge: "tie" },
       {
         label: "CRM (Salesforce/HubSpot)",
-        dayotter: "On the roadmap",
+        dayotter: "Native sync (beta)",
         them: "Native, mature",
-        edge: "them",
+        edge: "tie",
       },
       { label: "Apple iCloud sync", dayotter: "Yes", them: "Dropped in 2024", edge: "us" },
       { label: "Open source / self-host", dayotter: "Yes", them: "No", edge: "us" },
@@ -103,7 +103,7 @@ export const COMPARISONS: Comparison[] = [
     faq: [
       {
         q: "Is DayOtter a drop-in Calendly replacement?",
-        a: "For the everyday flow - booking pages, team round-robin, reminders, payments, calendar sync - yes. The main gap today is native Salesforce/HubSpot CRM, which is on our roadmap.",
+        a: "For the everyday flow - booking pages, team round-robin, reminders, payments, calendar sync - yes. Native Salesforce/HubSpot sync recently shipped (in beta); Calendly's CRM routing is still more mature if that's central to you.",
       },
       {
         q: "How much cheaper is DayOtter?",
@@ -418,7 +418,8 @@ export const COMPARISONS: Comparison[] = [
   {
     slug: "acuity",
     name: "Acuity Scheduling",
-    blurb: "Deep appointment tooling for service businesses - but Squarespace-owned, paid-only, and no AI.",
+    blurb:
+      "Deep appointment tooling for service businesses - but Squarespace-owned, paid-only, and no AI.",
     title: "DayOtter vs Acuity Scheduling",
     subtitle:
       "Acuity is built for salons, clinics and studios that live on appointments. DayOtter covers the same booking-and-pay basics, adds team scheduling and an AI assistant, and starts free - not at $16 a month.",
@@ -429,18 +430,43 @@ export const COMPARISONS: Comparison[] = [
     theirStrength:
       "Acuity's appointment features run deep - class scheduling, intake forms, gift certificates, subscriptions and point-of-sale style add-ons - and it's tightly integrated with Squarespace sites. For an established salon or clinic already on Squarespace, it's a proven fit.",
     rows: [
-      { label: "Free plan", dayotter: "Yes - unlimited event types", them: "No - paid from ~$16/mo", edge: "us" },
-      { label: "Price entry point", dayotter: "Free / $9 seat", them: "~$16–49 / month", edge: "us" },
+      {
+        label: "Free plan",
+        dayotter: "Yes - unlimited event types",
+        them: "No - paid from ~$16/mo",
+        edge: "us",
+      },
+      {
+        label: "Price entry point",
+        dayotter: "Free / $9 seat",
+        them: "~$16–49 / month",
+        edge: "us",
+      },
       {
         label: "AI assistant",
         dayotter: "Otter - chat to book, protect focus",
         them: "None",
         edge: "us",
       },
-      { label: "Paid bookings & packages", dayotter: "Yes (Stripe)", them: "Yes (mature)", edge: "tie" },
+      {
+        label: "Paid bookings & packages",
+        dayotter: "Yes (Stripe)",
+        them: "Yes (mature)",
+        edge: "tie",
+      },
       { label: "Intake forms", dayotter: "Yes", them: "Yes (deep)", edge: "tie" },
-      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "Limited", edge: "us" },
-      { label: "Class / group scheduling", dayotter: "Group polls + limits", them: "Native classes", edge: "them" },
+      {
+        label: "Team round-robin & routing",
+        dayotter: "Weighted, built in",
+        them: "Limited",
+        edge: "us",
+      },
+      {
+        label: "Class / group scheduling",
+        dayotter: "Group polls + limits",
+        them: "Native classes",
+        edge: "them",
+      },
       { label: "Focus / time protection", dayotter: "Yes", them: "None", edge: "us" },
       { label: "Open source / self-host", dayotter: "Yes", them: "No", edge: "us" },
     ],
@@ -487,7 +513,12 @@ export const COMPARISONS: Comparison[] = [
     theirStrength:
       "SavvyCal's invitee experience is a highlight - letting people overlay their own calendar on yours to find a mutual time is genuinely elegant, and its personalization and polish are well ahead of the basics.",
     rows: [
-      { label: "Free plan", dayotter: "Yes - unlimited event types", them: "No - paid from ~$12/mo", edge: "us" },
+      {
+        label: "Free plan",
+        dayotter: "Yes - unlimited event types",
+        them: "No - paid from ~$12/mo",
+        edge: "us",
+      },
       { label: "Price", dayotter: "Free / $9 seat", them: "~$12–20 / seat", edge: "us" },
       {
         label: "AI assistant",
@@ -495,9 +526,19 @@ export const COMPARISONS: Comparison[] = [
         them: "None",
         edge: "us",
       },
-      { label: "Overlay-calendar booking", dayotter: "Availability preview", them: "Yes (signature)", edge: "them" },
+      {
+        label: "Overlay-calendar booking",
+        dayotter: "Availability preview",
+        them: "Yes (signature)",
+        edge: "them",
+      },
       { label: "Personalized links", dayotter: "Yes", them: "Yes (polished)", edge: "tie" },
-      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "Basic teams", edge: "us" },
+      {
+        label: "Team round-robin & routing",
+        dayotter: "Weighted, built in",
+        them: "Basic teams",
+        edge: "us",
+      },
       { label: "Focus / time protection", dayotter: "Yes", them: "None", edge: "us" },
       { label: "Open source / self-host", dayotter: "Yes", them: "No", edge: "us" },
     ],
@@ -547,7 +588,12 @@ export const COMPARISONS: Comparison[] = [
       { label: "Group polls / meeting votes", dayotter: "Yes", them: "Yes (core)", edge: "tie" },
       { label: "Ad-free", dayotter: "Yes, always", them: "Ads on free tier", edge: "us" },
       { label: "Real booking pages", dayotter: "Unlimited, branded", them: "Basic", edge: "us" },
-      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "None", edge: "us" },
+      {
+        label: "Team round-robin & routing",
+        dayotter: "Weighted, built in",
+        them: "None",
+        edge: "us",
+      },
       {
         label: "AI assistant",
         dayotter: "Otter - chat, confirm-first",
@@ -601,7 +647,12 @@ export const COMPARISONS: Comparison[] = [
     theirStrength:
       "YouCanBook.me's depth of customization on the booking page and notifications is real - if you want to control every string, colour and email, it gives you a lot of levers to pull.",
     rows: [
-      { label: "Free plan", dayotter: "Yes - unlimited event types", them: "Limited free / paid tiers", edge: "us" },
+      {
+        label: "Free plan",
+        dayotter: "Yes - unlimited event types",
+        them: "Limited free / paid tiers",
+        edge: "us",
+      },
       { label: "Price (paid)", dayotter: "$9 / seat", them: "~$10.8 / seat", edge: "tie" },
       {
         label: "AI assistant",
@@ -609,9 +660,19 @@ export const COMPARISONS: Comparison[] = [
         them: "None",
         edge: "us",
       },
-      { label: "Booking-page customization", dayotter: "Clean, sensible defaults", them: "Deep, fiddly", edge: "tie" },
+      {
+        label: "Booking-page customization",
+        dayotter: "Clean, sensible defaults",
+        them: "Deep, fiddly",
+        edge: "tie",
+      },
       { label: "Ease of setup", dayotter: "Minutes", them: "More configuration", edge: "us" },
-      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "Team booking", edge: "us" },
+      {
+        label: "Team round-robin & routing",
+        dayotter: "Weighted, built in",
+        them: "Team booking",
+        edge: "us",
+      },
       { label: "Focus / time protection", dayotter: "Yes", them: "None", edge: "us" },
       { label: "Open source / self-host", dayotter: "Yes", them: "No", edge: "us" },
     ],
@@ -647,7 +708,8 @@ export const COMPARISONS: Comparison[] = [
   {
     slug: "clockwise",
     name: "Clockwise",
-    blurb: "Smart focus-time defense for teams - but Google/Slack-bound, and it doesn't take bookings.",
+    blurb:
+      "Smart focus-time defense for teams - but Google/Slack-bound, and it doesn't take bookings.",
     title: "DayOtter vs Clockwise",
     subtitle:
       "Clockwise optimizes a team's calendar for focus time. DayOtter protects focus too - but asks before it acts, works across every calendar, and also does booking links and team scheduling.",
@@ -672,7 +734,12 @@ export const COMPARISONS: Comparison[] = [
         edge: "us",
       },
       { label: "Booking links (let others book you)", dayotter: "Yes", them: "No", edge: "us" },
-      { label: "Team round-robin & routing", dayotter: "Weighted, built in", them: "No", edge: "us" },
+      {
+        label: "Team round-robin & routing",
+        dayotter: "Weighted, built in",
+        them: "No",
+        edge: "us",
+      },
       { label: "Running-late overflow alerts", dayotter: "Yes", them: "No", edge: "us" },
       {
         label: "Conversational AI assistant",

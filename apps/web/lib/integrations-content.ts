@@ -8,7 +8,7 @@
 export interface Integration {
   slug: string;
   name: string;
-  category: "Calendar" | "Video" | "Messaging" | "Payments";
+  category: "Calendar" | "Video" | "Messaging" | "Payments" | "CRM";
   blurb: string;
   subtitle: string;
   intro: string[];
@@ -258,6 +258,78 @@ export const INTEGRATIONS: Integration[] = [
       {
         q: "Do I need extra setup for Teams links?",
         a: "No - connect Microsoft 365 and choose Teams as the location; links are attached automatically.",
+      },
+    ],
+  },
+  {
+    slug: "salesforce",
+    name: "Salesforce",
+    category: "CRM",
+    blurb: "Log every booking to Salesforce as an Event on the right Contact (beta).",
+    subtitle:
+      "Connect Salesforce and DayOtter finds or creates the guest as a Contact and logs the meeting as an Event - updated on reschedule, removed on cancel.",
+    intro: [
+      "When someone books, DayOtter matches them to a Salesforce Contact by email (creating one if needed) and writes the meeting as an Event linked to that Contact. Reschedules update the same Event; cancellations remove it - so your CRM reflects reality without manual logging.",
+      "It's a native, first-party sync over the Salesforce REST API - no Zapier in the middle. Currently in beta.",
+    ],
+    points: [
+      {
+        title: "Contact find-or-create",
+        body: "Guests are matched to a Salesforce Contact by email, or created if new - no duplicates.",
+      },
+      {
+        title: "Meetings logged as Events",
+        body: "Each booking becomes a Salesforce Event on the Contact, kept in sync on reschedule and cancel.",
+      },
+      {
+        title: "Native, not a bridge",
+        body: "A direct OAuth connection over Salesforce's REST API - connect once in settings.",
+      },
+    ],
+    faq: [
+      {
+        q: "Does DayOtter create Salesforce Contacts?",
+        a: "Yes - it matches the guest to an existing Contact by email, or creates one, then logs the meeting as an Event against it.",
+      },
+      {
+        q: "Is CRM sync included?",
+        a: "It's a Pro feature on the cloud, and free when you self-host. Native Salesforce sync is currently in beta.",
+      },
+    ],
+  },
+  {
+    slug: "hubspot",
+    name: "HubSpot",
+    category: "CRM",
+    blurb: "Create the HubSpot contact and log the meeting on every booking (beta).",
+    subtitle:
+      "Connect HubSpot and DayOtter creates or matches the contact and logs the booking as a meeting engagement - kept in sync as things change.",
+    intro: [
+      "Every booking finds or creates the guest as a HubSpot contact and logs a meeting engagement associated with them. Reschedules update the same meeting; cancellations close it out - so your pipeline activity stays accurate automatically.",
+      "A native sync over HubSpot's CRM v3 API, connected with one click. Currently in beta.",
+    ],
+    points: [
+      {
+        title: "Contact create-or-match",
+        body: "Guests are matched to a HubSpot contact by email, or created - then the meeting is associated to them.",
+      },
+      {
+        title: "Meetings logged automatically",
+        body: "Each booking is written as a HubSpot meeting engagement, updated on reschedule and closed on cancel.",
+      },
+      {
+        title: "One-click OAuth",
+        body: "Connect from settings - no API keys to paste, no third-party automation tool.",
+      },
+    ],
+    faq: [
+      {
+        q: "Will bookings show up on the HubSpot contact timeline?",
+        a: "Yes - each booking is logged as a meeting engagement associated with the contact, so it appears on their timeline.",
+      },
+      {
+        q: "Do I need Zapier for this?",
+        a: "No - it's a native, first-party HubSpot sync. It's a Pro feature (free on self-host), currently in beta.",
       },
     ],
   },
