@@ -3,6 +3,8 @@
 export const BRAND = {
   name: "DayOtter",
   tagline: "The calm home for your time.",
+  /** Canonical site origin — drives metadataBase, sitemap, canonical URLs, JSON-LD. */
+  url: process.env.NEXT_PUBLIC_APP_URL ?? "https://dayotter.com",
   email: "hello@dayotter.com",
   github: "https://github.com/nometria/dayotter",
   githubLicense: "https://github.com/nometria/dayotter/blob/main/LICENSE",
@@ -22,7 +24,8 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Product",
     links: [
-      { label: "Features", href: "/#features" },
+      { label: "Features", href: "/features" },
+      { label: "Integrations", href: "/integrations" },
       { label: "Pricing", href: "/pricing" },
       { label: "How it works", href: "/#how" },
       { label: "Changelog", href: "/changelog" },
@@ -74,9 +77,9 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
 
 /** Top-nav links shown on marketing pages. */
 export const MARKETING_NAV: FooterLink[] = [
-  { label: "Features", href: "/#features" },
+  { label: "Features", href: "/features" },
+  { label: "Integrations", href: "/integrations" },
   { label: "Pricing", href: "/pricing" },
   { label: "Compare", href: "/vs" },
-  { label: "Blog", href: "/blog" },
   { label: "Docs", href: "/docs" },
 ];
