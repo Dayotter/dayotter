@@ -232,6 +232,13 @@
       "when": 1783965215275,
       "tag": "0032_burly_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1783994911628,
+      "tag": "0033_slow_morlocks",
+      "breakpoints": true
     }
   ]
 }

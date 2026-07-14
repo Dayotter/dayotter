@@ -22,6 +22,8 @@ export default async function PreferencesSettingsPage() {
         travelBufferMinutes: prefs?.travelBufferMinutes ?? 0,
         reclaimCancelledTime: prefs?.reclaimCancelledTime ?? false,
         overflowNotifyEnabled: prefs?.overflowNotifyEnabled ?? false,
+        briefingEnabled: prefs?.briefingEnabled ?? false,
+        briefingHour: prefs?.briefingHour ?? 8,
         lunchEnabled: prefs?.lunchEnabled ?? false,
         lunchStartMinute: prefs?.lunchStartMinute ?? 720,
         lunchEndMinute: prefs?.lunchEndMinute ?? 780,

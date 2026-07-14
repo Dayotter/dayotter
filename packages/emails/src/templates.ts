@@ -235,3 +235,44 @@ export function workflowEmail(
     ),
   };
 }
+
+export interface DailyBriefingData {
+  /** Recipient's first name (may be empty). */
+  name: string;
+  /** Local date label, e.g. "Tuesday, July 14". */
+  dateLabel: string;
+  /** Today's meetings, pre-formatted in the recipient's timezone. */
+  meetings: { time: string; title: string }[];
+  /** Optional focus-time summary, e.g. "2 hours of focus held". */
+  focusLabel?: string;
+  manageUrl: string;
+}
+
+/**
+ * The daily "morning briefing" — a calm summary of the day ahead, sent each
+ * morning to hosts who opt in. Mirrors the multi-channel nudge the worker also
+ * delivers over SMS/WhatsApp/Slack/push.
+ */
+export function dailyBriefing(d: DailyBriefingData): Rendered {
+  const count = d.meetings.length;
+  const subject =
+    count === 0 ? "Your day: a clear calendar" : `Your day: ${count} meeting${count === 1 ? "" : "s"}`;
+  const greeting = `Good morning${d.name ? `, ${esc(d.name)}` : ""}. Here's ${esc(d.dateLabel)}.`;
+  const lines = [
+    greeting,
+    count === 0
+      ? "No meetings scheduled — a clear runway ahead."
+      : `You have ${count} meeting${count === 1 ? "" : "s"} today:`,
+    ...d.meetings.map((m) => `<strong>${esc(m.time)}</strong> — ${esc(m.title)}`),
+  ];
+  if (d.focusLabel) lines.push(esc(d.focusLabel));
+  const textBody =
+    count === 0
+      ? "No meetings scheduled today."
+      : d.meetings.map((m) => `${m.time} — ${m.title}`).join("\n");
+  return {
+    subject,
+    text: `${d.dateLabel}\n${textBody}${d.focusLabel ? `\n${d.focusLabel}` : ""}\n\nOpen DayOtter: ${d.manageUrl}`,
+    html: shell("Your morning briefing", lines, { label: "Open DayOtter", url: d.manageUrl }),
+  };
+}

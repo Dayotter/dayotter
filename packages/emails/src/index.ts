@@ -9,7 +9,9 @@ export {
   bookingRunningLate,
   bookingMessage,
   workflowEmail,
+  dailyBriefing,
   applyTemplateVars,
   WORKFLOW_VARIABLES,
   type BookingEmailData,
+  type DailyBriefingData,
 } from "./templates";
