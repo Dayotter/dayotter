@@ -4,6 +4,7 @@ import { Marquee } from "@/components/marketing/marquee";
 import { MobileApps } from "@/components/marketing/mobile";
 import { MarketingNav } from "@/components/marketing/nav";
 import { CTA, FAQ, Footer, HowItWorks, Manifesto, Shift } from "@/components/marketing/sections";
+import { CompareTeaser, DayWithOtter, OtterDemo } from "@/components/marketing/showcase";
 import { OtterBand, WhyOtter } from "@/components/marketing/why";
 
 export default function HomePage() {
@@ -14,10 +15,13 @@ export default function HomePage() {
         <Hero />
         <Marquee />
         <Features />
+        <OtterDemo />
         <Shift />
         <WhyOtter />
+        <DayWithOtter />
         <MobileApps />
         <HowItWorks />
+        <CompareTeaser />
         <Manifesto />
         <OtterBand />
         <FAQ />

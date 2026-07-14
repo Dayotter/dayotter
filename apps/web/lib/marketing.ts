@@ -48,6 +48,7 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: "Agencies", href: "/for/agencies" },
       { label: "Consultants", href: "/for/consultants" },
       { label: "Recruiters", href: "/for/recruiters" },
+      { label: "ADHD & busy minds", href: "/for/adhd" },
     ],
   },
   {
