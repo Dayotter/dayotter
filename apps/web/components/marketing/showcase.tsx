@@ -4,8 +4,9 @@ import { Reveal, Stagger } from "@/components/marketing/motion";
 import { BrandMark } from "@/components/brand-mark";
 import { buttonVariants } from "@/components/ui/button";
 import { COMPARISONS } from "@/lib/comparisons";
-import { ArrowRight, Check, Minus, Sparkles, Sun } from "lucide-react";
+import { ArrowRight, CalendarClock, Check, Focus, Info, Minus, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 /* ------------------------------------------------------------------ */
 /* A day with Otter — a timeline of the product living in a real day.  */
@@ -91,19 +92,87 @@ export function DayWithOtter() {
 /* Otter demo — a scripted look at the assistant, styled like the app. */
 /* ------------------------------------------------------------------ */
 
+/**
+ * A safe, client-side "try Otter" sandbox. Matches a typed command to a canned
+ * proposed action — no backend, no AI cost, no auth — so a visitor can feel the
+ * confirm-first behaviour before signing up. (In the product this is a real,
+ * availability-aware model call.)
+ */
+type DemoReply =
+  | { type: "create" | "focus" | "reschedule"; label: string; title: string; detail: string }
+  | { type: "info"; label: string; title: string; detail: string };
+
+function interpretDemo(text: string): DemoReply {
+  const t = text.toLowerCase();
+  if (/\b(hold|focus|deep work|block)\b/.test(t)) {
+    return {
+      type: "focus",
+      label: "Focus block",
+      title: "Deep work",
+      detail: "Tomorrow · 9:00–11:00 AM · held as busy",
+    };
+  }
+  if (/\b(move|resched|push|shift)\b/.test(t)) {
+    return {
+      type: "reschedule",
+      label: "Reschedule",
+      title: "1:1 with Dana",
+      detail: "Tue 3:00 PM → Thu 2:30 PM · 30 min",
+    };
+  }
+  if (/\b(free|available|when can|open)\b/.test(t)) {
+    return {
+      type: "info",
+      label: "Availability",
+      title: "You're open Wednesday afternoon",
+      detail: "2:00, 2:30 and 4:00 PM are all clear.",
+    };
+  }
+  return {
+    type: "create",
+    label: "Meeting",
+    title: /with\s+(\w+)/.exec(t)?.[1] ? `Intro with ${/with\s+(\w+)/.exec(t)![1]}` : "Intro call",
+    detail: "Thu 2:00 PM · 30 min · Google Meet",
+  };
+}
+
+const DEMO_CHIPS = [
+  "Book a 30-min intro with Sam Thursday 2pm",
+  "Hold two hours for deep work tomorrow",
+  "Move my 3pm to Thursday afternoon",
+  "Am I free Wednesday afternoon?",
+];
+
+const DEMO_ICON = {
+  create: CalendarClock,
+  focus: Focus,
+  reschedule: CalendarClock,
+  info: Info,
+} as const;
+
 export function OtterDemo() {
+  const [text, setText] = useState<string>(DEMO_CHIPS[0] ?? "");
+  const [reply, setReply] = useState<DemoReply>(() => interpretDemo(DEMO_CHIPS[0] ?? ""));
+
+  function run(next: string) {
+    setText(next);
+    setReply(interpretDemo(next));
+  }
+
+  const Icon = DEMO_ICON[reply.type];
+  const isInfo = reply.type === "info";
+
   return (
     <section className="mx-auto max-w-5xl px-6 py-24">
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <Reveal>
-          <span className="eyebrow">See it work</span>
+          <span className="eyebrow">Try it yourself</span>
           <h2 className="font-display mt-4 text-4xl leading-tight tracking-[-0.02em] sm:text-5xl">
             Say it once. Watch it happen.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-[var(--color-muted)]">
-            Talk to Otter the way you'd talk to an assistant — in the app, or over WhatsApp and SMS.
-            It reads your real availability, drafts the change, and never touches your calendar until
-            you say go.
+            Type a request — or tap an example. Otter drafts the change and waits for your OK. In the
+            app it reads your real availability and works over chat, voice, WhatsApp and SMS.
           </p>
           <ul className="mt-6 space-y-3">
             {[
@@ -129,43 +198,57 @@ export function OtterDemo() {
               </span>
             </div>
 
-            <div className="space-y-3">
-              {/* user bubble */}
-              <div className="flex justify-end">
-                <p className="max-w-[80%] rounded-2xl rounded-br-sm bg-[var(--color-accent)] px-4 py-2.5 text-sm text-white">
-                  Move my 3pm with Dana to Thursday afternoon
-                </p>
-              </div>
-              {/* otter proposal */}
-              <div className="flex justify-start">
-                <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-[var(--color-surface-2)] px-4 py-3">
-                  <p className="text-sm text-[var(--color-text)]">
-                    Found a clear slot. Here's the move:
-                  </p>
-                  <div className="mt-3 rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">
-                      Reschedule
-                    </p>
-                    <p className="mt-1 text-sm font-semibold">1:1 with Dana</p>
-                    <p className="text-sm text-[var(--color-muted)]">
-                      <span className="line-through">Tue 3:00 PM</span> → Thu 2:30 PM · 30 min
-                    </p>
-                    <div className="mt-3 flex gap-2">
-                      <span
-                        className={`${buttonVariants({ variant: "primary" })} pointer-events-none h-8 px-3 text-xs`}
-                      >
-                        Confirm
-                      </span>
-                      <span
-                        className={`${buttonVariants({ variant: "ghost" })} pointer-events-none h-8 px-3 text-xs`}
-                      >
-                        Edit
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                run(text);
+              }}
+              className="flex gap-2"
+            >
+              <input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                aria-label="Ask Otter"
+                className="min-w-0 flex-1 rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--color-accent)]"
+              />
+              <button type="submit" className={`${buttonVariants({ variant: "primary" })} h-9 px-4 text-sm`}>
+                Go
+              </button>
+            </form>
+
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {DEMO_CHIPS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => run(c)}
+                  className="rounded-full border border-[var(--color-border)] px-2.5 py-1 text-xs text-[var(--color-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-text)]"
+                >
+                  {c.length > 34 ? `${c.slice(0, 32)}…` : c}
+                </button>
+              ))}
             </div>
+
+            <div className="mt-4 rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">
+                <Icon size={13} /> {reply.label}
+              </p>
+              <p className="mt-1.5 text-sm font-semibold">{reply.title}</p>
+              <p className="text-sm text-[var(--color-muted)]">{reply.detail}</p>
+              {!isInfo ? (
+                <div className="mt-3 flex gap-2">
+                  <span className={`${buttonVariants({ variant: "primary" })} pointer-events-none h-8 px-3 text-xs`}>
+                    Confirm
+                  </span>
+                  <span className={`${buttonVariants({ variant: "ghost" })} pointer-events-none h-8 px-3 text-xs`}>
+                    Edit
+                  </span>
+                </div>
+              ) : null}
+            </div>
+            <p className="mt-2 text-center text-xs text-[var(--color-faint)]">
+              A preview — nothing's booked. <Link href="/sign-up" className="text-[var(--color-accent)] hover:underline">Sign up</Link> to use the real thing.
+            </p>
           </div>
         </Reveal>
       </div>
