@@ -6,7 +6,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
-import { desc, eq, getDb, schema } from "@dayotter/db";
+import { notPersonalType } from "@/lib/booking/personal-event-type";
+import { and, desc, eq, getDb, schema } from "@dayotter/db";
 import { Clock, ExternalLink, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 
@@ -17,7 +18,7 @@ export default async function EventTypesPage() {
   const db = getDb();
 
   const eventTypes = await db.query.eventTypes.findMany({
-    where: eq(schema.eventTypes.ownerId, session!.user.id),
+    where: and(eq(schema.eventTypes.ownerId, session!.user.id), notPersonalType),
     orderBy: desc(schema.eventTypes.createdAt),
   });
   const handle = (session!.user as { handle?: string | null }).handle;

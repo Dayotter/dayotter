@@ -1,6 +1,7 @@
 import { computeAnalytics } from "@/lib/booking/analytics";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { findFocusBlocks } from "@/lib/booking/focus-suggestions";
+import { notPersonalType } from "@/lib/booking/personal-event-type";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import {
@@ -39,7 +40,7 @@ export async function executeReadTool(
   switch (name) {
     case "list_booking_types": {
       const rows = await db.query.eventTypes.findMany({
-        where: eq(schema.eventTypes.ownerId, userId),
+        where: and(eq(schema.eventTypes.ownerId, userId), notPersonalType),
         columns: { id: true, title: true, slug: true, durationMinutes: true, isActive: true },
         orderBy: desc(schema.eventTypes.createdAt),
       });

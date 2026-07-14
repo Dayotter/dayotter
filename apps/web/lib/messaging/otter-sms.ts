@@ -1,7 +1,7 @@
 import { interpretOtterCommand } from "@/lib/ai/interpret";
 import { cancelBooking } from "@/lib/booking/cancel-booking";
+import { createHostBooking } from "@/lib/booking/host-booking";
 import { rescheduleBooking } from "@/lib/booking/reschedule-booking";
-import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
 import { logger } from "@dayotter/core";
 import { DateTime } from "luxon";
 
@@ -19,6 +19,7 @@ export type PendingAction =
       notes: string;
       attendees: { name: string; email: string }[];
       timezone: string;
+      eventTypeSlug?: string;
     }
   | { intent: "reschedule"; uid: string; newStartISO: string; title: string; timezone: string }
   | { intent: "cancel"; uid: string; title: string };
@@ -63,6 +64,7 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
         notes: draft.notes,
         attendees: draft.attendees,
         timezone: tz,
+        eventTypeSlug: draft.eventTypeSlug || undefined,
       },
     };
   }
@@ -101,17 +103,17 @@ export async function executePending(userId: string, pending: PendingAction): Pr
       const attendees = pending.attendees
         .filter((a) => a.email.includes("@"))
         .map((a) => ({ email: a.email, name: a.name || undefined }));
-      const written = await writeBookingToCalendar(userId, {
+      const result = await createHostBooking({
+        userId,
         title: pending.title,
-        description: pending.notes || undefined,
         start,
         end,
         timezone: pending.timezone,
+        notes: pending.notes || undefined,
         attendees,
+        eventTypeSlug: pending.eventTypeSlug,
       });
-      if (!written) {
-        return "I couldn't add that — connect a calendar in DayOtter first, then try again.";
-      }
+      if (!result) return "I couldn't add that right now — please try again, or use the app.";
       return `Done ✓ "${pending.title}" is on your calendar for ${whenLabel(pending.startISO, pending.timezone)}.`;
     }
 
