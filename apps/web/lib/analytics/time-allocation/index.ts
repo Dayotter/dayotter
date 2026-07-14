@@ -36,7 +36,7 @@ async function loadDataset(
         gte(schema.bookings.startsAt, from),
         lt(schema.bookings.startsAt, now),
       ),
-      columns: { startsAt: true, endsAt: true, title: true },
+      columns: { startsAt: true, endsAt: true, title: true, recurrenceUid: true },
       with: {
         attendees: { columns: { name: true, email: true } },
         eventType: { columns: { title: true, color: true } },
@@ -49,7 +49,7 @@ async function loadDataset(
         gte(schema.timeBlocks.startsAt, from),
         lt(schema.timeBlocks.startsAt, now),
       ),
-      columns: { startsAt: true, endsAt: true },
+      columns: { startsAt: true, endsAt: true, source: true },
     }),
   ]);
 
@@ -63,8 +63,13 @@ async function loadDataset(
       attendees: b.attendees,
       typeTitle: b.eventType?.title ?? b.title,
       color: b.eventType?.color ?? null,
+      isRecurring: b.recurrenceUid !== null,
     })),
-    focusBlocks: blocks.map((b) => ({ start: b.startsAt, end: b.endsAt })),
+    focusBlocks: blocks.map((b) => ({
+      start: b.startsAt,
+      end: b.endsAt,
+      reclaimed: b.source === "reclaimed",
+    })),
   };
 }
 

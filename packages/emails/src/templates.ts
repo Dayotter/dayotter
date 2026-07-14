@@ -279,6 +279,51 @@ export function dailyBriefing(d: DailyBriefingData): Rendered {
   };
 }
 
+export interface TeamBriefingData {
+  /** Recipient's first name (may be empty). */
+  name: string;
+  teamName: string;
+  /** Local date label, e.g. "Tuesday, July 14". */
+  dateLabel: string;
+  /** Total meetings across the team today. */
+  totalMeetings: number;
+  /** Per-member load, highest first. */
+  perMember: { name: string; count: number }[];
+  /** Optional team focus-time summary. */
+  focusLabel?: string;
+  manageUrl: string;
+}
+
+/** Shared daily team digest - the team's meeting load for the day. */
+export function teamBriefing(d: TeamBriefingData): Rendered {
+  const subject =
+    d.totalMeetings === 0
+      ? `${d.teamName}: a clear team day`
+      : `${d.teamName}: ${d.totalMeetings} meeting${d.totalMeetings === 1 ? "" : "s"} today`;
+  const busiest = d.perMember[0];
+  const lines = [
+    `Good morning${d.name ? `, ${esc(d.name)}` : ""}. Here's ${esc(d.teamName)} for ${esc(d.dateLabel)}.`,
+    d.totalMeetings === 0
+      ? "No meetings on the team's calendar today - a clear runway."
+      : `The team has <strong>${d.totalMeetings}</strong> meeting${d.totalMeetings === 1 ? "" : "s"} today${busiest ? `, most on ${esc(busiest.name)} (${busiest.count})` : ""}.`,
+    ...d.perMember
+      .filter((m) => m.count > 0)
+      .map(
+        (m) => `<strong>${esc(m.name)}</strong> - ${m.count} meeting${m.count === 1 ? "" : "s"}`,
+      ),
+  ];
+  if (d.focusLabel) lines.push(esc(d.focusLabel));
+  const textBody = d.perMember
+    .filter((m) => m.count > 0)
+    .map((m) => `${m.name} - ${m.count}`)
+    .join("\n");
+  return {
+    subject,
+    text: `${d.teamName} - ${d.dateLabel}\n${d.totalMeetings} meetings today\n${textBody}${d.focusLabel ? `\n${d.focusLabel}` : ""}\n\nOpen DayOtter: ${d.manageUrl}`,
+    html: shell(`${esc(d.teamName)} - today`, lines, { label: "Open DayOtter", url: d.manageUrl }),
+  };
+}
+
 export interface MeetingRecapData {
   /** Host's first name (may be empty). */
   hostName: string;

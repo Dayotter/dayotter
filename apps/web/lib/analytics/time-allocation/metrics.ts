@@ -204,4 +204,44 @@ export const METRICS: TimeMetric[] = [
       };
     },
   },
+
+  // Time in recurring meetings vs. one-off bookings.
+  {
+    key: "recurring_load",
+    compute(d: TimeDataset): MetricResult | null {
+      if (d.bookings.length === 0) return null;
+      let recurring = 0;
+      let oneOff = 0;
+      for (const b of d.bookings) {
+        if (b.isRecurring) recurring += minutes(b);
+        else oneOff += minutes(b);
+      }
+      if (recurring + oneOff === 0) return null;
+      return {
+        key: "recurring_load",
+        kind: "breakdown",
+        label: "Recurring vs. one-off",
+        items: [
+          { label: "Recurring meetings", minutes: recurring, color: "var(--color-accent)" },
+          { label: "One-off meetings", minutes: oneOff, color: "var(--color-mint)" },
+        ],
+      };
+    },
+  },
+
+  // Focus time Otter reclaimed for you from cancelled meetings.
+  {
+    key: "reclaimed_time",
+    compute(d: TimeDataset): MetricResult | null {
+      const reclaimedMin = sum(d.focusBlocks.filter((b) => b.reclaimed));
+      if (reclaimedMin <= 0) return null;
+      return {
+        key: "reclaimed_time",
+        kind: "stat",
+        label: "Time reclaimed",
+        value: fmtDuration(reclaimedMin),
+        hint: `Focus time Otter protected from cancelled meetings in the last ${d.windowDays} days`,
+      };
+    },
+  },
 ];

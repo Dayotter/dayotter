@@ -70,6 +70,7 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
           userId: booking.hostId,
           title: "Focus (freed up)",
           kind: "focus",
+          source: "reclaimed",
           startsAt: booking.startsAt,
           endsAt: booking.endsAt,
         })

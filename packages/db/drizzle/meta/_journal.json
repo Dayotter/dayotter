@@ -267,6 +267,20 @@
       "when": 1784031823094,
       "tag": "0037_overconfident_maverick",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1784040410732,
+      "tag": "0038_talented_kat_farrell",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1784040538135,
+      "tag": "0039_outgoing_black_tom",
+      "breakpoints": true
     }
   ]
 }

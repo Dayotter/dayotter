@@ -11,9 +11,16 @@ export interface TimeDataset {
     attendees: { name: string | null; email: string }[];
     typeTitle: string;
     color: string | null;
+    /** Part of a recurring series (vs a one-off booking). */
+    isRecurring: boolean;
   }[];
   /** Focus / deep-work blocks the user held in the window. */
-  focusBlocks: { start: Date; end: Date }[];
+  focusBlocks: {
+    start: Date;
+    end: Date;
+    /** True when this block is time reclaimed from a cancelled meeting. */
+    reclaimed: boolean;
+  }[];
 }
 
 /** A single headline number, e.g. "Meeting load - 12h / week". */

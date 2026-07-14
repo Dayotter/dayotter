@@ -40,13 +40,13 @@ automatically.
 `meeting_focus_balance`, `top_people`, `time_of_day`, `weekly_load`,
 `back_to_back_share` (% of meetings with no gap before the next),
 `longest_focus_streak` (biggest uninterrupted block held),
-`external_vs_internal` (time with outside guests vs. teammates, by email domain).
+`external_vs_internal` (time with outside guests vs. teammates, by email domain),
+`recurring_load` (recurring vs. one-off meeting time, via `bookings.recurrence_uid`),
+`reclaimed_time` (focus reclaimed from cancelled meetings, via `time_blocks.source`).
 
 ## Ideas for future metrics
-- `recurring_load` - share of time in recurring vs. one-off meetings
-- `reclaimed_time` - focus time Otter protected for you (needs a marker on
-  time_blocks to distinguish reclaimed from manually-held focus)
 - `busiest_weekday` - which day carries the most meeting load
+- `avg_meeting_length` - are meetings creeping longer over the window
 
 ## Notes
 - Distinct from `lib/booking/insights.ts` (scheduling counts/funnel). This module

@@ -79,6 +79,9 @@ export const timeBlocks = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     kind: text("kind").notNull().default("focus"),
+    /** How the block was created: null = manual, "reclaimed" = time freed by a
+     * cancelled meeting, "automation"/"travel" = engine-created. Used by analytics. */
+    source: text("source"),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     /** The booking that reserved this block (travel/prep/buffer), so it can be
