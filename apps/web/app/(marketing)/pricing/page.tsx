@@ -64,7 +64,7 @@ const TIERS: Tier[] = [
     features: [
       "Every Pro feature, free forever",
       "Your data on your servers",
-      "Apache-2.0 licensed core",
+      "AGPLv3 licensed core",
       "Docker & docker-compose",
       "Community support",
     ],

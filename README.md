@@ -1,116 +1,107 @@
-# dayotter
+<div align="center">
 
-Open-source team scheduling & calendar platform. Sync every calendar (Google,
-Microsoft 365, Apple), share availability across your team, let people book you,
-and get automatic reminders before every call.
+# DayOtter
 
-Apache-2.0 licensed — self-host it, or use the hosted cloud.
+**The AI-native, open-source scheduling platform.**
+Say it once — Otter books the meeting, protects your focus, and clears the back-and-forth. Confirm-first, always.
 
-## Why
+[Website](https://dayotter.com) · [Docs](./docs) · [Roadmap](./docs/ROADMAP.md) · [AI architecture](./docs/AI.md) · [Contributing](./CONTRIBUTING.md)
 
-Founders and teams overpay for scheduling tools that still can't handle multiple
-calendars or shared team availability well. dayotter treats **shared team
-availability as a first-class primitive** (collective + round-robin, no paywall)
-and unifies all your calendars into one source of truth.
+![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
+![Self-hostable](https://img.shields.io/badge/self--hostable-yes-brightgreen)
+![Made with TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
+
+</div>
+
+---
+
+## Why DayOtter
+
+Calendly is closed and cloud-only. **[Cal.com moved its core to a closed repo in April 2026](https://cal.com/blog/cal-diy-open-source-to-closed-source)** — citing AI — leaving only a stripped-down MIT fork with the commercial features removed. Motion and Reclaim were never open at all.
+
+DayOtter is the alternative that stays genuinely open: **AGPLv3, self-host the _whole_ product** — including every AI feature — for free, forever. Not a demo, not a stripped fork.
+
+And it's built around **Otter**, a confirm-first AI executive assistant that actually does the scheduling work, not just shares a link:
+
+- Talk to it — in the app, by voice, or over **WhatsApp / SMS**.
+- It **protects your focus time**, warns your next meeting when you're **running late**, and proactively **notices things worth doing**.
+- It **learns your patterns** over time.
+- It **never touches your calendar without your OK.**
+
+## Features
+
+**Scheduling** · unlimited event types & booking pages · Google / Microsoft 365 / Apple (CalDAV) / ICS calendar sync · availability engine with buffers, notice, timezones · recurring meetings · group polls · accept payments (Stripe) · prepaid session packages
+
+**Teams** · weighted round-robin & collective booking · routing forms · shared availability · per-seat billing
+
+**Otter (AI)** · natural-language command bar · voice input (mobile) · **inbound WhatsApp/SMS** · **AI voice receptionist** (24/7 phone line) · focus auto-scheduling · running-late overflow alerts · **proactive suggestions** · **long-term memory** · post-meeting recap. See [`docs/AI.md`](./docs/AI.md).
+
+**Insight** · booking analytics + "where your time goes" time-allocation · CSV export
+
+**Platform** · multi-channel reminders (email, Slack, WhatsApp, SMS, push) · automations & workflows · API keys & webhooks · mobile app (Expo, iOS + Android)
+
+## Open-core
+
+DayOtter is **open-core**, the way Cal.com _used to be_:
+
+- **Everything outside `ee/` is AGPLv3** — the whole product, including all of Otter's AI. Self-host it and pay nothing.
+- **`ee/` is a small, separately-licensed commercial layer** for *cloud-only infrastructure* — Managed AI (no key to configure), SSO, white-label, hosted messaging. It's inert unless `DAYOTTER_CLOUD=1`. See [`apps/web/lib/ee/LICENSE.md`](./apps/web/lib/ee/LICENSE.md) and [`docs/ENTERPRISE.md`](./docs/ENTERPRISE.md).
+
+You do **not** need `ee/` to run the full product.
 
 ## Monorepo layout
 
 ```
 apps/
-  web       Next.js — dashboard, public booking pages, REST API
-  worker    Node — BullMQ workers: reminders + calendar sync
+  web       Next.js 15 — dashboard, public booking pages, REST API, Otter
+  worker    Node + BullMQ — reminders, calendar sync, briefings, scribe
+  mobile    Expo (React Native) — iOS + Android
 packages/
-  core          availability engine, round-robin, token crypto (pure, unit-tested)
-  calendar      provider adapters: Google, Microsoft, Apple (CalDAV) behind one interface
+  core          availability engine, round-robin, crypto (pure, unit-tested)
   db            Drizzle schema + Postgres client
-  notifications multi-channel delivery: Slack, WhatsApp/SMS (Twilio), mobile push (Expo)
+  jobs          BullMQ queue contracts (shared producer/consumer)
+  calendar      Google / Microsoft / Apple adapters behind one interface
+  integrations  provider OAuth + sync
+  notifications multi-channel delivery (Slack, Twilio, Expo/web push)
+  emails        transactional email (Resend / SMTP)
+  auth          Better Auth config (email, Google, phone/OTP)
 ```
 
-## Stack
-
-TypeScript everywhere · Next.js 15 · Postgres + Drizzle · Redis + BullMQ ·
-Luxon (timezones) · googleapis / Microsoft Graph / tsdav (CalDAV).
+Full breakdown: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ## Quick start (development)
 
 ```bash
-# 1. Datastores
-docker compose up -d          # Postgres + Redis
+# 1. Datastores (Postgres + Redis)
+docker compose up -d
 
-# 2. Config
-cp .env.example .env          # fill in OAuth creds + generate secrets
-
-# 3. Install & migrate
-pnpm install
-pnpm db:push                  # create schema
-
-# 4. Run
-pnpm dev                      # web (:3000) + worker
-```
-
-Generate secrets:
-
-```bash
-openssl rand -base64 32       # AUTH_SECRET
-openssl rand -hex 32          # ENCRYPTION_KEY (32-byte token-encryption key)
-```
-
-## Deploy to production (one-click)
-
-Want it live on your own server with HTTPS, not just localhost? The [`deploy/`](deploy/)
-directory has a production stack (web + worker + Postgres + Redis + Caddy for
-automatic TLS, with DB migrations applied on boot):
-
-- **AWS, one click** — a CloudFormation *Launch Stack* button spins up an EC2
-  instance that boots the whole thing. See [deploy/README.md](deploy/README.md).
-- **Any Ubuntu box, one command:**
-  ```bash
-  curl -fsSL https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/install.sh \
-    | sudo DAYOTTER_DOMAIN=cal.example.com bash
-  ```
-
-The installer creates strong secrets on first run and brings everything up.
-Full guide, day-two ops, and backups: **[deploy/README.md](deploy/README.md)**.
-
-## Self-hosting (Docker, from a checkout)
-
-The full stack — web, worker, Postgres, and Redis — runs from one compose file.
-The `app` profile builds the web + worker images; without it you get just the
-datastores (the dev workflow above).
-
-```bash
-# 1. Configure — fill in secrets, OAuth creds, and any optional providers
+# 2. Config — fill in OAuth creds + generate secrets
 cp .env.example .env
 
-# 2. Create the schema on first run (fresh database)
-docker compose up -d postgres redis
-docker compose --profile app run --rm worker pnpm --filter @dayotter/db migrate
+# 3. Install & create the schema
+pnpm install
+pnpm db:push
 
-# 3. Build + start everything
-docker compose --profile app up -d --build
+# 4. Run web (:3000) + worker
+pnpm dev
 ```
 
-The web app is served on `http://localhost:3000`. Optional integrations are
-env-gated and no-op until configured:
+**Stack:** TypeScript · Next.js 15 · Postgres + Drizzle · Redis + BullMQ · Luxon · Anthropic (Otter) · Better Auth · Stripe · Twilio.
 
-| Feature | Env vars |
-| --- | --- |
-| AI scheduling / drafts | `ANTHROPIC_API_KEY` |
-| WhatsApp + SMS reminders | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM`, `TWILIO_SMS_FROM` |
-| Slack + mobile push reminders | none — the destination travels with each channel's config |
-| Analytics | `NEXT_PUBLIC_MIXPANEL_TOKEN`, `NEXT_PUBLIC_GA_ID` |
-| Bot/abuse protection | `TURNSTILE_SECRET`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` |
+## Self-hosting (production)
 
-## Testing
+Docker Compose brings up Postgres, Redis, migrations, web, worker, and a reverse proxy. See [`deploy/README.md`](./deploy/README.md) and [`docs/SELF_HOSTING.md`](./docs/SELF_HOSTING.md). Redeploys always run migrations via [`deploy/deploy.sh`](./deploy/deploy.sh).
 
-```bash
-pnpm test                     # runs the core availability + crypto test suites
-```
+## Contributing
 
-## Status
+We'd love your help — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for setup, conventions, and the PR flow, and [`docs/ROADMAP.md`](./docs/ROADMAP.md) for where we're headed. Good first issues are labelled on the tracker. By contributing, you agree your changes are licensed under AGPLv3 (or the EE license for `ee/`).
 
-Early foundation. Working today: monorepo, full data model, the availability
-engine (unit-tested), provider adapters, background workers (reminders + sync),
-and the availability REST endpoint. See [docs/FEATURES.md](docs/FEATURES.md) for
-the full roadmap and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how it fits
-together.
+- [Report a bug or request a feature](../../issues/new/choose)
+- [Security policy](./SECURITY.md) · [Code of conduct](./CODE_OF_CONDUCT.md)
+
+## License
+
+- **Core:** [GNU AGPLv3](./LICENSE) — free to use, self-host, modify, and share.
+- **`ee/`:** [DayOtter Enterprise Edition License](./apps/web/lib/ee/LICENSE.md) — commercial, cloud-only.
+
+© DayOtter. "Otter" and "DayOtter" are trademarks; the AGPL covers the code, not the brand.

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Open-source team scheduling & calendar platform",
-  "license": "Apache-2.0",
+  "license": "AGPL-3.0-only",
   "packageManager": "pnpm@10.24.0",
   "engines": {
     "node": ">=20"

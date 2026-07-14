@@ -148,7 +148,7 @@ const HOME_FAQ = [
   },
   {
     q: "Can I self-host it?",
-    a: "The core is open-source, Apache-2.0 licensed, and ships with Docker. Run it on your own servers with every Pro feature unlocked, or let us host it for you.",
+    a: "The core is open-source, AGPLv3-licensed, and ships with Docker. Run it on your own servers with every Pro feature unlocked, or let us host it for you.",
   },
 ];
 
@@ -165,10 +165,7 @@ export function FAQ() {
       <Reveal className="mt-12">
         <div className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
           {HOME_FAQ.map((item) => (
-            <details
-              key={item.q}
-              className="group py-5 [&_summary::-webkit-details-marker]:hidden"
-            >
+            <details key={item.q} className="group py-5 [&_summary::-webkit-details-marker]:hidden">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
                 {item.q}
                 <Plus
@@ -280,7 +277,7 @@ export function Footer() {
       <div className="border-t border-[var(--color-border)]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-6 text-xs text-[var(--color-faint)] sm:flex-row">
           <span>
-            © {BRAND.copyrightYear} {BRAND.name} · Apache-2.0
+            © {BRAND.copyrightYear} {BRAND.name} · AGPLv3
           </span>
           <span>Made for people who value their time.</span>
         </div>

@@ -13,7 +13,7 @@ export default function SelfHostingPage() {
       <MarketingHeader
         eyebrow="Open source"
         title="Self-host DayOtter"
-        subtitle="Your data, your servers, every feature unlocked — free forever under Apache-2.0."
+        subtitle="Your data, your servers, every feature unlocked — free forever under AGPLv3."
       />
       <Prose>
         <p>
