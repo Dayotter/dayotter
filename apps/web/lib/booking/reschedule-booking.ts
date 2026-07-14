@@ -1,6 +1,7 @@
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { bookingRescheduled, sendEmail } from "@dayotter/emails";
+import { enqueueCrmSync } from "@dayotter/jobs";
 import { reserveRuleBlocks } from "../automation/apply-rules";
 import { updateBookingCalendarEvent } from "../calendar/host-calendar";
 import { emitWebhook } from "../webhooks/emit";
@@ -135,6 +136,7 @@ export async function rescheduleBooking(uid: string, newStartISO: string): Promi
       startsAt: newStart.toISOString(),
       endsAt: newEnd.toISOString(),
     });
+    await enqueueCrmSync({ bookingId: booking.id, action: "rescheduled" }).catch(() => {});
   }
 
   // Notify.

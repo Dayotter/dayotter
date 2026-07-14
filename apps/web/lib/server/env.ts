@@ -26,6 +26,12 @@ const schema = z.object({
   ZOOM_CLIENT_ID: z.string().default(""),
   ZOOM_CLIENT_SECRET: z.string().default(""),
 
+  // CRM sync (Salesforce / HubSpot) - inert until both id + secret are set.
+  SALESFORCE_CLIENT_ID: z.string().default(""),
+  SALESFORCE_CLIENT_SECRET: z.string().default(""),
+  HUBSPOT_CLIENT_ID: z.string().default(""),
+  HUBSPOT_CLIENT_SECRET: z.string().default(""),
+
   RESEND_API_KEY: z.string().optional(),
   SMTP_URL: z.string().optional(),
   EMAIL_FROM: z.string().default("DayOtter <no-reply@example.com>"),

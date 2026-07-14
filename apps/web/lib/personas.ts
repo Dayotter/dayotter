@@ -344,7 +344,7 @@ export const PERSONAS: Persona[] = [
       },
       {
         q: "Does it connect to our CRM?",
-        a: "You can push every booking to your stack today via webhooks and our API. Native Salesforce and HubSpot sync is on our roadmap.",
+        a: "Yes - native Salesforce and HubSpot sync logs every booking as a contact + activity (currently in beta), and you can also push bookings to the rest of your stack via webhooks and our API.",
       },
     ],
   },

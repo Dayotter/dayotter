@@ -2,6 +2,9 @@
 export interface TimeDataset {
   tz: string;
   windowDays: number;
+  /** The host's own email domain (e.g. "acme.com"), for external/internal splits.
+   * Null when the host has no email or a non-standard address. */
+  hostDomain: string | null;
   bookings: {
     start: Date;
     end: Date;

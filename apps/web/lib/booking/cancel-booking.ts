@@ -1,6 +1,7 @@
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { bookingCancellation, sendEmail } from "@dayotter/emails";
+import { enqueueCrmSync } from "@dayotter/jobs";
 import { deleteBookingFromCalendar } from "../calendar/host-calendar";
 import { paymentsEnabled, refundPayment } from "../payments/stripe";
 import { emitWebhook } from "../webhooks/emit";
@@ -87,6 +88,7 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
       endsAt: booking.endsAt.toISOString(),
       reason: reason ?? null,
     });
+    await enqueueCrmSync({ bookingId: booking.id, action: "cancelled" }).catch(() => {});
   }
 
   // Notify attendees.

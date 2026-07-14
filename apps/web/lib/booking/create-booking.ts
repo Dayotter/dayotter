@@ -3,6 +3,7 @@ import { consumeCredit } from "@/lib/packages/credits";
 import { logger, roundRobinPick, safeEqual, sha256hex } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
 import { bookingConfirmation, sendEmail } from "@dayotter/emails";
+import { enqueueCrmSync } from "@dayotter/jobs";
 import { DateTime } from "luxon";
 import { applyBookingRules } from "../automation/apply-rules";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
@@ -343,6 +344,9 @@ export async function createBooking(
     status: booking.status,
     attendee: { name: input.attendee.name, email: input.attendee.email },
   });
+
+  // Push to the host's connected CRMs (Salesforce / HubSpot), best-effort.
+  await enqueueCrmSync({ bookingId: booking.id, action: "created" }).catch(() => {});
 
   // Zoom event types: auto-create a real Zoom meeting when the host has Zoom
   // connected (falls back to any manual link otherwise). Best-effort.

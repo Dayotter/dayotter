@@ -11,6 +11,9 @@ import {
 import { decryptJson, encryptJson } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 
+export * from "./crm/types";
+export * from "./crm/sync";
+
 type ConnectionRow = typeof schema.calendarConnections.$inferSelect;
 
 function oauthConfig(provider: "google" | "microsoft"): ProviderOAuthConfig {
