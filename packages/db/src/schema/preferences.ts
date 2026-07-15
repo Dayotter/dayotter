@@ -50,6 +50,8 @@ export const userPreferences = pgTable(
      * recap + next-step nudges. */
     scribeEnabled: boolean("scribe_enabled").notNull().default(false),
 
+    /** Show the AI "find me a time" helper on this host's public booking page. */
+    bookingPageAssistant: boolean("booking_page_assistant").notNull().default(true),
     /** Adaptive availability: hide remaining slots on days already at the cap. */
     adaptiveAvailability: boolean("adaptive_availability").notNull().default(false),
     /** Max meetings/day before adaptive availability stops offering slots that day. */

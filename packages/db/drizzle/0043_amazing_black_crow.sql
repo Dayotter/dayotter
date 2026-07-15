@@ -1,0 +1,1 @@
+ALTER TABLE "user_preferences" ADD COLUMN "booking_page_assistant" boolean DEFAULT true NOT NULL;

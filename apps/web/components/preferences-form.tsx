@@ -67,6 +67,7 @@ export function PreferencesForm({
     lunchEnabled?: boolean;
     lunchStartMinute?: number;
     lunchEndMinute?: number;
+    bookingPageAssistant?: boolean;
   };
 }) {
   const [timeFormat, setTimeFormat] = useState(initial.timeFormat);
@@ -84,6 +85,7 @@ export function PreferencesForm({
   const [lunchOn, setLunchOn] = useState(initial.lunchEnabled ?? false);
   const [lunchStart, setLunchStart] = useState(initial.lunchStartMinute ?? 720);
   const [lunchEnd, setLunchEnd] = useState(initial.lunchEndMinute ?? 780);
+  const [bookingAssistant, setBookingAssistant] = useState(initial.bookingPageAssistant ?? true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,6 +134,7 @@ export function PreferencesForm({
         lunchEnabled: lunchOn,
         lunchStartMinute: lunchStart,
         lunchEndMinute: lunchEnd,
+        bookingPageAssistant: bookingAssistant,
       }),
     });
     setSaving(false);
@@ -275,6 +278,27 @@ export function PreferencesForm({
                 />
               </div>
             ) : null}
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+              <input
+                type="checkbox"
+                checked={bookingAssistant}
+                onChange={(e) => {
+                  setBookingAssistant(e.target.checked);
+                  setSaved(false);
+                }}
+                className="mt-0.5 accent-[var(--color-accent)]"
+              />
+              <span>
+                Booking-page AI helper
+                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                  Show visitors a floating "find me a time" assistant on your public booking page -
+                  it suggests open slots from natural language. Turn off to hide it.
+                </span>
+              </span>
+            </label>
           </div>
 
           <div className="border-t border-[var(--color-border)] pt-4">

@@ -28,6 +28,7 @@ export const GET = withUser(async (u) => {
       lunchEnabled: prefs?.lunchEnabled ?? false,
       lunchStartMinute: prefs?.lunchStartMinute ?? 720,
       lunchEndMinute: prefs?.lunchEndMinute ?? 780,
+      bookingPageAssistant: prefs?.bookingPageAssistant ?? true,
     },
   });
 });
@@ -48,6 +49,7 @@ const bodySchema = z.object({
   lunchEnabled: z.boolean().default(false),
   lunchStartMinute: z.number().int().min(0).max(1439).default(720),
   lunchEndMinute: z.number().int().min(1).max(1440).default(780),
+  bookingPageAssistant: z.boolean().default(true),
 });
 
 export const PATCH = withUser(async (u, request) => {
@@ -76,6 +78,7 @@ export const PATCH = withUser(async (u, request) => {
     lunchEnabled,
     lunchStartMinute: d.lunchStartMinute,
     lunchEndMinute: d.lunchEndMinute,
+    bookingPageAssistant: d.bookingPageAssistant,
   };
 
   await getDb()
