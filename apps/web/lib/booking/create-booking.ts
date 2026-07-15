@@ -488,18 +488,24 @@ export async function createBooking(
     await db.update(schema.bookings).set({ meetingUrl }).where(eq(schema.bookings.id, booking.id));
   }
 
+  // Host opt-ins (computed once; reused for the recurring occurrences below).
+  const [wantsOverflow, wantsScribe] = await Promise.all([
+    hostWantsOverflowNotice(host.id),
+    hostWantsScribe(host.id),
+  ]);
+
   // Schedule reminders at the host's preferred lead times.
   await scheduleBookingReminders(booking.id, start, await reminderOffsetsForHost(host.id));
 
   // Proactive overflow: if the host opted in, schedule an end-of-meeting check
   // that auto-notifies a back-to-back next meeting when this one runs over.
-  if (await hostWantsOverflowNotice(host.id)) {
+  if (wantsOverflow) {
     await scheduleOverflowCheck(booking.id, end);
   }
 
   // Post-meeting recap ("Scribe"): if the host opted in, nudge them just after
   // the meeting ends to capture notes and line up the next step.
-  if (await hostWantsScribe(host.id)) {
+  if (wantsScribe) {
     await scheduleScribe(booking.id, end);
   }
 
@@ -643,6 +649,58 @@ export async function createBooking(
             externalEventId: written.externalEventId,
           });
         }
+
+        // Parity with the primary booking: each occurrence must also fan out to
+        // webhooks/CRM/plugins and get workflows, overflow, scribe, and travel/
+        // rule blocks - otherwise downstream systems only ever see meeting #1.
+        const occStartISO = occStart.toISOString();
+        const occEndISO = occEnd.toISOString();
+        await fanOutBookingLifecycle(
+          "created",
+          {
+            bookingId: occ.id,
+            uid: occ.uid,
+            hostId: host.id,
+            eventTypeId: eventType.id,
+            title: eventType.title,
+            startsAt: occStartISO,
+            endsAt: occEndISO,
+            attendees: [{ name: input.attendee.name, email: input.attendee.email }],
+          },
+          {
+            uid: occ.uid,
+            eventTypeId: eventType.id,
+            title: eventType.title,
+            startsAt: occStartISO,
+            endsAt: occEndISO,
+            status: occ.status,
+            attendee: { name: input.attendee.name, email: input.attendee.email },
+          },
+        ).catch(() => {});
+        await scheduleWorkflowMessages(
+          occ.id,
+          eventType.organizationId,
+          eventType.id,
+          occStart,
+          occEnd,
+        ).catch(() => {});
+        if (wantsOverflow) await scheduleOverflowCheck(occ.id, occEnd).catch(() => {});
+        if (wantsScribe) await scheduleScribe(occ.id, occEnd).catch(() => {});
+        await applyBookingRules({
+          bookingId: occ.id,
+          hostId: host.id,
+          title: eventType.title,
+          startsAt: occStart,
+          endsAt: occEnd,
+        }).catch(() => {});
+        await reserveTravelBlocks({
+          hostId: host.id,
+          bookingId: occ.id,
+          location: eventType.location,
+          startsAt: occStart,
+          endsAt: occEnd,
+          place: eventType.locationDetail,
+        }).catch(() => {});
       } catch (err) {
         logger.error("recurring occurrence skipped", {
           event: "recurrence_skipped",

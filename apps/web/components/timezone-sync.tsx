@@ -20,6 +20,17 @@ export function TimezoneSync() {
       return;
     }
     if (!tz || tz === "UTC") return;
+
+    // Only POST once per detected zone - the server short-circuits an already-set
+    // zone anyway, so hitting it on every page load is wasted. Re-syncs if the
+    // browser's zone later changes (e.g. the user travels).
+    const KEY = "dayotter:tzsynced";
+    try {
+      if (localStorage.getItem(KEY) === tz) return;
+    } catch {
+      /* storage blocked (private mode) - fall through and just POST. */
+    }
+
     fetch("/api/me/timezone", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -27,6 +38,11 @@ export function TimezoneSync() {
     })
       .then((r) => r.json())
       .then((d) => {
+        try {
+          localStorage.setItem(KEY, tz);
+        } catch {
+          /* ignore */
+        }
         if (d?.updated) router.refresh();
       })
       .catch(() => {});

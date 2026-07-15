@@ -10,7 +10,6 @@
  * runtime user setting - a self-hoster can never accidentally paywall themselves.
  */
 export const isCloud = process.env.DAYOTTER_CLOUD === "1";
-export const isSelfHosted = !isCloud;
 
 /** Monthly per-seat price shown in the UI (USD). Keep in sync with the Stripe price. */
 export const PRO_PRICE_USD = 9;
