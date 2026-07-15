@@ -2,8 +2,8 @@ import { MarketingHeader } from "@/components/marketing/page-shell";
 import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/json-ld";
 import { buttonVariants } from "@/components/ui/button";
 import { COMPARISONS, getComparison } from "@/lib/comparisons";
+import { makeSlugMetadata } from "@/lib/marketing-page";
 import { Check, Minus } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -11,22 +11,15 @@ export function generateStaticParams() {
   return COMPARISONS.map((c) => ({ slug: c.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const c = getComparison((await params).slug);
-  if (!c) return { title: "Compare - DayOtter" };
-  const path = `/vs/${c.slug}`;
-  const title = `${c.title} (2026) - how they compare`;
-  return {
-    title,
+export const generateMetadata = makeSlugMetadata(
+  getComparison,
+  (c) => ({
+    title: `${c.title} (2026) - how they compare`,
     description: c.subtitle,
-    alternates: { canonical: path },
-    openGraph: { title, description: c.subtitle, url: path },
-  };
-}
+    path: `/vs/${c.slug}`,
+  }),
+  "Compare - DayOtter",
+);
 
 const EDGE_STYLES = {
   us: "text-[var(--color-accent)]",

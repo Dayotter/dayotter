@@ -13,4 +13,11 @@ export {
 export { roundRobinPick } from "./round-robin";
 export { DEFAULT_REMINDER_OFFSETS } from "./constants";
 export { logger, type LogContext } from "./logger";
-export { assertPublicHttpUrl, isPrivateIp, resolvePublicIp, SsrfError } from "./ssrf";
+export {
+  assertPublicHttpUrl,
+  isPrivateIp,
+  resolvePublicIp,
+  safeFetch,
+  type SafeFetchInit,
+  SsrfError,
+} from "./ssrf";

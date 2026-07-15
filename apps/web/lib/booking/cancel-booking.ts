@@ -1,11 +1,9 @@
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { bookingCancellation, sendEmail } from "@dayotter/emails";
-import { enqueueCrmSync } from "@dayotter/jobs";
-import { runPluginBookingHooks } from "@dayotter/plugin-host";
 import { deleteBookingFromCalendar } from "../calendar/host-calendar";
 import { paymentsEnabled, refundPayment } from "../payments/stripe";
-import { emitWebhook } from "../webhooks/emit";
+import { fanOutBookingLifecycle } from "./lifecycle";
 import { clearBookingReminders } from "./reminders";
 
 /**
@@ -82,26 +80,30 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
   }
 
   if (booking.hostId) {
-    await emitWebhook(booking.hostId, "booking.cancelled", {
-      uid,
-      eventTypeId: booking.eventTypeId,
-      title: booking.title,
-      startsAt: booking.startsAt.toISOString(),
-      endsAt: booking.endsAt.toISOString(),
-      reason: reason ?? null,
-    });
-    await enqueueCrmSync({ bookingId: booking.id, action: "cancelled" }).catch(() => {});
-    await runPluginBookingHooks("cancelled", {
-      bookingId: booking.id,
-      uid,
-      hostId: booking.hostId,
-      eventTypeId: booking.eventTypeId,
-      title: booking.title,
-      startsAt: booking.startsAt.toISOString(),
-      endsAt: booking.endsAt.toISOString(),
-      attendees: booking.attendees.map((a) => ({ name: a.name, email: a.email })),
-      reason: reason ?? null,
-    });
+    const startsAt = booking.startsAt.toISOString();
+    const endsAt = booking.endsAt.toISOString();
+    await fanOutBookingLifecycle(
+      "cancelled",
+      {
+        bookingId: booking.id,
+        uid,
+        hostId: booking.hostId,
+        eventTypeId: booking.eventTypeId,
+        title: booking.title,
+        startsAt,
+        endsAt,
+        attendees: booking.attendees.map((a) => ({ name: a.name, email: a.email })),
+        reason: reason ?? null,
+      },
+      {
+        uid,
+        eventTypeId: booking.eventTypeId,
+        title: booking.title,
+        startsAt,
+        endsAt,
+        reason: reason ?? null,
+      },
+    );
   }
 
   // Notify attendees.

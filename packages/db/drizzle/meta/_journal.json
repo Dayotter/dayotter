@@ -288,6 +288,13 @@
       "when": 1784102878545,
       "tag": "0040_loving_weapon_omega",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1784107901130,
+      "tag": "0041_rare_silver_sable",
+      "breakpoints": true
     }
   ]
 }

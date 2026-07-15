@@ -2,8 +2,8 @@ import { MarketingHeader } from "@/components/marketing/page-shell";
 import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/json-ld";
 import { buttonVariants } from "@/components/ui/button";
 import { FEATURES, getFeature } from "@/lib/features";
+import { makeSlugMetadata } from "@/lib/marketing-page";
 import { ArrowRight, Check } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -11,21 +11,11 @@ export function generateStaticParams() {
   return FEATURES.map((f) => ({ slug: f.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const f = getFeature((await params).slug);
-  if (!f) return { title: "Features" };
-  const path = `/features/${f.slug}`;
-  return {
-    title: f.title,
-    description: f.subtitle,
-    alternates: { canonical: path },
-    openGraph: { title: `${f.title} - DayOtter`, description: f.subtitle, url: path },
-  };
-}
+export const generateMetadata = makeSlugMetadata(
+  getFeature,
+  (f) => ({ title: f.title, description: f.subtitle, path: `/features/${f.slug}` }),
+  "Features",
+);
 
 export default async function FeaturePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
