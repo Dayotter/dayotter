@@ -3,6 +3,7 @@ import { primaryOrg } from "@/lib/billing/entitlements";
 import { seatCount } from "@/lib/billing/subscription";
 import { createSubscriptionCheckout, subscriptionsEnabled } from "@/lib/payments/stripe";
 import { jsonError, withUser } from "@/lib/server/http";
+import { logger } from "@dayotter/core";
 import { and, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
@@ -37,7 +38,16 @@ export const POST = withUser(async (u) => {
       cancelUrl: `${appUrl}/settings/billing`,
     });
     return NextResponse.json({ url });
-  } catch {
+  } catch (err) {
+    // Surface the real Stripe failure server-side - almost always a config issue
+    // (invalid STRIPE_PRICE_PRO, a non-recurring price, or a test/live key mix-up),
+    // which the bare 502 otherwise hides from the operator.
+    logger.error("stripe checkout failed", {
+      event: "billing_checkout_failed",
+      userId: u.id,
+      organizationId: org.id,
+      err,
+    });
     return jsonError("Couldn't start checkout. Please try again.", 502);
   }
 });

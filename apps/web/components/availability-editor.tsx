@@ -2,6 +2,7 @@
 import { FormError } from "@/components/ui/form";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/cn";
 import { Check, Copy, Plus, X } from "lucide-react";
@@ -179,158 +180,165 @@ export function AvailabilityEditor({
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-6 max-w-sm">
-        <label htmlFor="timezone" className="mb-1.5 block text-sm font-medium">
-          Timezone
-        </label>
-        <Select
-          id="timezone"
-          value={timezone}
-          onChange={(e) => {
-            setTimezone(e.target.value);
-            setSaved(false);
-          }}
-        >
-          {zones.map((z) => (
-            <option key={z} value={z}>
-              {z}
-            </option>
-          ))}
-        </Select>
-      </div>
-
-      <div className="mb-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h3 className="text-sm font-semibold">Weekly hours</h3>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-xs font-medium uppercase tracking-wide text-[var(--color-faint)]">
-            Quick set
-          </span>
-          {(
-            [
-              { key: "weekdays", label: "Weekdays 9–5" },
-              { key: "everyday", label: "Every day 9–5" },
-              { key: "clear", label: "Clear all" },
-            ] as const
-          ).map((p) => (
-            <button
-              key={p.key}
-              type="button"
-              onClick={() => applyPreset(p.key)}
-              className="rounded-full border border-[var(--color-border-strong)] px-3 py-1 text-xs font-medium text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+    <div className="space-y-6">
+      <Card>
+        <CardHeader title="Timezone" description="The zone your weekly hours are set in." />
+        <CardBody>
+          <div className="max-w-sm">
+            <label htmlFor="timezone" className="sr-only">
+              Timezone
+            </label>
+            <Select
+              id="timezone"
+              value={timezone}
+              onChange={(e) => {
+                setTimezone(e.target.value);
+                setSaved(false);
+              }}
             >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <p className="mb-3 text-sm text-[var(--color-muted)]">
-        The hours you're open for bookings each week. Toggle a day off to block it entirely.
-      </p>
+              {zones.map((z) => (
+                <option key={z} value={z}>
+                  {z}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </CardBody>
+      </Card>
 
-      <div className="divide-y divide-[var(--color-border)] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
-        {DAY_ORDER.map((dow) => {
-          const ranges = days[dow] ?? [];
-          const on = ranges.length > 0;
-          return (
-            <div
-              key={dow}
-              className={cn(
-                "flex flex-col gap-3 px-4 py-3 transition-colors sm:flex-row sm:items-center",
-                on ? "bg-[var(--color-surface)]" : "bg-[var(--color-surface-2)]/40",
-              )}
-            >
-              <div className="flex w-36 shrink-0 items-center gap-3 sm:self-start sm:pt-1.5">
-                <Toggle
-                  on={on}
-                  onClick={() => update(dow, on ? [] : [{ start: "09:00", end: "17:00" }])}
-                />
-                <span className={cn("text-sm font-medium", !on && "text-[var(--color-muted)]")}>
-                  {DAY_LABELS[dow]}
-                </span>
-              </div>
-
-              <div className="min-w-0 flex-1">
-                {!on ? (
-                  <span className="text-sm text-[var(--color-faint)] sm:leading-8">
-                    Unavailable
+      <Card>
+        <CardHeader
+          title="Weekly hours"
+          description="The hours you're open for bookings each week. Toggle a day off to block it entirely."
+          action={
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
+              <span className="mr-1 text-xs font-medium uppercase tracking-wide text-[var(--color-faint)]">
+                Quick set
+              </span>
+              {(
+                [
+                  { key: "weekdays", label: "Weekdays 9–5" },
+                  { key: "everyday", label: "Every day 9–5" },
+                  { key: "clear", label: "Clear all" },
+                ] as const
+              ).map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => applyPreset(p.key)}
+                  className="rounded-full border border-[var(--color-border-strong)] px-3 py-1 text-xs font-medium text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          }
+        />
+        <div className="divide-y divide-[var(--color-border)]">
+          {DAY_ORDER.map((dow) => {
+            const ranges = days[dow] ?? [];
+            const on = ranges.length > 0;
+            return (
+              <div
+                key={dow}
+                className={cn(
+                  "flex flex-col gap-3 px-4 py-3 transition-colors sm:flex-row sm:items-center",
+                  on ? "bg-[var(--color-surface)]" : "bg-[var(--color-surface-2)]/40",
+                )}
+              >
+                <div className="flex w-36 shrink-0 items-center gap-3 sm:self-start sm:pt-1.5">
+                  <Toggle
+                    on={on}
+                    onClick={() => update(dow, on ? [] : [{ start: "09:00", end: "17:00" }])}
+                  />
+                  <span className={cn("text-sm font-medium", !on && "text-[var(--color-muted)]")}>
+                    {DAY_LABELS[dow]}
                   </span>
-                ) : (
-                  <div className="space-y-2">
-                    {ranges.map((r, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <input
-                          type="time"
-                          step={900}
-                          value={r.start}
-                          onChange={(e) =>
-                            update(
-                              dow,
-                              ranges.map((x, j) => (j === i ? { ...x, start: e.target.value } : x)),
-                            )
-                          }
-                          className={timeInputClass}
-                        />
-                        <span className="text-[var(--color-muted)]">–</span>
-                        <input
-                          type="time"
-                          step={900}
-                          value={r.end}
-                          onChange={(e) =>
-                            update(
-                              dow,
-                              ranges.map((x, j) => (j === i ? { ...x, end: e.target.value } : x)),
-                            )
-                          }
-                          className={timeInputClass}
-                        />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  {!on ? (
+                    <span className="text-sm text-[var(--color-faint)] sm:leading-8">
+                      Unavailable
+                    </span>
+                  ) : (
+                    <div className="space-y-2">
+                      {ranges.map((r, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            step={900}
+                            value={r.start}
+                            onChange={(e) =>
+                              update(
+                                dow,
+                                ranges.map((x, j) =>
+                                  j === i ? { ...x, start: e.target.value } : x,
+                                ),
+                              )
+                            }
+                            className={timeInputClass}
+                          />
+                          <span className="text-[var(--color-muted)]">–</span>
+                          <input
+                            type="time"
+                            step={900}
+                            value={r.end}
+                            onChange={(e) =>
+                              update(
+                                dow,
+                                ranges.map((x, j) => (j === i ? { ...x, end: e.target.value } : x)),
+                              )
+                            }
+                            className={timeInputClass}
+                          />
+                          <button
+                            type="button"
+                            aria-label="Remove"
+                            onClick={() =>
+                              update(
+                                dow,
+                                ranges.filter((_, j) => j !== i),
+                              )
+                            }
+                            className="rounded-md p-1.5 text-[var(--color-faint)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-danger)]"
+                          >
+                            <X size={15} />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                         <button
                           type="button"
-                          aria-label="Remove"
-                          onClick={() =>
-                            update(
-                              dow,
-                              ranges.filter((_, j) => j !== i),
-                            )
-                          }
-                          className="rounded-md p-1.5 text-[var(--color-faint)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-danger)]"
+                          onClick={() => update(dow, [...ranges, { start: "09:00", end: "17:00" }])}
+                          className="inline-flex items-center gap-1 text-sm text-[var(--color-accent)] hover:underline"
                         >
-                          <X size={15} />
+                          <Plus size={14} /> Add time
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => copyToAll(dow)}
+                          className="inline-flex items-center gap-1 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                        >
+                          <Copy size={13} /> Copy to all days
                         </button>
                       </div>
-                    ))}
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                      <button
-                        type="button"
-                        onClick={() => update(dow, [...ranges, { start: "09:00", end: "17:00" }])}
-                        className="inline-flex items-center gap-1 text-sm text-[var(--color-accent)] hover:underline"
-                      >
-                        <Plus size={14} /> Add time
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => copyToAll(dow)}
-                        className="inline-flex items-center gap-1 text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
-                      >
-                        <Copy size={13} /> Copy to all days
-                      </button>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </Card>
 
-      <div className="mt-8">
-        <h3 className="text-sm font-semibold">Date overrides</h3>
-        <p className="mt-0.5 mb-3 text-sm text-[var(--color-muted)]">
-          Block out holidays or set different hours for specific dates.
-        </p>
-
+      <Card>
+        <CardHeader
+          title="Date overrides"
+          description="Block out holidays or set different hours for specific dates."
+        />
         {overrides.length > 0 ? (
-          <div className="mb-3 divide-y divide-[var(--color-border)] rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+          <div className="divide-y divide-[var(--color-border)] border-b border-[var(--color-border)]">
             {overrides.map((o) => {
               const unavailable = o.start === null;
               return (
@@ -387,23 +395,25 @@ export function AvailabilityEditor({
           </div>
         ) : null}
 
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={newDate}
-            onChange={(e) => setNewDate(e.target.value)}
-            className={timeInputClass}
-          />
-          <button
-            type="button"
-            onClick={addOverride}
-            disabled={!newDate}
-            className="inline-flex items-center gap-1 text-sm text-[var(--color-accent)] hover:underline disabled:opacity-50"
-          >
-            <Plus size={14} /> Add override
-          </button>
-        </div>
-      </div>
+        <CardBody>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+              className={timeInputClass}
+            />
+            <button
+              type="button"
+              onClick={addOverride}
+              disabled={!newDate}
+              className="inline-flex items-center gap-1 text-sm text-[var(--color-accent)] hover:underline disabled:opacity-50"
+            >
+              <Plus size={14} /> Add override
+            </button>
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Sticky action bar - Save stays reachable no matter how far you scroll
           through the hours + overrides, instead of stranding at the bottom. */}
