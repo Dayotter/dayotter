@@ -2,6 +2,7 @@
 
 import { AvailabilityEditor } from "@/components/availability-editor";
 import { Button } from "@/components/ui/button";
+import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { FormError } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -168,86 +169,86 @@ export function SchedulesManager({
         </div>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-        <aside className="space-y-2">
-          <ul className="space-y-1">
-            {schedules.map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  onClick={() => select(s.id)}
-                  className={cn(
-                    "flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors",
-                    s.id === selectedId
-                      ? "border-[var(--color-accent)] bg-[var(--color-surface-2)]"
-                      : "border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-2)]",
-                  )}
-                >
-                  <span className="min-w-0 flex-1 truncate font-medium">{s.name}</span>
-                  {s.isDefault ? (
-                    <span
-                      title="Default schedule"
-                      className="inline-flex items-center gap-1 text-[11px] text-[var(--color-accent)]"
-                    >
-                      <Star size={11} fill="currentColor" /> Default
-                    </span>
-                  ) : null}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={openCreate}
-            disabled={busy}
-          >
-            <Plus size={14} /> New schedule
-          </Button>
-        </aside>
-
-        <div>
-          {selected ? (
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              <h2 className="mr-auto text-lg font-semibold">{selected.name}</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => openRename(selected.id, selected.name)}
-              >
-                Rename
-              </Button>
-              {!selected.isDefault ? (
-                <>
-                  <Button variant="ghost" size="sm" onClick={() => makeDefault(selected.id)}>
-                    <Star size={14} /> Make default
+      {loading || !detail ? (
+        <div className="py-6">
+          <SkeletonRows rows={6} />
+        </div>
+      ) : (
+        <AvailabilityEditor
+          key={selectedId}
+          scheduleId={selectedId}
+          initial={detail}
+          sidebar={
+            <Card>
+              <CardHeader
+                title="Schedules"
+                action={
+                  <Button variant="ghost" size="sm" onClick={openCreate} disabled={busy}>
+                    <Plus size={14} /> New
                   </Button>
+                }
+              />
+              <div className="p-2">
+                <ul className="space-y-1">
+                  {schedules.map((s) => (
+                    <li key={s.id}>
+                      <button
+                        type="button"
+                        onClick={() => select(s.id)}
+                        className={cn(
+                          "flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors",
+                          s.id === selectedId
+                            ? "bg-[var(--color-accent-soft)] font-medium text-[var(--color-accent)]"
+                            : "text-[var(--color-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]",
+                        )}
+                      >
+                        <span className="min-w-0 flex-1 truncate">{s.name}</span>
+                        {s.isDefault ? (
+                          <span
+                            title="Default schedule"
+                            className="inline-flex shrink-0 items-center gap-1 text-[11px] text-[var(--color-accent)]"
+                          >
+                            <Star size={11} fill="currentColor" /> Default
+                          </span>
+                        ) : null}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {selected ? (
+                <CardBody className="flex flex-wrap gap-1.5 border-t border-[var(--color-border)]">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-[var(--color-danger)]"
-                    onClick={() => {
-                      setDeleteError(null);
-                      setPendingDelete({ id: selected.id, name: selected.name });
-                    }}
+                    onClick={() => openRename(selected.id, selected.name)}
                   >
-                    <Trash2 size={14} /> Delete
+                    Rename
                   </Button>
-                </>
+                  {!selected.isDefault ? (
+                    <>
+                      <Button variant="ghost" size="sm" onClick={() => makeDefault(selected.id)}>
+                        <Star size={14} /> Make default
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[var(--color-danger)]"
+                        onClick={() => {
+                          setDeleteError(null);
+                          setPendingDelete({ id: selected.id, name: selected.name });
+                        }}
+                      >
+                        <Trash2 size={14} /> Delete
+                      </Button>
+                    </>
+                  ) : null}
+                </CardBody>
               ) : null}
-            </div>
-          ) : null}
-
-          {loading || !detail ? (
-            <div className="py-6">
-              <SkeletonRows rows={5} />
-            </div>
-          ) : (
-            <AvailabilityEditor key={selectedId} scheduleId={selectedId} initial={detail} />
-          )}
-        </div>
-      </div>
+            </Card>
+          }
+        />
+      )}
 
       <Dialog
         open={promptOpen}

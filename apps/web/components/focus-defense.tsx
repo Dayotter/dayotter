@@ -59,7 +59,9 @@ export function FocusDefense() {
   // Nothing to show until loaded, and hide entirely when there are no gaps.
   if (!suggestions || suggestions.length === 0) return null;
 
-  const visible = suggestions.filter((s) => !protectedKeys.has(s.startISO));
+  // Cap the list - one suggestion per day quickly becomes a wall. Show the two
+  // nearest unprotected blocks; the rest resurface as you protect these.
+  const visible = suggestions.filter((s) => !protectedKeys.has(s.startISO)).slice(0, 2);
 
   return (
     <Card className="mb-6">
