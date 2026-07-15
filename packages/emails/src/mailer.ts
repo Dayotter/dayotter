@@ -52,8 +52,21 @@ async function sendViaResend(email: OutboundEmail, from: string, apiKey: string)
  *   3. neither         → warn loudly and drop (so a missing config surfaces in
  *      logs instead of silently swallowing every confirmation/reminder).
  */
+let warnedExampleFrom = false;
+
 export async function sendEmail(email: OutboundEmail): Promise<void> {
   const from = process.env.EMAIL_FROM ?? "DayOtter <no-reply@example.com>";
+
+  // The placeholder example.com sender is unverified everywhere, so EVERY email
+  // (booking confirmations, reminders) will be rejected (Resend 550). Warn once so
+  // this doesn't look like a code bug - the operator must set EMAIL_FROM to an
+  // address on a domain they've verified with their provider.
+  if (!warnedExampleFrom && from.includes("example.com")) {
+    warnedExampleFrom = true;
+    console.warn(
+      "[emails] EMAIL_FROM is unset/example.com - every email will be REJECTED as unverified. Set EMAIL_FROM to an address on a domain verified with your provider (e.g. Resend).",
+    );
+  }
 
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
