@@ -34,7 +34,7 @@ export const POST = withUser(async (u) => {
       quantity: await seatCount(org.id),
       customerId: org.stripeCustomerId,
       customerEmail: u.email,
-      successUrl: `${appUrl}/settings/billing?upgraded=1`,
+      successUrl: `${appUrl}/settings/billing?upgraded=1&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${appUrl}/settings/billing`,
     });
     return NextResponse.json({ url });

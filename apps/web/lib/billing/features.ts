@@ -31,7 +31,10 @@ export type Feature =
   | "hosted_messaging"; // SMS/WhatsApp via DayOtter's Twilio credits
 
 export const FEATURE_TIER: Record<Feature, FeatureTier> = {
-  ai: "pro",
+  // Otter (AI scheduling + NL command + the assistant chat) is a core USP - free
+  // for everyone, on cloud too. Cloud simply uses DayOtter's managed key (see
+  // managed_ai / lib/ee) so free users need no BYO key.
+  ai: "free",
   automation: "pro",
   workflows: "pro",
   analytics: "pro",

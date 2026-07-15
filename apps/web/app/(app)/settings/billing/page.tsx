@@ -5,8 +5,14 @@ import { getSession } from "@/lib/auth/session";
 import { PRO_PRICE_USD, isCloud } from "@/lib/billing/edition";
 import { getEntitlements, primaryOrg } from "@/lib/billing/entitlements";
 import { FEATURE_LABEL, FEATURE_TIER, type Feature } from "@/lib/billing/features";
-import { seatCount } from "@/lib/billing/subscription";
-import { paymentsEnabled, proPriceId, subscriptionsEnabled } from "@/lib/payments/stripe";
+import { seatCount, syncSubscriptionById } from "@/lib/billing/subscription";
+import {
+  paymentsEnabled,
+  proPriceId,
+  retrieveSession,
+  subscriptionsEnabled,
+} from "@/lib/payments/stripe";
+import { logger } from "@dayotter/core";
 import { Check, Heart } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +34,11 @@ function FeatureList() {
   );
 }
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string }>;
+}) {
   const session = await getSession();
   const userId = session!.user!.id;
 
@@ -52,6 +62,30 @@ export default async function BillingPage() {
         </Card>
       </div>
     );
+  }
+
+  // Just back from a successful checkout? Reconcile the subscription right now so
+  // the plan flips to Pro even when the Stripe webhook isn't reaching this deploy
+  // (the webhook stays the source of truth for later seat/cancel changes).
+  const sp = await searchParams;
+  if (sp.session_id) {
+    try {
+      const checkout = await retrieveSession(sp.session_id);
+      if (checkout.subscription) {
+        await syncSubscriptionById(
+          typeof checkout.subscription === "string"
+            ? checkout.subscription
+            : checkout.subscription.id,
+        );
+      }
+    } catch (err) {
+      logger.error("post-checkout reconcile failed", {
+        event: "billing_reconcile_failed",
+        userId,
+        sessionId: sp.session_id,
+        err,
+      });
+    }
   }
 
   const [ent, org] = await Promise.all([getEntitlements(userId), primaryOrg(userId)]);
