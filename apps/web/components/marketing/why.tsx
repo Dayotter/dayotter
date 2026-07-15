@@ -34,12 +34,9 @@ export function WhyOtter() {
 export function OtterBand() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-6">
-      {/* biome-ignore lint/a11y/useAltText: decorative banner */}
-      <img
-        src="/brand/illustrations/otter-banner.png"
-        alt=""
-        className="w-full rounded-[var(--radius-xl)] border border-[var(--color-border)] shadow-[var(--shadow-card)]"
-      />
+      <div className="overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-border)] shadow-[var(--shadow-card)]">
+        <img src="/brand/illustrations/otter-banner.png" alt="" className="block w-full" />
+      </div>
     </div>
   );
 }

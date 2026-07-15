@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
 export function SettingsNav() {
   const pathname = usePathname();
   return (
-    <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-[var(--color-border)] lg:mb-0 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:border-b-0 lg:pt-1">
+    <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-[var(--color-border)] lg:sticky lg:top-8 lg:mb-0 lg:max-h-[calc(100dvh-4rem)] lg:flex-col lg:gap-0.5 lg:self-start lg:overflow-visible lg:border-b-0 lg:pt-1">
       {SETTINGS_NAV.map(({ href, label }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
         return (

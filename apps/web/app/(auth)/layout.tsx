@@ -1,8 +1,10 @@
 import { BrandMark } from "@/components/brand-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getSession } from "@/lib/auth/session";
 import { BRAND } from "@/lib/marketing";
 import { CalendarCheck, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 const HIGHLIGHTS = [
@@ -11,7 +13,12 @@ const HIGHLIGHTS = [
   { icon: Sparkles, text: "AI, automations & analytics - confirm-first" },
 ];
 
-export default function AuthLayout({ children }: { children: ReactNode }) {
+export default async function AuthLayout({ children }: { children: ReactNode }) {
+  // Already signed in? Skip the auth screens entirely - otherwise a logged-in
+  // user clicking "Sign in" from the marketing site is asked to re-authenticate.
+  const session = await getSession();
+  if (session?.user) redirect("/dashboard");
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Brand panel - hidden on small screens. */}

@@ -25,16 +25,20 @@ async function loadDataset(
 ): Promise<TimeDataset> {
   const db = getDb();
   const now = new Date();
+  // A rolling window centred on now: recent history AND what's already booked
+  // ahead. A retrospective-only view reads as empty for anyone whose meetings
+  // are still upcoming, which is most people most of the time.
   const from = new Date(now.getTime() - windowDays * 86_400_000);
+  const to = new Date(now.getTime() + windowDays * 86_400_000);
 
   const [bookings, blocks] = await Promise.all([
     db.query.bookings.findMany({
       where: and(
         eq(schema.bookings.hostId, userId),
-        // Past meetings are auto-marked "completed"; a retrospective view needs both.
+        // Past meetings are auto-marked "completed"; upcoming ones are "confirmed".
         inArray(schema.bookings.status, ["confirmed", "completed"]),
         gte(schema.bookings.startsAt, from),
-        lt(schema.bookings.startsAt, now),
+        lt(schema.bookings.startsAt, to),
       ),
       columns: { startsAt: true, endsAt: true, title: true, recurrenceUid: true },
       with: {
@@ -47,7 +51,7 @@ async function loadDataset(
         eq(schema.timeBlocks.userId, userId),
         eq(schema.timeBlocks.kind, "focus"),
         gte(schema.timeBlocks.startsAt, from),
-        lt(schema.timeBlocks.startsAt, now),
+        lt(schema.timeBlocks.startsAt, to),
       ),
       columns: { startsAt: true, endsAt: true, source: true },
     }),
@@ -56,6 +60,7 @@ async function loadDataset(
   return {
     tz,
     windowDays,
+    spanDays: windowDays * 2,
     hostDomain,
     bookings: bookings.map((b) => ({
       start: b.startsAt,

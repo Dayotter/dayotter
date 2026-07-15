@@ -19,7 +19,7 @@ export default function StatusPage() {
   return (
     <>
       <MarketingHeader eyebrow="Status" title="System status" />
-      <section className="mx-auto max-w-2xl px-6 py-16">
+      <section className="mx-auto max-w-3xl px-6 py-16">
         <div className="mb-6 flex items-center gap-2 rounded-[var(--radius-lg)] border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-4 py-3">
           <CheckCircle2 size={18} className="text-[var(--color-success)]" />
           <span className="font-medium text-[var(--color-success)]">All systems operational</span>

@@ -17,7 +17,7 @@ export default function BlogPage() {
         title="Notes on time"
         subtitle="Thoughts on calendars, focus, and getting your time back."
       />
-      <section className="mx-auto max-w-2xl px-6 py-16">
+      <section className="mx-auto max-w-3xl px-6 py-16">
         <div className="space-y-2">
           {posts.map((p) => (
             <Link

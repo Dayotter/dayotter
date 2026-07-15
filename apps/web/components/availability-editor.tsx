@@ -50,16 +50,18 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
       aria-checked={on}
       onClick={onClick}
       className={cn(
-        "relative h-6 w-10 shrink-0 rounded-full transition-colors",
+        // Border in BOTH states + inline-flex/items-center so the knob stays
+        // vertically centred and the track never shifts size when toggled.
+        "inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border px-0.5 transition-colors",
         on
-          ? "bg-[var(--color-accent)]"
-          : "border border-[var(--color-border-strong)] bg-[var(--color-surface-2)]",
+          ? "border-[var(--color-accent)] bg-[var(--color-accent)]"
+          : "border-[var(--color-border-strong)] bg-[var(--color-surface-2)]",
       )}
     >
       <span
         className={cn(
-          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
-          on ? "translate-x-[18px]" : "translate-x-0.5",
+          "h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
+          on ? "translate-x-[18px]" : "translate-x-0",
         )}
       />
     </button>
@@ -198,33 +200,47 @@ export function AvailabilityEditor({
         </Select>
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-sm text-[var(--color-muted)]">Quick set</span>
-        {(
-          [
-            { key: "weekdays", label: "Weekdays 9–5" },
-            { key: "everyday", label: "Every day 9–5" },
-            { key: "clear", label: "Clear all" },
-          ] as const
-        ).map((p) => (
-          <button
-            key={p.key}
-            type="button"
-            onClick={() => applyPreset(p.key)}
-            className="rounded-full border border-[var(--color-border-strong)] px-3 py-1 text-sm text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-          >
-            {p.label}
-          </button>
-        ))}
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <h3 className="text-sm font-semibold">Weekly hours</h3>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-xs font-medium uppercase tracking-wide text-[var(--color-faint)]">
+            Quick set
+          </span>
+          {(
+            [
+              { key: "weekdays", label: "Weekdays 9–5" },
+              { key: "everyday", label: "Every day 9–5" },
+              { key: "clear", label: "Clear all" },
+            ] as const
+          ).map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => applyPreset(p.key)}
+              className="rounded-full border border-[var(--color-border-strong)] px-3 py-1 text-xs font-medium text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
+      <p className="mb-3 text-sm text-[var(--color-muted)]">
+        The hours you're open for bookings each week. Toggle a day off to block it entirely.
+      </p>
 
-      <div className="divide-y divide-[var(--color-border)] rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
+      <div className="divide-y divide-[var(--color-border)] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]">
         {DAY_ORDER.map((dow) => {
           const ranges = days[dow] ?? [];
           const on = ranges.length > 0;
           return (
-            <div key={dow} className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-start">
-              <div className="flex w-40 shrink-0 items-center gap-3">
+            <div
+              key={dow}
+              className={cn(
+                "flex flex-col gap-3 px-4 py-3 transition-colors sm:flex-row sm:items-center",
+                on ? "bg-[var(--color-surface)]" : "bg-[var(--color-surface-2)]/40",
+              )}
+            >
+              <div className="flex w-36 shrink-0 items-center gap-3 sm:self-start sm:pt-1.5">
                 <Toggle
                   on={on}
                   onClick={() => update(dow, on ? [] : [{ start: "09:00", end: "17:00" }])}
@@ -234,9 +250,11 @@ export function AvailabilityEditor({
                 </span>
               </div>
 
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 {!on ? (
-                  <span className="text-sm text-[var(--color-faint)]">Unavailable</span>
+                  <span className="text-sm text-[var(--color-faint)] sm:leading-8">
+                    Unavailable
+                  </span>
                 ) : (
                   <div className="space-y-2">
                     {ranges.map((r, i) => (

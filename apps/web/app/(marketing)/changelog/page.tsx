@@ -55,7 +55,7 @@ export default function ChangelogPage() {
         title="What's new"
         subtitle="We ship fast. Here's the recent work."
       />
-      <section className="mx-auto max-w-2xl px-6 py-16">
+      <section className="mx-auto max-w-3xl px-6 py-16">
         <ol className="relative space-y-10 border-l border-[var(--color-border)] pl-6">
           {ENTRIES.map((e) => (
             <li key={e.title} className="relative">

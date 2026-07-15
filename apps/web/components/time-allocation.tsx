@@ -81,7 +81,10 @@ export function TimeAllocation() {
 
   return (
     <Card className="mb-6">
-      <CardHeader title="Where your time goes" description={`Your last ${data.windowDays} days.`} />
+      <CardHeader
+        title="Where your time goes"
+        description={`Your last & next ${data.windowDays} days.`}
+      />
       <CardBody className="space-y-6">
         {stats.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
