@@ -177,6 +177,13 @@ export async function createBooking(
 
   const { host, coHostEmails } = await resolveHost(eventType, start, hostIds, perHost);
 
+  // Focus protection: when the host caps their daily meetings, we hard-decline a
+  // booking that would push the day over the limit (see the guard in the tx below).
+  const focusPrefs = await db.query.userPreferences.findFirst({
+    where: eq(schema.userPreferences.userId, host.id),
+    columns: { adaptiveAvailability: true, maxMeetingsPerDay: true },
+  });
+
   const uid = randomUUID();
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
   const guests = [
@@ -217,6 +224,34 @@ export async function createBooking(
           );
         if (count >= eventType.dailyBookingLimit) {
           throw new BookingError("This day is fully booked. Please pick another day.", 409);
+        }
+      }
+
+      // Focus protection (host-wide cap across all event types). Backstops the
+      // availability-level slot hiding for group events / direct API / races, so
+      // an overloaded day can't be pushed past the host's daily meeting limit.
+      if (!isGroup && focusPrefs?.adaptiveAvailability) {
+        const cap = focusPrefs.maxMeetingsPerDay ?? 5;
+        const zone = host.timezone || "UTC";
+        const day = DateTime.fromJSDate(start).setZone(zone);
+        const dayStart = day.startOf("day").toJSDate();
+        const nextDay = day.startOf("day").plus({ days: 1 }).toJSDate();
+        const [{ count } = { count: 0 }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.bookings)
+          .where(
+            and(
+              eq(schema.bookings.hostId, host.id),
+              eq(schema.bookings.status, "confirmed"),
+              gte(schema.bookings.startsAt, dayStart),
+              lt(schema.bookings.startsAt, nextDay),
+            ),
+          );
+        if (count >= cap) {
+          throw new BookingError(
+            "This day is protected for focus and has reached its meeting limit. Please pick another day.",
+            409,
+          );
         }
       }
 
