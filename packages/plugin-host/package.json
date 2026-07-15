@@ -1,0 +1,19 @@
+{
+  "name": "@dayotter/plugin-host",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc --noEmit" },
+  "dependencies": {
+    "@dayotter/core": "workspace:*",
+    "@dayotter/db": "workspace:*",
+    "@dayotter/plugin-sdk": "workspace:*",
+    "@dayotter/plugin-notes": "workspace:*",
+    "@dayotter/plugin-webhook-relay": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

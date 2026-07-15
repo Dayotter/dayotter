@@ -45,6 +45,10 @@ webhooks · ✅ mobile app (Expo, iOS + Android)
 
 ## Next
 
+- 🟡 **Plugin / extension system** - `@dayotter/plugin-sdk` + host let anyone add
+  Otter tools, booking hooks, and connectors without forking (v1: notes +
+  webhook-relay reference plugins; next: settings UI, metric/memory contributions,
+  optional sandboxing)
 - ⬜ **Zapier app + integration directory** - beyond raw webhooks
 - ⬜ **Otter memory depth** - more learned patterns; preference capture in-chat
 - ⬜ **Voice receptionist v2** - conversational booking, transcripts, multi-tenant

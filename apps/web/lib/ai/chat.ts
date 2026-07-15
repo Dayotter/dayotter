@@ -1,5 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { logger } from "@dayotter/core";
+import { getPluginTool, pluginTools, runPluginTool } from "@dayotter/plugin-host";
 import { DateTime } from "luxon";
 import { FREE_SLOTS_TOOL, findFreeSlots } from "./agent";
 import {
@@ -152,7 +153,18 @@ export async function streamAssistant(params: {
       model: MODELS.deep,
       max_tokens: 3000,
       system,
-      tools: [FREE_SLOTS_TOOL, PROPOSE_ACTION_TOOL, ...(anthropicToolDefs() as Anthropic.Tool[])],
+      tools: [
+        FREE_SLOTS_TOOL,
+        PROPOSE_ACTION_TOOL,
+        ...(anthropicToolDefs() as Anthropic.Tool[]),
+        ...pluginTools().map(
+          (p): Anthropic.Tool => ({
+            name: p.name,
+            description: p.tool.description,
+            input_schema: p.tool.schema as Anthropic.Tool.InputSchema,
+          }),
+        ),
+      ],
       tool_choice: { type: "auto" },
       output_config: { effort: "medium" },
       thinking: { type: "adaptive" },
@@ -189,43 +201,66 @@ export async function streamAssistant(params: {
     //    the client runs it via /api/ai/act only after the host confirms.
     const actionCall = toolUses.find((b) => {
       const t = getTool(b.name);
-      return t && t.kind !== "read";
+      if (t && t.kind !== "read") return true;
+      return getPluginTool(b.name)?.tool.kind === "action";
     });
     if (actionCall) {
-      const t = getTool(actionCall.name)!;
       const inp = (actionCall.input ?? {}) as Record<string, unknown>;
-      emit({
-        type: "tool_action",
-        toolAction: {
-          tool: t.name,
-          title: t.title,
-          summary: t.summarize(inp),
-          confirmLevel: t.confirmLevel === "danger" ? "danger" : "confirm",
-          input: inp,
-        },
-      });
+      const core = getTool(actionCall.name);
+      if (core) {
+        emit({
+          type: "tool_action",
+          toolAction: {
+            tool: core.name,
+            title: core.title,
+            summary: core.summarize(inp),
+            confirmLevel: core.confirmLevel === "danger" ? "danger" : "confirm",
+            input: inp,
+          },
+        });
+      } else {
+        const p = getPluginTool(actionCall.name)!;
+        emit({
+          type: "tool_action",
+          toolAction: {
+            tool: p.name,
+            title: p.tool.title ?? p.tool.name,
+            summary: p.tool.summarize?.(inp) ?? p.tool.description,
+            confirmLevel: p.tool.danger ? "danger" : "confirm",
+            input: inp,
+          },
+        });
+      }
       break;
     }
 
     // 3. Reads (registry reads + find_free_slots) → run inline, feed back, loop.
     const reads = toolUses.filter(
-      (b) => b.name === "find_free_slots" || getTool(b.name)?.kind === "read",
+      (b) =>
+        b.name === "find_free_slots" ||
+        getTool(b.name)?.kind === "read" ||
+        getPluginTool(b.name)?.tool.kind === "read",
     );
     if (reads.length === 0) break; // plain conversational answer-done
 
     messages.push({ role: "assistant", content: final.content });
     const results: Anthropic.ToolResultBlockParam[] = [];
     for (const call of reads) {
-      const content =
-        call.name === "find_free_slots"
-          ? await findFreeSlots(
-              userId,
-              call.input as { durationMinutes: number; fromISO: string; toISO: string },
-              tz,
-            ).catch(() => "Could not look up availability.")
-          : await executeReadTool(userId, call.name, call.input as Record<string, unknown>).catch(
-              () => "Could not read that.",
-            );
+      const input = (call.input ?? {}) as Record<string, unknown>;
+      let content: string;
+      if (call.name === "find_free_slots") {
+        content = await findFreeSlots(
+          userId,
+          call.input as { durationMinutes: number; fromISO: string; toISO: string },
+          tz,
+        ).catch(() => "Could not look up availability.");
+      } else if (getTool(call.name)?.kind === "read") {
+        content = await executeReadTool(userId, call.name, input).catch(
+          () => "Could not read that.",
+        );
+      } else {
+        content = await runPluginTool(call.name, userId, input).catch(() => "Could not run that.");
+      }
       results.push({ type: "tool_result", tool_use_id: call.id, content });
     }
     messages.push({ role: "user", content: results });

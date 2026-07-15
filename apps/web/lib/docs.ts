@@ -821,6 +821,71 @@ export const GUIDES: DocGuide[] = [
       },
     ],
   },
+  {
+    slug: "building-extensions",
+    title: "Building extensions (plugins)",
+    summary: "Add capabilities - notes, scribe, new connectors, Otter tools - without forking.",
+    category: "Build & self-host",
+    readMinutes: 6,
+    related: ["developer-api", "the-otter-assistant", "self-hosting"],
+    body: [
+      {
+        paragraphs: [
+          "Some needs are too specific to live in the core - a note-taker wired to your wiki, a scribe that kicks off transcription, a connector to an internal tool. DayOtter's plugin system lets you add those as small, separate packages that work in tandem with the product, so you never fork the core to cover an edge case.",
+          "A plugin is a package that default-exports `definePlugin({...})` and contributes capabilities. It's built against `@dayotter/plugin-sdk`, which has no dependency on DayOtter's internals - the host supplies everything at runtime.",
+        ],
+      },
+      {
+        heading: "What a plugin can contribute",
+        bullets: [
+          "Otter tools - new AI capabilities. `read` tools answer questions inline; `action` tools are confirm-first (Otter proposes a card, the human approves before it runs).",
+          "Booking lifecycle hooks - react to a meeting being created, rescheduled, or cancelled (seed a note, start a scribe, sync to an external system).",
+          "Connectors - reach external services through a scoped, SSRF-guarded HTTP client and store credentials in encrypted per-plugin storage.",
+        ],
+      },
+      {
+        heading: "A minimal plugin",
+        paragraphs: [
+          "Every runtime function receives a context with scoped `storage` (JSON + encrypted secrets), a safe `http` client, a namespaced `logger`, and `config`. Here's a plugin that adds one confirm-first Otter tool:",
+        ],
+      },
+      {
+        bullets: [
+          "id / name - a stable kebab-case id (namespaces your tools and storage) and a display name.",
+          "tools[] - each has a name, JSON-schema input, a kind (read | action), and an async `run(ctx, input)`.",
+          "bookingHooks[] - each declares which events it runs on and an async `handle(ctx, event, booking)`.",
+        ],
+      },
+      {
+        tip: {
+          kind: "tip",
+          text: "Start from the reference plugins in packages/plugins/ - `notes` (an Otter tool + a booking hook + storage) and `webhook-relay` (a connector that forwards booking events to a URL you control). Copy one and edit.",
+        },
+      },
+      {
+        heading: "Enable a plugin",
+        steps: [
+          "Add the plugin package to the build and import it in the host's enabled list (packages/plugin-host/src/enabled.ts).",
+          "Set DAYOTTER_PLUGINS to a comma-separated list of the plugin ids you want on, e.g. DAYOTTER_PLUGINS=notes,webhook-relay.",
+          "Restart. Plugins are OFF by default - the core behaves exactly as before until you opt in.",
+        ],
+      },
+      {
+        heading: "Confirm-first and safe by design",
+        bullets: [
+          "Action tools never run on their own - they flow through the same propose→approve card as core tools; set `danger` for a second confirmation.",
+          "Storage is scoped to (your plugin, the user) - a plugin can't read another's data. Secrets are encrypted at rest.",
+          "`ctx.http` refuses non-public hosts and won't follow redirects, so a plugin can't be tricked into hitting internal infrastructure.",
+        ],
+      },
+      {
+        tip: {
+          kind: "warning",
+          text: "Plugins run in-process with real access - only enable ones you trust. On the DayOtter cloud, plugins are a curated set; self-hosters choose exactly what to install and enable.",
+        },
+      },
+    ],
+  },
 ];
 
 export function getGuide(slug: string): DocGuide | undefined {

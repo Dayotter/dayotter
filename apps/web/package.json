@@ -21,6 +21,7 @@
     "@dayotter/integrations": "workspace:*",
     "@dayotter/jobs": "workspace:*",
     "@dayotter/notifications": "workspace:*",
+    "@dayotter/plugin-host": "workspace:*",
     "better-auth": "^1.2.7",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
