@@ -34,7 +34,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               "radial-gradient(50% 60% at 50% 0%, var(--color-accent) 0%, transparent 65%)",
           }}
         />
-        <div className="relative mx-auto max-w-2xl px-6 py-16">
+        <div className="relative mx-auto max-w-3xl px-6 py-16">
           <Link
             href="/blog"
             className="mb-6 inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"

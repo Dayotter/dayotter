@@ -42,7 +42,7 @@ export function MarketingHeader({
 export function Prose({ children }: { children: ReactNode }) {
   return (
     <div
-      className="mx-auto max-w-2xl px-6 py-16 text-[15px] leading-7 text-[var(--color-muted)]
+      className="mx-auto max-w-3xl px-6 py-16 text-[15px] leading-7 text-[var(--color-muted)]
         [&_a]:text-[var(--color-accent)] [&_a:hover]:underline
         [&_h2]:font-display [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:tracking-[-0.01em] [&_h2]:text-[var(--color-text)]
         [&_h3]:mt-8 [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[var(--color-text)]

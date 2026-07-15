@@ -1,7 +1,10 @@
 /** The shared, pre-loaded dataset every metric computes from (one DB read). */
 export interface TimeDataset {
   tz: string;
+  /** Half-window in days: the view spans `windowDays` back and `windowDays` ahead. */
   windowDays: number;
+  /** Total days the window covers (`windowDays * 2`), used to normalise rates. */
+  spanDays: number;
   /** The host's own email domain (e.g. "acme.com"), for external/internal splits.
    * Null when the host has no email or a non-standard address. */
   hostDomain: string | null;

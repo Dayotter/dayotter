@@ -96,14 +96,14 @@ export const METRICS: TimeMetric[] = [
     key: "weekly_load",
     compute(d: TimeDataset): MetricResult | null {
       if (d.bookings.length === 0) return null;
-      const hoursPerWeek = (sum(d.bookings) / 60 / d.windowDays) * 7;
+      const hoursPerWeek = (sum(d.bookings) / 60 / d.spanDays) * 7;
       const n = d.bookings.length;
       return {
         key: "weekly_load",
         kind: "stat",
         label: "Meeting load",
         value: `${hoursPerWeek.toFixed(1)}h / week`,
-        hint: `${n} meeting${n === 1 ? "" : "s"} in the last ${d.windowDays} days`,
+        hint: `${n} meeting${n === 1 ? "" : "s"} across the last & next ${d.windowDays} days`,
       };
     },
   },
@@ -170,7 +170,7 @@ export const METRICS: TimeMetric[] = [
         kind: "stat",
         label: "Longest focus streak",
         value: fmtDuration(mins),
-        hint: `Your biggest uninterrupted block in the last ${d.windowDays} days`,
+        hint: "Your biggest uninterrupted block of held focus time",
       };
     },
   },
@@ -240,7 +240,7 @@ export const METRICS: TimeMetric[] = [
         kind: "stat",
         label: "Time reclaimed",
         value: fmtDuration(reclaimedMin),
-        hint: `Focus time Otter protected from cancelled meetings in the last ${d.windowDays} days`,
+        hint: "Focus time Otter protected from cancelled meetings",
       };
     },
   },

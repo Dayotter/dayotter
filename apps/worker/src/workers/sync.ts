@@ -225,11 +225,22 @@ async function ensureSubscription(
   if (existing && existing.expiresAt.getTime() > Date.now() + 3_600_000) return;
 
   const clientState = randomUUID();
-  const result = await adapter.watch(
-    cal.externalId,
-    `${appUrl}/api/webhooks/${provider}`,
-    clientState,
-  );
+  // Push channels are a best-effort optimisation on top of polling: some
+  // resources (holiday/read-only calendars, unverified webhook domains) return
+  // "Push notifications are not supported by this resource". That must NOT fail
+  // the sync - the events already synced, and polling keeps the cache fresh.
+  let result: Awaited<ReturnType<NonNullable<CalendarAdapter["watch"]>>>;
+  try {
+    result = await adapter.watch(cal.externalId, `${appUrl}/api/webhooks/${provider}`, clientState);
+  } catch (err) {
+    logger.warn("calendar push subscription failed; falling back to polling", {
+      event: "sync_watch_failed",
+      calendarId: cal.id,
+      provider,
+      err,
+    });
+    return;
+  }
   if (!result) return;
 
   if (existing) {

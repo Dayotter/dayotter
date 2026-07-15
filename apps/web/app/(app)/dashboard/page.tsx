@@ -288,11 +288,25 @@ export default async function DashboardPage() {
       {upcoming.length === 0 ? (
         <EmptyState
           title="Calm waters"
-          description="Once your calendars are connected and people start booking, meetings surface here."
+          description={
+            conns.length > 0
+              ? "Your calendar's synced. Share your booking link and new meetings will surface here."
+              : "Once your calendars are connected and people start booking, meetings surface here."
+          }
           action={
-            <Link href="/settings/calendars" className={buttonVariants({ variant: "primary" })}>
-              Connect a calendar
-            </Link>
+            conns.length > 0 ? (
+              handle ? (
+                <CopyLinkButton path={`/${handle}`} label="Copy your booking link" />
+              ) : (
+                <Link href="/event-types" className={buttonVariants({ variant: "primary" })}>
+                  Create a booking type
+                </Link>
+              )
+            ) : (
+              <Link href="/settings/calendars" className={buttonVariants({ variant: "primary" })}>
+                Connect a calendar
+              </Link>
+            )
           }
         />
       ) : (

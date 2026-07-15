@@ -43,7 +43,7 @@ export default function DocsPage() {
         title="Documentation"
         subtitle="Task-focused guides that go deep - from your first booking link to teams, AI, payments, CRM sync, the API, and self-hosting."
       />
-      <section className="mx-auto max-w-3xl px-6 py-16">
+      <section className="mx-auto max-w-5xl px-6 py-16">
         {DOC_CATEGORIES.map((cat) => {
           const guides = GUIDES.filter((g) => g.category === cat);
           if (guides.length === 0) return null;
