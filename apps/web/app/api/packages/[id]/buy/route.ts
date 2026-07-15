@@ -1,3 +1,4 @@
+import { hostDestinationAccount } from "@/lib/payments/connect";
 import { createCheckoutSession, paymentsEnabled } from "@/lib/payments/stripe";
 import { jsonError } from "@/lib/server/http";
 import { eq, getDb, schema } from "@dayotter/db";
@@ -25,6 +26,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!pkg || !pkg.isActive) return jsonError("Package not available", 404);
   if (pkg.priceAmount <= 0) return jsonError("This package isn't for sale", 400);
 
+  // Route the sale to the host's connected account (the event-type owner).
+  const et = await getDb().query.eventTypes.findFirst({
+    where: eq(schema.eventTypes.id, pkg.eventTypeId),
+    columns: { ownerId: true },
+  });
+  const destinationAccountId = et ? await hostDestinationAccount(et.ownerId) : undefined;
+
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
   const session = await createCheckoutSession({
     amount: pkg.priceAmount,
@@ -33,6 +41,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     successUrl: `${appUrl}/packages/thanks`,
     cancelUrl: `${appUrl}`,
     customerEmail: parsed.data.clientEmail,
+    destinationAccountId,
     metadata: {
       kind: "package",
       packageId: pkg.id,

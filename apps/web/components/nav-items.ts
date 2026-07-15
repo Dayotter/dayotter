@@ -44,6 +44,7 @@ export const SETTINGS_NAV = [
   { href: "/settings/notifications", label: "Notifications" },
   { href: "/settings/automations", label: "Automations" },
   { href: "/settings/packages", label: "Packages" },
+  { href: "/settings/payouts", label: "Payouts" },
   { href: "/settings/calendars", label: "Calendars" },
   { href: "/settings/crm", label: "CRM" },
   { href: "/settings/billing", label: "Billing" },

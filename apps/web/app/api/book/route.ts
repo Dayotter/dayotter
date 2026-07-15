@@ -1,5 +1,6 @@
 import { BookingError, type CreateBookingInput, createBooking } from "@/lib/booking/create-booking";
 import { chargeFor } from "@/lib/booking/money";
+import { hostDestinationAccount } from "@/lib/payments/connect";
 import { stashPendingBooking } from "@/lib/payments/pending";
 import { createCheckoutSession, paymentsEnabled } from "@/lib/payments/stripe";
 import { clientIp, enforceRateLimit, verifyCaptcha } from "@/lib/server/rate-limit";
@@ -72,7 +73,14 @@ export async function POST(request: Request) {
   if (paymentsEnabled) {
     const et = await getDb().query.eventTypes.findFirst({
       where: eq(db.eventTypes.id, parsed.data.eventTypeId),
-      columns: { title: true, price: true, currency: true, depositAmount: true, isActive: true },
+      columns: {
+        title: true,
+        price: true,
+        currency: true,
+        depositAmount: true,
+        isActive: true,
+        ownerId: true,
+      },
     });
     const amount = chargeFor(et?.price ?? null, et?.depositAmount ?? null);
     if (et?.isActive && amount > 0) {
@@ -80,6 +88,7 @@ export async function POST(request: Request) {
         const token = await stashPendingBooking(input);
         const appUrl = process.env.APP_URL ?? "http://localhost:3000";
         const returnPath = parsed.data.returnPath?.startsWith("/") ? parsed.data.returnPath : "/";
+        const destinationAccountId = await hostDestinationAccount(et.ownerId);
         const { url } = await createCheckoutSession({
           amount,
           currency: et.currency ?? "usd",
@@ -88,6 +97,7 @@ export async function POST(request: Request) {
           cancelUrl: `${appUrl}${returnPath}`,
           customerEmail: parsed.data.attendee.email,
           metadata: { token },
+          destinationAccountId,
         });
         // Funnel: record that a paid checkout was started (best-effort), so
         // analytics can show the paid-step drop-off, not just page→booking.
