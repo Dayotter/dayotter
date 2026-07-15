@@ -886,6 +886,65 @@ export const GUIDES: DocGuide[] = [
       },
     ],
   },
+
+  // ─── Analytics ────────────────────────────────────────────────────────────
+  {
+    slug: "analytics-and-privacy",
+    title: "Analytics & privacy",
+    summary:
+      "Turn product analytics on (Mixpanel, Google Analytics, PostHog) or off, and let people opt out.",
+    category: "Build & self-host",
+    readMinutes: 4,
+    related: ["self-hosting", "developer-api"],
+    body: [
+      {
+        paragraphs: [
+          "DayOtter ships with an optional analytics layer so you can understand how people use your instance. It is OFF by default and provider-agnostic: nothing loads and nothing is captured until you wire up at least one provider. Local dev and privacy-first self-hosters run analytics-free without doing anything.",
+          "Three providers are supported and fully independent - enable one, two, or all three: Mixpanel, Google Analytics 4, and PostHog.",
+        ],
+      },
+      {
+        heading: "Turn analytics on",
+        steps: [
+          "Set the provider key(s) in your environment: NEXT_PUBLIC_MIXPANEL_TOKEN, NEXT_PUBLIC_GA_ID, and/or NEXT_PUBLIC_POSTHOG_KEY (with NEXT_PUBLIC_POSTHOG_HOST if you self-host PostHog or use the EU region).",
+          "Rebuild and redeploy the web app - these are NEXT_PUBLIC (browser) variables, so they're baked in at build time, not read at runtime.",
+          "That's it. The chosen SDKs load, page views are reported on route changes, and product events flow to every configured provider.",
+        ],
+      },
+      {
+        tip: {
+          kind: "note",
+          text: "Because the keys are NEXT_PUBLIC, changing them requires a fresh build - a running server won't pick them up. Set them before you build your image or run `next build`.",
+        },
+      },
+      {
+        heading: "Turn analytics off",
+        paragraphs: [
+          "Remove (or leave blank) all three provider keys and rebuild. With no keys set, the analytics code is inert - no SDK is loaded and no network calls are made. There's no separate 'disable' switch to remember; absence of keys is the off state.",
+        ],
+      },
+      {
+        heading: "Let people opt out",
+        paragraphs: [
+          "Even when a provider is configured, every visitor can turn analytics off for themselves under Settings → Preferences → Analytics & privacy. The choice is stored per-browser and takes effect immediately - existing capture stops and no new events are sent from that browser. Signing out also clears the analytics identity.",
+        ],
+      },
+      {
+        heading: "What's captured",
+        bullets: [
+          "Page views on navigation, and meaningful product events (flow completions, key actions) - not keystrokes or form contents.",
+          "On sign-in, the signed-in user id is associated so sessions stitch together; DayOtter never sends calendar contents, event titles, or attendee details to analytics.",
+          "Analytics can never break the app: every provider call is wrapped, so an outage or blocker just means the event is dropped.",
+        ],
+      },
+      {
+        tip: {
+          kind: "tip",
+          text: "Works the same on the hosted product and self-hosted. Self-hosters point the keys at their own Mixpanel/GA/PostHog projects and own 100% of the data.",
+        },
+      },
+    ],
+  },
 ];
 
 export function getGuide(slug: string): DocGuide | undefined {

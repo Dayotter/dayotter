@@ -179,7 +179,7 @@ export function AvailabilityEditor({
   }
 
   return (
-    <div>
+    <div className="max-w-2xl">
       <div className="mb-6 max-w-sm">
         <label htmlFor="timezone" className="mb-1.5 block text-sm font-medium">
           Timezone
@@ -405,8 +405,10 @@ export function AvailabilityEditor({
         </div>
       </div>
 
-      <div className="mt-5 flex items-center gap-3">
-        <Button onClick={save} disabled={saving}>
+      {/* Sticky action bar - Save stays reachable no matter how far you scroll
+          through the hours + overrides, instead of stranding at the bottom. */}
+      <div className="sticky bottom-4 z-10 mt-8 flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)]/95 px-4 py-3 shadow-[var(--shadow-card)] backdrop-blur">
+        <Button onClick={save} disabled={saving || !dirty}>
           {saving ? "Saving…" : "Save availability"}
         </Button>
         {dirty ? (
@@ -415,7 +417,9 @@ export function AvailabilityEditor({
           <span className="inline-flex items-center gap-1.5 text-sm text-[var(--color-success)]">
             <Check size={15} /> Saved
           </span>
-        ) : null}
+        ) : (
+          <span className="text-sm text-[var(--color-muted)]">All changes saved</span>
+        )}
         <FormError>{error}</FormError>
       </div>
     </div>
