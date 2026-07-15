@@ -9,7 +9,6 @@ import { cn } from "@/lib/cn";
 import { zoomEnabled } from "@/lib/integrations/zoom";
 import { eq, getDb, schema } from "@dayotter/db";
 import { CheckCircle2, Plus } from "lucide-react";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -143,12 +142,16 @@ export default async function CalendarsPage({
                   {p.name}
                 </span>
                 {p.available ? (
-                  <Link
+                  // Plain <a>, NOT next/link: this is an API route that 302s to the
+                  // provider's OAuth page. A <Link> makes Next RSC-prefetch/fetch it,
+                  // which then hits the provider cross-origin and fails CORS. A full
+                  // browser navigation is exactly what OAuth needs.
+                  <a
                     href={`/api/calendars/connect/${p.id}`}
                     className={buttonVariants({ variant: "outline", size: "sm" })}
                   >
                     <Plus size={15} /> Connect
-                  </Link>
+                  </a>
                 ) : (
                   <span className="text-xs text-[var(--color-faint)]">Coming soon</span>
                 )}

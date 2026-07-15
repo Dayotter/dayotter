@@ -1,4 +1,17 @@
-import { and, eq, getDb, gte, ne, schema } from "@dayotter/db";
+import { and, eq, getDb, gte, inArray, ne, schema } from "@dayotter/db";
+
+/** Two IANA zones that are really the same place (e.g. Asia/Calcutta == Asia/Kolkata). */
+function sameZone(a: string, b: string): boolean {
+  if (a === b) return true;
+  const canon = (tz: string) => {
+    try {
+      return new Intl.DateTimeFormat("en-US", { timeZone: tz }).resolvedOptions().timeZone;
+    } catch {
+      return tz;
+    }
+  };
+  return canon(a) === canon(b);
+}
 
 export interface ReconnectItem {
   connectionId: string;
@@ -117,7 +130,7 @@ export async function inboxData(userId: string): Promise<InboxData> {
   const duplicates: DuplicateItem[] = [];
   if (calendarIds.length > 0) {
     const calSet = new Set(calendarIds);
-    const [bookings, events] = await Promise.all([
+    const [bookings, events, refs] = await Promise.all([
       db.query.bookings.findMany({
         where: and(
           eq(schema.bookings.hostId, userId),
@@ -132,11 +145,28 @@ export async function inboxData(userId: string): Promise<InboxData> {
           gte(schema.calendarEvents.endsAt, now),
           ne(schema.calendarEvents.transparency, "transparent"),
         ),
-        columns: { calendarId: true, title: true, startsAt: true, endsAt: true },
+        columns: {
+          calendarId: true,
+          title: true,
+          startsAt: true,
+          endsAt: true,
+          externalEventId: true,
+        },
         limit: 500,
       }),
+      db.query.bookingReferences.findMany({
+        where: inArray(schema.bookingReferences.calendarId, calendarIds),
+        columns: { externalEventId: true },
+      }),
     ]);
-    const relevant = events.filter((e) => calSet.has(e.calendarId));
+    // A booking DayOtter writes to the host's calendar syncs back as an event -
+    // that mirror must NOT be flagged as clashing with its own booking. Drop every
+    // booking mirror from the conflict candidates (genuinely overlapping DayOtter
+    // bookings are already prevented by the DB's no-overlap constraint).
+    const mirrorIds = new Set(refs.map((r) => r.externalEventId));
+    const relevant = events.filter(
+      (e) => calSet.has(e.calendarId) && !mirrorIds.has(e.externalEventId),
+    );
     for (const b of bookings) {
       const clash = relevant.find((e) => e.startsAt < b.endsAt && e.endsAt > b.startsAt);
       if (clash) {
@@ -165,7 +195,7 @@ export async function inboxData(userId: string): Promise<InboxData> {
   const timezoneMismatches: TimezoneItem[] = [];
   if (userTz) {
     for (const cal of connections.flatMap((c) => c.calendars)) {
-      if (cal.isTargetForBookings && cal.timezone && cal.timezone !== userTz) {
+      if (cal.isTargetForBookings && cal.timezone && !sameZone(cal.timezone, userTz)) {
         timezoneMismatches.push({
           calendarName: cal.name,
           calendarTz: cal.timezone,
