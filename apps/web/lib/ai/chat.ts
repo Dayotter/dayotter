@@ -9,6 +9,7 @@ import {
   commandDraftSchema,
   commandInputSchema,
 } from "./command-parse";
+import { GUARDRAIL_PREAMBLE } from "./guardrails";
 import { MODELS, getAnthropicClient } from "./llm";
 import { retrieveCalendarContext } from "./retrieval";
 import { executeReadTool } from "./tools/exec";
@@ -139,6 +140,7 @@ export async function streamAssistant(params: {
 
   const client = getAnthropicClient();
   const system: Anthropic.TextBlockParam[] = [
+    { type: "text", text: GUARDRAIL_PREAMBLE, cache_control: { type: "ephemeral" } },
     { type: "text", text: CHAT_SYSTEM, cache_control: { type: "ephemeral" } },
     { type: "text", text: block },
   ];
