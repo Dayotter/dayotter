@@ -6,7 +6,7 @@ import { PRO_PRICE_USD, isCloud } from "@/lib/billing/edition";
 import { getEntitlements, primaryOrg } from "@/lib/billing/entitlements";
 import { FEATURE_LABEL, FEATURE_TIER, type Feature } from "@/lib/billing/features";
 import { seatCount } from "@/lib/billing/subscription";
-import { subscriptionsEnabled } from "@/lib/payments/stripe";
+import { paymentsEnabled, proPriceId, subscriptionsEnabled } from "@/lib/payments/stripe";
 import { Check, Heart } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -90,7 +90,11 @@ export default async function BillingPage() {
             <BillingActions plan={ent.plan} />
           ) : (
             <p className="text-sm text-[var(--color-faint)]">
-              Billing isn't configured on this server yet.
+              Billing isn't fully configured yet. Set{" "}
+              {[!paymentsEnabled && "STRIPE_SECRET_KEY", !proPriceId && "STRIPE_PRICE_PRO"]
+                .filter(Boolean)
+                .join(" and ")}{" "}
+              in this server's environment to enable subscriptions.
             </p>
           )}
         </CardBody>

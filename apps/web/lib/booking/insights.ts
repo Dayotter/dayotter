@@ -1,4 +1,4 @@
-import { and, eq, getDb, gte, lt, schema } from "@dayotter/db";
+import { and, eq, getDb, gte, inArray, lt, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 import { type FocusMetrics, computeFocusMetrics } from "./focus-insights";
 
@@ -38,7 +38,9 @@ export async function computeInsights(params: {
   const rows = await getDb().query.bookings.findMany({
     where: and(
       eq(schema.bookings.hostId, params.userId),
-      eq(schema.bookings.status, "confirmed"),
+      // Past meetings are auto-marked "completed" - a retrospective view needs both,
+      // otherwise everything before now silently drops out of the insights.
+      inArray(schema.bookings.status, ["confirmed", "completed"]),
       gte(schema.bookings.startsAt, from),
       lt(schema.bookings.startsAt, to),
     ),

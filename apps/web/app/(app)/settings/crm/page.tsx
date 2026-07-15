@@ -2,7 +2,6 @@ import { CrmDisconnectButton } from "@/components/crm-manager";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
-import { isCloud } from "@/lib/billing/edition";
 import { cn } from "@/lib/cn";
 import { eq, getDb, schema } from "@dayotter/db";
 import { crmEnabledProviders } from "@dayotter/integrations";
@@ -140,9 +139,7 @@ export default async function CrmSettingsPage({
                       <Plus size={14} /> Connect
                     </Link>
                   ) : (
-                    <span className="text-xs text-[var(--color-faint)]">
-                      {isCloud ? "Coming soon" : "Not configured"}
-                    </span>
+                    <span className="text-xs text-[var(--color-faint)]">Not configured</span>
                   )}
                 </div>
               );
@@ -150,9 +147,9 @@ export default async function CrmSettingsPage({
           </div>
           {enabled.length === 0 ? (
             <p className="mt-4 text-xs text-[var(--color-faint)]">
-              {isCloud
-                ? "CRM sync isn't available on your plan yet - we're rolling out Salesforce and HubSpot connections. Check back soon."
-                : "No CRM is configured on this server. Set the provider's client id + secret (SALESFORCE_CLIENT_ID / HUBSPOT_CLIENT_ID and their secrets) in the environment to enable it."}
+              No CRM is configured on this server. Set a provider's OAuth app credentials -
+              SALESFORCE_CLIENT_ID + SALESFORCE_CLIENT_SECRET, or HUBSPOT_CLIENT_ID +
+              HUBSPOT_CLIENT_SECRET - in this server's environment to let people connect it.
             </p>
           ) : null}
         </CardBody>
