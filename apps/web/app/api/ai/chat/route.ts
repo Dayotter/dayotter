@@ -1,4 +1,5 @@
 import { type ChatEvent, type ChatTurn, streamAssistant } from "@/lib/ai/chat";
+import { SCOPE_REFUSAL, latestUserText, screenUserInput } from "@/lib/ai/guardrails";
 import { aiEnabled } from "@/lib/ai/llm";
 import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
@@ -53,7 +54,13 @@ export const POST = withUser(async (u, request) => {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
       };
       try {
-        await streamAssistant({ userId: u.id, turns, emit: send });
+        // Guardrail: block blatant injection/jailbreak before spending a model call.
+        if (screenUserInput(latestUserText(turns), { userId: u.id }).blocked) {
+          send({ type: "token", text: SCOPE_REFUSAL });
+          send({ type: "done", text: SCOPE_REFUSAL });
+        } else {
+          await streamAssistant({ userId: u.id, turns, emit: send });
+        }
       } catch (err) {
         logger.error("ai chat stream failed", { event: "ai_chat_failed", userId: u.id, err });
         send({ type: "error", message: "The assistant hit a snag. Please try again." });

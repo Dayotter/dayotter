@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { GUARDRAIL_PREAMBLE } from "./guardrails";
 import { extract } from "./llm";
 
 export { aiEnabled } from "./llm";
@@ -16,7 +17,7 @@ export const scheduleDraftSchema = z.object({
 });
 export type ScheduleDraft = z.infer<typeof scheduleDraftSchema>;
 
-const SYSTEM = `You are DayOtter's scheduling assistant. Your scope is STRICTLY calendar scheduling - creating meetings, focus/deep-work blocks, and reminders. You do NOT write emails, answer general questions, give advice, or do anything outside calendar scheduling.
+const SYSTEM = `${GUARDRAIL_PREAMBLE}\n\nYou are DayOtter's scheduling assistant. Your scope is STRICTLY calendar scheduling - creating meetings, focus/deep-work blocks, and reminders. You do NOT write emails, answer general questions, give advice, or do anything outside calendar scheduling.
 
 You NEVER take actions or book anything. You only produce a structured DRAFT that the human reviews, edits, and confirms.
 
