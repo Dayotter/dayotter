@@ -134,6 +134,9 @@ importers:
       '@dayotter/notifications':
         specifier: workspace:*
         version: link:../../packages/notifications
+      '@dayotter/plugin-host':
+        specifier: workspace:*
+        version: link:../../packages/plugin-host
       better-auth:
         specifier: ^1.2.7
         version: 1.6.23(next@15.5.19(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(pg@8.22.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(vitest@2.1.9(@types/node@22.20.0)(lightningcss@1.32.0)(terser@5.48.0))
@@ -429,6 +432,66 @@ importers:
       '@types/web-push':
         specifier: ^3.6.4
         version: 3.6.4
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/plugin-host:
+    dependencies:
+      '@dayotter/core':
+        specifier: workspace:*
+        version: link:../core
+      '@dayotter/db':
+        specifier: workspace:*
+        version: link:../db
+      '@dayotter/plugin-notes':
+        specifier: workspace:*
+        version: link:../plugins/notes
+      '@dayotter/plugin-sdk':
+        specifier: workspace:*
+        version: link:../plugin-sdk
+      '@dayotter/plugin-webhook-relay':
+        specifier: workspace:*
+        version: link:../plugins/webhook-relay
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/plugin-sdk:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/plugins/notes:
+    dependencies:
+      '@dayotter/plugin-sdk':
+        specifier: workspace:*
+        version: link:../../plugin-sdk
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/plugins/webhook-relay:
+    dependencies:
+      '@dayotter/plugin-sdk':
+        specifier: workspace:*
+        version: link:../../plugin-sdk
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.0
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

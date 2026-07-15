@@ -15,3 +15,4 @@ export * from "./routing";
 export * from "./packages";
 export * from "./memory";
 export * from "./crm";
+export * from "./plugins";

@@ -4,6 +4,7 @@ import { getTool } from "@/lib/ai/tools/registry";
 import { requireFeature } from "@/lib/billing/require-feature";
 import { jsonError, withUser } from "@/lib/server/http";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { getPluginTool, runPluginTool } from "@dayotter/plugin-host";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -38,9 +39,26 @@ export const POST = withUser(async (u, request) => {
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Invalid action request.", 400);
 
+  // Core action tool.
   const tool = getTool(parsed.data.tool);
-  if (!tool || tool.kind === "read") return jsonError("Unknown action.", 400);
+  if (tool && tool.kind !== "read") {
+    const result = await executeActionTool(u.id, parsed.data.tool, parsed.data.input);
+    return NextResponse.json(result, { status: result.ok ? 200 : 400 });
+  }
 
-  const result = await executeActionTool(u.id, parsed.data.tool, parsed.data.input);
-  return NextResponse.json(result, { status: result.ok ? 200 : 400 });
+  // Plugin action tool (confirm-first, runs only here after the user confirms).
+  const plugin = getPluginTool(parsed.data.tool);
+  if (plugin && plugin.tool.kind === "action") {
+    try {
+      const message = await runPluginTool(parsed.data.tool, u.id, parsed.data.input);
+      return NextResponse.json({ ok: true, message });
+    } catch {
+      return NextResponse.json(
+        { ok: false, message: "That plugin action failed." },
+        { status: 400 },
+      );
+    }
+  }
+
+  return jsonError("Unknown action.", 400);
 });

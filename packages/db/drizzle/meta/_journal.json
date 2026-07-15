@@ -281,6 +281,13 @@
       "when": 1784040538135,
       "tag": "0039_outgoing_black_tom",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1784102878545,
+      "tag": "0040_loving_weapon_omega",
+      "breakpoints": true
     }
   ]
 }
