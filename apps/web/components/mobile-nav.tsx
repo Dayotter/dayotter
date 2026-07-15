@@ -3,6 +3,7 @@
 import { BrandMark } from "@/components/brand-mark";
 import { NAV } from "@/components/nav-items";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { resetAnalytics } from "@/lib/analytics";
 import { signOut } from "@/lib/auth/auth-client";
 import { cn } from "@/lib/cn";
 import { LogOut, MoreHorizontal } from "lucide-react";
@@ -39,7 +40,12 @@ export function MobileNav() {
           <button
             type="button"
             aria-label="Sign out"
-            onClick={() => signOut().then(() => router.push("/sign-in"))}
+            onClick={() =>
+              signOut().then(() => {
+                resetAnalytics();
+                router.push("/sign-in");
+              })
+            }
             className="rounded-md p-1.5 text-[var(--color-faint)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
           >
             <LogOut size={18} />
