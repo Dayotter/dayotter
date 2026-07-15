@@ -1,13 +1,11 @@
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { bookingRescheduled, sendEmail } from "@dayotter/emails";
-import { enqueueCrmSync } from "@dayotter/jobs";
-import { runPluginBookingHooks } from "@dayotter/plugin-host";
 import { reserveRuleBlocks } from "../automation/apply-rules";
 import { updateBookingCalendarEvent } from "../calendar/host-calendar";
-import { emitWebhook } from "../webhooks/emit";
 import { SLOT_REVALIDATION_WINDOW_MS, eventConstraints, hostSlots } from "./availability";
 import { AUTO_CONFERENCE } from "./event-type-input";
+import { fanOutBookingLifecycle } from "./lifecycle";
 import {
   clearBookingReminders,
   reminderOffsetsForHost,
@@ -130,24 +128,22 @@ export async function rescheduleBooking(uid: string, newStartISO: string): Promi
   });
 
   if (booking.hostId) {
-    await emitWebhook(booking.hostId, "booking.rescheduled", {
-      uid,
-      eventTypeId: booking.eventTypeId,
-      title: booking.title,
-      startsAt: newStart.toISOString(),
-      endsAt: newEnd.toISOString(),
-    });
-    await enqueueCrmSync({ bookingId: booking.id, action: "rescheduled" }).catch(() => {});
-    await runPluginBookingHooks("rescheduled", {
-      bookingId: booking.id,
-      uid,
-      hostId: booking.hostId,
-      eventTypeId: booking.eventTypeId,
-      title: booking.title,
-      startsAt: newStart.toISOString(),
-      endsAt: newEnd.toISOString(),
-      attendees: booking.attendees.map((a) => ({ name: a.name, email: a.email })),
-    });
+    const startsAt = newStart.toISOString();
+    const endsAt = newEnd.toISOString();
+    await fanOutBookingLifecycle(
+      "rescheduled",
+      {
+        bookingId: booking.id,
+        uid,
+        hostId: booking.hostId,
+        eventTypeId: booking.eventTypeId,
+        title: booking.title,
+        startsAt,
+        endsAt,
+        attendees: booking.attendees.map((a) => ({ name: a.name, email: a.email })),
+      },
+      { uid, eventTypeId: booking.eventTypeId, title: booking.title, startsAt, endsAt },
+    );
   }
 
   // Notify.

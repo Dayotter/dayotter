@@ -131,16 +131,18 @@ export async function syncBookingToCrm(
     description: `Booked via DayOtter${booking.host?.name ? ` with ${booking.host.name}` : ""}.`,
   };
 
+  // Load all of this booking's references once, then index by connection
+  // (was a findFirst per connection).
+  const allRefs = await db.query.crmReferences.findMany({
+    where: eq(schema.crmReferences.bookingId, booking.id),
+  });
+  const refByConn = new Map(allRefs.map((r) => [r.connectionId, r]));
+
   const errors: string[] = [];
   for (const conn of connections) {
     try {
       const adapter = adapterForCrmConnection(conn);
-      const ref = await db.query.crmReferences.findFirst({
-        where: and(
-          eq(schema.crmReferences.bookingId, booking.id),
-          eq(schema.crmReferences.connectionId, conn.id),
-        ),
-      });
+      const ref = refByConn.get(conn.id);
 
       if (action === "cancelled") {
         if (ref?.externalActivityId) await adapter.cancelMeeting(ref.externalActivityId);

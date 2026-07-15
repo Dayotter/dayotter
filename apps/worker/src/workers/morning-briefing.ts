@@ -3,24 +3,7 @@ import { and, asc, eq, getDb, gte, inArray, lt, schema } from "@dayotter/db";
 import { dailyBriefing, sendEmail } from "@dayotter/emails";
 import { deliverUserReminder } from "@dayotter/notifications";
 import { DateTime } from "luxon";
-
-/**
- * How many hours after the configured briefing hour we'll still send. Keeps a
- * user who enables briefings in the afternoon from getting a "morning" briefing
- * at 3pm - if we miss the window (worker down, just enabled), it waits for
- * tomorrow. The maintenance tick runs every ~15 min, so the real send lands
- * within a quarter hour of the chosen hour.
- */
-const SEND_WINDOW_HOURS = 3;
-
-function focusLabel(totalMinutes: number): string | undefined {
-  if (totalMinutes <= 0) return undefined;
-  if (totalMinutes >= 90) {
-    const hours = Math.round((totalMinutes / 60) * 10) / 10;
-    return `${hours % 1 === 0 ? hours.toFixed(0) : hours} hours of focus held`;
-  }
-  return `${totalMinutes} minutes of focus held`;
-}
+import { briefingDue, focusLabel, focusMinutes } from "./briefing-common";
 
 /**
  * Daily "morning briefing" - for each user who opted in, once their local time
@@ -51,14 +34,11 @@ export async function sendDueBriefings(now = new Date()): Promise<number> {
     const user = userById.get(pref.userId);
     if (!user) continue;
     const tz = user.timezone || "UTC";
-    const local = DateTime.fromJSDate(now).setZone(tz);
-    const today = local.toFormat("yyyy-LL-dd");
 
     // Once per local day, only inside the morning window.
-    if (pref.briefingLastSent === today) continue;
-    if (local.hour < pref.briefingHour || local.hour >= pref.briefingHour + SEND_WINDOW_HOURS) {
-      continue;
-    }
+    const due = briefingDue(now, tz, pref.briefingHour, pref.briefingLastSent);
+    if (!due) continue;
+    const { local, today } = due;
 
     const dayStart = local.startOf("day").toJSDate();
     const dayEnd = local.endOf("day").toJSDate();
@@ -83,12 +63,7 @@ export async function sendDueBriefings(now = new Date()): Promise<number> {
       ),
       columns: { startsAt: true, endsAt: true },
     });
-    const focusMinutes = blocks.reduce(
-      (sum, b) =>
-        sum + Math.max(0, Math.round((b.endsAt.getTime() - b.startsAt.getTime()) / 60_000)),
-      0,
-    );
-    const focus = focusLabel(focusMinutes);
+    const focus = focusLabel(focusMinutes(blocks));
 
     const meetings = bookings.map((b) => ({
       time: DateTime.fromJSDate(b.startsAt).setZone(tz).toFormat("h:mm a"),

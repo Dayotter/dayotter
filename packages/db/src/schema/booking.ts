@@ -71,6 +71,10 @@ export const bookings = pgTable(
     index("bookings_host_idx").on(t.hostId),
     index("bookings_org_idx").on(t.organizationId),
     index("bookings_starts_idx").on(t.startsAt),
+    // Serves the daily/weekly-cap and group-capacity counts on the (synchronous)
+    // booking-creation path, and the analytics group-by, which all filter
+    // event_type_id + a starts_at range.
+    index("bookings_event_starts_idx").on(t.eventTypeId, t.startsAt),
     // Prevent a check-then-insert race from creating two confirmed bookings for
     // the same host at the same instant. Enforced only for live bookings so a
     // cancelled slot can be re-booked. NB: a stronger GiST EXCLUSION constraint

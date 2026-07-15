@@ -2,19 +2,7 @@ import { logger } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lt, schema } from "@dayotter/db";
 import { sendEmail, teamBriefing } from "@dayotter/emails";
 import { deliverUserReminder } from "@dayotter/notifications";
-import { DateTime } from "luxon";
-
-/** Same forgiving send window as the personal briefing. */
-const SEND_WINDOW_HOURS = 3;
-
-function focusLabel(totalMinutes: number): string | undefined {
-  if (totalMinutes <= 0) return undefined;
-  if (totalMinutes >= 90) {
-    const hours = Math.round((totalMinutes / 60) * 10) / 10;
-    return `${hours % 1 === 0 ? hours.toFixed(0) : hours} hours of focus held across the team`;
-  }
-  return `${totalMinutes} minutes of focus held across the team`;
-}
+import { briefingDue, focusLabel, focusMinutes } from "./briefing-common";
 
 /**
  * Shared daily team digest. For each team that opted in, once the reference
@@ -38,30 +26,34 @@ export async function sendDueTeamBriefings(now = new Date()): Promise<number> {
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
   let sent = 0;
 
-  for (const pref of prefs) {
-    const team = await db.query.teams.findFirst({
-      where: eq(schema.teams.id, pref.teamId),
-      columns: { id: true, name: true },
-      with: {
-        members: {
-          with: { user: { columns: { id: true, name: true, email: true, timezone: true } } },
-        },
+  // Batch-load every team + members in one query (was a findFirst per pref).
+  const teams = await db.query.teams.findMany({
+    where: inArray(
+      schema.teams.id,
+      prefs.map((p) => p.teamId),
+    ),
+    columns: { id: true, name: true },
+    with: {
+      members: {
+        with: { user: { columns: { id: true, name: true, email: true, timezone: true } } },
       },
-    });
+    },
+  });
+  const teamById = new Map(teams.map((t) => [t.id, t]));
+
+  for (const pref of prefs) {
+    const team = teamById.get(pref.teamId);
     if (!team || team.members.length === 0) continue;
 
     // Reference timezone: an owner/admin's tz, else the first member's.
     const admins = team.members.filter((m) => m.role === "owner" || m.role === "admin");
     const reference = (admins[0] ?? team.members[0])?.user;
     const tz = reference?.timezone || "UTC";
-    const local = DateTime.fromJSDate(now).setZone(tz);
-    const today = local.toFormat("yyyy-LL-dd");
 
     // Once per local day, only inside the morning window.
-    if (pref.briefingLastSent === today) continue;
-    if (local.hour < pref.briefingHour || local.hour >= pref.briefingHour + SEND_WINDOW_HOURS) {
-      continue;
-    }
+    const due = briefingDue(now, tz, pref.briefingHour, pref.briefingLastSent);
+    if (!due) continue;
+    const { local, today } = due;
 
     const dayStart = local.startOf("day").toJSDate();
     const dayEnd = local.endOf("day").toJSDate();
@@ -99,12 +91,7 @@ export async function sendDueTeamBriefings(now = new Date()): Promise<number> {
       }))
       .sort((a, b) => b.count - a.count);
 
-    const focusMinutes = blocks.reduce(
-      (sum, b) =>
-        sum + Math.max(0, Math.round((b.endsAt.getTime() - b.startsAt.getTime()) / 60_000)),
-      0,
-    );
-    const focus = focusLabel(focusMinutes);
+    const focus = focusLabel(focusMinutes(blocks), " across the team");
     const dateLabel = local.toFormat("cccc, LLLL d");
 
     // Recipients: owner/admins, or all members.

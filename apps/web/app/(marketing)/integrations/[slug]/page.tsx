@@ -2,8 +2,8 @@ import { MarketingHeader } from "@/components/marketing/page-shell";
 import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/json-ld";
 import { buttonVariants } from "@/components/ui/button";
 import { INTEGRATIONS, getIntegration } from "@/lib/integrations-content";
+import { makeSlugMetadata } from "@/lib/marketing-page";
 import { ArrowRight, Check } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -11,22 +11,15 @@ export function generateStaticParams() {
   return INTEGRATIONS.map((i) => ({ slug: i.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const it = getIntegration((await params).slug);
-  if (!it) return { title: "Integrations" };
-  const path = `/integrations/${it.slug}`;
-  const title = `${it.name} scheduling - DayOtter integration`;
-  return {
-    title,
+export const generateMetadata = makeSlugMetadata(
+  getIntegration,
+  (it) => ({
+    title: `${it.name} scheduling - DayOtter integration`,
     description: it.subtitle,
-    alternates: { canonical: path },
-    openGraph: { title, description: it.subtitle, url: path },
-  };
-}
+    path: `/integrations/${it.slug}`,
+  }),
+  "Integrations",
+);
 
 export default async function IntegrationPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

@@ -1,9 +1,9 @@
 import { MarketingHeader } from "@/components/marketing/page-shell";
 import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/json-ld";
 import { buttonVariants } from "@/components/ui/button";
+import { makeSlugMetadata } from "@/lib/marketing-page";
 import { PERSONAS, getPersona } from "@/lib/personas";
 import { ArrowRight, Check } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -11,21 +11,11 @@ export function generateStaticParams() {
   return PERSONAS.map((p) => ({ slug: p.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const p = getPersona((await params).slug);
-  if (!p) return { title: "DayOtter" };
-  const path = `/for/${p.slug}`;
-  return {
-    title: p.title,
-    description: p.subtitle,
-    alternates: { canonical: path },
-    openGraph: { title: `${p.title} - DayOtter`, description: p.subtitle, url: path },
-  };
-}
+export const generateMetadata = makeSlugMetadata(
+  getPersona,
+  (p) => ({ title: p.title, description: p.subtitle, path: `/for/${p.slug}` }),
+  "DayOtter",
+);
 
 export default async function PersonaPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

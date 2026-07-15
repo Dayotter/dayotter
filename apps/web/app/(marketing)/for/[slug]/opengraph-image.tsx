@@ -1,5 +1,5 @@
-import { PERSONAS, getPersona } from "@/lib/personas";
 import { OG_CONTENT_TYPE, OG_SIZE, ogClamp, ogImage } from "@/lib/og";
+import { PERSONAS, getPersona } from "@/lib/personas";
 
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
