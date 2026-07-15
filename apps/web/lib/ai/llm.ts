@@ -133,35 +133,5 @@ export async function extract<T>(opts: ExtractOptions<T>): Promise<T> {
   return opts.parse(JSON.parse(text.text) as unknown);
 }
 
-export interface GenerateOptions {
-  system: string;
-  user: string;
-  maxTokens?: number;
-  feature: string;
-  tier?: ModelTier;
-  cacheSystem?: boolean;
-}
-
-/**
- * Generate free-form text. Streams under the hood (so long outputs never hit an
- * HTTP timeout) and returns the concatenated text. Use for drafting where the
- * output is prose rather than a fixed schema.
- */
-export async function generateText(opts: GenerateOptions): Promise<string> {
-  const model = MODELS[opts.tier ?? "deep"];
-  const stream = getClient().messages.stream({
-    model,
-    max_tokens: opts.maxTokens ?? 1024,
-    system: buildSystem(opts.system, opts.cacheSystem !== false),
-    messages: [{ role: "user", content: opts.user }],
-  });
-  const final = await stream.finalMessage();
-  return final.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("")
-    .trim();
-}
-
 /** Re-exported so the agent loop can build tool-use requests against the shared client + tiers. */
 export { getClient as getAnthropicClient };

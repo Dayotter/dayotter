@@ -1,4 +1,4 @@
-import { cancelBooking } from "@/lib/booking/cancel-booking";
+import { cancelBooking, cancelBookingSeries } from "@/lib/booking/cancel-booking";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   reason: z.string().max(500).optional(),
+  /** "series" cancels this and every later occurrence of a recurring booking. */
+  scope: z.enum(["one", "series"]).default("one"),
 });
 
 export async function POST(request: Request, { params }: { params: Promise<{ uid: string }> }) {
@@ -23,9 +25,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ uid
 
   const parsed = schema.safeParse(await request.json().catch(() => ({})));
   const reason = parsed.success ? parsed.data.reason?.trim() || undefined : undefined;
+  const scope = parsed.success ? parsed.data.scope : "one";
+
+  if (scope === "series") {
+    const count = await cancelBookingSeries(uid, reason);
+    if (count === 0) {
+      return NextResponse.json(
+        { error: "Booking not found or already cancelled" },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json({ ok: true, cancelled: count });
+  }
+
   const ok = await cancelBooking(uid, reason);
   if (!ok) {
     return NextResponse.json({ error: "Booking not found or already cancelled" }, { status: 404 });
   }
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, cancelled: 1 });
 }
