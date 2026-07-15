@@ -29,8 +29,9 @@ const TIERS: Tier[] = [
     name: "Free",
     price: "$0",
     cadence: "forever",
-    tagline: "Everything one person needs to get booked.",
+    tagline: "Everything one person needs to get booked - Otter included.",
     features: [
+      "Otter - your AI scheduling assistant",
       "Unlimited event types & booking pages",
       "Google, Microsoft & Apple calendar sync",
       "Group polls - find a time across a group",
@@ -45,8 +46,7 @@ const TIERS: Tier[] = [
     cadence: "per seat / month",
     tagline: "The full toolkit for teams that live in their calendar.",
     features: [
-      "Everything in Free",
-      "Otter - your AI scheduling assistant",
+      "Everything in Free, including Otter",
       "Team scheduling - weighted round-robin & collective",
       "Routing forms - qualify & route inbound",
       "Recurring meetings & focus auto-scheduling",
