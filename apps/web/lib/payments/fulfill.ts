@@ -41,6 +41,7 @@ export async function fulfillCheckout(
     return { uid: again?.uid ?? null, pending: !again };
   }
 
+  const destinationAccountId = session.metadata?.dest || undefined;
   try {
     const { uid } = await createBooking({
       ...input,
@@ -48,6 +49,7 @@ export async function fulfillCheckout(
         paymentIntentId: pi,
         amountPaid: session.amount_total ?? 0,
         currency: session.currency ?? "usd",
+        destinationAccountId,
       },
     });
     return { uid, pending: false };

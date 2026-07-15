@@ -1,5 +1,6 @@
 import { messageBookingAttendees } from "@/lib/booking/message-attendees";
 import { jsonError, withUser } from "@/lib/server/http";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -10,6 +11,15 @@ const body = z.object({ message: z.string().min(1).max(2000) });
 /** Send the host-confirmed (possibly edited) message to the meeting's attendees. */
 export const POST = withUser(async (u, request, ctx: { params: Promise<{ uid: string }> }) => {
   const { uid } = await ctx.params;
+  // Sends email to attendees - throttle per host to curb outbound-mail abuse.
+  const limited = await enforceRateLimit(request, {
+    name: "ai-meeting-send",
+    limit: 20,
+    windowSec: 600,
+    key: u.id,
+  });
+  if (limited) return limited;
+
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Message is required", 400);
 

@@ -141,7 +141,11 @@ export async function inboxData(userId: string): Promise<InboxData> {
         limit: 100,
       }),
       db.query.calendarEvents.findMany({
+        // Scope to THIS user's calendars in the query - without it the 500-row
+        // cap is filled from all tenants' events and the user's own can be
+        // crowded out, so a real conflict goes undetected.
         where: and(
+          inArray(schema.calendarEvents.calendarId, calendarIds),
           gte(schema.calendarEvents.endsAt, now),
           ne(schema.calendarEvents.transparency, "transparent"),
         ),

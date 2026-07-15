@@ -1,3 +1,4 @@
+import { safeFetch } from "@dayotter/core";
 import { CrmApiError, type CrmContactInput, type CrmProvider } from "./types";
 
 /**
@@ -17,13 +18,15 @@ export function splitName(input: CrmContactInput): { first: string; last: string
   return { first: parts[0] ?? "", last: parts.slice(1).join(" ") };
 }
 
-/** POST a form-encoded OAuth token request; throws CrmApiError on a non-2xx. */
+/** POST a form-encoded OAuth token request; throws CrmApiError on a non-2xx.
+ *  Uses the SSRF-safe fetch (HTTPS-only, IP-pinned) since the endpoint is
+ *  provider-configured. */
 export async function crmTokenRequest<T>(
   provider: CrmProvider,
   url: string,
   body: Record<string, string>,
 ): Promise<T> {
-  const res = await fetch(url, {
+  const res = await safeFetch(url, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams(body).toString(),
@@ -34,20 +37,24 @@ export async function crmTokenRequest<T>(
   return (await res.json()) as T;
 }
 
-/** Bearer-authenticated JSON request; 204 → undefined; throws CrmApiError on non-2xx. */
+/** Bearer-authenticated JSON request; 204 → undefined; throws CrmApiError on
+ *  non-2xx. Routed through safeFetch because Salesforce's REST base comes from
+ *  the token's `instance_url` (not a value we fully control). */
 export async function crmJson<T>(
   provider: CrmProvider,
   url: string,
   init: RequestInit & { token: string },
 ): Promise<T> {
-  const { token, headers, ...rest } = init;
-  const res = await fetch(url, {
-    ...rest,
+  const { token, headers, method, body } = init;
+  const res = await safeFetch(url, {
+    method: method ?? "GET",
     headers: {
       authorization: `Bearer ${token}`,
       "content-type": "application/json",
-      ...(headers ?? {}),
+      ...((headers as Record<string, string> | undefined) ?? {}),
     },
+    // safeFetch takes a string body; CRM adapters always pass JSON strings.
+    ...(typeof body === "string" ? { body } : {}),
   });
   if (!res.ok) throw new CrmApiError(provider, res.status, await res.text());
   return (res.status === 204 ? undefined : await res.json()) as T;

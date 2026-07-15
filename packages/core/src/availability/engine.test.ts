@@ -195,6 +195,35 @@ describe("timezone / DST correctness", () => {
     // Correct engine: 09:00 EDT == 13:00Z (NOT 14:00Z - that would be the naive bug).
     expect(slots[0]!.start.toISOString()).toBe("2026-03-09T13:00:00.000Z");
   });
+
+  // The window math itself must be calendar-correct ON the transition day, not
+  // just the days either side. A schedule open on Sundays covers both dates,
+  // which are Sundays in 2026. Naive `day.plus({minutes})` shifts by the offset.
+  const sundayNine: Schedule = {
+    timezone: "America/New_York",
+    rules: [{ dayOfWeek: 0, startTime: "09:00", endTime: "17:00" }],
+    overrides: [],
+  };
+
+  it("computes the correct 09:00 window ON spring-forward day", () => {
+    // Sun 2026-03-08, NY midnight == 05:00Z (still EST). After 02:00 it's EDT, so
+    // 09:00 local == 13:00Z. The naive-add bug would place it at 14:00Z.
+    const slots = computeAvailability({
+      ...singleDay("2026-03-08T05:00:00Z", "2026-03-09T04:00:00Z"),
+      schedule: sundayNine,
+    });
+    expect(slots[0]!.start.toISOString()).toBe("2026-03-08T13:00:00.000Z");
+  });
+
+  it("computes the correct 09:00 window ON fall-back day", () => {
+    // Sun 2026-11-01, NY midnight == 04:00Z (still EDT). After 02:00 it's EST, so
+    // 09:00 local == 14:00Z. The naive-add bug would place it at 13:00Z.
+    const slots = computeAvailability({
+      ...singleDay("2026-11-01T04:00:00Z", "2026-11-02T05:00:00Z"),
+      schedule: sundayNine,
+    });
+    expect(slots[0]!.start.toISOString()).toBe("2026-11-01T14:00:00.000Z");
+  });
 });
 
 describe("intersectAvailability", () => {

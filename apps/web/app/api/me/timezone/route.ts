@@ -1,5 +1,5 @@
 import { jsonError, withUser } from "@/lib/server/http";
-import { eq, getDb, schema } from "@dayotter/db";
+import { and, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -39,5 +39,20 @@ export const POST = withUser(async (u, request) => {
   if (user?.timezone && user.timezone !== "UTC") return NextResponse.json({ updated: false });
 
   await db.update(schema.users).set({ timezone: tz }).where(eq(schema.users.id, u.id));
+
+  // Availability is computed from the SCHEDULE's timezone, not the user's - so a
+  // new user's bookable slots stay in UTC unless we move the schedule too. Fill
+  // the default schedule's zone when it's likewise still unconfigured.
+  await db
+    .update(schema.schedules)
+    .set({ timezone: tz })
+    .where(
+      and(
+        eq(schema.schedules.userId, u.id),
+        eq(schema.schedules.isDefault, true),
+        eq(schema.schedules.timezone, "UTC"),
+      ),
+    );
+
   return NextResponse.json({ updated: true });
 });

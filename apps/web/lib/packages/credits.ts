@@ -1,5 +1,8 @@
 import { and, eq, getDb, schema, sql } from "@dayotter/db";
 
+/** Anything with `.execute(sql)` - the db handle or an open transaction. */
+type Executor = { execute: (query: ReturnType<typeof sql>) => Promise<{ rows?: unknown[] }> };
+
 /**
  * Prepaid session packages: a host sells a bundle of N sessions for an event
  * type; each booking spends one credit. Everything here keys off the client's
@@ -27,9 +30,13 @@ export async function creditBalance(eventTypeId: string, clientEmail: string): P
  * Returns true if a credit was consumed, false if they had none left. Safe
  * against concurrent bookings - the decrement is a single conditional UPDATE.
  */
-export async function consumeCredit(eventTypeId: string, clientEmail: string): Promise<boolean> {
+export async function consumeCredit(
+  eventTypeId: string,
+  clientEmail: string,
+  exec: Executor = getDb(),
+): Promise<boolean> {
   const email = clientEmail.toLowerCase();
-  const updated = await getDb().execute(sql`
+  const updated = await exec.execute(sql`
     UPDATE ${schema.packageCredits}
     SET used_credits = used_credits + 1, updated_at = now()
     WHERE id = (
@@ -38,6 +45,28 @@ export async function consumeCredit(eventTypeId: string, clientEmail: string): P
         AND client_email = ${email}
         AND used_credits < total_credits
       ORDER BY created_at ASC
+      LIMIT 1
+    )
+    RETURNING id
+  `);
+  return (updated.rows?.length ?? 0) > 0;
+}
+
+/**
+ * Give back one previously-spent credit (e.g. a credit-redeemed booking was
+ * cancelled), newest-used grant first. Best-effort; never throws.
+ */
+export async function restoreCredit(eventTypeId: string, clientEmail: string): Promise<boolean> {
+  const email = clientEmail.toLowerCase();
+  const updated = await getDb().execute(sql`
+    UPDATE ${schema.packageCredits}
+    SET used_credits = used_credits - 1, updated_at = now()
+    WHERE id = (
+      SELECT id FROM ${schema.packageCredits}
+      WHERE event_type_id = ${eventTypeId}
+        AND client_email = ${email}
+        AND used_credits > 0
+      ORDER BY created_at DESC
       LIMIT 1
     )
     RETURNING id

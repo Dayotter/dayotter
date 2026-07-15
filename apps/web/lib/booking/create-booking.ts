@@ -120,7 +120,16 @@ export interface CreateBookingInput {
   /** Access code, required when the event type is password-protected. */
   accessCode?: string;
   /** Set when the booking was paid via Stripe (created from the payment handler). */
-  payment?: { paymentIntentId: string; amountPaid: number; currency: string };
+  payment?: {
+    paymentIntentId: string;
+    amountPaid: number;
+    currency: string;
+    /** Connected account the charge was routed to (for reverse-transfer refunds). */
+    destinationAccountId?: string;
+  };
+  /** Redeem one prepaid package credit for the attendee instead of charging.
+   * Consumed atomically inside the booking transaction (restored on rollback). */
+  redeemCredit?: boolean;
 }
 
 export async function createBooking(
@@ -203,6 +212,23 @@ export async function createBooking(
   let booking: typeof schema.bookings.$inferSelect;
   try {
     booking = await db.transaction(async (tx) => {
+      // Serialize all cap-relevant bookings for this host within the host-local
+      // ISO week. The daily/weekly/focus checks below are count-then-insert, and
+      // the unique/no-overlap indexes only stop same-slot collisions - so without
+      // this lock two bookings on DIFFERENT slots of the same day/week could each
+      // read count < limit and both commit, exceeding the cap. Locking on
+      // host+week (a superset of host+day) closes that race with minimal
+      // contention; different weeks never block each other.
+      const capApplies =
+        eventType.dailyBookingLimit != null ||
+        eventType.weeklyBookingLimit != null ||
+        (!isGroup && Boolean(focusPrefs?.adaptiveAvailability));
+      if (capApplies) {
+        const zone = host.timezone || "UTC";
+        const weekKey = DateTime.fromJSDate(start).setZone(zone).startOf("week").toISODate();
+        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`${host.id}:${weekKey}`}))`);
+      }
+
       // Daily cap: count this event type's confirmed bookings on the same
       // host-local calendar day as the requested slot, inside the transaction so
       // concurrent bookings can't both slip past the limit.
@@ -320,6 +346,15 @@ export async function createBooking(
         }
       }
 
+      // Prepaid package: spend one credit atomically as the payment method.
+      // Done inside the tx so a lost double-book race rolls the credit back too.
+      if (input.redeemCredit) {
+        const spent = await consumeCredit(eventType.id, input.attendee.email, tx);
+        if (!spent) {
+          throw new BookingError("You have no prepaid sessions left for this event.", 402);
+        }
+      }
+
       const [row] = await tx
         .insert(schema.bookings)
         .values({
@@ -337,10 +372,11 @@ export async function createBooking(
           responses: input.responses,
           uid,
           recurrenceUid,
-          paymentStatus: input.payment ? "paid" : "none",
+          paymentStatus: input.payment || input.redeemCredit ? "paid" : "none",
           paymentIntentId: input.payment?.paymentIntentId,
           amountPaid: input.payment?.amountPaid,
           paymentCurrency: input.payment?.currency,
+          destinationAccountId: input.payment?.destinationAccountId,
         })
         .returning();
       if (!row) throw new BookingError("Failed to create booking", 500);
@@ -469,10 +505,6 @@ export async function createBooking(
 
   // Schedule the host's workflow messages (custom reminders / follow-ups).
   await scheduleWorkflowMessages(booking.id, eventType.organizationId, eventType.id, start, end);
-
-  // Prepaid packages: if this booker holds a credit balance for the event type,
-  // spend one session. Best-effort - never blocks the booking.
-  await consumeCredit(eventType.id, input.attendee.email).catch(() => false);
 
   // Automation rules (prep blocks / buffers / follow-ups). Best-effort.
   await applyBookingRules({

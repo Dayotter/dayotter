@@ -28,8 +28,16 @@ export async function syncOrgSubscription(sub: Stripe.Subscription): Promise<voi
   }
 
   const active = sub.status === "active" || sub.status === "trialing" || sub.status === "past_due";
-  const quantity = sub.items?.data?.[0]?.quantity ?? 1;
-  const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
+  const item = sub.items?.data?.[0];
+  const quantity = item?.quantity ?? 1;
+  // Newer Stripe API versions moved current_period_end onto the subscription
+  // ITEM; older ones expose it at the top level. Read the item first, fall back
+  // to the (deprecated) top-level field so this doesn't silently store null.
+  const periodEndUnix =
+    (item as { current_period_end?: number } | undefined)?.current_period_end ??
+    (sub as { current_period_end?: number }).current_period_end ??
+    null;
+  const periodEnd = periodEndUnix ? new Date(periodEndUnix * 1000) : null;
 
   await getDb()
     .update(schema.organizations)

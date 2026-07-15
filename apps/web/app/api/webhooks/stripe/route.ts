@@ -62,7 +62,11 @@ export async function POST(request: Request) {
       type: event.type,
       err,
     });
-    // Return 200 anyway so Stripe doesn't retry something already reconciled.
+    // Ask Stripe to retry. Every handler is idempotent (payment-intent / session
+    // dedup on fulfillment, id-keyed subscription + credit grants), so a retry
+    // after a transient failure (e.g. a DB blip) safely completes fulfillment -
+    // otherwise a package purchase would be paid with the credits never granted.
+    return NextResponse.json({ error: "handler failed" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

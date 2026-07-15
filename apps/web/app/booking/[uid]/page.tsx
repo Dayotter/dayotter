@@ -104,6 +104,19 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
                 ))}
               </dl>
             ) : null}
+
+            {cancelled && booking.cancelReason ? (
+              <div className="border-t border-[var(--color-border)] pt-3 text-sm">
+                <p className="text-xs text-[var(--color-muted)]">Reason for cancelling</p>
+                <p className="text-[var(--color-text)]">{booking.cancelReason}</p>
+              </div>
+            ) : null}
+            {!cancelled && booking.rescheduleReason ? (
+              <div className="border-t border-[var(--color-border)] pt-3 text-sm">
+                <p className="text-xs text-[var(--color-muted)]">Reason for the last change</p>
+                <p className="text-[var(--color-text)]">{booking.rescheduleReason}</p>
+              </div>
+            ) : null}
           </div>
 
           {!cancelled ? (
