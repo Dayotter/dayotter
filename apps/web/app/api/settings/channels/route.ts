@@ -50,10 +50,10 @@ export const POST = withUser(async (u, request) => {
   }
   const input = parsed.data;
 
-  // Device reminders (mobile + browser push) stay free; extra channels
-  // (Slack/WhatsApp/SMS) are Pro.
-  if (input.type !== "push" && input.type !== "webpush") {
-    const gate = await requireFeature(u.id, "multi_channel");
+  // Push, Slack and WhatsApp reminders are free. Only SMS is Pro (it carries a
+  // real per-message carrier cost).
+  if (input.type === "sms") {
+    const gate = await requireFeature(u.id, "sms_reminders");
     if (gate) return gate;
   }
 

@@ -17,7 +17,7 @@ export type Feature =
   | "automation" // automation rules + weekly blocks
   | "workflows" // automated attendee messaging (reminders / follow-ups)
   | "analytics" // funnel / conversion / CSV
-  | "multi_channel" // Slack / WhatsApp / SMS reminders
+  | "sms_reminders" // SMS reminders only (carrier cost); Slack/WhatsApp are free
   | "adaptive" // adaptive availability
   | "travel" // travel-aware scheduling
   | "deep_work" // focus-time defense
@@ -38,13 +38,14 @@ export const FEATURE_TIER: Record<Feature, FeatureTier> = {
   automation: "pro",
   workflows: "pro",
   analytics: "pro",
-  multi_channel: "pro",
+  // Slack + WhatsApp reminders are free; only SMS (real carrier cost) is Pro.
+  sms_reminders: "pro",
   adaptive: "pro",
   travel: "pro",
-  deep_work: "pro",
+  deep_work: "free",
   accept_payments: "pro",
-  developer: "pro",
-  crm_sync: "pro",
+  developer: "free",
+  crm_sync: "free",
   managed_ai: "cloud",
   sso: "cloud",
   white_label: "cloud",
@@ -59,7 +60,7 @@ export const FEATURE_LABEL: Record<Feature, string> = {
   automation: "Automations",
   workflows: "Workflows",
   analytics: "Analytics",
-  multi_channel: "Slack / WhatsApp / SMS reminders",
+  sms_reminders: "SMS reminders",
   adaptive: "Adaptive availability",
   travel: "Travel-aware scheduling",
   deep_work: "Deep-work defense",
