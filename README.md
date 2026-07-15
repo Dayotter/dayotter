@@ -5,7 +5,7 @@
 **The AI-native, open-source scheduling platform.**
 Say it once - Otter books the meeting, protects your focus, and clears the back-and-forth. Confirm-first, always.
 
-[Website](https://dayotter.com) · [Docs](./docs) · [Roadmap](./docs/ROADMAP.md) · [AI architecture](./docs/AI.md) · [Contributing](./CONTRIBUTING.md)
+[Website](https://dayotter.com) · [Docs](./docs) · [Integration setup](./docs/INTEGRATIONS.md) · [Roadmap](./docs/ROADMAP.md) · [AI architecture](./docs/AI.md) · [Contributing](./CONTRIBUTING.md)
 
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
 ![Self-hostable](https://img.shields.io/badge/self--hostable-yes-brightgreen)
@@ -91,6 +91,8 @@ pnpm dev
 ## Self-hosting (production)
 
 Docker Compose brings up Postgres, Redis, migrations, web, worker, and a reverse proxy. See [`deploy/README.md`](./deploy/README.md) and [`docs/SELF_HOSTING.md`](./docs/SELF_HOSTING.md). Redeploys always run migrations via [`deploy/deploy.sh`](./deploy/deploy.sh).
+
+**Connecting integrations** (Google, Microsoft, Apple, Salesforce, HubSpot, Zoom, Stripe, Twilio, Resend) — where to get each client ID / API key and which redirect URI & webhook to register: [`docs/INTEGRATIONS.md`](./docs/INTEGRATIONS.md), mirrored on the site at `/docs/integration-setup`.
 
 ## Contributing
 

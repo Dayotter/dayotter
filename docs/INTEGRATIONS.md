@@ -1,0 +1,190 @@
+# Integration setup — IDs, keys & webhooks
+
+Everything DayOtter connects to (calendars, CRM, video, billing, messaging, email)
+is **optional and env-gated**: a provider is inert until you set its keys, so you
+only wire up what you need. This guide is the one place that tells you, per
+provider, **where to get the credentials, which redirect URI / webhook to register,
+and which env var each value goes into.**
+
+> **Two values everything depends on**
+> - **`APP_URL`** — your deployment's public base URL (e.g. `https://dayotter.com`).
+>   Every redirect URI and webhook below is `APP_URL` + a fixed path. It **must** be
+>   the exact public HTTPS origin, with no trailing slash.
+> - Set env vars in your deployment (the `.env` used by the web app **and** worker),
+>   then **rebuild/redeploy** — some are read at build time.
+
+After editing env, restart the container. Redirect URIs and webhook URLs must be
+registered **exactly** (scheme, host, path) in each provider's console, or the
+provider rejects the callback.
+
+---
+
+## Quick reference
+
+| Provider | Env vars | Redirect URI (register in provider) | Webhook (register in provider) |
+|---|---|---|---|
+| Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `APP_URL/api/calendars/connect/google/callback` | `APP_URL/api/webhooks/google` (auto-registered by the app; needs a public HTTPS `APP_URL` + a verified domain) |
+| Microsoft / Outlook | `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | `APP_URL/api/calendars/connect/microsoft/callback` | `APP_URL/api/webhooks/microsoft` (auto) |
+| Apple iCloud | *(none — each user pastes an app-specific password)* | — (CalDAV, no OAuth) | — |
+| Salesforce | `SALESFORCE_CLIENT_ID`, `SALESFORCE_CLIENT_SECRET` | `APP_URL/api/integrations/crm/salesforce/callback` | — |
+| HubSpot | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` | `APP_URL/api/integrations/crm/hubspot/callback` | — |
+| Zoom | `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET` | `APP_URL/api/integrations/zoom/callback` | — |
+| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_WEBHOOK_SECRET` | — | `APP_URL/api/webhooks/stripe` |
+| Twilio | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM` | — | `APP_URL/api/webhooks/twilio` (set on the number/Messaging Service) |
+| Resend (email) | `RESEND_API_KEY`, `EMAIL_FROM` | — | — |
+
+---
+
+## Google Calendar (and Google sign-in)
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → create/select a project.
+2. **APIs & Services → Enabled APIs** → enable **Google Calendar API**.
+3. **OAuth consent screen** → configure (External), add the scopes below, and add
+   your account as a test user (or publish the app).
+4. **Credentials → Create credentials → OAuth client ID → Web application**.
+   - **Authorized redirect URI:** `APP_URL/api/calendars/connect/google/callback`
+   - (If you also use Google sign-in, add the auth callback your provider uses.)
+5. Copy the client ID + secret into:
+   ```
+   GOOGLE_CLIENT_ID=...
+   GOOGLE_CLIENT_SECRET=...
+   NEXT_PUBLIC_GOOGLE_AUTH=1   # optional: show the "Sign in with Google" button
+   ```
+- **Scopes:** `calendar.events`, `calendar.readonly`, `openid`, `email`, `profile`.
+- **Real-time sync (push):** the app registers a watch channel at
+  `APP_URL/api/webhooks/google` automatically. Google only allows push to a
+  **verified domain** over HTTPS — verify your domain under **Domain verification**
+  in the console. If push isn't available it's non-fatal: DayOtter falls back to
+  polling, so bookings still stay in sync.
+
+## Microsoft 365 / Outlook
+
+1. [Azure Portal](https://portal.azure.com/) → **Microsoft Entra ID → App registrations → New registration**.
+2. **Redirect URI (Web):** `APP_URL/api/calendars/connect/microsoft/callback`.
+3. **Certificates & secrets → New client secret** — copy the *value* (not the id).
+4. **API permissions → Microsoft Graph → Delegated** → add `Calendars.ReadWrite`,
+   `User.Read`, `offline_access`, `openid`, `email`, `profile`.
+5. Env:
+   ```
+   MICROSOFT_CLIENT_ID=...       # the Application (client) ID
+   MICROSOFT_CLIENT_SECRET=...   # the secret VALUE
+   ```
+- Push sync uses `APP_URL/api/webhooks/microsoft` (auto).
+
+## Apple iCloud
+
+No developer setup or env vars — Apple calendars connect over **CalDAV** with a
+per-user **app-specific password**. Each user generates one at
+[appleid.apple.com](https://appleid.apple.com) (Sign-In & Security → App-Specific
+Passwords) and pastes it in **Settings → Calendars → Apple**. Never their real
+Apple ID password.
+
+## Salesforce (CRM sync)
+
+1. Salesforce **Setup → App Manager → New Connected App** (or **External Client Apps**).
+2. Enable OAuth. **Callback URL:** `APP_URL/api/integrations/crm/salesforce/callback`.
+3. **OAuth scopes:** `api` (Manage user data via APIs) and `refresh_token`
+   (Perform requests any time — offline access).
+4. Copy the **Consumer Key / Secret**:
+   ```
+   SALESFORCE_CLIENT_ID=...       # Consumer Key
+   SALESFORCE_CLIENT_SECRET=...   # Consumer Secret
+   ```
+5. Users then connect under **Settings → CRM → Salesforce** (one-click OAuth — no
+   keys to paste on their end).
+
+## HubSpot (CRM sync)
+
+1. [HubSpot developer account](https://developers.hubspot.com/) → **Create app**.
+2. **Auth → Redirect URL:** `APP_URL/api/integrations/crm/hubspot/callback`.
+3. **Scopes:** `crm.objects.contacts.read`, `crm.objects.contacts.write`.
+4. Env:
+   ```
+   HUBSPOT_CLIENT_ID=...
+   HUBSPOT_CLIENT_SECRET=...
+   ```
+
+## Zoom (video links)
+
+1. [Zoom App Marketplace](https://marketplace.zoom.us/) → **Develop → Build App →
+   OAuth** (user-managed).
+2. **Redirect URL / OAuth allow list:** `APP_URL/api/integrations/zoom/callback`.
+3. Add the scope to **create meetings** on the user's behalf.
+4. Env:
+   ```
+   ZOOM_CLIENT_ID=...
+   ZOOM_CLIENT_SECRET=...
+   ```
+Without these two the Zoom connect button is hidden. Google Meet needs no setup
+(it comes with the Google Calendar connection); Microsoft Teams links come with the
+Microsoft connection.
+
+## Stripe (Pro billing — cloud edition only)
+
+Billing only runs when `DAYOTTER_CLOUD=1`. Then:
+
+1. [Stripe Dashboard](https://dashboard.stripe.com/) → **Developers → API keys** →
+   copy the **Secret key** → `STRIPE_SECRET_KEY`.
+2. **Products → add a Product** with a **recurring** price ($9/seat/mo). Open the
+   price and copy its **API ID** — it starts with **`price_`**.
+   ```
+   STRIPE_PRICE_PRO=price_1Xxxx...   # MUST be the price_ ID, NOT a number/amount
+   ```
+3. **Developers → Webhooks → Add endpoint:**
+   - **Endpoint URL:** `APP_URL/api/webhooks/stripe`
+   - **Events:** `checkout.session.completed`, `customer.subscription.created`,
+     `customer.subscription.updated`, `customer.subscription.deleted`.
+   - Copy the endpoint's **Signing secret** → `STRIPE_WEBHOOK_SECRET`.
+4. Dev tip: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`.
+
+The webhook is what flips an org to **Pro** after payment (and handles seat
+changes / cancellations). DayOtter also reconciles the plan on the checkout-success
+redirect, so a one-off missed webhook won't leave you stuck — but configure the
+webhook for ongoing changes.
+
+## Twilio (SMS / WhatsApp reminders)
+
+1. [Twilio Console](https://console.twilio.com/) → copy **Account SID** + **Auth Token**.
+2. Get a phone number (SMS) and/or enable the WhatsApp sender.
+   ```
+   TWILIO_ACCOUNT_SID=AC...
+   TWILIO_AUTH_TOKEN=...
+   TWILIO_SMS_FROM=+1XXXXXXXXXX          # your SMS-capable number, E.164
+   TWILIO_WHATSAPP_FROM=whatsapp:+1XXXXXXXXXX
+   ```
+3. **Inbound replies** (so people can reply to reminders): set the number's (or
+   Messaging Service's) incoming-message webhook to `APP_URL/api/webhooks/twilio`.
+   On DayOtter Cloud this is DayOtter's managed Twilio; self-hosters bring their own.
+
+## Resend (transactional email)
+
+1. [Resend](https://resend.com/) → **API Keys** → create one → `RESEND_API_KEY`.
+2. **Domains → Add domain**, then add the DNS records Resend gives you and wait
+   for **Verified**.
+3. Set the sender to an address **on that verified domain**:
+   ```
+   EMAIL_FROM="DayOtter <no-reply@yourdomain.com>"
+   ```
+   ⚠️ An unverified/placeholder domain (e.g. `example.com`) makes **every** email
+   bounce with `550 domain is not verified` — confirmations and reminders silently
+   fail. This is the #1 email setup mistake.
+
+*Alternative to Resend:* any SMTP server via `SMTP_URL` (e.g.
+`smtps://user:pass@smtp.host:465`). Resend also works over SMTP.
+
+---
+
+## Verifying it worked
+
+- **Calendars:** Settings → Calendars → Connect → you should be redirected to the
+  provider and back. If you get a redirect-URI error, the URI in the provider
+  console doesn't match `APP_URL/api/...` exactly.
+- **Stripe:** run a checkout; the billing page should flip to Pro. Check the webhook
+  delivery attempts in the Stripe Dashboard.
+- **Email:** create a test booking and watch the logs — `EMAIL_FROM is
+  unset/example.com` or a `550` means the sender domain isn't verified.
+- Every failure is logged with a structured `event` (e.g. `billing_checkout_failed`,
+  `confirmation_email_failed`, `sync_watch_failed`) — grep your container logs.
+
+See also: [`../.env.example`](../.env.example) (every variable in context) and
+[`EDITIONS.md`](./EDITIONS.md) (self-hosted vs cloud).
