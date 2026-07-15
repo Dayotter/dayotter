@@ -1,6 +1,7 @@
 import { AppNav } from "@/components/app-nav";
 import { MobileNav } from "@/components/mobile-nav";
 import { OtterLauncher } from "@/components/otter-launcher";
+import { TimezoneSync } from "@/components/timezone-sync";
 import { ToastProvider } from "@/components/ui/toast";
 import { aiEnabled } from "@/lib/ai/llm";
 import { getSession } from "@/lib/auth/session";
@@ -13,6 +14,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <ToastProvider>
+      <TimezoneSync />
       <div className="grain relative flex h-[100dvh] overflow-hidden">
         <AppNav user={{ name: session.user.name, email: session.user.email }} />
         <MobileNav />
