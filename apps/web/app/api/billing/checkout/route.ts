@@ -39,15 +39,19 @@ export const POST = withUser(async (u) => {
     });
     return NextResponse.json({ url });
   } catch (err) {
-    // Surface the real Stripe failure server-side - almost always a config issue
-    // (invalid STRIPE_PRICE_PRO, a non-recurring price, or a test/live key mix-up),
-    // which the bare 502 otherwise hides from the operator.
+    // Almost always a Stripe config issue (invalid STRIPE_PRICE_PRO, a non-recurring
+    // price, or a test/live key mix-up). Log it AND return the detail - this route is
+    // owner/admin-only, so surfacing the real cause beats an opaque 502.
+    const detail = err instanceof Error ? err.message : String(err);
     logger.error("stripe checkout failed", {
       event: "billing_checkout_failed",
       userId: u.id,
       organizationId: org.id,
       err,
     });
-    return jsonError("Couldn't start checkout. Please try again.", 502);
+    return NextResponse.json(
+      { error: "Couldn't start checkout. Check the Stripe configuration.", detail },
+      { status: 500 },
+    );
   }
 });

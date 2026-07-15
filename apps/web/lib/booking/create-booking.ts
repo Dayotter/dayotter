@@ -458,45 +458,50 @@ export async function createBooking(
     place: eventType.locationDetail,
   });
 
-  // Confirmation emails to attendee + host.
-  try {
-    const manageUrl = `${appUrl}/booking/${uid}`;
-    await sendEmail({
-      ...bookingConfirmation({
-        eventTitle: eventType.title,
-        start,
-        end,
-        timezone: input.attendee.timezone,
-        hostName: host.name ?? "your host",
-        attendeeName: input.attendee.name,
-        location: eventType.locationDetail ?? undefined,
-        meetingUrl,
-        manageUrl,
-      }),
-      to: input.attendee.email,
-    });
-    if (host.email) {
+  // Confirmation emails to attendee + host. Send them INDEPENDENTLY: a failure to
+  // the host (e.g. a provider that only allows verified recipients in test mode)
+  // must not stop the attendee's mail, and each failure is logged with its
+  // recipient so the cause is visible instead of a single opaque error.
+  const manageUrl = `${appUrl}/booking/${uid}`;
+  const sendConfirmation = async (
+    to: string,
+    timezone: string,
+    hostName: string,
+    recipient: "attendee" | "host",
+  ) => {
+    try {
       await sendEmail({
         ...bookingConfirmation({
           eventTitle: eventType.title,
           start,
           end,
-          timezone: host.timezone,
-          hostName: host.name ?? "you",
+          timezone,
+          hostName,
           attendeeName: input.attendee.name,
           location: eventType.locationDetail ?? undefined,
           meetingUrl,
           manageUrl,
         }),
-        to: host.email,
+        to,
+      });
+    } catch (err) {
+      logger.error("confirmation email failed", {
+        event: "confirmation_email_failed",
+        bookingId: booking.id,
+        recipient,
+        to,
+        err,
       });
     }
-  } catch (err) {
-    logger.error("confirmation email failed", {
-      event: "confirmation_email_failed",
-      bookingId: booking.id,
-      err,
-    });
+  };
+  await sendConfirmation(
+    input.attendee.email,
+    input.attendee.timezone,
+    host.name ?? "your host",
+    "attendee",
+  );
+  if (host.email) {
+    await sendConfirmation(host.email, host.timezone, host.name ?? "you", "host");
   }
 
   // Recurring series: create the remaining occurrences (best-effort each; an
