@@ -14,6 +14,7 @@ export function RescheduleWidget({ uid, eventTypeId }: { uid: string; eventTypeI
   const [selected, setSelected] = useState<Slot | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
 
   async function confirm() {
     if (!selected) return;
@@ -22,7 +23,7 @@ export function RescheduleWidget({ uid, eventTypeId }: { uid: string; eventTypeI
     const res = await fetch(`/api/bookings/${uid}/reschedule`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ start: selected.start }),
+      body: JSON.stringify({ start: selected.start, reason: reason.trim() || undefined }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -51,6 +52,20 @@ export function RescheduleWidget({ uid, eventTypeId }: { uid: string; eventTypeI
           {DateTime.fromISO(selected.start).setZone(zone).toFormat("cccc, LLLL d 'at' h:mm a")}
         </span>
         <span className="text-[var(--color-muted)]"> · {zone}</span>
+      </div>
+      <div className="mb-4">
+        <label htmlFor="reschedule-reason" className="mb-1.5 block text-sm font-medium">
+          Reason <span className="font-normal text-[var(--color-faint)]">(optional)</span>
+        </label>
+        <textarea
+          id="reschedule-reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          rows={3}
+          maxLength={500}
+          placeholder="Add a note - it's included in the reschedule email everyone gets."
+          className="w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+        />
       </div>
       <FormError>{error}</FormError>
       <Button className="w-full" onClick={confirm} disabled={submitting}>

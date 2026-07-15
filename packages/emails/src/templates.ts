@@ -12,6 +12,8 @@ export interface BookingEmailData {
   meetingUrl?: string;
   /** Public link to view / cancel / reschedule the booking. */
   manageUrl: string;
+  /** Optional host-written note shown on cancel/reschedule emails. */
+  reason?: string | null;
 }
 
 interface Rendered {
@@ -127,15 +129,17 @@ export function bookingRescheduled(d: BookingEmailData): Rendered {
     : d.location
       ? `Location: ${d.location}`
       : "";
+  const note = d.reason ? `Reason: ${d.reason}` : "";
   return {
     subject: `Rescheduled: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
-    text: `Your booking has been moved to a new time.\n\n${d.eventTitle} with ${d.hostName}\nNew time: ${when}\n${where}\n\nManage: ${d.manageUrl}`,
+    text: `Your booking has been moved to a new time.\n\n${d.eventTitle} with ${d.hostName}\nNew time: ${when}\n${where}${note ? `\n\n${note}` : ""}\n\nManage: ${d.manageUrl}`,
     html: shell(
       "Your booking was rescheduled",
       [
         `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} has a new time:`,
         `🗓 ${when}`,
         where ? `📍 ${esc(where)}` : "",
+        note ? `💬 ${esc(note)}` : "",
       ].filter(Boolean),
       { label: "View booking", url: d.manageUrl },
     ),
@@ -173,13 +177,18 @@ export function bookingMessage(d: BookingEmailData & { body: string }): Rendered
 }
 
 export function bookingCancellation(d: BookingEmailData): Rendered {
+  const note = d.reason ? `Reason: ${d.reason}` : "";
   return {
     subject: `Cancelled: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
-    text: `This booking has been cancelled.\n\n${d.eventTitle} with ${d.hostName}\nWas: ${fmt(d.start, d.timezone)}`,
-    html: shell("Booking cancelled", [
-      `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} has been cancelled.`,
-      `Was: ${fmt(d.start, d.timezone)}`,
-    ]),
+    text: `This booking has been cancelled.\n\n${d.eventTitle} with ${d.hostName}\nWas: ${fmt(d.start, d.timezone)}${note ? `\n\n${note}` : ""}`,
+    html: shell(
+      "Booking cancelled",
+      [
+        `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} has been cancelled.`,
+        `Was: ${fmt(d.start, d.timezone)}`,
+        note ? `💬 ${esc(note)}` : "",
+      ].filter(Boolean),
+    ),
   };
 }
 

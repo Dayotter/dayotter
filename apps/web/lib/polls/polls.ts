@@ -87,6 +87,15 @@ export async function getPollForHost(pollId: string, hostId: string) {
 }
 
 /** List a host's polls (newest first) with lightweight counts. */
+/** Delete a poll (ownership-checked). Options + votes cascade. */
+export async function deletePoll(pollId: string, hostId: string): Promise<boolean> {
+  const rows = await getDb()
+    .delete(schema.meetingPolls)
+    .where(and(eq(schema.meetingPolls.id, pollId), eq(schema.meetingPolls.hostId, hostId)))
+    .returning({ id: schema.meetingPolls.id });
+  return rows.length > 0;
+}
+
 export async function listPolls(hostId: string) {
   return getDb().query.meetingPolls.findMany({
     where: eq(schema.meetingPolls.hostId, hostId),
