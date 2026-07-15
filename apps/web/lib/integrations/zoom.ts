@@ -134,19 +134,6 @@ async function refreshCredentials(
   return next;
 }
 
-/** True when the user has an active Zoom connection. */
-export async function hasZoomConnection(userId: string): Promise<boolean> {
-  const row = await getDb().query.conferencingConnections.findFirst({
-    where: and(
-      eq(schema.conferencingConnections.userId, userId),
-      eq(schema.conferencingConnections.provider, "zoom"),
-      eq(schema.conferencingConnections.status, "active"),
-    ),
-    columns: { id: true },
-  });
-  return Boolean(row);
-}
-
 /**
  * Create a scheduled Zoom meeting for a booking and return its join URL, or null
  * if the user has no Zoom connection or the API call fails. Best-effort - the

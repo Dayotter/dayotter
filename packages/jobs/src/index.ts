@@ -41,18 +41,6 @@ export async function pingRedis(): Promise<boolean> {
   }
 }
 
-/** Pending/active/failed counts per queue, for health/metrics. */
-export async function queueDepths(): Promise<
-  Record<string, Awaited<ReturnType<Queue["getJobCounts"]>>>
-> {
-  const [reminders, sync, maintenance] = await Promise.all([
-    remindersQueue.getJobCounts(),
-    syncQueue.getJobCounts(),
-    maintenanceQueue.getJobCounts(),
-  ]);
-  return { reminders, sync, maintenance };
-}
-
 export interface ReminderJob {
   reminderId: string;
   bookingId: string;

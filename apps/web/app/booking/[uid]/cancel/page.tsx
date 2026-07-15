@@ -20,6 +20,7 @@ export default async function CancelBookingPage({
   });
   if (!booking) notFound();
   if (booking.status === "cancelled") redirect(`/booking/${uid}`);
+  const isRecurring = Boolean(booking.recurrenceUid);
 
   const when = DateTime.fromJSDate(booking.startsAt)
     .setZone(booking.timezone)
@@ -42,7 +43,7 @@ export default async function CancelBookingPage({
           </div>
 
           <div className="mt-6 space-y-3">
-            <CancelButton uid={uid} />
+            <CancelButton uid={uid} isRecurring={isRecurring} />
             <Link
               href={`/booking/${uid}`}
               className={`${buttonVariants({ variant: "outline" })} w-full`}

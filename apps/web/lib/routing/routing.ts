@@ -164,13 +164,3 @@ export async function submitAndRoute(
 
   return { url: `/${owner.handle}/${target.slug}` };
 }
-
-/** Resolve event-type ids → titles for the builder/results (labels for routes). */
-export async function eventTypeTitles(ids: string[]): Promise<Map<string, string>> {
-  if (ids.length === 0) return new Map();
-  const rows = await getDb().query.eventTypes.findMany({
-    where: inArray(schema.eventTypes.id, ids),
-    columns: { id: true, title: true },
-  });
-  return new Map(rows.map((r) => [r.id, r.title]));
-}

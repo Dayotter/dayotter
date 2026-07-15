@@ -784,9 +784,6 @@ const BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
 export function getTool(name: string): AiToolDef | undefined {
   return BY_NAME.get(name);
 }
-export const READ_TOOLS = TOOLS.filter((t) => t.kind === "read");
-export const ACTION_TOOLS = TOOLS.filter((t) => t.kind !== "read");
-
 /** Anthropic tool definitions for every registry tool. */
 export function anthropicToolDefs() {
   return TOOLS.map((t) => ({

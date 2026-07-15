@@ -1,5 +1,5 @@
 import { logger } from "@dayotter/core";
-import { and, eq, getDb, ne, schema } from "@dayotter/db";
+import { and, eq, getDb, gte, ne, schema } from "@dayotter/db";
 import { bookingCancellation, sendEmail } from "@dayotter/emails";
 import { deleteBookingFromCalendar } from "../calendar/host-calendar";
 import { restoreCredit } from "../packages/credits";
@@ -150,4 +150,39 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
   }
 
   return true;
+}
+
+/**
+ * Cancel a booking AND every later occurrence in its recurring series ("this and
+ * following"). Falls back to a single cancel for a non-recurring booking. Each
+ * occurrence is cancelled through the normal path (refund, calendar, emails).
+ * Returns how many bookings were cancelled.
+ */
+export async function cancelBookingSeries(uid: string, reason?: string): Promise<number> {
+  const db = getDb();
+  const target = await db.query.bookings.findFirst({
+    where: eq(schema.bookings.uid, uid),
+    columns: { recurrenceUid: true, startsAt: true },
+  });
+  if (!target) return 0;
+
+  // One-off booking: just cancel it.
+  if (!target.recurrenceUid) return (await cancelBooking(uid, reason)) ? 1 : 0;
+
+  // The target and every later occurrence of the same series, still live.
+  const siblings = await db.query.bookings.findMany({
+    where: and(
+      eq(schema.bookings.recurrenceUid, target.recurrenceUid),
+      ne(schema.bookings.status, "cancelled"),
+      gte(schema.bookings.startsAt, target.startsAt),
+    ),
+    columns: { uid: true },
+    orderBy: schema.bookings.startsAt,
+  });
+
+  let cancelled = 0;
+  for (const s of siblings) {
+    if (await cancelBooking(s.uid, reason)) cancelled++;
+  }
+  return cancelled;
 }
