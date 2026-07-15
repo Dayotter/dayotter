@@ -1,5 +1,6 @@
 import { BookingError, type CreateBookingInput, createBooking } from "@/lib/booking/create-booking";
 import { chargeFor } from "@/lib/booking/money";
+import { creditBalance } from "@/lib/packages/credits";
 import { hostDestinationAccount } from "@/lib/payments/connect";
 import { stashPendingBooking } from "@/lib/payments/pending";
 import { createCheckoutSession, paymentsEnabled } from "@/lib/payments/stripe";
@@ -84,6 +85,21 @@ export async function POST(request: Request) {
     });
     const amount = chargeFor(et?.price ?? null, et?.depositAmount ?? null);
     if (et?.isActive && amount > 0) {
+      // Prepaid package: if the booker holds a credit for this event type, spend
+      // one and book directly instead of sending them to Stripe Checkout.
+      const credits = await creditBalance(parsed.data.eventTypeId, parsed.data.attendee.email);
+      if (credits > 0) {
+        try {
+          const { uid, redirectUrl } = await createBooking({ ...input, redeemCredit: true });
+          return NextResponse.json({ uid, url: `/booking/${uid}`, redirectUrl });
+        } catch (err) {
+          if (err instanceof BookingError) {
+            return NextResponse.json({ error: err.message }, { status: err.status });
+          }
+          console.error("[api/book] credit booking error:", err);
+          return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+        }
+      }
       try {
         const token = await stashPendingBooking(input);
         const appUrl = process.env.APP_URL ?? "http://localhost:3000";
@@ -96,7 +112,9 @@ export async function POST(request: Request) {
           successUrl: `${appUrl}/booking/paid?session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${appUrl}${returnPath}`,
           customerEmail: parsed.data.attendee.email,
-          metadata: { token },
+          // Echo the destination account back on the session so fulfillment can
+          // record it on the booking (needed for reverse-transfer refunds).
+          metadata: { token, ...(destinationAccountId ? { dest: destinationAccountId } : {}) },
           destinationAccountId,
         });
         // Funnel: record that a paid checkout was started (best-effort), so

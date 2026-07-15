@@ -1,4 +1,5 @@
 import { RescheduleError, rescheduleBooking } from "@/lib/booking/reschedule-booking";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -11,6 +12,16 @@ const schema = z.object({
 
 export async function POST(request: Request, { params }: { params: Promise<{ uid: string }> }) {
   const { uid } = await params;
+  // Capability-uid only (unauthenticated) + does real work (availability recompute,
+  // calendar write, emails) - throttle per uid so a leaked link can't be abused.
+  const limited = await enforceRateLimit(request, {
+    name: "reschedule",
+    limit: 8,
+    windowSec: 600,
+    key: uid,
+  });
+  if (limited) return limited;
+
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid start time" }, { status: 400 });

@@ -1,6 +1,7 @@
 import { aiEnabled } from "@/lib/ai/schedule-parse";
 import { createHostBooking } from "@/lib/booking/host-booking";
 import { jsonError, withUser } from "@/lib/server/http";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
@@ -29,6 +30,15 @@ const body = z.object({
  */
 export const POST = withUser(async (u, request) => {
   if (!aiEnabled) return jsonError("AI scheduling isn't enabled on this server.", 503);
+
+  // Writes a real booking (calendar + attendee emails) - throttle per host.
+  const limited = await enforceRateLimit(request, {
+    name: "ai-schedule-create",
+    limit: 20,
+    windowSec: 600,
+    key: u.id,
+  });
+  if (limited) return limited;
 
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Check the draft details", 400);

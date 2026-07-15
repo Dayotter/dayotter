@@ -221,21 +221,44 @@ export async function retrieveConnectStatus(accountId: string): Promise<ConnectS
   };
 }
 
-/** Available balance (minor units) on a host's connected account, per currency. */
-export async function connectedBalance(
-  accountId: string,
-): Promise<{ available: number; currency: string }> {
-  const bal = await stripe().balance.retrieve({ stripeAccount: accountId });
-  const first = bal.available[0];
-  return { available: first?.amount ?? 0, currency: first?.currency ?? "usd" };
+export interface CurrencyBalance {
+  currency: string;
+  /** Minor units clear to withdraw now. */
+  available: number;
+  /** Minor units still in Stripe's hold period ("on the way"). */
+  pending: number;
 }
 
-/** Pay out the host's available balance to their bank (manual payout). */
+/** Balances on a host's connected account, one entry per currency they hold.
+ *  A host taking payments in multiple currencies has a bucket for each - we must
+ *  not collapse to `available[0]` or other-currency funds get stranded. */
+export async function connectedBalances(accountId: string): Promise<CurrencyBalance[]> {
+  const bal = await stripe().balance.retrieve({ stripeAccount: accountId });
+  const byCurrency = new Map<string, CurrencyBalance>();
+  for (const a of bal.available) {
+    const e = byCurrency.get(a.currency) ?? { currency: a.currency, available: 0, pending: 0 };
+    e.available += a.amount;
+    byCurrency.set(a.currency, e);
+  }
+  for (const p of bal.pending) {
+    const e = byCurrency.get(p.currency) ?? { currency: p.currency, available: 0, pending: 0 };
+    e.pending += p.amount;
+    byCurrency.set(p.currency, e);
+  }
+  return [...byCurrency.values()];
+}
+
+/** Pay out a host's balance to their bank (manual payout). `idempotencyKey`
+ *  guards against a double-submit creating two payouts for the same intent. */
 export async function createConnectedPayout(
   accountId: string,
   amount: number,
   currency: string,
+  idempotencyKey?: string,
 ): Promise<{ id: string }> {
-  const payout = await stripe().payouts.create({ amount, currency }, { stripeAccount: accountId });
+  const payout = await stripe().payouts.create(
+    { amount, currency },
+    { stripeAccount: accountId, ...(idempotencyKey ? { idempotencyKey } : {}) },
+  );
   return { id: payout.id };
 }

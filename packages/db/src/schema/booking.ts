@@ -56,6 +56,8 @@ export const bookings = pgTable(
 
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
     cancelReason: text("cancel_reason"),
+    /** Why the booking was last moved (shown to the host on the booking page). */
+    rescheduleReason: text("reschedule_reason"),
 
     // Payments (Stripe). paymentStatus="none" for free event types.
     paymentStatus: paymentStatus("payment_status").notNull().default("none"),
@@ -64,6 +66,10 @@ export const bookings = pgTable(
     /** Amount actually charged, in the currency's minor units (cents). */
     amountPaid: integer("amount_paid"),
     paymentCurrency: text("payment_currency"),
+    /** Connected account the charge was routed to (destination charge), if any.
+     * Set so a refund can `reverse_transfer` and debit the host too - otherwise
+     * the platform eats the refund while the host keeps the transferred funds. */
+    destinationAccountId: text("destination_account_id"),
     ...timestamps,
   },
   (t) => [

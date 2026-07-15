@@ -161,7 +161,11 @@ export function SlotPicker({
           duration={hasDurations ? duration : undefined}
         />
         {assistantEnabled ? (
-          <BookingAssistant eventTypeId={eventTypeId} onPick={setSelected} />
+          <BookingAssistant
+            eventTypeId={eventTypeId}
+            duration={hasDurations ? duration : undefined}
+            onPick={setSelected}
+          />
         ) : null}
       </div>
     );

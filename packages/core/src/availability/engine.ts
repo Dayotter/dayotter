@@ -1,12 +1,15 @@
 import { DateTime } from "luxon";
 import type { AvailabilityInput, BusyInterval, DateOverride, Slot, WeeklyRule } from "./types";
 
-/** Parse "HH:mm" / "HH:mm:ss" into minutes since midnight. */
-function timeToMinutes(time: string): number {
+/** Set a wall-clock "HH:mm" / "HH:mm:ss" onto a day, returning epoch millis.
+ *  Uses Luxon `.set()` (calendar-correct) rather than adding a raw minute
+ *  duration, so on DST-transition days the local time still lands correctly -
+ *  adding minutes shifts by the DST offset and mis-places the whole window. */
+function atWallClock(day: DateTime, time: string): number {
   const parts = time.split(":");
-  const hours = Number(parts[0] ?? 0);
-  const minutes = Number(parts[1] ?? 0);
-  return hours * 60 + minutes;
+  const hour = Number(parts[0] ?? 0);
+  const minute = Number(parts[1] ?? 0);
+  return day.set({ hour, minute, second: 0, millisecond: 0 }).toMillis();
 }
 
 /** An open window for a day, as epoch-millis bounds (so the inner slot loop can
@@ -28,8 +31,8 @@ function windowsForDay(day: DateTime, rules: WeeklyRule[], overrides: DateOverri
     if (!override.startTime || !override.endTime) return [];
     return [
       {
-        start: day.plus({ minutes: timeToMinutes(override.startTime) }).toMillis(),
-        end: day.plus({ minutes: timeToMinutes(override.endTime) }).toMillis(),
+        start: atWallClock(day, override.startTime),
+        end: atWallClock(day, override.endTime),
       },
     ];
   }
@@ -39,8 +42,8 @@ function windowsForDay(day: DateTime, rules: WeeklyRule[], overrides: DateOverri
   return rules
     .filter((r) => r.dayOfWeek === dow)
     .map((r) => ({
-      start: day.plus({ minutes: timeToMinutes(r.startTime) }).toMillis(),
-      end: day.plus({ minutes: timeToMinutes(r.endTime) }).toMillis(),
+      start: atWallClock(day, r.startTime),
+      end: atWallClock(day, r.endTime),
     }));
 }
 

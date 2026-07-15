@@ -16,13 +16,18 @@ function money(minor: number, currency: string): string {
   }).format(minor / 100);
 }
 
+interface CurrencyBalance {
+  currency: string;
+  available: number;
+  pending: number;
+}
+
 export function PayoutsPanel({
   connected,
   chargesEnabled,
   payoutsEnabled,
   detailsSubmitted,
-  available,
-  currency,
+  balances,
   minimum,
   feePercent,
 }: {
@@ -30,8 +35,7 @@ export function PayoutsPanel({
   chargesEnabled: boolean;
   payoutsEnabled: boolean;
   detailsSubmitted: boolean;
-  available: number;
-  currency: string;
+  balances: CurrencyBalance[];
   minimum: number;
   feePercent: number;
 }) {
@@ -41,7 +45,10 @@ export function PayoutsPanel({
   const [done, setDone] = useState<string | null>(null);
 
   const ready = connected && chargesEnabled && payoutsEnabled;
-  const canWithdraw = ready && available >= minimum;
+  // Withdraw is enabled if ANY currency bucket clears the minimum.
+  const canWithdraw = ready && balances.some((b) => b.available >= minimum);
+  // A stable primary currency for framing the minimum copy.
+  const primary = balances[0]?.currency ?? "usd";
 
   async function withdraw() {
     setBusy(true);
@@ -50,13 +57,15 @@ export function PayoutsPanel({
     const data = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(
-        typeof data.detail === "string" ? data.detail : (data.error ?? "Withdrawal failed."),
-      );
+      setError(typeof data.error === "string" ? data.error : "Withdrawal failed.");
       return;
     }
     track("Payout Requested");
-    setDone(`${money(data.amount, data.currency)} is on its way to your bank.`);
+    const paid: { amount: number; currency: string }[] = Array.isArray(data.payouts)
+      ? data.payouts
+      : [];
+    const sent = paid.map((p) => money(p.amount ?? 0, p.currency)).join(" + ");
+    setDone(`${sent || "Your balance"} is on its way to your bank.`);
     router.refresh();
   }
 
@@ -106,9 +115,26 @@ export function PayoutsPanel({
           <p className="text-xs uppercase tracking-wide text-[var(--color-faint)]">
             Available to withdraw
           </p>
-          <p className="mt-1 font-display text-3xl tabular-nums">{money(available, currency)}</p>
-          <p className="mt-1 text-xs text-[var(--color-faint)]">
-            Minimum withdrawal {money(minimum, currency)}.
+          {balances.length === 0 ? (
+            <p className="mt-1 font-display text-3xl tabular-nums">{money(0, primary)}</p>
+          ) : (
+            <div className="mt-1 space-y-1">
+              {balances.map((b) => (
+                <div key={b.currency} className="flex items-baseline justify-between gap-4">
+                  <span className="font-display text-3xl tabular-nums">
+                    {money(b.available, b.currency)}
+                  </span>
+                  {b.pending > 0 ? (
+                    <span className="text-xs text-[var(--color-faint)]">
+                      {money(b.pending, b.currency)} on the way
+                    </span>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="mt-2 text-xs text-[var(--color-faint)]">
+            Minimum withdrawal {money(minimum, primary)} per currency.
           </p>
         </div>
 
@@ -123,7 +149,7 @@ export function PayoutsPanel({
             </Button>
             {!canWithdraw ? (
               <span className="text-sm text-[var(--color-muted)]">
-                You can withdraw once your balance reaches {money(minimum, currency)}.
+                You can withdraw once your balance reaches {money(minimum, primary)}.
               </span>
             ) : null}
           </div>
@@ -131,7 +157,7 @@ export function PayoutsPanel({
         <FormError>{error}</FormError>
 
         <a
-          href="/api/payments/connect"
+          href="/api/payments/dashboard"
           className={cn(
             buttonVariants({ variant: "ghost", size: "sm" }),
             "w-fit gap-1.5 text-[var(--color-muted)]",

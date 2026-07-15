@@ -1,0 +1,1 @@
+ALTER TABLE "bookings" ADD COLUMN "destination_account_id" text;

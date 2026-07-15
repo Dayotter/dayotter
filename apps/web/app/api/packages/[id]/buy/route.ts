@@ -1,6 +1,7 @@
 import { hostDestinationAccount } from "@/lib/payments/connect";
 import { createCheckoutSession, paymentsEnabled } from "@/lib/payments/stripe";
 import { jsonError } from "@/lib/server/http";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -17,6 +18,15 @@ const bodySchema = z.object({ clientEmail: z.string().email() });
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!paymentsEnabled) return jsonError("Payments aren't enabled on this server.", 503);
   const { id } = await params;
+  // Public + creates a Stripe Checkout object per call - throttle per IP+package.
+  const limited = await enforceRateLimit(request, {
+    name: "package-buy",
+    limit: 10,
+    windowSec: 600,
+    key: `${id}`,
+  });
+  if (limited) return limited;
+
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("A valid email is required", 400);
 

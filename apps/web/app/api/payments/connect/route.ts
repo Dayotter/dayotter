@@ -2,6 +2,7 @@ import { connectEnabled, createAccountLink, createConnectAccount } from "@/lib/p
 import { withUser } from "@/lib/server/http";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
+import { connection } from "@dayotter/jobs";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -25,11 +26,29 @@ export const GET = withUser(async (u) => {
     });
     let accountId = user?.stripeAccountId ?? null;
     if (!accountId) {
-      accountId = await createConnectAccount(user?.email ?? u.email);
-      await db
-        .update(schema.users)
-        .set({ stripeAccountId: accountId })
-        .where(eq(schema.users.id, u.id));
+      // Serialize creation so two concurrent onboarding clicks don't each mint a
+      // Stripe account and orphan one. The loser reads the winner's account id.
+      const lockKey = `dayotter:connect:lock:${u.id}`;
+      const locked = await connection.set(lockKey, "1", "EX", 30, "NX").catch(() => "OK");
+      if (locked !== "OK") {
+        return NextResponse.redirect(`${appUrl}/api/payments/connect`);
+      }
+      try {
+        const fresh = await db.query.users.findFirst({
+          where: eq(schema.users.id, u.id),
+          columns: { stripeAccountId: true },
+        });
+        accountId = fresh?.stripeAccountId ?? null;
+        if (!accountId) {
+          accountId = await createConnectAccount(user?.email ?? u.email);
+          await db
+            .update(schema.users)
+            .set({ stripeAccountId: accountId })
+            .where(eq(schema.users.id, u.id));
+        }
+      } finally {
+        await connection.del(lockKey).catch(() => {});
+      }
     }
     const url = await createAccountLink(
       accountId,

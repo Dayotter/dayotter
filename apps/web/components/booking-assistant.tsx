@@ -15,9 +15,13 @@ import { useState } from "react";
  */
 export function BookingAssistant({
   eventTypeId,
+  duration,
   onPick,
 }: {
   eventTypeId: string;
+  /** The visitor's chosen duration (multi-duration event types), so the assistant
+   *  offers slots that will actually fit at book time. */
+  duration?: number;
   onPick: (slot: Slot) => void;
 }) {
   const zone = useLocalZone();
@@ -38,7 +42,7 @@ export function BookingAssistant({
       const res = await fetch("/api/public/booking-assistant", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ eventTypeId, query: q, tz: zone }),
+        body: JSON.stringify({ eventTypeId, query: q, tz: zone, durationMinutes: duration }),
       });
       if (!res.ok) {
         setMessage("The assistant isn't available right now - pick a time from the grid.");

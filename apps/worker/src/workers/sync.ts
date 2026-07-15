@@ -179,9 +179,13 @@ async function syncCalendar(
           set: { startsAt: sql`excluded.starts_at`, endsAt: sql`excluded.ends_at` },
         });
     }
-    // Events that flipped to transparent/all-day shouldn't linger as busy.
+    // Events that flipped to transparent shouldn't linger as busy. NB: do NOT
+    // free all-day events here - an all-day *opaque* event (vacation / OOO) is
+    // intentionally kept as busy above, so freeing it would let bookings land on
+    // a day the host has blocked. All-day *transparent* events are already caught
+    // by the transparent check.
     const freed = result.events
-      .filter((e) => e.transparency === "transparent" || e.allDay)
+      .filter((e) => e.transparency === "transparent")
       .map((e) => e.externalEventId);
     if (freed.length > 0) {
       await db

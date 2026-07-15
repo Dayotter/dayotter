@@ -23,7 +23,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ uid
       status: booking.status,
       meetingUrl: booking.meetingUrl,
       hostName: booking.host?.name ?? null,
-      attendees: booking.attendees.map((a) => ({ name: a.name, email: a.email })),
+      // This endpoint is reachable by anyone holding the (unguessable) uid, so
+      // don't disclose every co-attendee's email. Only the primary attendee's
+      // email is returned (they're the confirmation recipient); guests get names.
+      attendees: booking.attendees.map((a, i) => ({
+        name: a.name,
+        email: i === 0 ? a.email : null,
+      })),
     },
   });
 }

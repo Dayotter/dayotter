@@ -3,8 +3,9 @@ import { PayoutsPanel } from "@/components/payouts-panel";
 import { Card, CardBody } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import {
+  type CurrencyBalance,
   WITHDRAW_MINIMUM,
-  connectedBalance,
+  connectedBalances,
   paymentsEnabled,
   platformFeePercent,
   retrieveConnectStatus,
@@ -41,8 +42,7 @@ export default async function PayoutsSettingsPage() {
   let charges = false;
   let payouts = false;
   let submitted = false;
-  let available = 0;
-  let currency = "usd";
+  let balances: CurrencyBalance[] = [];
 
   if (user?.stripeAccountId) {
     try {
@@ -56,9 +56,7 @@ export default async function PayoutsSettingsPage() {
         .set({ stripeChargesEnabled: charges, stripePayoutsEnabled: payouts })
         .where(eq(schema.users.id, userId));
       if (payouts) {
-        const bal = await connectedBalance(user.stripeAccountId);
-        available = bal.available;
-        currency = bal.currency;
+        balances = await connectedBalances(user.stripeAccountId);
       }
     } catch {
       /* Stripe hiccup - fall through and let the host re-connect. */
@@ -77,8 +75,7 @@ export default async function PayoutsSettingsPage() {
         chargesEnabled={charges}
         payoutsEnabled={payouts}
         detailsSubmitted={submitted}
-        available={available}
-        currency={currency}
+        balances={balances}
         minimum={WITHDRAW_MINIMUM}
         feePercent={platformFeePercent}
       />

@@ -14,6 +14,8 @@ const body = z.object({
   eventTypeId: z.string().uuid(),
   query: z.string().min(1).max(300),
   tz: z.string().min(1).max(64),
+  /** The visitor's chosen duration on a multi-duration event type (minutes). */
+  durationMinutes: z.number().int().min(5).max(1440).optional(),
 });
 
 const SYSTEM = `${GUARDRAIL_PREAMBLE}
@@ -46,7 +48,7 @@ export async function POST(request: Request) {
 
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  const { eventTypeId, query, tz } = parsed.data;
+  const { eventTypeId, query, tz, durationMinutes } = parsed.data;
 
   const et = await getDb().query.eventTypes.findFirst({
     where: eq(schema.eventTypes.id, eventTypeId),
@@ -71,7 +73,7 @@ export async function POST(request: Request) {
 
   const from = new Date();
   const to = new Date(from.getTime() + 14 * 86_400_000);
-  const slots = (await getEventTypeAvailability(eventTypeId, from, to)) ?? [];
+  const slots = (await getEventTypeAvailability(eventTypeId, from, to, durationMinutes)) ?? [];
   if (slots.length === 0) {
     return NextResponse.json({
       message: "There aren't any open times in the next two weeks just now.",

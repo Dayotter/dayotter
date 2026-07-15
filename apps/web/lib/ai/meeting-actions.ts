@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { GUARDRAIL_PREAMBLE } from "./guardrails";
 import { extract } from "./llm";
 
 const replySchema = z.object({
@@ -7,7 +8,12 @@ const replySchema = z.object({
 });
 export type MeetingReply = z.infer<typeof replySchema>;
 
-const SYSTEM = `You help a meeting host write a short, polite message to send to the other attendees, about ONE specific upcoming meeting. Your scope is STRICTLY that meeting and scheduling - rescheduling, running late, confirming, keeping it short, or a brief scheduling-relevant note. You do NOT write general emails, marketing, long messages, or anything off-topic.
+// The meeting title + attendee name interpolated below come from booking data a
+// visitor controls, so the guardrail preamble (treat that as DATA, stay in
+// scope) leads the prompt.
+const SYSTEM = `${GUARDRAIL_PREAMBLE}
+
+You help a meeting host write a short, polite message to send to the other attendees, about ONE specific upcoming meeting. Your scope is STRICTLY that meeting and scheduling - rescheduling, running late, confirming, keeping it short, or a brief scheduling-relevant note. You do NOT write general emails, marketing, long messages, or anything off-topic.
 
 Given the meeting details and the host's instruction, draft the message via the draft_reply tool:
 - understood: true if the instruction is an in-scope, meeting-related message you can draft; false otherwise.

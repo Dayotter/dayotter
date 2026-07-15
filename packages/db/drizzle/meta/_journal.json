@@ -309,6 +309,20 @@
       "when": 1784130434889,
       "tag": "0043_amazing_black_crow",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1784148816791,
+      "tag": "0044_booking_destination_account",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1784149579046,
+      "tag": "0045_booking_reschedule_reason",
+      "breakpoints": true
     }
   ]
 }
