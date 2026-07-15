@@ -119,6 +119,7 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
             hostName: booking.host?.name ?? "your host",
             attendeeName: a.name ?? a.email,
             manageUrl: `${process.env.APP_URL ?? "http://localhost:3000"}/booking/${uid}`,
+            reason: reason ?? null,
           }),
           to: a.email,
         }),

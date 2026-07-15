@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { eventColorVar } from "@/lib/booking/event-type-input";
 import { cn } from "@/lib/cn";
 import { DateTime } from "luxon";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export interface HistoryBooking {
@@ -125,7 +126,9 @@ export function BookingsWorkspace({ tz, history }: { tz: string; history: Histor
 }
 
 function HistoryRow({ b, tz }: { b: HistoryBooking; tz: string }) {
+  const router = useRouter();
   const [status, setStatus] = useState(b.status);
+  const open = () => router.push(`/booking/${b.uid}`);
   const isPast = new Date(b.endsAt).getTime() < Date.now();
   // Past meetings auto-complete, so the no-show toggle covers confirmed/completed/no_show.
   const canMark =
@@ -144,7 +147,19 @@ function HistoryRow({ b, tz }: { b: HistoryBooking; tz: string }) {
   }
 
   return (
-    <Card className="flex items-center gap-4 px-4 py-3">
+    <Card
+      interactive
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+      }}
+      className="flex cursor-pointer items-center gap-4 px-4 py-3"
+    >
       <span
         aria-hidden
         className="h-9 w-1 shrink-0 rounded-full"
@@ -165,7 +180,10 @@ function HistoryRow({ b, tz }: { b: HistoryBooking; tz: string }) {
       {canMark ? (
         <button
           type="button"
-          onClick={toggleNoShow}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleNoShow();
+          }}
           className="shrink-0 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)]"
         >
           {status === "no_show" ? "Undo" : "No-show"}

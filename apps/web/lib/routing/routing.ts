@@ -100,6 +100,15 @@ export async function updateForm(
 }
 
 /** Public: the active form for the voting/booking page. */
+/** Delete a form (ownership-checked). Responses cascade. */
+export async function deleteForm(id: string, hostId: string): Promise<boolean> {
+  const rows = await getDb()
+    .delete(schema.routingForms)
+    .where(and(eq(schema.routingForms.id, id), eq(schema.routingForms.hostId, hostId)))
+    .returning({ id: schema.routingForms.id });
+  return rows.length > 0;
+}
+
 export async function getFormByToken(token: string) {
   const form = await getDb().query.routingForms.findFirst({
     where: eq(schema.routingForms.token, token),

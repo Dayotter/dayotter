@@ -21,6 +21,17 @@ interface CalBooking {
   attendees: string[];
 }
 
+interface CalEvent {
+  title: string;
+  startsAt: string;
+  endsAt: string;
+}
+
+/** A calendar cell item: a DayOtter booking, or a synced "busy" calendar event. */
+type CalItem =
+  | ({ kind: "booking"; id: string } & CalBooking)
+  | ({ kind: "busy"; id: string } & CalEvent);
+
 type View = "month" | "week" | "agenda";
 const VIEWS: { value: View; label: string }[] = [
   { value: "month", label: "Month" },
@@ -46,6 +57,7 @@ export function BookingsCalendar({ tz }: { tz: string }) {
   const [view, setView] = useState<View>("month");
   const [anchor, setAnchor] = useState<DateTime>(() => DateTime.now().setZone(tz).startOf("day"));
   const [bookings, setBookings] = useState<CalBooking[]>([]);
+  const [events, setEvents] = useState<CalEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   // The visible range for the current view.
@@ -75,25 +87,41 @@ export function BookingsCalendar({ tz }: { tz: string }) {
     });
     fetch(`/api/bookings/range?${qs}`)
       .then((r) => r.json())
-      .then((d) => active && setBookings(d.bookings ?? []))
-      .catch(() => active && setBookings([]))
+      .then((d) => {
+        if (!active) return;
+        setBookings(d.bookings ?? []);
+        setEvents(d.events ?? []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setBookings([]);
+        setEvents([]);
+      })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
   }, [rangeStart, rangeEnd]);
 
-  // Group bookings by local day for the grid views.
+  // Group bookings + synced calendar events by local day for the grid views.
   const byDay = useMemo(() => {
-    const map = new Map<string, CalBooking[]>();
-    for (const b of bookings) {
-      const key = localKey(b.startsAt, tz);
+    const map = new Map<string, CalItem[]>();
+    const add = (item: CalItem) => {
+      const key = localKey(item.startsAt, tz);
       const list = map.get(key);
-      if (list) list.push(b);
-      else map.set(key, [b]);
-    }
+      if (list) list.push(item);
+      else map.set(key, [item]);
+    };
+    const bookingStarts = new Set(bookings.map((b) => b.startsAt));
+    for (const b of bookings) add({ kind: "booking", id: b.uid, ...b });
+    events.forEach((e, i) => {
+      // Skip an event that's a DayOtter booking's own calendar mirror.
+      if (bookingStarts.has(e.startsAt)) return;
+      add({ kind: "busy", id: `busy:${i}`, ...e });
+    });
+    for (const list of map.values()) list.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
     return map;
-  }, [bookings, tz]);
+  }, [bookings, events, tz]);
 
   function step(dir: 1 | -1) {
     if (view === "month") setAnchor((a) => a.plus({ months: dir }));
@@ -177,16 +205,69 @@ export function BookingsCalendar({ tz }: { tz: string }) {
   );
 }
 
-function EventChip({ b, tz }: { b: CalBooking; tz: string }) {
-  const time = DateTime.fromISO(b.startsAt).setZone(tz).toFormat("h:mm a");
+function EventChip({ item, tz }: { item: CalItem; tz: string }) {
+  const time = DateTime.fromISO(item.startsAt).setZone(tz).toFormat("h:mm a");
+  // Synced calendar event: greyed, non-clickable "busy" block for context.
+  if (item.kind === "busy") {
+    return (
+      <div
+        title="From a connected calendar"
+        className="flex items-center gap-1.5 rounded-sm border-l-[3px] border-[var(--color-border-strong)] bg-[var(--color-surface-2)]/60 px-1.5 py-0.5 text-xs text-[var(--color-muted)]"
+      >
+        <span className="shrink-0 text-[var(--color-faint)]">{time}</span>
+        <span className="truncate">{item.title}</span>
+      </div>
+    );
+  }
   return (
     <Link
-      href={`/booking/${b.uid}`}
+      href={`/booking/${item.uid}`}
       className="flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-xs hover:bg-[var(--color-surface-2)]"
-      style={{ borderLeft: `3px solid ${eventColorVar(b.color)}` }}
+      style={{ borderLeft: `3px solid ${eventColorVar(item.color)}` }}
     >
       <span className="shrink-0 text-[var(--color-faint)]">{time}</span>
-      <span className={cn("truncate", b.status === "pending" && "italic")}>{b.title}</span>
+      <span className={cn("truncate", item.status === "pending" && "italic")}>{item.title}</span>
+    </Link>
+  );
+}
+
+function AgendaRow({ item, tz }: { item: CalItem; tz: string }) {
+  const time = DateTime.fromISO(item.startsAt).setZone(tz).toFormat("h:mm a");
+  if (item.kind === "busy") {
+    return (
+      <div
+        title="From a connected calendar"
+        className="flex items-center gap-3 rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-surface-2)]/50 px-3 py-2"
+      >
+        <span
+          aria-hidden
+          className="h-8 w-1 shrink-0 rounded-full bg-[var(--color-border-strong)]"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-[var(--color-muted)]">{item.title}</p>
+          <p className="truncate text-xs text-[var(--color-faint)]">Busy · from your calendar</p>
+        </div>
+        <p className="shrink-0 text-xs text-[var(--color-muted)]">{time}</p>
+      </div>
+    );
+  }
+  return (
+    <Link
+      href={`/booking/${item.uid}`}
+      className="flex items-center gap-3 rounded-md border border-[var(--color-border)] px-3 py-2 hover:border-[var(--color-border-strong)]"
+    >
+      <span
+        aria-hidden
+        className="h-8 w-1 shrink-0 rounded-full"
+        style={{ backgroundColor: eventColorVar(item.color) }}
+      />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{item.title}</p>
+        <p className="truncate text-xs text-[var(--color-muted)]">
+          {item.attendees.join(", ") || "No attendees"}
+        </p>
+      </div>
+      <p className="shrink-0 text-xs text-[var(--color-muted)]">{time}</p>
     </Link>
   );
 }
@@ -199,7 +280,7 @@ function MonthGrid({
 }: {
   rangeStart: DateTime;
   anchor: DateTime;
-  byDay: Map<string, CalBooking[]>;
+  byDay: Map<string, CalItem[]>;
   tz: string;
 }) {
   const today = DateTime.now().setZone(tz).toFormat("yyyy-LL-dd");
@@ -246,8 +327,8 @@ function MonthGrid({
                 {day.day}
               </div>
               <div className="space-y-0.5">
-                {evs.slice(0, 3).map((b) => (
-                  <EventChip key={b.uid} b={b} tz={tz} />
+                {evs.slice(0, 3).map((it) => (
+                  <EventChip key={it.id} item={it} tz={tz} />
                 ))}
                 {evs.length > 3 ? (
                   <p className="px-1.5 text-xs text-[var(--color-faint)]">+{evs.length - 3} more</p>
@@ -267,7 +348,7 @@ function WeekGrid({
   tz,
 }: {
   rangeStart: DateTime;
-  byDay: Map<string, CalBooking[]>;
+  byDay: Map<string, CalItem[]>;
   tz: string;
 }) {
   const today = DateTime.now().setZone(tz).toFormat("yyyy-LL-dd");
@@ -294,7 +375,7 @@ function WeekGrid({
               {evs.length === 0 ? (
                 <p className="text-xs text-[var(--color-faint)]">-</p>
               ) : (
-                evs.map((b) => <EventChip key={b.uid} b={b} tz={tz} />)
+                evs.map((it) => <EventChip key={it.id} item={it} tz={tz} />)
               )}
             </div>
           </div>
@@ -312,7 +393,7 @@ function Agenda({
 }: {
   rangeStart: DateTime;
   rangeEnd: DateTime;
-  byDay: Map<string, CalBooking[]>;
+  byDay: Map<string, CalItem[]>;
   tz: string;
 }) {
   const days: DateTime[] = [];
@@ -335,27 +416,8 @@ function Agenda({
             <p className="text-xs text-[var(--color-muted)]">{day.toFormat("LLL d")}</p>
           </div>
           <div className="flex-1 space-y-1.5">
-            {(byDay.get(day.toFormat("yyyy-LL-dd")) ?? []).map((b) => (
-              <Link
-                key={b.uid}
-                href={`/booking/${b.uid}`}
-                className="flex items-center gap-3 rounded-md border border-[var(--color-border)] px-3 py-2 hover:border-[var(--color-border-strong)]"
-              >
-                <span
-                  aria-hidden
-                  className="h-8 w-1 shrink-0 rounded-full"
-                  style={{ backgroundColor: eventColorVar(b.color) }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{b.title}</p>
-                  <p className="truncate text-xs text-[var(--color-muted)]">
-                    {b.attendees.join(", ") || "No attendees"}
-                  </p>
-                </div>
-                <p className="shrink-0 text-xs text-[var(--color-muted)]">
-                  {DateTime.fromISO(b.startsAt).setZone(tz).toFormat("h:mm a")}
-                </p>
-              </Link>
+            {(byDay.get(day.toFormat("yyyy-LL-dd")) ?? []).map((it) => (
+              <AgendaRow key={it.id} item={it} tz={tz} />
             ))}
           </div>
         </div>

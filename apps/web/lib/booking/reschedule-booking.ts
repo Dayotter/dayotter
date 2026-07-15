@@ -25,7 +25,11 @@ export class RescheduleError extends Error {
 
 /** Move a booking to a new start time: validate, update, move the calendar event,
  * reschedule reminders, and notify attendees. */
-export async function rescheduleBooking(uid: string, newStartISO: string): Promise<void> {
+export async function rescheduleBooking(
+  uid: string,
+  newStartISO: string,
+  reason?: string,
+): Promise<void> {
   const db = getDb();
 
   const booking = await db.query.bookings.findFirst({
@@ -171,6 +175,7 @@ export async function rescheduleBooking(uid: string, newStartISO: string): Promi
             meetingUrl: meetingUrl ?? booking.meetingUrl ?? undefined,
             location: eventType.locationDetail ?? undefined,
             manageUrl: `${appUrl}/booking/${uid}`,
+            reason: reason ?? null,
           }),
           to: r.email,
         }),

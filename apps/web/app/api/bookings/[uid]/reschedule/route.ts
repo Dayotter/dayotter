@@ -4,7 +4,10 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-const schema = z.object({ start: z.string().datetime() });
+const schema = z.object({
+  start: z.string().datetime(),
+  reason: z.string().max(500).optional(),
+});
 
 export async function POST(request: Request, { params }: { params: Promise<{ uid: string }> }) {
   const { uid } = await params;
@@ -14,7 +17,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ uid
   }
 
   try {
-    await rescheduleBooking(uid, parsed.data.start);
+    await rescheduleBooking(uid, parsed.data.start, parsed.data.reason?.trim() || undefined);
     return NextResponse.json({ ok: true, url: `/booking/${uid}` });
   } catch (err) {
     if (err instanceof RescheduleError) {

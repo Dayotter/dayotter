@@ -1,5 +1,5 @@
 import { jsonError, withUser } from "@/lib/server/http";
-import { and, asc, eq, getDb, gte, lt, ne, schema } from "@dayotter/db";
+import { and, asc, eq, getDb, gte, inArray, lt, ne, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +36,37 @@ export const GET = withUser(async (u, request) => {
     },
   });
 
+  // Also surface the host's real (synced) calendar events, so the calendar shows
+  // their whole schedule - not just DayOtter bookings. Busy, non-all-day only.
+  const conns = await getDb().query.calendarConnections.findMany({
+    where: eq(schema.calendarConnections.userId, u.id),
+    with: { calendars: { columns: { id: true, checkForConflicts: true } } },
+  });
+  const calIds = conns
+    .flatMap((c) => c.calendars)
+    .filter((c) => c.checkForConflicts)
+    .map((c) => c.id);
+
+  let events: { title: string; startsAt: string; endsAt: string }[] = [];
+  if (calIds.length > 0) {
+    const evRows = await getDb().query.calendarEvents.findMany({
+      where: and(
+        inArray(schema.calendarEvents.calendarId, calIds),
+        gte(schema.calendarEvents.endsAt, start),
+        lt(schema.calendarEvents.startsAt, end),
+        ne(schema.calendarEvents.transparency, "transparent"),
+        eq(schema.calendarEvents.allDay, false),
+      ),
+      columns: { title: true, startsAt: true, endsAt: true },
+      limit: 500,
+    });
+    events = evRows.map((e) => ({
+      title: e.title ?? "Busy",
+      startsAt: e.startsAt.toISOString(),
+      endsAt: e.endsAt.toISOString(),
+    }));
+  }
+
   return NextResponse.json({
     bookings: rows.map((b) => ({
       uid: b.uid,
@@ -46,5 +77,6 @@ export const GET = withUser(async (u, request) => {
       color: b.eventType?.color ?? null,
       attendees: b.attendees.map((a) => a.name ?? a.email),
     })),
+    events,
   });
 });

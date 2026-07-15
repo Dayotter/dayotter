@@ -155,6 +155,57 @@ export default async function DashboardPage() {
         description="Here's what's on your calendar."
       />
 
+      {/* Meetings first - the thing people open the dashboard to see. */}
+      {inProgress ? (
+        <Card className="mb-6 border-[var(--color-border-strong)] bg-gradient-to-br from-[var(--color-surface-2)] to-[var(--color-surface)]">
+          <div className="flex items-center justify-between gap-3 p-5">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-[var(--color-accent)]">
+                <Radio size={13} /> Happening now
+              </p>
+              <p className="mt-1 truncate text-lg font-semibold">{inProgress.title}</p>
+              <p className="mt-0.5 text-sm text-[var(--color-muted)]">
+                until {DateTime.fromJSDate(inProgress.endsAt).setZone(tz).toFormat("h:mm a")}
+                {nextAfterInProgress ? " · another meeting right after" : ""}
+              </p>
+            </div>
+            {nextAfterInProgress ? <OverflowButton uid={inProgress.uid} /> : null}
+          </div>
+        </Card>
+      ) : null}
+
+      {next ? (
+        <Card className="mb-6 border-[var(--color-border-strong)] bg-gradient-to-br from-[var(--color-surface-2)] to-[var(--color-surface)]">
+          <div className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-mint)]">
+                Next up
+              </p>
+              <p className="mt-1 text-lg font-semibold">{next.title}</p>
+              <p className="mt-0.5 text-sm text-[var(--color-muted)]">
+                {DateTime.fromJSDate(next.startsAt).setZone(tz).toFormat("cccc, LLL d · h:mm a")} –{" "}
+                {DateTime.fromJSDate(next.endsAt).setZone(tz).toFormat("h:mm a")}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {nextIsImminent ? <RunningLateButton uid={next.uid} /> : null}
+              {next.meetingUrl ? (
+                <a
+                  href={next.meetingUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={buttonVariants({ variant: "primary" })}
+                >
+                  <Video size={16} /> Join
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </Card>
+      ) : null}
+
+      {aiEnabled && next ? <MeetingAssistant uid={next.uid} title={next.title} /> : null}
+
       <SetupChecklist hasCalendar={hasCalendar} hasHours={hasHours} hasEventType={hasEventType} />
       <DashboardTour />
 
@@ -233,56 +284,6 @@ export default async function DashboardPage() {
       </div>
 
       <PendingInvites aiEnabled={aiEnabled} />
-
-      {inProgress ? (
-        <Card className="mb-6 border-[var(--color-border-strong)] bg-gradient-to-br from-[var(--color-surface-2)] to-[var(--color-surface)]">
-          <div className="flex items-center justify-between gap-3 p-5">
-            <div className="min-w-0">
-              <p className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-[var(--color-accent)]">
-                <Radio size={13} /> Happening now
-              </p>
-              <p className="mt-1 truncate text-lg font-semibold">{inProgress.title}</p>
-              <p className="mt-0.5 text-sm text-[var(--color-muted)]">
-                until {DateTime.fromJSDate(inProgress.endsAt).setZone(tz).toFormat("h:mm a")}
-                {nextAfterInProgress ? " · another meeting right after" : ""}
-              </p>
-            </div>
-            {nextAfterInProgress ? <OverflowButton uid={inProgress.uid} /> : null}
-          </div>
-        </Card>
-      ) : null}
-
-      {next ? (
-        <Card className="mb-6 border-[var(--color-border-strong)] bg-gradient-to-br from-[var(--color-surface-2)] to-[var(--color-surface)]">
-          <div className="flex items-center justify-between p-5">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-mint)]">
-                Next up
-              </p>
-              <p className="mt-1 text-lg font-semibold">{next.title}</p>
-              <p className="mt-0.5 text-sm text-[var(--color-muted)]">
-                {DateTime.fromJSDate(next.startsAt).setZone(tz).toFormat("cccc, LLL d · h:mm a")} –{" "}
-                {DateTime.fromJSDate(next.endsAt).setZone(tz).toFormat("h:mm a")}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {nextIsImminent ? <RunningLateButton uid={next.uid} /> : null}
-              {next.meetingUrl ? (
-                <a
-                  href={next.meetingUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={buttonVariants({ variant: "primary" })}
-                >
-                  <Video size={16} /> Join
-                </a>
-              ) : null}
-            </div>
-          </div>
-        </Card>
-      ) : null}
-
-      {aiEnabled && next ? <MeetingAssistant uid={next.uid} title={next.title} /> : null}
 
       <SectionHeading eyebrow="Agenda" title="Upcoming" />
       {upcoming.length === 0 ? (

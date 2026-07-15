@@ -1,3 +1,4 @@
+import { DeleteRowButton } from "@/components/delete-row-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -33,34 +34,37 @@ export default async function PollsPage() {
       ) : (
         <div className="space-y-3">
           {polls.map((p) => (
-            <Link key={p.id} href={`/polls/${p.id}`}>
-              <Card interactive className="flex items-center justify-between gap-4 p-4">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{p.title}</p>
-                  <p className="mt-0.5 flex items-center gap-3 text-xs text-[var(--color-muted)]">
-                    <span>{p.options.length} time options</span>
-                    <span className="inline-flex items-center gap-1">
-                      <Users size={12} /> {p.votes.length} votes
-                    </span>
-                  </p>
-                </div>
-                <span
-                  className={
-                    p.status === "finalized"
-                      ? "inline-flex items-center gap-1 rounded-full bg-[var(--color-success)]/15 px-2.5 py-1 text-xs font-medium text-[var(--color-success)]"
-                      : "rounded-full bg-[var(--color-surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--color-muted)]"
-                  }
-                >
-                  {p.status === "finalized" ? (
-                    <>
-                      <CheckCircle2 size={12} /> Finalized
-                    </>
-                  ) : (
-                    "Open"
-                  )}
-                </span>
-              </Card>
-            </Link>
+            <div key={p.id} className="flex items-center gap-2">
+              <Link href={`/polls/${p.id}`} className="min-w-0 flex-1">
+                <Card interactive className="flex items-center justify-between gap-4 p-4">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{p.title}</p>
+                    <p className="mt-0.5 flex items-center gap-3 text-xs text-[var(--color-muted)]">
+                      <span>{p.options.length} time options</span>
+                      <span className="inline-flex items-center gap-1">
+                        <Users size={12} /> {p.votes.length} votes
+                      </span>
+                    </p>
+                  </div>
+                  <span
+                    className={
+                      p.status === "finalized"
+                        ? "inline-flex items-center gap-1 rounded-full bg-[var(--color-success)]/15 px-2.5 py-1 text-xs font-medium text-[var(--color-success)]"
+                        : "rounded-full bg-[var(--color-surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--color-muted)]"
+                    }
+                  >
+                    {p.status === "finalized" ? (
+                      <>
+                        <CheckCircle2 size={12} /> Finalized
+                      </>
+                    ) : (
+                      "Open"
+                    )}
+                  </span>
+                </Card>
+              </Link>
+              <DeleteRowButton endpoint={`/api/polls/${p.id}`} label="poll" />
+            </div>
           ))}
         </div>
       )}

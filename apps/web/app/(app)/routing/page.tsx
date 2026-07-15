@@ -1,3 +1,4 @@
+import { DeleteRowButton } from "@/components/delete-row-button";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -33,31 +34,34 @@ export default async function RoutingPage() {
       ) : (
         <div className="space-y-3">
           {forms.map((f) => (
-            <Link key={f.id} href={`/routing/${f.id}`}>
-              <Card interactive className="flex items-center justify-between gap-4 p-4">
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 truncate font-medium">
-                    <Split size={15} className="shrink-0 text-[var(--color-accent)]" />
-                    {f.title}
-                  </p>
-                  <p className="mt-0.5 flex items-center gap-3 text-xs text-[var(--color-muted)]">
-                    <span>{f.routes.length} rules</span>
-                    <span className="inline-flex items-center gap-1">
-                      <Users size={12} /> {f.responses.length} responses
-                    </span>
-                  </p>
-                </div>
-                <span
-                  className={
-                    f.isActive
-                      ? "rounded-full bg-[var(--color-success)]/15 px-2.5 py-1 text-xs font-medium text-[var(--color-success)]"
-                      : "rounded-full bg-[var(--color-surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--color-muted)]"
-                  }
-                >
-                  {f.isActive ? "Live" : "Draft"}
-                </span>
-              </Card>
-            </Link>
+            <div key={f.id} className="flex items-center gap-2">
+              <Link href={`/routing/${f.id}`} className="min-w-0 flex-1">
+                <Card interactive className="flex items-center justify-between gap-4 p-4">
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-2 truncate font-medium">
+                      <Split size={15} className="shrink-0 text-[var(--color-accent)]" />
+                      {f.title}
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-3 text-xs text-[var(--color-muted)]">
+                      <span>{f.routes.length} rules</span>
+                      <span className="inline-flex items-center gap-1">
+                        <Users size={12} /> {f.responses.length} responses
+                      </span>
+                    </p>
+                  </div>
+                  <span
+                    className={
+                      f.isActive
+                        ? "rounded-full bg-[var(--color-success)]/15 px-2.5 py-1 text-xs font-medium text-[var(--color-success)]"
+                        : "rounded-full bg-[var(--color-surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--color-muted)]"
+                    }
+                  >
+                    {f.isActive ? "Live" : "Draft"}
+                  </span>
+                </Card>
+              </Link>
+              <DeleteRowButton endpoint={`/api/routing/${f.id}`} label="form" />
+            </div>
           ))}
         </div>
       )}
