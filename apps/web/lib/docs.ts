@@ -945,6 +945,111 @@ export const GUIDES: DocGuide[] = [
       },
     ],
   },
+
+  // ─── Integration setup ────────────────────────────────────────────────────
+  {
+    slug: "integration-setup",
+    title: "Integration setup: IDs, keys & webhooks",
+    summary:
+      "Where to get the credentials and which redirect URI / webhook to register for Google, Microsoft, Apple, Salesforce, HubSpot, Zoom, Stripe, Twilio and Resend.",
+    category: "Build & self-host",
+    readMinutes: 9,
+    related: ["self-hosting", "connect-a-calendar", "crm-sync", "developer-api"],
+    body: [
+      {
+        paragraphs: [
+          "Every integration is optional and env-gated - a provider stays inert until you set its keys, so you only wire up what you need. This guide tells you, per provider, where to get the credentials, which redirect URI or webhook to register, and which environment variable each value goes into.",
+          "Two things everything depends on. First, APP_URL: your deployment's public base URL (e.g. https://dayotter.com) - every redirect URI and webhook below is APP_URL plus a fixed path, and it must be the exact public HTTPS origin with no trailing slash. Second: after editing env vars, rebuild/redeploy (some are read at build time). Redirect URIs and webhook URLs must be registered EXACTLY in each provider's console or the callback is rejected.",
+        ],
+      },
+      {
+        heading: "Google Calendar (and Google sign-in)",
+        steps: [
+          "Google Cloud Console → create/select a project → enable the Google Calendar API.",
+          "Configure the OAuth consent screen and add your account as a test user (or publish).",
+          "Credentials → Create OAuth client ID → Web application. Authorized redirect URI: APP_URL/api/calendars/connect/google/callback",
+          "Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET (and NEXT_PUBLIC_GOOGLE_AUTH=1 to show the Google sign-in button).",
+        ],
+        bullets: [
+          "Scopes: calendar.events, calendar.readonly, openid, email, profile.",
+          "Real-time push sync auto-registers at APP_URL/api/webhooks/google - Google requires a verified domain over HTTPS; if unavailable it's non-fatal (falls back to polling).",
+        ],
+      },
+      {
+        heading: "Microsoft 365 / Outlook",
+        steps: [
+          "Azure Portal → Microsoft Entra ID → App registrations → New registration.",
+          "Redirect URI (Web): APP_URL/api/calendars/connect/microsoft/callback",
+          "Certificates & secrets → New client secret → copy the VALUE.",
+          "API permissions → Microsoft Graph → Delegated: Calendars.ReadWrite, User.Read, offline_access, openid, email, profile.",
+          "Set MICROSOFT_CLIENT_ID (the Application/client ID) and MICROSOFT_CLIENT_SECRET (the secret value).",
+        ],
+      },
+      {
+        heading: "Apple iCloud",
+        paragraphs: [
+          "No developer setup or env vars. Apple calendars connect over CalDAV with a per-user app-specific password: each user generates one at appleid.apple.com (Sign-In & Security → App-Specific Passwords) and pastes it in Settings → Calendars → Apple - never their real Apple ID password.",
+        ],
+      },
+      {
+        heading: "Salesforce & HubSpot (CRM sync)",
+        steps: [
+          "Salesforce: Setup → App Manager → New Connected App. Callback URL: APP_URL/api/integrations/crm/salesforce/callback. Scopes: api, refresh_token. Set SALESFORCE_CLIENT_ID (Consumer Key) and SALESFORCE_CLIENT_SECRET.",
+          "HubSpot: developers.hubspot.com → Create app. Redirect URL: APP_URL/api/integrations/crm/hubspot/callback. Scopes: crm.objects.contacts.read + write. Set HUBSPOT_CLIENT_ID and HUBSPOT_CLIENT_SECRET.",
+          "Once the keys are set, users connect from Settings → CRM in one click (no keys to paste on their end).",
+        ],
+      },
+      {
+        heading: "Zoom (video links)",
+        steps: [
+          "Zoom App Marketplace → Develop → Build App → OAuth (user-managed).",
+          "Redirect / OAuth allow-list URL: APP_URL/api/integrations/zoom/callback, with the scope to create meetings.",
+          "Set ZOOM_CLIENT_ID and ZOOM_CLIENT_SECRET (the connect button is hidden without them).",
+        ],
+        bullets: [
+          "Google Meet needs no setup - it comes with the Google Calendar connection; Teams links come with the Microsoft connection.",
+        ],
+      },
+      {
+        heading: "Stripe (Pro billing - cloud edition only)",
+        steps: [
+          "Developers → API keys → copy the Secret key → STRIPE_SECRET_KEY.",
+          "Products → add a Product with a RECURRING price ($9/seat/mo). Open the price and copy its API ID (starts with price_) → STRIPE_PRICE_PRO. It MUST be the price_ ID, not a number.",
+          "Developers → Webhooks → Add endpoint: APP_URL/api/webhooks/stripe. Events: checkout.session.completed, customer.subscription.created / updated / deleted. Copy the signing secret → STRIPE_WEBHOOK_SECRET.",
+        ],
+        tip: {
+          kind: "note",
+          text: "The webhook flips an org to Pro after payment and tracks seat/cancel changes. DayOtter also reconciles the plan on the checkout-success redirect, so a single missed webhook won't leave you stuck - but configure the webhook for ongoing changes.",
+        },
+      },
+      {
+        heading: "Twilio (SMS / WhatsApp reminders)",
+        steps: [
+          "Twilio Console → copy Account SID + Auth Token.",
+          "Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_SMS_FROM (E.164 number), and TWILIO_WHATSAPP_FROM (whatsapp:+…).",
+          "For inbound replies, set the number's / Messaging Service's incoming-message webhook to APP_URL/api/webhooks/twilio.",
+        ],
+      },
+      {
+        heading: "Resend (email) - the #1 setup mistake",
+        steps: [
+          "Resend → API Keys → create one → RESEND_API_KEY.",
+          "Domains → Add domain, add the DNS records, and wait for Verified.",
+          'Set EMAIL_FROM to an address ON that verified domain, e.g. "DayOtter <no-reply@yourdomain.com>".',
+        ],
+        tip: {
+          kind: "warning",
+          text: "An unverified/placeholder domain (like example.com) makes EVERY email bounce with 550 domain is not verified - confirmations and reminders silently fail. Alternative to Resend: any SMTP server via SMTP_URL.",
+        },
+      },
+      {
+        tip: {
+          kind: "tip",
+          text: "Full reference with the exact table of env vars, redirect URIs and webhooks lives in docs/INTEGRATIONS.md in the repo. Every failure is logged with a structured event (billing_checkout_failed, confirmation_email_failed, sync_watch_failed) you can grep in your container logs.",
+        },
+      },
+    ],
+  },
 ];
 
 export function getGuide(slug: string): DocGuide | undefined {
