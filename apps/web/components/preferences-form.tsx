@@ -250,10 +250,11 @@ export function PreferencesForm({
                 className="mt-0.5 accent-[var(--color-accent)]"
               />
               <span>
-                Adaptive availability
+                Focus protection (adaptive availability)
                 <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
-                  On heavy days, stop offering booking slots once you hit your meeting cap - so a
-                  full day doesn't get fuller.
+                  On heavy days, stop offering slots once you hit your meeting cap - and
+                  hard-decline any booking that would push a day over it - so a full day doesn't get
+                  fuller and your focus time is protected.
                 </span>
               </span>
             </label>
