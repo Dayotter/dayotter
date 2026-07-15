@@ -1,5 +1,6 @@
 import { syncOrgSubscription, syncSubscriptionById } from "@/lib/billing/subscription";
 import { fulfillPackagePurchase } from "@/lib/packages/fulfill";
+import { syncConnectAccountStatus } from "@/lib/payments/connect";
 import { fulfillCheckout } from "@/lib/payments/fulfill";
 import { constructWebhookEvent, paymentsEnabled } from "@/lib/payments/stripe";
 import { logger } from "@dayotter/core";
@@ -47,6 +48,12 @@ export async function POST(request: Request) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted":
         await syncOrgSubscription(event.data.object as Stripe.Subscription);
+        break;
+
+      // A host's Connect account finished (or changed) onboarding - mirror its
+      // charges/payouts capability flags onto the user.
+      case "account.updated":
+        await syncConnectAccountStatus(event.data.object as Stripe.Account);
         break;
     }
   } catch (err) {

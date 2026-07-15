@@ -142,6 +142,26 @@ changes / cancellations). DayOtter also reconciles the plan on the checkout-succ
 redirect, so a one-off missed webhook won't leave you stuck — but configure the
 webhook for ongoing changes.
 
+### Stripe Connect — hosts get paid directly (bookings & packages)
+
+So that a host's booking/package payments land in **their** bank rather than the
+platform's, DayOtter uses **Stripe Connect (Express)**:
+
+1. In the Stripe Dashboard, **enable Connect** (Connect → Get started) on the same
+   platform account as `STRIPE_SECRET_KEY`.
+2. Add the `account.updated` event to your webhook endpoint (`APP_URL/api/webhooks/stripe`),
+   alongside the subscription events above — it's how DayOtter learns a host's
+   account is ready.
+3. (Optional) Take a platform cut per host transaction:
+   ```
+   STRIPE_PLATFORM_FEE_PERCENT=0   # e.g. 5 = keep 5% of each payment
+   ```
+- Hosts connect their bank under **Settings → Payouts** (one click → Stripe Express
+  onboarding). Once approved, paid bookings and package sales route to their account
+  as **destination charges** (minus your fee).
+- Payouts are **manual**: the host withdraws to their bank from Settings → Payouts
+  once their balance reaches **$100**. Refunds reverse the transfer + the fee.
+
 ## Twilio (SMS / WhatsApp reminders)
 
 1. [Twilio Console](https://console.twilio.com/) → copy **Account SID** + **Auth Token**.

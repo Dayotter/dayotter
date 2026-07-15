@@ -25,12 +25,17 @@ export interface CheckoutParams {
   customerEmail?: string;
   /** Opaque data echoed back on the session so the webhook can create the booking. */
   metadata: Record<string, string>;
+  /** Host's Stripe Connect account - when set, funds are routed there (a
+   * destination charge) minus the platform fee, instead of staying on the platform. */
+  destinationAccountId?: string;
 }
 
 /** Create a one-off Checkout Session and return its hosted URL + id. */
 export async function createCheckoutSession(
   params: CheckoutParams,
 ): Promise<{ id: string; url: string }> {
+  const dest = params.destinationAccountId;
+  const fee = dest ? platformFee(params.amount) : 0;
   const session = await stripe().checkout.sessions.create({
     mode: "payment",
     line_items: [
@@ -47,7 +52,17 @@ export async function createCheckoutSession(
     cancel_url: params.cancelUrl,
     customer_email: params.customerEmail,
     metadata: params.metadata,
-    payment_intent_data: { metadata: params.metadata },
+    payment_intent_data: {
+      metadata: params.metadata,
+      // Destination charge: money lands on the host's connected account; the
+      // platform keeps `application_fee_amount`. Refunds reverse both.
+      ...(dest
+        ? {
+            transfer_data: { destination: dest },
+            ...(fee > 0 ? { application_fee_amount: fee } : {}),
+          }
+        : {}),
+    },
   });
   return { id: session.id, url: session.url ?? "" };
 }
@@ -57,10 +72,18 @@ export function retrieveSession(id: string): Promise<Stripe.Checkout.Session> {
   return stripe().checkout.sessions.retrieve(id);
 }
 
-/** Refund a captured payment (best-effort). Returns true on success. */
-export async function refundPayment(paymentIntentId: string): Promise<boolean> {
+/** Refund a captured payment (best-effort). Returns true on success. For a
+ *  destination charge (funds sent to a host's connected account) pass
+ *  `reverseTransfer` so the host's balance is debited too. */
+export async function refundPayment(
+  paymentIntentId: string,
+  reverseTransfer = false,
+): Promise<boolean> {
   try {
-    await stripe().refunds.create({ payment_intent: paymentIntentId });
+    await stripe().refunds.create({
+      payment_intent: paymentIntentId,
+      ...(reverseTransfer ? { reverse_transfer: true, refund_application_fee: true } : {}),
+    });
     return true;
   } catch (err) {
     logger.error("stripe refund failed", { event: "stripe_refund_failed", err });
@@ -124,4 +147,95 @@ export async function createBillingPortalSession(
 /** Fetch a subscription (webhook enrichment). */
 export function retrieveSubscription(id: string): Promise<Stripe.Subscription> {
   return stripe().subscriptions.retrieve(id);
+}
+
+// ---- Stripe Connect (Express) - hosts get paid directly ----
+
+/** Connect works whenever the platform Stripe key is set (Connect is enabled on
+ *  the platform account in the Stripe Dashboard). */
+export const connectEnabled = paymentsEnabled;
+
+/** Platform's percentage cut on each host transaction (0 = none). Env-configurable. */
+export const platformFeePercent = Math.max(
+  0,
+  Math.min(100, Number(process.env.STRIPE_PLATFORM_FEE_PERCENT ?? "0") || 0),
+);
+
+/** Minimum balance (minor units) a host can withdraw - $100. */
+export const WITHDRAW_MINIMUM = 10_000;
+
+/** The platform fee (minor units) for a charge of `amount`. */
+export function platformFee(amount: number): number {
+  return Math.round((amount * platformFeePercent) / 100);
+}
+
+/** Create an Express connected account for a host, with MANUAL payouts (so the
+ *  host withdraws deliberately once they hit the minimum, per product design). */
+export async function createConnectAccount(email?: string): Promise<string> {
+  const account = await stripe().accounts.create({
+    type: "express",
+    ...(email ? { email } : {}),
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+    settings: { payouts: { schedule: { interval: "manual" } } },
+  });
+  return account.id;
+}
+
+/** Hosted onboarding link for an Express account. */
+export async function createAccountLink(
+  accountId: string,
+  refreshUrl: string,
+  returnUrl: string,
+): Promise<string> {
+  const link = await stripe().accountLinks.create({
+    account: accountId,
+    refresh_url: refreshUrl,
+    return_url: returnUrl,
+    type: "account_onboarding",
+  });
+  return link.url;
+}
+
+/** Login link to the Express dashboard (view payouts history, update bank). */
+export async function createExpressLoginLink(accountId: string): Promise<string> {
+  const link = await stripe().accounts.createLoginLink(accountId);
+  return link.url;
+}
+
+export interface ConnectStatus {
+  chargesEnabled: boolean;
+  payoutsEnabled: boolean;
+  detailsSubmitted: boolean;
+}
+
+/** Current capability status of a connected account (drives the settings UI). */
+export async function retrieveConnectStatus(accountId: string): Promise<ConnectStatus> {
+  const a = await stripe().accounts.retrieve(accountId);
+  return {
+    chargesEnabled: Boolean(a.charges_enabled),
+    payoutsEnabled: Boolean(a.payouts_enabled),
+    detailsSubmitted: Boolean(a.details_submitted),
+  };
+}
+
+/** Available balance (minor units) on a host's connected account, per currency. */
+export async function connectedBalance(
+  accountId: string,
+): Promise<{ available: number; currency: string }> {
+  const bal = await stripe().balance.retrieve({ stripeAccount: accountId });
+  const first = bal.available[0];
+  return { available: first?.amount ?? 0, currency: first?.currency ?? "usd" };
+}
+
+/** Pay out the host's available balance to their bank (manual payout). */
+export async function createConnectedPayout(
+  accountId: string,
+  amount: number,
+  currency: string,
+): Promise<{ id: string }> {
+  const payout = await stripe().payouts.create({ amount, currency }, { stripeAccount: accountId });
+  return { id: payout.id };
 }

@@ -50,6 +50,11 @@ export const users = pgTable(
     phoneNumber: text("phone_number").unique(),
     phoneNumberVerified: boolean("phone_number_verified").notNull().default(false),
     timezone: text("timezone").notNull().default("UTC"),
+    /** Stripe Connect (Express) account that receives this host's booking/package
+     * payments. Null until the host onboards. Charges/payouts flags mirror Stripe. */
+    stripeAccountId: text("stripe_account_id"),
+    stripeChargesEnabled: boolean("stripe_charges_enabled").notNull().default(false),
+    stripePayoutsEnabled: boolean("stripe_payouts_enabled").notNull().default(false),
     ...timestamps,
   },
   (t) => [uniqueIndex("users_email_idx").on(t.email)],

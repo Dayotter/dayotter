@@ -295,6 +295,13 @@
       "when": 1784107901130,
       "tag": "0041_rare_silver_sable",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1784125964562,
+      "tag": "0042_serious_marvel_boy",
+      "breakpoints": true
     }
   ]
 }
