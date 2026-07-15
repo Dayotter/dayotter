@@ -30,6 +30,7 @@ export default async function PreferencesSettingsPage() {
           lunchEnabled: prefs?.lunchEnabled ?? false,
           lunchStartMinute: prefs?.lunchStartMinute ?? 720,
           lunchEndMinute: prefs?.lunchEndMinute ?? 780,
+          bookingPageAssistant: prefs?.bookingPageAssistant ?? true,
         }}
       />
       <AnalyticsPreferences />

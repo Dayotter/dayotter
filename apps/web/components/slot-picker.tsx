@@ -1,6 +1,7 @@
 "use client";
 import { FormError } from "@/components/ui/form";
 
+import { BookingAssistant } from "@/components/booking-assistant";
 import { type Slot, SlotGrid, useLocalZone } from "@/components/slot-grid";
 import { Turnstile, captchaEnabled } from "@/components/turnstile";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function SlotPicker({
   durationOptions = [],
   linkToken,
   requiresCode = false,
+  assistantEnabled = false,
 }: {
   eventTypeId: string;
   questions?: BookingQuestionInput[];
@@ -33,6 +35,8 @@ export function SlotPicker({
   linkToken?: string;
   /** Event type is password-protected - gate the flow behind an access code. */
   requiresCode?: boolean;
+  /** Show the floating "find me a time" AI helper (host preference). */
+  assistantEnabled?: boolean;
 }) {
   const router = useRouter();
   const zone = useLocalZone();
@@ -156,6 +160,9 @@ export function SlotPicker({
           onSelect={setSelected}
           duration={hasDurations ? duration : undefined}
         />
+        {assistantEnabled ? (
+          <BookingAssistant eventTypeId={eventTypeId} onPick={setSelected} />
+        ) : null}
       </div>
     );
   }

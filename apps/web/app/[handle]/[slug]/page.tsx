@@ -2,6 +2,7 @@ import { HostAvatar } from "@/components/host-avatar";
 import { SlotPicker } from "@/components/slot-picker";
 import { Card, CardBody } from "@/components/ui/card";
 import { ViewTracker } from "@/components/view-tracker";
+import { aiEnabled } from "@/lib/ai/llm";
 import { getEntitlements } from "@/lib/billing/entitlements";
 import { brandStyle, getHostBranding } from "@/lib/booking/branding";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
@@ -43,6 +44,13 @@ export default async function PublicBookingPage({
   const locale = resolveLocale((await headers()).get("accept-language"));
 
   const chargeAmount = paymentsEnabled ? chargeFor(eventType.price, eventType.depositAmount) : 0;
+
+  // Booking-page AI helper: on when AI is configured and the host hasn't opted out.
+  const hostPrefs = await db.query.userPreferences.findFirst({
+    where: eq(schema.userPreferences.userId, host.id),
+    columns: { bookingPageAssistant: true },
+  });
+  const assistantEnabled = aiEnabled && hostPrefs?.bookingPageAssistant !== false;
   const priceLabel =
     chargeAmount > 0 ? formatMoney(chargeAmount, eventType.currency ?? "usd") : null;
   const isDeposit =
@@ -115,6 +123,7 @@ export default async function PublicBookingPage({
               defaultDuration={eventType.durationMinutes}
               durationOptions={eventType.durationOptions ?? []}
               requiresCode={eventType.accessCodeHash != null}
+              assistantEnabled={assistantEnabled}
             />
           </CardBody>
         </div>
