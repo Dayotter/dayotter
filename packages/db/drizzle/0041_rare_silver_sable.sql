@@ -1,0 +1,1 @@
+CREATE INDEX "bookings_event_starts_idx" ON "bookings" USING btree ("event_type_id","starts_at");

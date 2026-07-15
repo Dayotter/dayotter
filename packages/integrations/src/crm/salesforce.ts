@@ -1,3 +1,4 @@
+import { crmJson, crmTokenRequest, splitName } from "./shared";
 import {
   type CrmAccount,
   type CrmAdapter,
@@ -63,16 +64,8 @@ function toCreds(t: SfTokenResponse, keepRefresh?: string): CrmCredentials {
   };
 }
 
-async function tokenRequest(body: Record<string, string>): Promise<SfTokenResponse> {
-  const res = await fetch(`${LOGIN}/services/oauth2/token`, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(body).toString(),
-  });
-  if (!res.ok) {
-    throw new CrmApiError("salesforce", res.status, `token exchange failed: ${await res.text()}`);
-  }
-  return (await res.json()) as SfTokenResponse;
+function tokenRequest(body: Record<string, string>): Promise<SfTokenResponse> {
+  return crmTokenRequest<SfTokenResponse>("salesforce", `${LOGIN}/services/oauth2/token`, body);
 }
 
 /** Exchange an authorization code for tokens + the org identity. */
@@ -137,22 +130,18 @@ export class SalesforceAdapter implements CrmAdapter {
 
   /** Fetch with a one-shot reactive refresh on 401 (expired session). */
   private async api<T>(path: string, init: RequestInit, retry = true): Promise<T> {
-    const res = await fetch(`${this.base()}${path}`, {
-      ...init,
-      headers: {
-        authorization: `Bearer ${this.creds.accessToken}`,
-        "content-type": "application/json",
-        ...(init.headers ?? {}),
-      },
-    });
-    if (res.status === 401 && retry) {
-      await this.refresh();
-      return this.api<T>(path, init, false);
+    try {
+      return await crmJson<T>("salesforce", `${this.base()}${path}`, {
+        ...init,
+        token: this.creds.accessToken,
+      });
+    } catch (err) {
+      if (retry && err instanceof CrmApiError && err.status === 401) {
+        await this.refresh();
+        return this.api<T>(path, init, false);
+      }
+      throw err;
     }
-    if (!res.ok) {
-      throw new CrmApiError("salesforce", res.status, await res.text());
-    }
-    return (res.status === 204 ? undefined : await res.json()) as T;
   }
 
   async upsertContact(input: CrmContactInput): Promise<string> {
@@ -206,14 +195,4 @@ export class SalesforceAdapter implements CrmAdapter {
     // Salesforce Events have no cancelled state; remove the activity.
     await this.api(`/sobjects/Event/${externalActivityId}`, { method: "DELETE" });
   }
-}
-
-function splitName(input: CrmContactInput): { first: string; last: string } {
-  if (input.firstName || input.lastName) {
-    return { first: input.firstName ?? "", last: input.lastName ?? "" };
-  }
-  const parts = (input.name ?? "").trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return { first: "", last: "" };
-  if (parts.length === 1) return { first: "", last: parts[0] ?? "" };
-  return { first: parts[0] ?? "", last: parts.slice(1).join(" ") };
 }

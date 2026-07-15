@@ -9,12 +9,16 @@ function timeToMinutes(time: string): number {
   return hours * 60 + minutes;
 }
 
+/** An open window for a day, as epoch-millis bounds (so the inner slot loop can
+ *  use plain integer math instead of allocating a Luxon DateTime per slot). */
 interface DayWindow {
-  start: DateTime;
-  end: DateTime;
+  start: number;
+  end: number;
 }
 
-/** Resolve the concrete open windows for a single calendar day. */
+/** Resolve the concrete open windows for a single calendar day, in epoch millis.
+ *  Boundaries still go through Luxon's day math so DST and wall-clock times are
+ *  handled correctly; only the returned values are millis. */
 function windowsForDay(day: DateTime, rules: WeeklyRule[], overrides: DateOverride[]): DayWindow[] {
   const isoDate = day.toISODate();
   const override = overrides.find((o) => o.date === isoDate);
@@ -24,8 +28,8 @@ function windowsForDay(day: DateTime, rules: WeeklyRule[], overrides: DateOverri
     if (!override.startTime || !override.endTime) return [];
     return [
       {
-        start: day.plus({ minutes: timeToMinutes(override.startTime) }),
-        end: day.plus({ minutes: timeToMinutes(override.endTime) }),
+        start: day.plus({ minutes: timeToMinutes(override.startTime) }).toMillis(),
+        end: day.plus({ minutes: timeToMinutes(override.endTime) }).toMillis(),
       },
     ];
   }
@@ -35,8 +39,8 @@ function windowsForDay(day: DateTime, rules: WeeklyRule[], overrides: DateOverri
   return rules
     .filter((r) => r.dayOfWeek === dow)
     .map((r) => ({
-      start: day.plus({ minutes: timeToMinutes(r.startTime) }),
-      end: day.plus({ minutes: timeToMinutes(r.endTime) }),
+      start: day.plus({ minutes: timeToMinutes(r.startTime) }).toMillis(),
+      end: day.plus({ minutes: timeToMinutes(r.endTime) }).toMillis(),
     }));
 }
 
@@ -84,30 +88,28 @@ export function computeAvailability(input: AvailabilityInput): Slot[] {
   };
 
   const slots: Slot[] = [];
+  const durationMs = duration * 60_000;
+  const intervalMs = interval * 60_000;
 
   // Iterate day-by-day in the schedule's timezone so DST is handled correctly.
+  // The day/window boundaries use Luxon (DST-aware); the inner slot loop is plain
+  // integer millisecond arithmetic - equivalent to Luxon's minute stepping, but
+  // without allocating a DateTime per candidate slot.
   let cursor = DateTime.fromMillis(rangeStartMs, { zone: schedule.timezone }).startOf("day");
   const lastDay = DateTime.fromMillis(rangeEndMs, { zone: schedule.timezone }).endOf("day");
 
   while (cursor <= lastDay) {
     for (const win of windowsForDay(cursor, schedule.rules, schedule.overrides)) {
-      let slotStart = win.start;
-      while (true) {
-        const slotEnd = slotStart.plus({ minutes: duration });
-        if (slotEnd > win.end) break;
-
-        const startMs = slotStart.toMillis();
-        const endMs = slotEnd.toMillis();
-
+      for (let startMs = win.start; startMs + durationMs <= win.end; startMs += intervalMs) {
+        const endMs = startMs + durationMs;
         if (
           startMs >= earliest &&
           startMs >= rangeStartMs &&
           startMs < rangeEndMs &&
           !conflictsWithBusy(startMs, endMs)
         ) {
-          slots.push({ start: slotStart.toJSDate(), end: slotEnd.toJSDate() });
+          slots.push({ start: new Date(startMs), end: new Date(endMs) });
         }
-        slotStart = slotStart.plus({ minutes: interval });
       }
     }
     cursor = cursor.plus({ days: 1 });

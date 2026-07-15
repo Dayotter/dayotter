@@ -2,8 +2,8 @@ import { MarketingHeader } from "@/components/marketing/page-shell";
 import { BreadcrumbJsonLd, DefinedTermJsonLd } from "@/components/seo/json-ld";
 import { buttonVariants } from "@/components/ui/button";
 import { GLOSSARY, getGlossaryTerm } from "@/lib/glossary";
+import { makeSlugMetadata } from "@/lib/marketing-page";
 import { ArrowRight } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -11,22 +11,15 @@ export function generateStaticParams() {
   return GLOSSARY.map((t) => ({ slug: t.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const t = getGlossaryTerm((await params).slug);
-  if (!t) return { title: "Glossary" };
-  const path = `/glossary/${t.slug}`;
-  const title = `${t.term} - scheduling glossary`;
-  return {
-    title,
+export const generateMetadata = makeSlugMetadata(
+  getGlossaryTerm,
+  (t) => ({
+    title: `${t.term} - scheduling glossary`,
     description: t.short,
-    alternates: { canonical: path },
-    openGraph: { title, description: t.short, url: path },
-  };
-}
+    path: `/glossary/${t.slug}`,
+  }),
+  "Glossary",
+);
 
 export default async function GlossaryTermPage({
   params,

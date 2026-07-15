@@ -1,10 +1,10 @@
-import {
-  type CrmAccount,
-  type CrmAdapter,
-  CrmApiError,
-  type CrmContactInput,
-  type CrmCredentials,
-  type CrmMeetingInput,
+import { crmJson, crmTokenRequest, splitName } from "./shared";
+import type {
+  CrmAccount,
+  CrmAdapter,
+  CrmContactInput,
+  CrmCredentials,
+  CrmMeetingInput,
 } from "./types";
 
 /**
@@ -62,16 +62,12 @@ function toCreds(token: {
 }
 
 async function tokenRequest(body: Record<string, string>): Promise<CrmCredentials> {
-  const res = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(body).toString(),
-  });
-  if (!res.ok) {
-    throw new CrmApiError("hubspot", res.status, `token exchange failed: ${await res.text()}`);
-  }
   return toCreds(
-    (await res.json()) as { access_token: string; refresh_token?: string; expires_in: number },
+    await crmTokenRequest<{ access_token: string; refresh_token?: string; expires_in: number }>(
+      "hubspot",
+      TOKEN_URL,
+      body,
+    ),
   );
 }
 
@@ -120,18 +116,7 @@ export class HubspotAdapter implements CrmAdapter {
   }
 
   private async api<T>(path: string, init: RequestInit): Promise<T> {
-    const res = await fetch(`${API}${path}`, {
-      ...init,
-      headers: {
-        authorization: `Bearer ${await this.token()}`,
-        "content-type": "application/json",
-        ...(init.headers ?? {}),
-      },
-    });
-    if (!res.ok) {
-      throw new CrmApiError("hubspot", res.status, await res.text());
-    }
-    return (res.status === 204 ? undefined : await res.json()) as T;
+    return crmJson<T>("hubspot", `${API}${path}`, { ...init, token: await this.token() });
   }
 
   async upsertContact(input: CrmContactInput): Promise<string> {
@@ -209,14 +194,4 @@ function meetingProps(input: CrmMeetingInput, _outcome: string): Record<string, 
     hs_meeting_start_time: String(start),
     hs_meeting_end_time: String(end),
   };
-}
-
-function splitName(input: CrmContactInput): { first: string; last: string } {
-  if (input.firstName || input.lastName) {
-    return { first: input.firstName ?? "", last: input.lastName ?? "" };
-  }
-  const parts = (input.name ?? "").trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return { first: "", last: "" };
-  if (parts.length === 1) return { first: parts[0] ?? "", last: "" };
-  return { first: parts[0] ?? "", last: parts.slice(1).join(" ") };
 }

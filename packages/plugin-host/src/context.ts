@@ -1,4 +1,4 @@
-import { assertPublicHttpUrl, logger, resolvePublicIp } from "@dayotter/core";
+import { logger, safeFetch } from "@dayotter/core";
 import type {
   PluginContext,
   PluginHookContext,
@@ -17,16 +17,28 @@ function pluginLogger(pluginId: string): PluginLogger {
   };
 }
 
+/** Normalise fetch headers to a plain string record for the core safeFetch. */
+function toHeaderRecord(h: RequestInit["headers"]): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!h) return out;
+  const entries =
+    h instanceof Headers ? [...h.entries()] : Array.isArray(h) ? h : Object.entries(h);
+  for (const [k, v] of entries) out[k] = Array.isArray(v) ? v.join(", ") : String(v);
+  return out;
+}
+
 /**
- * SSRF-guarded fetch: HTTPS-only, the URL's host + its DNS resolution must both
- * be public, and redirects are not followed (a 3xx is returned as-is). This is
- * the only outbound path a plugin should use to reach an external service.
+ * The plugin HTTP client: the single pinned, SSRF-safe fetch from @dayotter/core
+ * (HTTPS-only, connection pinned to the validated public IP, no redirects). This
+ * is the only outbound path a plugin should use to reach an external service.
  */
 const safeHttp: PluginHttp = {
-  async fetch(url, init) {
-    const parsed = assertPublicHttpUrl(url, { requireHttps: true });
-    await resolvePublicIp(parsed.hostname); // throws if it resolves to a private IP
-    return fetch(parsed, { ...init, redirect: "manual" });
+  fetch(url, init) {
+    return safeFetch(url, {
+      method: init?.method,
+      headers: toHeaderRecord(init?.headers),
+      body: typeof init?.body === "string" ? init.body : undefined,
+    });
   },
 };
 

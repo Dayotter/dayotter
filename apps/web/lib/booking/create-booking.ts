@@ -3,13 +3,10 @@ import { consumeCredit } from "@/lib/packages/credits";
 import { logger, roundRobinPick, safeEqual, sha256hex } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
 import { bookingConfirmation, sendEmail } from "@dayotter/emails";
-import { enqueueCrmSync } from "@dayotter/jobs";
-import { runPluginBookingHooks } from "@dayotter/plugin-host";
 import { DateTime } from "luxon";
 import { applyBookingRules } from "../automation/apply-rules";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
 import { createZoomMeeting } from "../integrations/zoom";
-import { emitWebhook } from "../webhooks/emit";
 import {
   SLOT_REVALIDATION_WINDOW_MS,
   combineHostSlots,
@@ -18,6 +15,7 @@ import {
 } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { AUTO_CONFERENCE } from "./event-type-input";
+import { fanOutBookingLifecycle } from "./lifecycle";
 import {
   hostWantsOverflowNotice,
   hostWantsScribe,
@@ -335,31 +333,29 @@ export async function createBooking(
     hostId: host.id,
   });
 
-  // Fan out to the host's webhook endpoints (best-effort).
-  await emitWebhook(host.id, "booking.created", {
-    uid,
-    eventTypeId: eventType.id,
-    title: eventType.title,
-    startsAt: start.toISOString(),
-    endsAt: end.toISOString(),
-    status: booking.status,
-    attendee: { name: input.attendee.name, email: input.attendee.email },
-  });
-
-  // Push to the host's connected CRMs (Salesforce / HubSpot), best-effort.
-  await enqueueCrmSync({ bookingId: booking.id, action: "created" }).catch(() => {});
-
-  // Fan out to enabled plugins (notes, connectors, …). Best-effort.
-  await runPluginBookingHooks("created", {
-    bookingId: booking.id,
-    uid,
-    hostId: host.id,
-    eventTypeId: eventType.id,
-    title: eventType.title,
-    startsAt: start.toISOString(),
-    endsAt: end.toISOString(),
-    attendees: [{ name: input.attendee.name, email: input.attendee.email }],
-  });
+  // Fan out to webhooks, CRM sync, and plugin hooks (all best-effort).
+  await fanOutBookingLifecycle(
+    "created",
+    {
+      bookingId: booking.id,
+      uid,
+      hostId: host.id,
+      eventTypeId: eventType.id,
+      title: eventType.title,
+      startsAt: start.toISOString(),
+      endsAt: end.toISOString(),
+      attendees: [{ name: input.attendee.name, email: input.attendee.email }],
+    },
+    {
+      uid,
+      eventTypeId: eventType.id,
+      title: eventType.title,
+      startsAt: start.toISOString(),
+      endsAt: end.toISOString(),
+      status: booking.status,
+      attendee: { name: input.attendee.name, email: input.attendee.email },
+    },
+  );
 
   // Zoom event types: auto-create a real Zoom meeting when the host has Zoom
   // connected (falls back to any manual link otherwise). Best-effort.

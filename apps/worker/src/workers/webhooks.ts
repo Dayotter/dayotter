@@ -1,11 +1,4 @@
-import https from "node:https";
-import {
-  assertPublicHttpUrl,
-  decrypt,
-  hmacSha256hex,
-  logger,
-  resolvePublicIp,
-} from "@dayotter/core";
+import { decrypt, hmacSha256hex, logger, safeFetch } from "@dayotter/core";
 import { eq, getDb, schema, sql } from "@dayotter/db";
 import { QUEUE_NAMES, type WebhookJob, connection } from "@dayotter/jobs";
 import { Worker } from "bullmq";
@@ -13,40 +6,22 @@ import { Worker } from "bullmq";
 const TIMEOUT_MS = 10_000;
 
 /**
- * POST to a consumer URL with SSRF protection: HTTPS-only, hostname + DNS both
- * validated against internal ranges, the connection PINNED to the validated
- * public IP (defeats DNS-rebinding), and NO redirect following (node:https does
- * not auto-redirect, so a 3xx is returned as-is → treated as a failure).
- * Returns the HTTP status code.
+ * POST to a consumer URL through the shared SSRF-safe fetch (HTTPS-only,
+ * connection pinned to the validated public IP, no redirects followed). Returns
+ * the HTTP status code.
  */
 async function postSigned(
   rawUrl: string,
   headers: Record<string, string>,
   body: string,
 ): Promise<number> {
-  const url = assertPublicHttpUrl(rawUrl, { requireHttps: true });
-  const pinned = await resolvePublicIp(url.hostname);
-  return await new Promise<number>((resolve, reject) => {
-    const req = https.request(
-      {
-        host: pinned.address, // connect to the validated IP, not a re-resolved host
-        servername: url.hostname, // SNI + certificate hostname validation
-        port: url.port ? Number(url.port) : 443,
-        path: `${url.pathname}${url.search}`,
-        method: "POST",
-        headers: { ...headers, host: url.host },
-        timeout: TIMEOUT_MS,
-      },
-      (res) => {
-        res.resume(); // drain; we don't need the body
-        resolve(res.statusCode ?? 0);
-      },
-    );
-    req.on("timeout", () => req.destroy(new Error("webhook delivery timed out")));
-    req.on("error", reject);
-    req.write(body);
-    req.end();
+  const res = await safeFetch(rawUrl, {
+    method: "POST",
+    headers,
+    body,
+    timeoutMs: TIMEOUT_MS,
   });
+  return res.status;
 }
 
 /**
