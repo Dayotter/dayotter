@@ -395,10 +395,77 @@ export const FEATURES: Feature[] = [
       },
       {
         q: "Is it available now?",
-        a: "It's in beta. Self-hosters can enable it for free by setting the provider's OAuth credentials; on the cloud it's part of Pro.",
+        a: "Yes - it's free on every plan. Self-hosters set the provider's OAuth credentials; on the cloud it's included, not paywalled.",
       },
     ],
     related: ["routing-forms", "round-robin", "calendar-sync"],
+  },
+  {
+    slug: "adaptive-availability",
+    label: "Adaptive availability",
+    blurb: "Availability that flexes with your real load - cap busy days, open up quiet ones.",
+    title: "Adaptive availability",
+    subtitle:
+      "DayOtter reads how booked you already are and tunes the times you offer - so a heavy day doesn't get piled higher and a quiet week opens up.",
+    intro: [
+      "Fixed working hours don't reflect real life: some days are already full, others wide open. Adaptive availability looks at what's actually on your calendar and adjusts the slots you offer - tightening on busy days, loosening on light ones - without you touching your schedule.",
+      "It stays confirm-first and rule-bound: you set the guardrails (daily meeting caps, buffers) and DayOtter keeps you inside them automatically.",
+    ],
+    points: [
+      {
+        title: "Caps your busiest days",
+        body: "Set a max meetings-per-day and DayOtter stops offering new slots once a day hits the limit - no day gets overloaded.",
+      },
+      {
+        title: "Opens up quiet time",
+        body: "On lighter days it surfaces more of your open time, so gaps that would otherwise go to waste get filled.",
+      },
+      {
+        title: "Buffers built in",
+        body: "Automatic gaps between meetings mean back-to-back days never sneak in.",
+      },
+    ],
+    faq: [
+      {
+        q: "Does it change my working hours?",
+        a: "No - it works within the hours you set, and only decides which of those open slots to offer based on your real load.",
+      },
+    ],
+    related: ["focus-time", "travel-aware", "round-robin"],
+  },
+  {
+    slug: "travel-aware",
+    label: "Travel-aware scheduling",
+    blurb:
+      "Holds travel time around in-person meetings so you're never booked across town with no gap.",
+    title: "Travel-aware scheduling",
+    subtitle:
+      "For in-person meetings, DayOtter reserves travel time around the booking - so your calendar reflects the trip, not just the meeting.",
+    intro: [
+      "A 2pm coffee across town isn't a 30-minute commitment - it's the meeting plus travel each way. Travel-aware scheduling adds a configurable buffer before and after in-person bookings and treats it as busy, so nobody books you into a slot you physically can't make.",
+      "Combined with buffers and daily caps, it keeps your day realistic instead of a wall of impossible-to-honour slots.",
+    ],
+    points: [
+      {
+        title: "Buffers that block",
+        body: "Travel time is held as busy, so the next booking can't land before you're back.",
+      },
+      {
+        title: "Only where it matters",
+        body: "Applies to in-person locations - virtual meetings stay back-to-back-friendly.",
+      },
+      {
+        title: "Yours to tune",
+        body: "Set how much travel time to reserve; DayOtter applies it on every in-person booking.",
+      },
+    ],
+    faq: [
+      {
+        q: "Does it look up the actual drive time?",
+        a: "It reserves the travel buffer you configure around in-person meetings - enough to keep you from being double-booked, without needing a maps API.",
+      },
+    ],
+    related: ["adaptive-availability", "focus-time", "calendar-sync"],
   },
 ];
 
