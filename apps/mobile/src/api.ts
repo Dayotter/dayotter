@@ -15,14 +15,29 @@ export class ApiError extends Error {
   }
 }
 
+// SecureStore is backed by the Android Keystore / iOS Keychain, which can throw
+// on some devices (e.g. keystore key requiring user authentication). Never let
+// that bubble unhandled on the cold-start auth path - degrade to "no token".
 export async function getToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(TOKEN_KEY);
+  try {
+    return await SecureStore.getItemAsync(TOKEN_KEY);
+  } catch {
+    return null;
+  }
 }
 export async function setToken(value: string): Promise<void> {
-  await SecureStore.setItemAsync(TOKEN_KEY, value);
+  try {
+    await SecureStore.setItemAsync(TOKEN_KEY, value);
+  } catch {
+    /* best-effort */
+  }
 }
 export async function clearToken(): Promise<void> {
-  await SecureStore.deleteItemAsync(TOKEN_KEY);
+  try {
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
+  } catch {
+    /* best-effort */
+  }
 }
 
 async function headers(): Promise<Record<string, string>> {
