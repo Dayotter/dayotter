@@ -106,6 +106,15 @@ export interface UserPreferences {
   adaptiveAvailability?: boolean;
   maxMeetingsPerDay?: number;
   travelBufferMinutes?: number;
+  reclaimCancelledTime?: boolean;
+  overflowNotifyEnabled?: boolean;
+  briefingEnabled?: boolean;
+  briefingHour?: number;
+  scribeEnabled?: boolean;
+  lunchEnabled?: boolean;
+  lunchStartMinute?: number;
+  lunchEndMinute?: number;
+  bookingPageAssistant?: boolean;
 }
 
 /** Automation rule (GET/POST /api/automations). */
@@ -261,6 +270,8 @@ export interface Team {
 export interface BookingDetail extends Booking {
   eventTypeId: string;
   hostName: string | null;
+  /** True when this booking is one occurrence of a recurring series. */
+  isRecurring?: boolean;
 }
 
 export interface Schedule {

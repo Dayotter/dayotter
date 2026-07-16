@@ -32,16 +32,29 @@ export default function BookingDetailScreen() {
   const isPast = data ? new Date(data.endsAt).getTime() < Date.now() : false;
 
   function confirmCancel() {
+    // Recurring booking: let the host cancel just this one or the whole series.
+    if (data?.isRecurring) {
+      Alert.alert("Cancel recurring booking?", "This notifies everyone and frees the time.", [
+        { text: "Keep it", style: "cancel" },
+        { text: "This booking only", style: "destructive", onPress: () => doCancel("one") },
+        {
+          text: "This & all later",
+          style: "destructive",
+          onPress: () => doCancel("series"),
+        },
+      ]);
+      return;
+    }
     Alert.alert("Cancel booking?", "This notifies everyone and frees the time.", [
       { text: "Keep it", style: "cancel" },
-      { text: "Cancel booking", style: "destructive", onPress: doCancel },
+      { text: "Cancel booking", style: "destructive", onPress: () => doCancel("one") },
     ]);
   }
 
-  async function doCancel() {
+  async function doCancel(scope: "one" | "series") {
     setCancelling(true);
     try {
-      await api.post(`/api/bookings/${uid}/cancel`, {});
+      await api.post(`/api/bookings/${uid}/cancel`, { scope });
       reload();
     } catch {
       Alert.alert("Could not cancel", "Please try again.");

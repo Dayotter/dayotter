@@ -33,23 +33,27 @@ export const GET = withUser(async (u) => {
   });
 });
 
+// Every field is optional: this is a PARTIAL update. A client (e.g. the mobile
+// app) that sends only a subset must NOT reset the fields it omits - previously
+// zod `.default()` + a full write silently wiped any preference the caller
+// didn't include, so a mobile save reset lunch/scribe/briefing/theme/etc.
 const bodySchema = z.object({
-  timeFormat: z.enum(["12h", "24h"]),
-  weekStartsOn: z.number().int().min(0).max(6),
-  theme: z.enum(["system", "light", "dark"]),
-  defaultReminderOffsets: z.array(z.number().int().min(0).max(43_200)).max(5),
-  adaptiveAvailability: z.boolean().default(false),
-  maxMeetingsPerDay: z.number().int().min(1).max(20).default(5),
-  travelBufferMinutes: z.number().int().min(0).max(240).default(0),
-  reclaimCancelledTime: z.boolean().default(false),
-  overflowNotifyEnabled: z.boolean().default(false),
-  briefingEnabled: z.boolean().default(false),
-  briefingHour: z.number().int().min(0).max(23).default(8),
-  scribeEnabled: z.boolean().default(false),
-  lunchEnabled: z.boolean().default(false),
-  lunchStartMinute: z.number().int().min(0).max(1439).default(720),
-  lunchEndMinute: z.number().int().min(1).max(1440).default(780),
-  bookingPageAssistant: z.boolean().default(true),
+  timeFormat: z.enum(["12h", "24h"]).optional(),
+  weekStartsOn: z.number().int().min(0).max(6).optional(),
+  theme: z.enum(["system", "light", "dark"]).optional(),
+  defaultReminderOffsets: z.array(z.number().int().min(0).max(43_200)).max(5).optional(),
+  adaptiveAvailability: z.boolean().optional(),
+  maxMeetingsPerDay: z.number().int().min(1).max(20).optional(),
+  travelBufferMinutes: z.number().int().min(0).max(240).optional(),
+  reclaimCancelledTime: z.boolean().optional(),
+  overflowNotifyEnabled: z.boolean().optional(),
+  briefingEnabled: z.boolean().optional(),
+  briefingHour: z.number().int().min(0).max(23).optional(),
+  scribeEnabled: z.boolean().optional(),
+  lunchEnabled: z.boolean().optional(),
+  lunchStartMinute: z.number().int().min(0).max(1439).optional(),
+  lunchEndMinute: z.number().int().min(1).max(1440).optional(),
+  bookingPageAssistant: z.boolean().optional(),
 });
 
 export const PATCH = withUser(async (u, request) => {
@@ -57,29 +61,34 @@ export const PATCH = withUser(async (u, request) => {
   if (!parsed.success) return jsonError("Invalid preferences", 400);
   const d = parsed.data;
 
-  // De-duplicate + sort reminder offsets (largest lead time first).
-  const offsets = [...new Set(d.defaultReminderOffsets)].sort((a, b) => b - a);
-  // Guard against an inverted lunch window (end must be after start).
-  const lunchEnabled = d.lunchEnabled && d.lunchEndMinute > d.lunchStartMinute;
+  // Build the update from ONLY the keys the client actually sent.
+  const fields: Partial<typeof schema.userPreferences.$inferInsert> = {};
+  if (d.timeFormat !== undefined) fields.timeFormat = d.timeFormat;
+  if (d.weekStartsOn !== undefined) fields.weekStartsOn = d.weekStartsOn;
+  if (d.theme !== undefined) fields.theme = d.theme;
+  if (d.defaultReminderOffsets !== undefined) {
+    // De-duplicate + sort reminder offsets (largest lead time first).
+    fields.defaultReminderOffsets = [...new Set(d.defaultReminderOffsets)].sort((a, b) => b - a);
+  }
+  if (d.adaptiveAvailability !== undefined) fields.adaptiveAvailability = d.adaptiveAvailability;
+  if (d.maxMeetingsPerDay !== undefined) fields.maxMeetingsPerDay = d.maxMeetingsPerDay;
+  if (d.travelBufferMinutes !== undefined) fields.travelBufferMinutes = d.travelBufferMinutes;
+  if (d.reclaimCancelledTime !== undefined) fields.reclaimCancelledTime = d.reclaimCancelledTime;
+  if (d.overflowNotifyEnabled !== undefined) fields.overflowNotifyEnabled = d.overflowNotifyEnabled;
+  if (d.briefingEnabled !== undefined) fields.briefingEnabled = d.briefingEnabled;
+  if (d.briefingHour !== undefined) fields.briefingHour = d.briefingHour;
+  if (d.scribeEnabled !== undefined) fields.scribeEnabled = d.scribeEnabled;
+  if (d.lunchStartMinute !== undefined) fields.lunchStartMinute = d.lunchStartMinute;
+  if (d.lunchEndMinute !== undefined) fields.lunchEndMinute = d.lunchEndMinute;
+  if (d.bookingPageAssistant !== undefined) fields.bookingPageAssistant = d.bookingPageAssistant;
+  // Guard against an inverted lunch window (end must be after start) when enabling.
+  if (d.lunchEnabled !== undefined) {
+    const start = d.lunchStartMinute ?? 720;
+    const end = d.lunchEndMinute ?? 780;
+    fields.lunchEnabled = d.lunchEnabled && end > start;
+  }
 
-  const fields = {
-    timeFormat: d.timeFormat,
-    weekStartsOn: d.weekStartsOn,
-    theme: d.theme,
-    defaultReminderOffsets: offsets,
-    adaptiveAvailability: d.adaptiveAvailability,
-    maxMeetingsPerDay: d.maxMeetingsPerDay,
-    travelBufferMinutes: d.travelBufferMinutes,
-    reclaimCancelledTime: d.reclaimCancelledTime,
-    overflowNotifyEnabled: d.overflowNotifyEnabled,
-    briefingEnabled: d.briefingEnabled,
-    briefingHour: d.briefingHour,
-    scribeEnabled: d.scribeEnabled,
-    lunchEnabled,
-    lunchStartMinute: d.lunchStartMinute,
-    lunchEndMinute: d.lunchEndMinute,
-    bookingPageAssistant: d.bookingPageAssistant,
-  };
+  if (Object.keys(fields).length === 0) return NextResponse.json({ ok: true });
 
   await getDb()
     .insert(schema.userPreferences)
