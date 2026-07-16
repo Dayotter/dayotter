@@ -104,5 +104,54 @@ including the `/api/book` double-book guard.
 
 ---
 
+## Mobile (Expo) — parity with the web app
+
+The mobile app (`apps/mobile`) covers most host-facing features, but several web
+surfaces have **no mobile screen yet**. Each is a self-contained new screen; the
+web version is the reference. Add a route under `apps/mobile/app/` and follow the
+patterns in the existing screens (e.g. `settings.tsx`, `developer.tsx`).
+
+### 🟡 Android push notifications (Firebase/FCM)
+`expo-notifications` needs FCM on Android, but there's no `google-services.json`,
+so `FirebaseInitProvider` fails and remote reminders don't deliver (push is
+guarded, so it doesn't crash — it just no-ops). Create a Firebase project, add
+`google-services.json`, and wire it via `android.googleServicesFile` in
+`app.json`. Needs a Google/Firebase account (maintainer task).
+
+### 🟡 Stripe Connect payouts screen
+No mobile equivalent of `apps/web/app/(app)/settings/payouts/page.tsx` +
+`apps/web/components/payouts-panel.tsx`. Show per-currency available/pending
+balances and a withdraw action (`/api/payments/withdraw`, connect status).
+
+### 🟡 Session packages / credits
+No mobile equivalent of `apps/web/app/(app)/settings/packages/page.tsx` +
+`apps/web/components/packages-manager.tsx`. Create/manage prepaid session bundles
+per event type.
+
+### 🟡 Group polls (find-a-time)
+No mobile screen for `apps/web/app/(app)/polls/*`. List/create polls and finalize a time.
+
+### 🟡 Routing forms
+No mobile screen for `apps/web/app/(app)/routing/*`. Build/list qualify-and-route forms.
+
+### 🟢 CRM connections
+No mobile screen for `apps/web/app/(app)/settings/crm/page.tsx`. Connect/disconnect
+Salesforce/HubSpot (OAuth start + status).
+
+### 🟢 Billing / edition
+No mobile screen for `apps/web/app/(app)/settings/billing/page.tsx`. Show plan/edition
+and a link to manage the subscription.
+
+### 🟢 Team detail / edit
+Mobile `teams.tsx` is a read-only list; the web has `teams/[id]` for members and
+settings. Add a mobile team detail screen.
+
+### 🟢 Cancel/reschedule reason on mobile
+Whole-series cancel now works on mobile, but the optional **reason** isn't captured
+(Android has no `Alert.prompt`). Add a small text-input modal and pass `reason`
+through to `/api/bookings/[uid]/{cancel,reschedule}`.
+
+---
+
 Don't see your idea here? Open an [issue](../../issues/new/choose) — new proposals
 are welcome.
