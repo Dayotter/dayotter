@@ -13,7 +13,7 @@ free, under AGPLv3. This is the setup guide.
 ## Quick start (local / evaluation)
 
 ```bash
-git clone https://github.com/nometria/dayotter && cd dayotter
+git clone https://github.com/Dayotter/dayotter && cd dayotter
 docker compose up -d            # Postgres + Redis
 cp .env.example .env            # see Configuration below
 pnpm install

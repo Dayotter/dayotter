@@ -43,8 +43,10 @@ export async function POST(request: Request) {
       continue;
     }
     const meta = sub.metadata as { clientState?: string } | null;
-    // spoof guard (constant-time)
-    if (meta?.clientState && !safeEqual(notif.clientState ?? "", meta.clientState)) {
+    // Spoof guard (constant-time). Fail CLOSED: reject when the stored clientState
+    // is missing too, so a subscription without one can't accept forged
+    // notifications (matches the Google webhook). We always store one at watch time.
+    if (!meta?.clientState || !safeEqual(notif.clientState ?? "", meta.clientState)) {
       logger.warn("ms webhook: clientState mismatch", {
         event: "webhook_rejected",
         reason: "clientState_mismatch",

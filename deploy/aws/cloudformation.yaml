@@ -26,7 +26,7 @@ Parameters:
       HTTPS. Leave blank to start on plain HTTP at the server's public IP.
   RepoUrl:
     Type: String
-    Default: "https://github.com/OWNER/dayotter.git"
+    Default: "https://github.com/Dayotter/dayotter.git"
     Description: Git repository to deploy (your fork, if you have one).
   InstanceType:
     Type: String
