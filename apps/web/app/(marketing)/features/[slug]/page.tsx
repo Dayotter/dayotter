@@ -13,7 +13,18 @@ export function generateStaticParams() {
 
 export const generateMetadata = makeSlugMetadata(
   getFeature,
-  (f) => ({ title: f.title, description: f.subtitle, path: `/features/${f.slug}` }),
+  (f) => ({
+    title: f.title,
+    description: f.subtitle,
+    path: `/features/${f.slug}`,
+    keywords: [
+      f.title.toLowerCase(),
+      `${f.title.toLowerCase()} software`,
+      "AI scheduling",
+      "open source scheduling",
+      "DayOtter",
+    ],
+  }),
   "Features",
 );
 

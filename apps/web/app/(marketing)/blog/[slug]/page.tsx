@@ -1,5 +1,7 @@
 import { Prose } from "@/components/marketing/page-shell";
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import { POSTS, formatDate, getPost } from "@/lib/blog";
+import { slugMetadata } from "@/lib/marketing-page";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -15,8 +17,12 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const post = getPost((await params).slug);
-  if (!post) return { title: "Blog - DayOtter" };
-  return { title: `${post.title} - DayOtter`, description: post.excerpt };
+  if (!post) return { title: "Blog" };
+  return slugMetadata({
+    title: post.title,
+    description: post.excerpt,
+    path: `/blog/${post.slug}`,
+  });
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -25,6 +31,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <article>
+      <ArticleJsonLd
+        title={post.title}
+        description={post.excerpt}
+        path={`/blog/${post.slug}`}
+        datePublished={post.date}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Blog", path: "/blog" },
+          { name: post.title, path: `/blog/${post.slug}` },
+        ]}
+      />
       <header className="relative overflow-hidden border-b border-[var(--color-border)]">
         <div
           aria-hidden

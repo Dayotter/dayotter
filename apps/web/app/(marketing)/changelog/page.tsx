@@ -2,7 +2,8 @@ import { MarketingHeader } from "@/components/marketing/page-shell";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Changelog - DayOtter",
+  title: "Changelog",
+  alternates: { canonical: "/changelog" },
   description: "What's new in DayOtter.",
 };
 

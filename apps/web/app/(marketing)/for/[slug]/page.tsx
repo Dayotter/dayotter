@@ -13,7 +13,19 @@ export function generateStaticParams() {
 
 export const generateMetadata = makeSlugMetadata(
   getPersona,
-  (p) => ({ title: p.title, description: p.subtitle, path: `/for/${p.slug}` }),
+  (p) => ({
+    title: p.title,
+    description: p.subtitle,
+    path: `/for/${p.slug}`,
+    keywords: [
+      `scheduling for ${p.label.toLowerCase()}`,
+      `${p.label.toLowerCase()} scheduling software`,
+      `${p.label.toLowerCase()} booking tool`,
+      "AI scheduling",
+      "Calendly alternative",
+      "DayOtter",
+    ],
+  }),
   "DayOtter",
 );
 

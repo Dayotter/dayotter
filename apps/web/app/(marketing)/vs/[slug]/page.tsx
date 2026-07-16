@@ -17,6 +17,14 @@ export const generateMetadata = makeSlugMetadata(
     title: `${c.title} (2026) - how they compare`,
     description: c.subtitle,
     path: `/vs/${c.slug}`,
+    keywords: [
+      `${c.name} alternative`,
+      `DayOtter vs ${c.name}`,
+      `${c.name} vs DayOtter`,
+      `open source ${c.name} alternative`,
+      "AI scheduling",
+      "DayOtter",
+    ],
   }),
   "Compare - DayOtter",
 );
