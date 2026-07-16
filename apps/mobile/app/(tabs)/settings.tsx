@@ -42,6 +42,15 @@ export default function SettingsScreen() {
   const [adaptive, setAdaptive] = useState(false);
   const [maxPerDay, setMaxPerDay] = useState(5);
   const [travelBuffer, setTravelBuffer] = useState(0);
+  const [reclaim, setReclaim] = useState(false);
+  const [overflow, setOverflow] = useState(false);
+  const [scribe, setScribe] = useState(false);
+  const [briefing, setBriefing] = useState(false);
+  const [briefingHour, setBriefingHour] = useState(8);
+  const [lunch, setLunch] = useState(false);
+  const [lunchStart, setLunchStart] = useState(720);
+  const [lunchEnd, setLunchEnd] = useState(780);
+  const [bookingAssistant, setBookingAssistant] = useState(true);
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [brandColor, setBrandColor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,6 +74,15 @@ export default function SettingsScreen() {
         setAdaptive(p.adaptiveAvailability ?? false);
         setMaxPerDay(p.maxMeetingsPerDay ?? 5);
         setTravelBuffer(p.travelBufferMinutes ?? 0);
+        setReclaim(p.reclaimCancelledTime ?? false);
+        setOverflow(p.overflowNotifyEnabled ?? false);
+        setScribe(p.scribeEnabled ?? false);
+        setBriefing(p.briefingEnabled ?? false);
+        setBriefingHour(p.briefingHour ?? 8);
+        setLunch(p.lunchEnabled ?? false);
+        setLunchStart(p.lunchStartMinute ?? 720);
+        setLunchEnd(p.lunchEndMinute ?? 780);
+        setBookingAssistant(p.bookingPageAssistant ?? true);
         setWelcomeMessage(me?.branding?.welcomeMessage ?? "");
         setBrandColor(me?.branding?.brandColor ?? null);
       })
@@ -92,14 +110,24 @@ export default function SettingsScreen() {
         brandColor,
         welcomeMessage: welcomeMessage.trim() || null,
       });
+      // Partial update - we intentionally omit `theme` (no dark mode on mobile
+      // yet) so a web-set theme is preserved by the server's merge.
       await api.patch("/api/settings/preferences", {
         timeFormat,
         weekStartsOn,
-        theme: "system",
         defaultReminderOffsets: reminders,
         adaptiveAvailability: adaptive,
         maxMeetingsPerDay: maxPerDay,
         travelBufferMinutes: travelBuffer,
+        reclaimCancelledTime: reclaim,
+        overflowNotifyEnabled: overflow,
+        scribeEnabled: scribe,
+        briefingEnabled: briefing,
+        briefingHour,
+        lunchEnabled: lunch,
+        lunchStartMinute: lunchStart,
+        lunchEndMinute: lunchEnd,
+        bookingPageAssistant: bookingAssistant,
       });
       setSaved(true);
     } catch (e) {
@@ -163,6 +191,16 @@ export default function SettingsScreen() {
             />
           ))}
         </View>
+
+        <ToggleRow
+          label="AI “find me a time” helper"
+          hint="Show the Otter assistant on your public booking page so visitors can describe when they're free."
+          value={bookingAssistant}
+          onChange={(v) => {
+            setBookingAssistant(v);
+            setSaved(false);
+          }}
+        />
 
         <Text style={styles.section}>Preferences</Text>
         <Text style={styles.label}>Time format</Text>
@@ -265,6 +303,95 @@ export default function SettingsScreen() {
           />
         </View>
 
+        <ToggleRow
+          label="Reclaim cancelled time"
+          hint="When a future meeting is cancelled, hold the freed time as focus instead of re-opening it."
+          value={reclaim}
+          onChange={(v) => {
+            setReclaim(v);
+            setSaved(false);
+          }}
+        />
+        <ToggleRow
+          label="Running-late alerts"
+          hint="Auto-notify your next meeting when one runs over."
+          value={overflow}
+          onChange={(v) => {
+            setOverflow(v);
+            setSaved(false);
+          }}
+        />
+        <ToggleRow
+          label="Post-meeting recap"
+          hint="Get a recap + next-step nudge just after each meeting ends."
+          value={scribe}
+          onChange={(v) => {
+            setScribe(v);
+            setSaved(false);
+          }}
+        />
+        <ToggleRow
+          label="Daily morning briefing"
+          hint="A “here's your day” summary each morning."
+          value={briefing}
+          onChange={(v) => {
+            setBriefing(v);
+            setSaved(false);
+          }}
+        />
+        {briefing ? (
+          <View style={styles.inlineField}>
+            <Text style={styles.label}>Briefing hour (0–23)</Text>
+            <TextInput
+              style={styles.numInput}
+              value={String(briefingHour)}
+              onChangeText={(v) => {
+                setBriefingHour(Math.max(0, Math.min(23, Number(v.replace(/[^0-9]/g, "")) || 0)));
+                setSaved(false);
+              }}
+              keyboardType="number-pad"
+            />
+          </View>
+        ) : null}
+        <ToggleRow
+          label="Lunch break"
+          hint="Block a daily lunch window so it's never bookable."
+          value={lunch}
+          onChange={(v) => {
+            setLunch(v);
+            setSaved(false);
+          }}
+        />
+        {lunch ? (
+          <View style={styles.inlineField}>
+            <Text style={styles.label}>Lunch (start–end hour)</Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <TextInput
+                style={styles.numInput}
+                value={String(Math.floor(lunchStart / 60))}
+                onChangeText={(v) => {
+                  setLunchStart(
+                    Math.max(0, Math.min(23, Number(v.replace(/[^0-9]/g, "")) || 0)) * 60,
+                  );
+                  setSaved(false);
+                }}
+                keyboardType="number-pad"
+              />
+              <TextInput
+                style={styles.numInput}
+                value={String(Math.floor(lunchEnd / 60))}
+                onChangeText={(v) => {
+                  setLunchEnd(
+                    Math.max(1, Math.min(24, Number(v.replace(/[^0-9]/g, "")) || 1)) * 60,
+                  );
+                  setSaved(false);
+                }}
+                keyboardType="number-pad"
+              />
+            </View>
+          </View>
+        ) : null}
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <Pressable style={styles.save} onPress={save} disabled={saving}>
@@ -331,6 +458,25 @@ export default function SettingsScreen() {
         </Pressable>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function ToggleRow(props: {
+  label: string;
+  hint?: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <Pressable style={styles.toggleRow} onPress={() => props.onChange(!props.value)}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.label}>{props.label}</Text>
+        {props.hint ? <Text style={styles.hint}>{props.hint}</Text> : null}
+      </View>
+      <View style={[styles.switch, props.value && styles.switchOn]}>
+        <View style={[styles.knob, props.value && styles.knobOn]} />
+      </View>
+    </Pressable>
   );
 }
 

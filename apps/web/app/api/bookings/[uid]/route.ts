@@ -23,6 +23,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ uid
       status: booking.status,
       meetingUrl: booking.meetingUrl,
       hostName: booking.host?.name ?? null,
+      // Part of a recurring series - lets clients offer "cancel this and later".
+      isRecurring: Boolean(booking.recurrenceUid),
       // This endpoint is reachable by anyone holding the (unguessable) uid, so
       // don't disclose every co-attendee's email. Only the primary attendee's
       // email is returned (they're the confirmation recipient); guests get names.
