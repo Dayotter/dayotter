@@ -5,7 +5,7 @@
 **The AI-native, open-source scheduling platform.**
 Say it once - Otter books the meeting, protects your focus, and clears the back-and-forth. Confirm-first, always.
 
-[Website](https://dayotter.com) · [Docs](./docs) · [Integration setup](./docs/INTEGRATIONS.md) · [Roadmap](./docs/ROADMAP.md) · [AI architecture](./docs/AI.md) · [Contributing](./CONTRIBUTING.md)
+[Website](https://dayotter.com) · [Docs](./docs) · [Integration setup](./docs/INTEGRATIONS.md) · [Roadmap](./docs/ROADMAP.md) · [Good first tasks](./docs/TASKS.md) · [AI architecture](./docs/AI.md) · [Contributing](./CONTRIBUTING.md)
 
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
 ![Self-hostable](https://img.shields.io/badge/self--hostable-yes-brightgreen)
@@ -106,4 +106,4 @@ We'd love your help - see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for setup, conv
 - **Core:** [GNU AGPLv3](./LICENSE) - free to use, self-host, modify, and share.
 - **`ee/`:** [DayOtter Enterprise Edition License](./apps/web/lib/ee/LICENSE.md) - commercial, cloud-only.
 
-© DayOtter. "Otter" and "DayOtter" are trademarks; the AGPL covers the code, not the brand.
+© DayOtter. The AGPL covers the source code, not the DayOtter name or logo.

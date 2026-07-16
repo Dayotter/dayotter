@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-command dayotter self-host installer.
 #
-#   curl -fsSL https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Dayotter/dayotter/main/deploy/install.sh | bash
 #   - or, from a checkout -
 #   bash deploy/install.sh
 #
@@ -17,7 +17,7 @@
 set -euo pipefail
 
 DAYOTTER_DIR="${DAYOTTER_DIR:-/opt/dayotter}"
-DAYOTTER_REPO_URL="${DAYOTTER_REPO_URL:-https://github.com/OWNER/dayotter.git}"
+DAYOTTER_REPO_URL="${DAYOTTER_REPO_URL:-https://github.com/Dayotter/dayotter.git}"
 DAYOTTER_DOMAIN="${DAYOTTER_DOMAIN:-}"
 
 log() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }

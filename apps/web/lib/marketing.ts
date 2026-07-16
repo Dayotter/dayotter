@@ -6,9 +6,9 @@ export const BRAND = {
   /** Canonical site origin - drives metadataBase, sitemap, canonical URLs, JSON-LD. */
   url: process.env.NEXT_PUBLIC_APP_URL ?? "https://dayotter.com",
   email: "hello@dayotter.com",
-  github: "https://github.com/nometria/dayotter",
-  githubLicense: "https://github.com/nometria/dayotter/blob/main/LICENSE",
-  githubContributing: "https://github.com/nometria/dayotter/blob/main/CONTRIBUTING.md",
+  github: "https://github.com/Dayotter/dayotter",
+  githubLicense: "https://github.com/Dayotter/dayotter/blob/main/LICENSE",
+  githubContributing: "https://github.com/Dayotter/dayotter/blob/main/CONTRIBUTING.md",
   x: "https://x.com/dayotter",
   copyrightYear: 2026,
 };

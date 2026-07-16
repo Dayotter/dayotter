@@ -9,10 +9,11 @@ out/
 build/
 *.tsbuildinfo
 
-# env
+# env - ignore every real env file; keep the committed *.example templates.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.*.example
 
 # logs
 *.log

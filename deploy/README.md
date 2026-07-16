@@ -3,8 +3,8 @@
 Self-host the whole platform - web app, background worker, Postgres, Redis, and
 automatic HTTPS - on one server. Three ways in, easiest first.
 
-> Replace `OWNER/dayotter` below with your GitHub repo (or fork) before sharing
-> these links.
+> These links point at `Dayotter/dayotter`. If you're deploying from a fork,
+> swap in your own `OWNER/REPO` first.
 
 ---
 
@@ -12,7 +12,7 @@ automatic HTTPS - on one server. Three ways in, easiest first.
 
 Launches a single EC2 instance that boots the full stack automatically.
 
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/quickcreate?templateURL=https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/aws/cloudformation.yaml&stackName=dayotter)
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/quickcreate?templateURL=https://raw.githubusercontent.com/Dayotter/dayotter/main/deploy/aws/cloudformation.yaml&stackName=dayotter)
 
 1. Click **Launch Stack** (defaults are fine).
 2. Optionally set **Domain** to a hostname you control for automatic HTTPS -
@@ -38,7 +38,7 @@ adds swap so the build survives on small instances.
 On a fresh box (a VPS, a home server, anything with Docker-able Linux):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/OWNER/dayotter/main/deploy/install.sh \
+curl -fsSL https://raw.githubusercontent.com/Dayotter/dayotter/main/deploy/install.sh \
   | sudo DAYOTTER_DOMAIN=cal.example.com bash
 ```
 

@@ -13,7 +13,8 @@ kind, be constructive.
 - **Report a bug** or **request a feature** → [open an issue](../../issues/new/choose).
 - **Improve docs** - the fastest way to make a first contribution.
 - **Fix a bug** or **build a feature** - grab an issue labelled `good first issue`
-  or `help wanted`, or propose your own (see *Proposing a change* below).
+  or `help wanted`, pick something from the ready-to-start
+  [task list](./docs/TASKS.md), or propose your own (see *Proposing a change* below).
 - **Add to an extensible module** - the AI extractors, time-allocation metrics,
   voice knowledge sources, and reminder kinds are all registry-based; adding one
   is a great first PR. See each module's `README.md`.
@@ -29,7 +30,7 @@ see if it's already planned.
 Requirements: **Node 20+**, **pnpm 10+**, **Docker** (for Postgres + Redis).
 
 ```bash
-git clone https://github.com/nometria/dayotter && cd dayotter
+git clone https://github.com/Dayotter/dayotter && cd dayotter
 docker compose up -d            # Postgres + Redis
 cp .env.example .env            # fill in what you need (most features degrade gracefully without creds)
 pnpm install
