@@ -17,6 +17,14 @@ export const generateMetadata = makeSlugMetadata(
     title: `${it.name} scheduling - DayOtter integration`,
     description: it.subtitle,
     path: `/integrations/${it.slug}`,
+    keywords: [
+      `${it.name} scheduling`,
+      `${it.name} integration`,
+      `${it.name} calendar sync`,
+      `book meetings with ${it.name}`,
+      "AI scheduling",
+      "DayOtter",
+    ],
   }),
   "Integrations",
 );

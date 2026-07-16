@@ -17,6 +17,13 @@ export const generateMetadata = makeSlugMetadata(
     title: `${t.term} - scheduling glossary`,
     description: t.short,
     path: `/glossary/${t.slug}`,
+    keywords: [
+      t.term.toLowerCase(),
+      `what is ${t.term.toLowerCase()}`,
+      `${t.term.toLowerCase()} scheduling`,
+      "scheduling glossary",
+      "DayOtter",
+    ],
   }),
   "Glossary",
 );
