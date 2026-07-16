@@ -10,6 +10,8 @@ Say it once - Otter books the meeting, protects your focus, and clears the back-
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
 ![Self-hostable](https://img.shields.io/badge/self--hostable-yes-brightgreen)
 ![Made with TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
+[![GitHub Discussions](https://img.shields.io/github/discussions/Dayotter/dayotter?logo=github&label=discussions)](https://github.com/Dayotter/dayotter/discussions)
+[![GitHub stars](https://img.shields.io/github/stars/Dayotter/dayotter?style=flat&logo=github)](https://github.com/Dayotter/dayotter/stargazers)
 
 </div>
 
@@ -94,12 +96,18 @@ Docker Compose brings up Postgres, Redis, migrations, web, worker, and a reverse
 
 **Connecting integrations** (Google, Microsoft, Apple, Salesforce, HubSpot, Zoom, Stripe, Twilio, Resend) — where to get each client ID / API key and which redirect URI & webhook to register: [`docs/INTEGRATIONS.md`](./docs/INTEGRATIONS.md), mirrored on the site at `/docs/integration-setup`.
 
+## Community
+
+- 💬 **[Discussions](https://github.com/Dayotter/dayotter/discussions)** - ask a question (Q&A), propose an idea, or show what you built. This is the best place to start.
+- 🐛 **[Issues](../../issues/new/choose)** - report a bug or request a feature.
+- 🔒 **[Security policy](./SECURITY.md)** - report a vulnerability privately (don't open a public issue).
+- 🤝 **[Code of conduct](./CODE_OF_CONDUCT.md)** · **[How to get help](./SUPPORT.md)**
+
+Real-time chat (Discord) is coming as the community grows - for now, Discussions is the hub so answers stay searchable for the next person.
+
 ## Contributing
 
-We'd love your help - see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for setup, conventions, and the PR flow, and [`docs/ROADMAP.md`](./docs/ROADMAP.md) for where we're headed. Good first issues are labelled on the tracker. By contributing, you agree your changes are licensed under AGPLv3 (or the EE license for `ee/`).
-
-- [Report a bug or request a feature](../../issues/new/choose)
-- [Security policy](./SECURITY.md) · [Code of conduct](./CODE_OF_CONDUCT.md)
+We'd love your help - see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for setup, conventions, and the PR flow, [`docs/TASKS.md`](./docs/TASKS.md) for ready-to-start work, and [`docs/ROADMAP.md`](./docs/ROADMAP.md) for where we're headed. Good first issues are labelled on the tracker. By contributing, you agree your changes are licensed under AGPLv3 (or the EE license for `ee/`).
 
 ## License
 

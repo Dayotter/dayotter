@@ -1,0 +1,32 @@
+title: "[Question]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for asking! A couple of quick checks make answers faster:
+        - Search [existing discussions](https://github.com/Dayotter/dayotter/discussions) and [issues](https://github.com/Dayotter/dayotter/issues) first.
+        - Self-hosting? Skim [SELF_HOSTING.md](https://github.com/Dayotter/dayotter/blob/main/docs/SELF_HOSTING.md) and [INTEGRATIONS.md](https://github.com/Dayotter/dayotter/blob/main/docs/INTEGRATIONS.md).
+        - Found a bug (not a question)? Open an [issue](https://github.com/Dayotter/dayotter/issues/new/choose) instead.
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you need help with?
+      description: What are you trying to do, and what's blocking you?
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: How are you running DayOtter?
+      options:
+        - Cloud (dayotter.com)
+        - Self-hosted (Docker)
+        - Local development
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Relevant context
+      description: Logs, error messages, screenshots, browser/OS, or anything that helps reproduce it.

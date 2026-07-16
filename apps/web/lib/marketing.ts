@@ -9,6 +9,10 @@ export const BRAND = {
   github: "https://github.com/Dayotter/dayotter",
   githubLicense: "https://github.com/Dayotter/dayotter/blob/main/LICENSE",
   githubContributing: "https://github.com/Dayotter/dayotter/blob/main/CONTRIBUTING.md",
+  /** GitHub Discussions - the durable, searchable community home. */
+  discussions: "https://github.com/Dayotter/dayotter/discussions",
+  /** Real-time chat. Empty until the server is live; footer hides it when unset. */
+  discord: "",
   x: "https://x.com/dayotter",
   copyrightYear: 2026,
 };
@@ -63,6 +67,15 @@ export const FOOTER_COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: "Blog", href: "/blog" },
       { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },
+    ],
+  },
+  {
+    title: "Community",
+    links: [
+      { label: "Discussions", href: BRAND.discussions, external: true },
+      { label: "GitHub", href: BRAND.github, external: true },
+      { label: "Contribute", href: BRAND.githubContributing, external: true },
+      ...(BRAND.discord ? [{ label: "Discord", href: BRAND.discord, external: true }] : []),
     ],
   },
   {
