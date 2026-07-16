@@ -3,7 +3,8 @@ import { CheckCircle2 } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Status - DayOtter",
+  title: "Status",
+  alternates: { canonical: "/status" },
   description: "DayOtter system status.",
 };
 

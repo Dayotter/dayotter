@@ -19,10 +19,10 @@ export async function generateMetadata({
   if (!g) return { title: "Docs" };
   const path = `/docs/${g.slug}`;
   return {
-    title: `${g.title} - DayOtter Docs`,
+    title: `${g.title} - Docs`,
     description: g.summary,
     alternates: { canonical: path },
-    openGraph: { title: `${g.title} - DayOtter Docs`, description: g.summary, url: path },
+    openGraph: { title: `${g.title} - Docs`, description: g.summary, url: path },
   };
 }
 

@@ -3,7 +3,8 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Self-hosting - DayOtter",
+  title: "Self-hosting",
+  alternates: { canonical: "/self-hosting" },
   description: "Run DayOtter on your own infrastructure. Every feature, free forever.",
 };
 

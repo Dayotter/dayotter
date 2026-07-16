@@ -3,7 +3,8 @@ import { BRAND } from "@/lib/marketing";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Security - DayOtter",
+  title: "Security",
+  alternates: { canonical: "/security" },
   description: "How DayOtter protects your data.",
 };
 
