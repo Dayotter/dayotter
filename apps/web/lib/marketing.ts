@@ -11,8 +11,8 @@ export const BRAND = {
   githubContributing: "https://github.com/Dayotter/dayotter/blob/main/CONTRIBUTING.md",
   /** GitHub Discussions - the durable, searchable community home. */
   discussions: "https://github.com/Dayotter/dayotter/discussions",
-  /** Real-time chat. Empty until the server is live; footer hides it when unset. */
-  discord: "",
+  /** Real-time community chat. Footer + README link to it. */
+  discord: "https://discord.gg/cxwETDsY85",
   x: "https://x.com/dayotter",
   copyrightYear: 2026,
 };
