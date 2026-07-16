@@ -1,14 +1,14 @@
 ---
 name: calendar-availability
-description: How scheduling actually works in DayOtter — the pure availability engine (DST-correct, integer-ms slot math), the busy_blocks cache the sync worker maintains, provider adapters, best-effort push subscriptions, and the booking lifecycle fan-out. Load this when touching availability, calendar sync, busy caching, bookings, or the sync/reminder workers.
+description: How scheduling actually works in DayOtter - the pure availability engine (DST-correct, integer-ms slot math), the busy_blocks cache the sync worker maintains, provider adapters, best-effort push subscriptions, and the booking lifecycle fan-out. Load this when touching availability, calendar sync, busy caching, bookings, or the sync/reminder workers.
 ---
 
 # Calendar & availability
 
 ## The engine (`packages/core/src/availability/engine.ts`)
 
-`computeAvailability(input)` is **pure and deterministic** — same inputs, same
-slots — which is why it's trivially unit-tested. It:
+`computeAvailability(input)` is **pure and deterministic** - same inputs, same
+slots - which is why it's trivially unit-tested. It:
 - iterates day-by-day in the schedule's timezone (Luxon) so **DST is correct**,
 - steps slots with **integer-millisecond math** (a perf refactor; equivalent to
   Luxon `.plus({minutes})`, verified byte-identical by the DST tests),
@@ -29,7 +29,7 @@ and its lean `busy_blocks` projection in one pass, and advances the cursor.
 **Push subscriptions are best-effort.** `ensureSubscription` registers a provider
 watch/webhook, but a failure there (e.g. Google "Push notifications are not
 supported by this resource", unverified webhook domain, read-only calendar) is
-caught and logged — it must **not** fail the sync, because the events already
+caught and logged - it must **not** fail the sync, because the events already
 synced and polling keeps the cache fresh. Push is an optimization, not a
 dependency. Also skipped entirely when `APP_URL` isn't a public `https://` URL.
 

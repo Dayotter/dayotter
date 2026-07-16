@@ -20,23 +20,23 @@ Say it once - Otter books the meeting, protects your focus, and clears the back-
 
 ## What is DayOtter?
 
-DayOtter is a complete scheduling platform — booking pages, team round-robin, calendar sync, reminders, and payments — with an AI assistant, **Otter**, built into the core rather than bolted on.
+DayOtter is a complete scheduling platform - booking pages, team round-robin, calendar sync, reminders, and payments - with an AI assistant, **Otter**, built into the core rather than bolted on.
 
-Most schedulers hand out a link and stop there. Otter actually does the work. You describe what you want in plain language — in the app, by voice, or over **WhatsApp / SMS** — and Otter drafts the action; you approve it. It **protects your focus time**, nudges your next meeting when you're **running late**, surfaces **proactive suggestions**, and **learns your patterns** over time. Crucially, it is **confirm-first**: it never changes your calendar without your OK.
+Most schedulers hand out a link and stop there. Otter actually does the work. You describe what you want in plain language - in the app, by voice, or over **WhatsApp / SMS** - and Otter drafts the action; you approve it. It **protects your focus time**, nudges your next meeting when you're **running late**, surfaces **proactive suggestions**, and **learns your patterns** over time. Crucially, it is **confirm-first**: it never changes your calendar without your OK.
 
-Think Calendly + Motion + a real assistant — except **open-source and self-hostable in one command**, with every AI feature included.
+Think Calendly + Motion + a real assistant - except **open-source and self-hostable in one command**, with every AI feature included.
 
 **Who it's for**
 
-- **Individuals** — a booking page and an assistant that clears the scheduling back-and-forth for you.
-- **Teams** — weighted round-robin, collective availability, routing forms, and shared analytics.
-- **Organisations & self-hosters** — run the entire product on your own infrastructure under AGPLv3, keep your calendar data on your servers, and roll the mobile app out to your whole team pointed at your own instance (see [Mobile app](#mobile-app-in-progress)).
+- **Individuals** - a booking page and an assistant that clears the scheduling back-and-forth for you.
+- **Teams** - weighted round-robin, collective availability, routing forms, and shared analytics.
+- **Organisations & self-hosters** - run the entire product on your own infrastructure under AGPLv3, keep your calendar data on your servers, and roll the mobile app out to your whole team pointed at your own instance (see [Mobile app](#mobile-app-in-progress)).
 
 ## Why we're building it
 
-Scheduling is where a lot of knowledge work quietly leaks time, and the good tools are closing up. Calendly is closed and cloud-only. **[Cal.com moved its core to a closed repo in April 2026](https://cal.com/blog/cal-diy-open-source-to-closed-source)** — citing AI — leaving only a stripped-down MIT fork with the commercial features removed. Motion and Reclaim were never open at all.
+Scheduling is where a lot of knowledge work quietly leaks time, and the good tools are closing up. Calendly is closed and cloud-only. **[Cal.com moved its core to a closed repo in April 2026](https://cal.com/blog/cal-diy-open-source-to-closed-source)** - citing AI - leaving only a stripped-down MIT fork with the commercial features removed. Motion and Reclaim were never open at all.
 
-We think the assistant that reads your calendar and acts on your time is exactly the thing that should be **open, inspectable, and self-hostable** — not a black box you rent. So DayOtter stays genuinely open: **AGPLv3, self-host the _whole_ product** — including all of Otter's AI — for free, forever. Not a demo, not a stripped fork.
+We think the assistant that reads your calendar and acts on your time is exactly the thing that should be **open, inspectable, and self-hostable** - not a black box you rent. So DayOtter stays genuinely open: **AGPLv3, self-host the _whole_ product** - including all of Otter's AI - for free, forever. Not a demo, not a stripped fork.
 
 ## Features
 
@@ -52,17 +52,17 @@ We think the assistant that reads your calendar and acts on your time is exactly
 
 ## Mobile app (in progress)
 
-A native **iOS + Android** app (`apps/mobile`, built with Expo/React Native) is in active development. It already covers the day-to-day host workflow — dashboard, bookings, availability, event types, calendars, insights, reminders/channels, automations, workflows, and preferences — with voice input for Otter. Remaining screens (payouts, packages, polls, routing) are tracked in [`docs/TASKS.md`](./docs/TASKS.md).
+A native **iOS + Android** app (`apps/mobile`, built with Expo/React Native) is in active development. It already covers the day-to-day host workflow - dashboard, bookings, availability, event types, calendars, insights, reminders/channels, automations, workflows, and preferences - with voice input for Otter. Remaining screens (payouts, packages, polls, routing) are tracked in [`docs/TASKS.md`](./docs/TASKS.md).
 
-**Bring your own server — built for organisations.** The app isn't hard-wired to our cloud. It ships with a **Server** setting where anyone can point the same app at *their own* self-hosted DayOtter instance. So an organisation can:
+**Bring your own server - built for organisations.** The app isn't hard-wired to our cloud. It ships with a **Server** setting where anyone can point the same app at *their own* self-hosted DayOtter instance. So an organisation can:
 
-1. Self-host DayOtter once (Docker Compose — see below).
+1. Self-host DayOtter once (Docker Compose - see below).
 2. Have their team install the **same** app from the store (or an internal/EAS build).
-3. Each person switches the server to the org's instance and signs in — their data never leaves the org's infrastructure.
+3. Each person switches the server to the org's instance and signs in - their data never leaves the org's infrastructure.
 
 No forking, no per-org app build required. One app, any DayOtter server.
 
-> Note: the app is pre-1.0 and evolving quickly. Android push needs a Firebase `google-services.json` to deliver remote reminders — see [`docs/TASKS.md`](./docs/TASKS.md).
+> Note: the app is pre-1.0 and evolving quickly. Android push needs a Firebase `google-services.json` to deliver remote reminders - see [`docs/TASKS.md`](./docs/TASKS.md).
 
 ## Open-core
 
@@ -100,10 +100,10 @@ Full breakdown: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 ```bash
 git clone https://github.com/Dayotter/dayotter && cd dayotter
 
-# 1. Datastores — starts Postgres + Redis in the background
+# 1. Datastores - starts Postgres + Redis in the background
 docker compose up -d
 
-# 2. Config — copy the example and fill in what you need. It runs with sane
+# 2. Config - copy the example and fill in what you need. It runs with sane
 #    defaults; add OAuth creds + ANTHROPIC_API_KEY to enable calendar sync + Otter.
 cp .env.example .env
 
@@ -115,7 +115,7 @@ pnpm db:push
 pnpm dev
 ```
 
-Open **http://localhost:3000**, create an account, and you have a working booking page. Integrations (Google/Microsoft calendar, Stripe, Twilio, AI) are all optional and off until you add their keys — see [`docs/INTEGRATIONS.md`](./docs/INTEGRATIONS.md).
+Open **http://localhost:3000**, create an account, and you have a working booking page. Integrations (Google/Microsoft calendar, Stripe, Twilio, AI) are all optional and off until you add their keys - see [`docs/INTEGRATIONS.md`](./docs/INTEGRATIONS.md).
 
 Run the mobile app against your local server with `pnpm --filter @dayotter/mobile start` (point its **Server** setting at your machine).
 
@@ -127,7 +127,7 @@ Run the mobile app against your local server with `pnpm --filter @dayotter/mobil
 
 Docker Compose brings up Postgres, Redis, migrations, web, worker, and a reverse proxy. See [`deploy/README.md`](./deploy/README.md) and [`docs/SELF_HOSTING.md`](./docs/SELF_HOSTING.md). Redeploys always run migrations via [`deploy/deploy.sh`](./deploy/deploy.sh).
 
-**Connecting integrations** (Google, Microsoft, Apple, Salesforce, HubSpot, Zoom, Stripe, Twilio, Resend) — where to get each client ID / API key and which redirect URI & webhook to register: [`docs/INTEGRATIONS.md`](./docs/INTEGRATIONS.md), mirrored on the site at `/docs/integration-setup`.
+**Connecting integrations** (Google, Microsoft, Apple, Salesforce, HubSpot, Zoom, Stripe, Twilio, Resend) - where to get each client ID / API key and which redirect URI & webhook to register: [`docs/INTEGRATIONS.md`](./docs/INTEGRATIONS.md), mirrored on the site at `/docs/integration-setup`.
 
 ## Community
 

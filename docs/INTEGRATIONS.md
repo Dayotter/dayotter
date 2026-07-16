@@ -1,4 +1,4 @@
-# Integration setup — IDs, keys & webhooks
+# Integration setup - IDs, keys & webhooks
 
 Everything DayOtter connects to (calendars, CRM, video, billing, messaging, email)
 is **optional and env-gated**: a provider is inert until you set its keys, so you
@@ -7,11 +7,11 @@ provider, **where to get the credentials, which redirect URI / webhook to regist
 and which env var each value goes into.**
 
 > **Two values everything depends on**
-> - **`APP_URL`** — your deployment's public base URL (e.g. `https://dayotter.com`).
+> - **`APP_URL`** - your deployment's public base URL (e.g. `https://dayotter.com`).
 >   Every redirect URI and webhook below is `APP_URL` + a fixed path. It **must** be
 >   the exact public HTTPS origin, with no trailing slash.
 > - Set env vars in your deployment (the `.env` used by the web app **and** worker),
->   then **rebuild/redeploy** — some are read at build time.
+>   then **rebuild/redeploy** - some are read at build time.
 
 After editing env, restart the container. Redirect URIs and webhook URLs must be
 registered **exactly** (scheme, host, path) in each provider's console, or the
@@ -25,13 +25,13 @@ provider rejects the callback.
 |---|---|---|---|
 | Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | `APP_URL/api/calendars/connect/google/callback` | `APP_URL/api/webhooks/google` (auto-registered by the app; needs a public HTTPS `APP_URL` + a verified domain) |
 | Microsoft / Outlook | `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` | `APP_URL/api/calendars/connect/microsoft/callback` | `APP_URL/api/webhooks/microsoft` (auto) |
-| Apple iCloud | *(none — each user pastes an app-specific password)* | — (CalDAV, no OAuth) | — |
-| Salesforce | `SALESFORCE_CLIENT_ID`, `SALESFORCE_CLIENT_SECRET` | `APP_URL/api/integrations/crm/salesforce/callback` | — |
-| HubSpot | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` | `APP_URL/api/integrations/crm/hubspot/callback` | — |
-| Zoom | `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET` | `APP_URL/api/integrations/zoom/callback` | — |
-| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_WEBHOOK_SECRET` | — | `APP_URL/api/webhooks/stripe` |
-| Twilio | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM` | — | `APP_URL/api/webhooks/twilio` (set on the number/Messaging Service) |
-| Resend (email) | `RESEND_API_KEY`, `EMAIL_FROM` | — | — |
+| Apple iCloud | *(none - each user pastes an app-specific password)* | - (CalDAV, no OAuth) | - |
+| Salesforce | `SALESFORCE_CLIENT_ID`, `SALESFORCE_CLIENT_SECRET` | `APP_URL/api/integrations/crm/salesforce/callback` | - |
+| HubSpot | `HUBSPOT_CLIENT_ID`, `HUBSPOT_CLIENT_SECRET` | `APP_URL/api/integrations/crm/hubspot/callback` | - |
+| Zoom | `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET` | `APP_URL/api/integrations/zoom/callback` | - |
+| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_WEBHOOK_SECRET` | - | `APP_URL/api/webhooks/stripe` |
+| Twilio | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM` | - | `APP_URL/api/webhooks/twilio` (set on the number/Messaging Service) |
+| Resend (email) | `RESEND_API_KEY`, `EMAIL_FROM` | - | - |
 
 ---
 
@@ -53,7 +53,7 @@ provider rejects the callback.
 - **Scopes:** `calendar.events`, `calendar.readonly`, `openid`, `email`, `profile`.
 - **Real-time sync (push):** the app registers a watch channel at
   `APP_URL/api/webhooks/google` automatically. Google only allows push to a
-  **verified domain** over HTTPS — verify your domain under **Domain verification**
+  **verified domain** over HTTPS - verify your domain under **Domain verification**
   in the console. If push isn't available it's non-fatal: DayOtter falls back to
   polling, so bookings still stay in sync.
 
@@ -61,7 +61,7 @@ provider rejects the callback.
 
 1. [Azure Portal](https://portal.azure.com/) → **Microsoft Entra ID → App registrations → New registration**.
 2. **Redirect URI (Web):** `APP_URL/api/calendars/connect/microsoft/callback`.
-3. **Certificates & secrets → New client secret** — copy the *value* (not the id).
+3. **Certificates & secrets → New client secret** - copy the *value* (not the id).
 4. **API permissions → Microsoft Graph → Delegated** → add `Calendars.ReadWrite`,
    `User.Read`, `offline_access`, `openid`, `email`, `profile`.
 5. Env:
@@ -73,7 +73,7 @@ provider rejects the callback.
 
 ## Apple iCloud
 
-No developer setup or env vars — Apple calendars connect over **CalDAV** with a
+No developer setup or env vars - Apple calendars connect over **CalDAV** with a
 per-user **app-specific password**. Each user generates one at
 [appleid.apple.com](https://appleid.apple.com) (Sign-In & Security → App-Specific
 Passwords) and pastes it in **Settings → Calendars → Apple**. Never their real
@@ -84,13 +84,13 @@ Apple ID password.
 1. Salesforce **Setup → App Manager → New Connected App** (or **External Client Apps**).
 2. Enable OAuth. **Callback URL:** `APP_URL/api/integrations/crm/salesforce/callback`.
 3. **OAuth scopes:** `api` (Manage user data via APIs) and `refresh_token`
-   (Perform requests any time — offline access).
+   (Perform requests any time - offline access).
 4. Copy the **Consumer Key / Secret**:
    ```
    SALESFORCE_CLIENT_ID=...       # Consumer Key
    SALESFORCE_CLIENT_SECRET=...   # Consumer Secret
    ```
-5. Users then connect under **Settings → CRM → Salesforce** (one-click OAuth — no
+5. Users then connect under **Settings → CRM → Salesforce** (one-click OAuth - no
    keys to paste on their end).
 
 ## HubSpot (CRM sync)
@@ -119,14 +119,14 @@ Without these two the Zoom connect button is hidden. Google Meet needs no setup
 (it comes with the Google Calendar connection); Microsoft Teams links come with the
 Microsoft connection.
 
-## Stripe (Pro billing — cloud edition only)
+## Stripe (Pro billing - cloud edition only)
 
 Billing only runs when `DAYOTTER_CLOUD=1`. Then:
 
 1. [Stripe Dashboard](https://dashboard.stripe.com/) → **Developers → API keys** →
    copy the **Secret key** → `STRIPE_SECRET_KEY`.
 2. **Products → add a Product** with a **recurring** price ($9/seat/mo). Open the
-   price and copy its **API ID** — it starts with **`price_`**.
+   price and copy its **API ID** - it starts with **`price_`**.
    ```
    STRIPE_PRICE_PRO=price_1Xxxx...   # MUST be the price_ ID, NOT a number/amount
    ```
@@ -139,10 +139,10 @@ Billing only runs when `DAYOTTER_CLOUD=1`. Then:
 
 The webhook is what flips an org to **Pro** after payment (and handles seat
 changes / cancellations). DayOtter also reconciles the plan on the checkout-success
-redirect, so a one-off missed webhook won't leave you stuck — but configure the
+redirect, so a one-off missed webhook won't leave you stuck - but configure the
 webhook for ongoing changes.
 
-### Stripe Connect — hosts get paid directly (bookings & packages)
+### Stripe Connect - hosts get paid directly (bookings & packages)
 
 So that a host's booking/package payments land in **their** bank rather than the
 platform's, DayOtter uses **Stripe Connect (Express)**:
@@ -150,7 +150,7 @@ platform's, DayOtter uses **Stripe Connect (Express)**:
 1. In the Stripe Dashboard, **enable Connect** (Connect → Get started) on the same
    platform account as `STRIPE_SECRET_KEY`.
 2. Add the `account.updated` event to your webhook endpoint (`APP_URL/api/webhooks/stripe`),
-   alongside the subscription events above — it's how DayOtter learns a host's
+   alongside the subscription events above - it's how DayOtter learns a host's
    account is ready.
 3. (Optional) Take a platform cut per host transaction:
    ```
@@ -186,7 +186,7 @@ platform's, DayOtter uses **Stripe Connect (Express)**:
    EMAIL_FROM="DayOtter <no-reply@yourdomain.com>"
    ```
    ⚠️ An unverified/placeholder domain (e.g. `example.com`) makes **every** email
-   bounce with `550 domain is not verified` — confirmations and reminders silently
+   bounce with `550 domain is not verified` - confirmations and reminders silently
    fail. This is the #1 email setup mistake.
 
 *Alternative to Resend:* any SMTP server via `SMTP_URL` (e.g.
@@ -201,10 +201,10 @@ platform's, DayOtter uses **Stripe Connect (Express)**:
   console doesn't match `APP_URL/api/...` exactly.
 - **Stripe:** run a checkout; the billing page should flip to Pro. Check the webhook
   delivery attempts in the Stripe Dashboard.
-- **Email:** create a test booking and watch the logs — `EMAIL_FROM is
+- **Email:** create a test booking and watch the logs - `EMAIL_FROM is
   unset/example.com` or a `550` means the sender domain isn't verified.
 - Every failure is logged with a structured `event` (e.g. `billing_checkout_failed`,
-  `confirmation_email_failed`, `sync_watch_failed`) — grep your container logs.
+  `confirmation_email_failed`, `sync_watch_failed`) - grep your container logs.
 
 See also: [`../.env.example`](../.env.example) (every variable in context) and
 [`EDITIONS.md`](./EDITIONS.md) (self-hosted vs cloud).
