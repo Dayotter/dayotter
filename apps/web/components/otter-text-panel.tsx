@@ -5,6 +5,8 @@ import { Card, CardBody } from "@/components/ui/card";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { authClient } from "@/lib/auth/auth-client";
+import { tOtter } from "@/lib/i18n/otter";
+import { useAppLocale } from "@/lib/i18n/use-locale";
 import { MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -26,6 +28,7 @@ export function OtterTextPanel({
   verified: boolean;
   otterNumber: string | null;
 }) {
+  const locale = useAppLocale();
   const router = useRouter();
   const [step, setStep] = useState<"idle" | "phone" | "code">("idle");
   const [phone, setPhone] = useState(phoneNumber ?? "");
@@ -42,7 +45,7 @@ export function OtterTextPanel({
     const { error } = await authClient.phoneNumber.sendOtp({ phoneNumber: phone.trim() });
     setLoading(false);
     if (error) {
-      setError(error.message ?? "Couldn't send a code to that number. Check it and try again.");
+      setError(error.message ?? tOtter(locale, "sendCodeFailed"));
       return;
     }
     setStep("code");
@@ -58,7 +61,7 @@ export function OtterTextPanel({
     });
     setLoading(false);
     if (error) {
-      setError(error.message ?? "That code didn't match. Request a new one and try again.");
+      setError(error.message ?? tOtter(locale, "verifyFailed"));
       return;
     }
     setStep("idle");
@@ -71,43 +74,38 @@ export function OtterTextPanel({
       <CardBody className="p-6">
         <div className="flex items-center gap-2">
           <MessageSquare size={18} className="text-[var(--color-accent)]" />
-          <h2 className="text-lg font-semibold">Ask Otter by text</h2>
+          <h2 className="text-lg font-semibold">{tOtter(locale, "askByText")}</h2>
         </div>
-        <p className="mt-1.5 text-sm text-[var(--color-muted)]">
-          Text Otter to book, reschedule, or check your day over WhatsApp and SMS - confirm-first,
-          just like in the app.
-        </p>
+        <p className="mt-1.5 text-sm text-[var(--color-muted)]">{tOtter(locale, "textIntro")}</p>
 
         {registered ? (
           <div className="mt-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4 text-sm">
             <p>
-              <span className="font-medium text-[var(--color-accent)]">✓ Registered.</span>{" "}
+              <span className="font-medium text-[var(--color-accent)]">
+                {tOtter(locale, "registered")}
+              </span>{" "}
               <span className="text-[var(--color-muted)]">{phoneNumber}</span>
             </p>
             {otterNumber ? (
               <p className="mt-1 text-[var(--color-muted)]">
-                Text Otter at{" "}
-                <span className="font-medium text-[var(--color-text)]">{otterNumber}</span>.
+                {tOtter(locale, "textOtterAt", { number: otterNumber })}
               </p>
             ) : (
-              <p className="mt-1 text-[var(--color-faint)]">
-                Your host needs to set the Otter texting number to finish setup.
-              </p>
+              <p className="mt-1 text-[var(--color-faint)]">{tOtter(locale, "hostNeedsNumber")}</p>
             )}
           </div>
         ) : !phoneAuthEnabled ? (
           <p className="mt-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4 text-sm text-[var(--color-muted)]">
-            Texting Otter needs phone support enabled on this server (Twilio). Ask your admin to
-            turn it on.
+            {tOtter(locale, "textNeedsPhone")}
           </p>
         ) : step === "idle" ? (
           <Button type="button" className="mt-4" onClick={() => setStep("phone")}>
-            {phoneNumber ? "Verify your number" : "Register a number"}
+            {phoneNumber ? tOtter(locale, "verifyNumber") : tOtter(locale, "registerNumber")}
           </Button>
         ) : step === "phone" ? (
           <form onSubmit={sendCode} className="mt-4 space-y-3">
             <div>
-              <Label htmlFor="otter-phone">Phone number</Label>
+              <Label htmlFor="otter-phone">{tOtter(locale, "phoneNumber")}</Label>
               <Input
                 id="otter-phone"
                 type="tel"
@@ -119,18 +117,18 @@ export function OtterTextPanel({
                 placeholder="+14155551234"
               />
               <p className="mt-1.5 text-xs text-[var(--color-faint)]">
-                Include your country code. We'll text you a one-time code.
+                {tOtter(locale, "phoneHint")}
               </p>
             </div>
             <FormError>{error}</FormError>
             <Button type="submit" disabled={loading}>
-              {loading ? "Sending code…" : "Send code"}
+              {loading ? tOtter(locale, "sendingCode") : tOtter(locale, "sendCode")}
             </Button>
           </form>
         ) : (
           <form onSubmit={verify} className="mt-4 space-y-3">
             <div>
-              <Label htmlFor="otter-otp">Enter the code</Label>
+              <Label htmlFor="otter-otp">{tOtter(locale, "enterCode")}</Label>
               <Input
                 id="otter-otp"
                 type="text"
@@ -142,7 +140,7 @@ export function OtterTextPanel({
                 placeholder="123456"
               />
               <p className="mt-1.5 text-xs text-[var(--color-faint)]">
-                Sent to {phone}.{" "}
+                {tOtter(locale, "sentTo", { phone })}{" "}
                 <button
                   type="button"
                   onClick={() => {
@@ -152,13 +150,13 @@ export function OtterTextPanel({
                   }}
                   className="text-[var(--color-accent)] hover:underline"
                 >
-                  Change number
+                  {tOtter(locale, "changeNumber")}
                 </button>
               </p>
             </div>
             <FormError>{error}</FormError>
             <Button type="submit" disabled={loading}>
-              {loading ? "Verifying…" : "Verify"}
+              {loading ? tOtter(locale, "verifying") : tOtter(locale, "verify")}
             </Button>
           </form>
         )}

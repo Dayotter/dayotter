@@ -10,6 +10,9 @@ import {
   streamOtterChat,
 } from "@/lib/ai/otter-client";
 import { track } from "@/lib/analytics";
+import type { Locale } from "@/lib/i18n";
+import { tOtter } from "@/lib/i18n/otter";
+import { useAppLocale } from "@/lib/i18n/use-locale";
 import { useSpeechInput, useSpeechOutput } from "@/lib/use-speech";
 import { MessageSquare, Mic, Volume2, VolumeX, X } from "lucide-react";
 import { DateTime } from "luxon";
@@ -21,14 +24,16 @@ const CONFIRM_RE =
   /\b(confirm|yes|yep|yeah|do it|go ahead|book it|sounds good|please do|okay|ok)\b/i;
 const DISCARD_RE = /\b(discard|no thanks|nope|never ?mind|forget it|stop|not now)\b/i;
 
-const HINTS = [
-  "What's next on my calendar?",
-  "Protect 3 hours of focus this week",
-  "Move my next meeting to Friday",
-];
+function hints(locale: Locale): string[] {
+  return [
+    tOtter(locale, "hintWhatsNext"),
+    tOtter(locale, "hintProtectFocus"),
+    tOtter(locale, "hintMoveMeeting"),
+  ];
+}
 
-function fmtWhen(iso: string): string {
-  const dt = DateTime.fromISO(iso);
+function fmtWhen(iso: string, locale: Locale): string {
+  const dt = DateTime.fromISO(iso).setLocale(locale);
   return dt.isValid ? dt.toFormat("ccc, LLL d 'at' h:mm a") : iso;
 }
 
@@ -45,6 +50,9 @@ export function OtterVoice({
   onSwitchToChat?: () => void;
   onClose?: () => void;
 }) {
+  const locale = useAppLocale();
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
   const out = useSpeechOutput();
 
   const [active, setActive] = useState(false);
@@ -112,15 +120,14 @@ export function OtterVoice({
         onError: (msg) => {
           setError(msg);
           setPhase("idle");
-          say("Sorry, I ran into a problem.");
+          say(tOtter(localeRef.current, "sorryProblem"));
         },
         onDone: (finalText) => {
           const text = finalText.trim();
           if (text) setMessages((prev) => [...prev, { role: "assistant", content: text }]);
           setReply("");
           const hasPending = Boolean(localAction || localTool);
-          const spoken =
-            text || (hasPending ? "I've drafted that - say confirm to go ahead, or discard." : "");
+          const spoken = text || (hasPending ? tOtter(localeRef.current, "draftedConfirm") : "");
           setPhase("speaking");
           say(spoken, () => {
             // After speaking: if awaiting a confirm, listen for confirm/discard.
@@ -148,14 +155,14 @@ export function OtterVoice({
         }
         if (DISCARD_RE.test(text)) {
           discardPending();
-          say("Discarded.", () => {
+          say(tOtter(localeRef.current, "discarded"), () => {
             if (activeRef.current) beginListening();
           });
           return;
         }
         // Unclear - re-prompt and listen again.
         setPhase("speaking");
-        say("Say confirm to go ahead, or discard.", () => {
+        say(tOtter(localeRef.current, "sayConfirmOrDiscard"), () => {
           if (activeRef.current) beginListening();
         });
         return;
@@ -198,7 +205,7 @@ export function OtterVoice({
     // Speak a short greeting only on the very first start of an empty thread.
     if (messagesRef.current.length === 0) {
       setPhase("speaking");
-      say("Hi, I'm Otter. What can I do with your calendar?", () => {
+      say(tOtter(locale, "greeting"), () => {
         if (activeRef.current) beginListening();
       });
     } else {
@@ -248,7 +255,7 @@ export function OtterVoice({
     out.cancel();
     setPhase("thinking");
 
-    let summary = "Done.";
+    let summary = tOtter(locale, "done");
     let ok = false;
     try {
       if (a) {
@@ -262,27 +269,35 @@ export function OtterVoice({
             attendees: d.attendees,
           });
           ok = r.ok;
-          summary = r.ok ? `Added ${d.title} to your calendar.` : (r.error ?? "That didn't work.");
+          summary = r.ok
+            ? tOtter(locale, "addedEvent", { title: d.title })
+            : (r.error ?? tOtter(locale, "thatDidntWork"));
           if (r.ok) track("AI Event Added", { kind: d.kind, via: "voice" });
         } else if (d.intent === "reschedule" && a.target) {
           const r = await runReschedule(a.target.uid, d.newStartISO);
           ok = r.ok;
-          summary = r.ok ? "Rescheduled - attendees notified." : (r.error ?? "That didn't work.");
+          summary = r.ok
+            ? tOtter(locale, "rescheduledVoice")
+            : (r.error ?? tOtter(locale, "thatDidntWork"));
           if (r.ok) track("AI Reschedule Confirmed", { via: "voice" });
         } else if (d.intent === "cancel" && a.target) {
           const r = await runCancel(a.target.uid);
           ok = r.ok;
-          summary = r.ok ? "Cancelled - attendees notified." : (r.error ?? "That didn't work.");
+          summary = r.ok
+            ? tOtter(locale, "cancelledVoice")
+            : (r.error ?? tOtter(locale, "thatDidntWork"));
           if (r.ok) track("AI Cancel Confirmed", { via: "voice" });
         }
       } else if (t) {
         const r = await runToolAction(t.tool, t.input);
         ok = r.ok;
-        summary = r.ok ? (r.message ?? "Done.") : (r.error ?? "That didn't work.");
+        summary = r.ok
+          ? (r.message ?? tOtter(locale, "done"))
+          : (r.error ?? tOtter(locale, "thatDidntWork"));
         if (r.ok) track("AI Tool Action", { tool: t.tool, via: "voice" });
       }
     } catch {
-      summary = "Something went wrong.";
+      summary = tOtter(locale, "somethingWrong");
     }
 
     setBusy(false);
@@ -301,15 +316,15 @@ export function OtterVoice({
 
   const statusLabel = !active
     ? messages.length > 0
-      ? "Tap to continue"
-      : "Tap to start talking"
+      ? tOtter(locale, "tapToContinue")
+      : tOtter(locale, "tapToStart")
     : phase === "listening"
-      ? "Listening…"
+      ? tOtter(locale, "listening")
       : phase === "thinking"
-        ? "Thinking…"
+        ? tOtter(locale, "thinking")
         : phase === "speaking"
-          ? "Otter is speaking"
-          : "Tap the orb to talk";
+          ? tOtter(locale, "otterSpeaking")
+          : tOtter(locale, "tapOrb");
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -321,16 +336,16 @@ export function OtterVoice({
           <Mic size={15} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold leading-none">Talk to Otter</p>
+          <p className="text-sm font-semibold leading-none">{tOtter(locale, "talkToOtter")}</p>
           <p className="mt-1 text-xs text-[var(--color-faint)]">
-            Hands-free · you confirm before anything changes
+            {tOtter(locale, "voiceSubtitle")}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setMuted((m) => !m)}
           aria-pressed={muted}
-          title={muted ? "Otter's voice is muted" : "Otter's voice is on"}
+          title={muted ? tOtter(locale, "voiceMuted") : tOtter(locale, "voiceOn")}
           className={
             muted
               ? "rounded-md p-1.5 text-[var(--color-faint)] hover:text-[var(--color-text)]"
@@ -346,7 +361,7 @@ export function OtterVoice({
               stopConversation();
               onSwitchToChat();
             }}
-            title="Switch to text chat"
+            title={tOtter(locale, "switchToChat")}
             className="rounded-md p-1.5 text-[var(--color-faint)] hover:text-[var(--color-text)]"
           >
             <MessageSquare size={16} />
@@ -359,7 +374,7 @@ export function OtterVoice({
               stopConversation();
               onClose();
             }}
-            aria-label="Close"
+            aria-label={tOtter(locale, "close")}
             className="rounded-md p-1.5 text-[var(--color-faint)] hover:text-[var(--color-text)]"
           >
             <X size={16} />
@@ -371,11 +386,9 @@ export function OtterVoice({
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         {messages.length === 0 && !reply && !interim ? (
           <div className="mt-2 text-center">
-            <p className="text-sm text-[var(--color-muted)]">
-              Tap the orb and just say what you need. Try:
-            </p>
+            <p className="text-sm text-[var(--color-muted)]">{tOtter(locale, "voiceEmpty")}</p>
             <ul className="mt-3 space-y-1.5">
-              {HINTS.map((h) => (
+              {hints(locale).map((h) => (
                 <li key={h} className="text-sm italic text-[var(--color-faint)]">
                   “{h}”
                 </li>
@@ -395,8 +408,9 @@ export function OtterVoice({
         {/* Confirm-first card */}
         {action ? (
           <ConfirmCard
-            title={confirmTitle(action)}
-            body={confirmBody(action)}
+            locale={locale}
+            title={confirmTitle(action, locale)}
+            body={confirmBody(action, locale)}
             danger={action.draft.intent === "cancel"}
             busy={busy}
             onConfirm={() => void confirmPending()}
@@ -405,6 +419,7 @@ export function OtterVoice({
         ) : null}
         {toolAction ? (
           <ConfirmCard
+            locale={locale}
             title={toolAction.title}
             body={`${toolAction.summary}.`}
             danger={toolAction.confirmLevel === "danger"}
@@ -424,12 +439,11 @@ export function OtterVoice({
         {noRecognition ? (
           <div className="text-center">
             <p className="text-sm text-[var(--color-muted)]">
-              Voice input isn't supported in this browser. Try Chrome or Safari - or switch to text
-              chat.
+              {tOtter(locale, "voiceUnsupported")}
             </p>
             {onSwitchToChat ? (
               <Button className="mt-3" variant="outline" size="sm" onClick={onSwitchToChat}>
-                Switch to chat
+                {tOtter(locale, "switchToChatBtn")}
               </Button>
             ) : null}
           </div>
@@ -438,7 +452,9 @@ export function OtterVoice({
             <button
               type="button"
               onClick={onOrbTap}
-              aria-label={active ? "Stop or interrupt Otter" : "Start talking to Otter"}
+              aria-label={
+                active ? tOtter(locale, "stopOrInterrupt") : tOtter(locale, "startTalking")
+              }
               className="otter-orb-btn"
               data-phase={active ? phase : "off"}
             >
@@ -455,7 +471,7 @@ export function OtterVoice({
             <p className="text-sm font-medium text-[var(--color-muted)]">{statusLabel}</p>
             {active ? (
               <Button variant="ghost" size="sm" onClick={stopConversation}>
-                End conversation
+                {tOtter(locale, "endConversation")}
               </Button>
             ) : null}
           </div>
@@ -465,24 +481,34 @@ export function OtterVoice({
   );
 }
 
-function confirmTitle(a: ChatAction): string {
-  if (a.draft.intent === "create") return a.matchedEventType?.title ?? "New event";
-  if (a.draft.intent === "reschedule") return "Reschedule";
-  if (a.draft.intent === "cancel") return "Cancel meeting";
-  return "Confirm";
+function confirmTitle(a: ChatAction, locale: Locale): string {
+  if (a.draft.intent === "create") return a.matchedEventType?.title ?? tOtter(locale, "newEvent");
+  if (a.draft.intent === "reschedule") return tOtter(locale, "reschedule");
+  if (a.draft.intent === "cancel") return tOtter(locale, "cancelMeeting");
+  return tOtter(locale, "confirm");
 }
 
-function confirmBody(a: ChatAction): string {
+function confirmBody(a: ChatAction, locale: Locale): string {
   const d = a.draft;
   if (d.intent === "create") {
     const dur = a.matchedEventType?.durationMinutes ?? d.durationMinutes;
-    return `${d.title} · ${fmtWhen(d.startISO)} · ${dur} min`;
+    return tOtter(locale, "createBody", {
+      title: d.title,
+      when: fmtWhen(d.startISO, locale),
+      n: dur,
+    });
   }
   if (d.intent === "reschedule" && a.target) {
-    return `Move “${a.target.title}” to ${fmtWhen(d.newStartISO)}`;
+    return tOtter(locale, "moveBody", {
+      title: a.target.title,
+      when: fmtWhen(d.newStartISO, locale),
+    });
   }
   if (d.intent === "cancel" && a.target) {
-    return `Cancel “${a.target.title}” on ${fmtWhen(a.target.startISO)}. Attendees are notified.`;
+    return tOtter(locale, "cancelBody", {
+      title: a.target.title,
+      when: fmtWhen(a.target.startISO, locale),
+    });
   }
   return "";
 }
@@ -508,6 +534,7 @@ function Bubble({
 }
 
 function ConfirmCard({
+  locale,
   title,
   body,
   danger,
@@ -515,6 +542,7 @@ function ConfirmCard({
   onConfirm,
   onDiscard,
 }: {
+  locale: Locale;
   title: string;
   body: string;
   danger?: boolean;
@@ -540,7 +568,7 @@ function ConfirmCard({
         {title}
       </span>
       <p className="text-sm text-[var(--color-text)]">{body}</p>
-      <p className="text-xs text-[var(--color-faint)]">Tap Confirm, or just say “confirm”.</p>
+      <p className="text-xs text-[var(--color-faint)]">{tOtter(locale, "sayConfirmHint")}</p>
       <div className="flex gap-2">
         <Button
           size="sm"
@@ -548,10 +576,10 @@ function ConfirmCard({
           onClick={onConfirm}
           disabled={busy}
         >
-          {busy ? "Working…" : danger ? "Confirm" : "Confirm"}
+          {busy ? tOtter(locale, "working") : tOtter(locale, "confirm")}
         </Button>
         <Button size="sm" variant="ghost" onClick={onDiscard} disabled={busy}>
-          Discard
+          {tOtter(locale, "discard")}
         </Button>
       </div>
     </div>

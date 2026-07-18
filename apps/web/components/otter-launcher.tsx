@@ -2,6 +2,9 @@
 
 import { AiAssistant } from "@/components/ai-assistant";
 import { OtterVoice } from "@/components/otter-voice";
+import type { Locale } from "@/lib/i18n";
+import { tOtter } from "@/lib/i18n/otter";
+import { useAppLocale } from "@/lib/i18n/use-locale";
 import { type ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -14,6 +17,7 @@ type Mode = "voice" | "chat";
  * text chat. Rendered globally from the app layout, gated on `aiEnabled`.
  */
 export function OtterLauncher() {
+  const locale = useAppLocale();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("voice");
 
@@ -37,7 +41,7 @@ export function OtterLauncher() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Ask Otter"
+          aria-label={tOtter(locale, "askOtter")}
           className="group fixed bottom-24 right-4 z-40 flex items-center gap-2.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] py-1.5 pl-1.5 pr-2.5 shadow-[var(--shadow-raise)] transition-transform hover:-translate-y-0.5 lg:bottom-6 lg:right-6"
         >
           <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-[var(--color-accent)]">
@@ -49,21 +53,28 @@ export function OtterLauncher() {
             />
             <span className="absolute inset-0 animate-ping rounded-full ring-2 ring-[var(--color-accent)] opacity-20" />
           </span>
-          <span className="pr-1 text-sm font-medium text-[var(--color-text)]">Ask Otter</span>
+          <span className="pr-1 text-sm font-medium text-[var(--color-text)]">
+            {tOtter(locale, "askOtter")}
+          </span>
         </button>
       )}
 
-      {open ? <Portal>{drawer(() => setOpen(false), mode, setMode)}</Portal> : null}
+      {open ? <Portal>{drawer(() => setOpen(false), mode, setMode, locale)}</Portal> : null}
     </>
   );
 }
 
-function drawer(onClose: () => void, mode: Mode, setMode: (m: Mode) => void): ReactNode {
+function drawer(
+  onClose: () => void,
+  mode: Mode,
+  setMode: (m: Mode) => void,
+  locale: Locale,
+): ReactNode {
   return (
     <div className="fixed inset-0 z-50">
       <button
         type="button"
-        aria-label="Close assistant"
+        aria-label={tOtter(locale, "closeAssistant")}
         onClick={onClose}
         className="absolute inset-0 cursor-default bg-[color-mix(in_srgb,var(--color-text)_38%,transparent)] backdrop-blur-[2px]"
       />

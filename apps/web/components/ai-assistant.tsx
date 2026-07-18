@@ -5,6 +5,9 @@ import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import type { ChatAction, ChatToolAction } from "@/lib/ai/chat";
 import { track } from "@/lib/analytics";
+import type { Locale } from "@/lib/i18n";
+import { tOtter } from "@/lib/i18n/otter";
+import { useAppLocale } from "@/lib/i18n/use-locale";
 import { useSpeechInput, useSpeechOutput } from "@/lib/use-speech";
 import { Mic, Send, Sparkles, Volume2, VolumeX, Waves, X } from "lucide-react";
 import { DateTime } from "luxon";
@@ -16,25 +19,27 @@ interface Msg {
   content: string;
 }
 
-const SUGGESTIONS = [
-  "What's next on my calendar?",
-  "How busy am I this week?",
-  "Protect 4 hours of focus this week",
-  "Find 3 hours for a deck by Friday",
-];
+function suggestions(locale: Locale): string[] {
+  return [
+    tOtter(locale, "suggestWhatsNext"),
+    tOtter(locale, "suggestHowBusy"),
+    tOtter(locale, "suggestProtectFocus"),
+    tOtter(locale, "suggestFindDeck"),
+  ];
+}
 
-const KIND_LABEL: Record<string, string> = {
-  meeting: "Meeting",
-  focus: "Focus block",
-  reminder: "Reminder",
-};
+function kindLabel(locale: Locale, kind: string): string {
+  if (kind === "focus") return tOtter(locale, "kindFocus");
+  if (kind === "reminder") return tOtter(locale, "kindReminder");
+  return tOtter(locale, "kindMeeting");
+}
 
 function toLocalInput(iso: string): string {
   const dt = DateTime.fromISO(iso);
   return (dt.isValid ? dt : DateTime.now()).toFormat("yyyy-MM-dd'T'HH:mm");
 }
-function fmtWhen(iso: string): string {
-  const dt = DateTime.fromISO(iso);
+function fmtWhen(iso: string, locale: Locale): string {
+  const dt = DateTime.fromISO(iso).setLocale(locale);
   return dt.isValid ? dt.toFormat("ccc, LLL d 'at' h:mm a") : iso;
 }
 
@@ -54,6 +59,7 @@ export function AiAssistant({
   onSwitchToVoice?: () => void;
 } = {}) {
   const panel = variant === "panel";
+  const locale = useAppLocale();
   const router = useRouter();
   const out = useSpeechOutput();
   const speak = useCallback((text: string) => out.speak(text), [out]);
@@ -130,7 +136,7 @@ export function AiAssistant({
         if (!res.ok || !res.body) {
           const data = await res.json().catch(() => ({}));
           throw new Error(
-            typeof data.error === "string" ? data.error : "The assistant is unavailable.",
+            typeof data.error === "string" ? data.error : tOtter(locale, "unavailable"),
           );
         }
         const reader = res.body.getReader();
@@ -178,12 +184,12 @@ export function AiAssistant({
         }
       } catch (err) {
         setMessages((prev) => prev.filter((m, i) => !(i === prev.length - 1 && !m.content)));
-        setError(err instanceof Error ? err.message : "Something went wrong.");
+        setError(err instanceof Error ? err.message : tOtter(locale, "somethingWrong"));
       } finally {
         setStreaming(false);
       }
     },
-    [streaming],
+    [streaming, locale, speak],
   );
 
   function initAction(a: ChatAction) {
@@ -228,11 +234,11 @@ export function AiAssistant({
     setBusy(false);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setError(typeof data.error === "string" ? data.error : "Couldn't add the event.");
+      setError(typeof data.error === "string" ? data.error : tOtter(locale, "couldntAdd"));
       return;
     }
     track("AI Event Added", { kind: action.draft.kind, via: "chat" });
-    afterAction(`Added “${title}” to your calendar ✓`);
+    afterAction(tOtter(locale, "addedEvent", { title }));
   }
 
   async function confirmReschedule() {
@@ -248,11 +254,11 @@ export function AiAssistant({
     setBusy(false);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setError(typeof data.error === "string" ? data.error : "Couldn't reschedule that meeting.");
+      setError(typeof data.error === "string" ? data.error : tOtter(locale, "couldntReschedule"));
       return;
     }
     track("AI Reschedule Confirmed", { via: "chat" });
-    afterAction("Rescheduled - attendees notified ✓");
+    afterAction(tOtter(locale, "rescheduledOk"));
   }
 
   async function confirmCancel() {
@@ -267,11 +273,11 @@ export function AiAssistant({
     setBusy(false);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setError(typeof data.error === "string" ? data.error : "Couldn't cancel that meeting.");
+      setError(typeof data.error === "string" ? data.error : tOtter(locale, "couldntCancel"));
       return;
     }
     track("AI Cancel Confirmed", { via: "chat" });
-    afterAction("Cancelled - attendees notified ✓");
+    afterAction(tOtter(locale, "cancelledOk"));
   }
 
   // Confirm a registry action (create/update/delete booking types, availability,
@@ -294,12 +300,12 @@ export function AiAssistant({
           ? data.message
           : typeof data.error === "string"
             ? data.error
-            : "Couldn't complete that.",
+            : tOtter(locale, "couldntComplete"),
       );
       return;
     }
     track("AI Tool Action", { tool: toolAction.tool });
-    const msg = typeof data.message === "string" ? data.message : "Done ✓";
+    const msg = typeof data.message === "string" ? data.message : tOtter(locale, "done");
     setToolAction(null);
     setMessages((prev) => [...prev, { role: "assistant", content: msg }]);
     if (speakRef.current) speak(msg);
@@ -322,16 +328,14 @@ export function AiAssistant({
           <Sparkles size={15} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold leading-none">Ask Otter</p>
-          <p className="mt-1 text-xs text-[var(--color-faint)]">
-            Your scheduling assistant - you confirm before anything changes
-          </p>
+          <p className="text-sm font-semibold leading-none">{tOtter(locale, "askOtter")}</p>
+          <p className="mt-1 text-xs text-[var(--color-faint)]">{tOtter(locale, "chatSubtitle")}</p>
         </div>
         {onSwitchToVoice ? (
           <button
             type="button"
             onClick={onSwitchToVoice}
-            title="Switch to hands-free voice"
+            title={tOtter(locale, "switchToVoice")}
             className="rounded-md p-1.5 text-[var(--color-faint)] hover:text-[var(--color-text)]"
           >
             <Waves size={16} />
@@ -341,7 +345,7 @@ export function AiAssistant({
           type="button"
           onClick={toggleSpeak}
           aria-pressed={speakReplies}
-          title={speakReplies ? "Spoken replies on" : "Spoken replies off"}
+          title={speakReplies ? tOtter(locale, "spokenOn") : tOtter(locale, "spokenOff")}
           className={
             speakReplies
               ? "rounded-md p-1.5 text-[var(--color-accent)]"
@@ -354,7 +358,7 @@ export function AiAssistant({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tOtter(locale, "close")}
             className="rounded-md p-1.5 text-[var(--color-faint)] hover:text-[var(--color-text)]"
           >
             <X size={16} />
@@ -369,11 +373,9 @@ export function AiAssistant({
       >
         {messages.length === 0 ? (
           <div>
-            <p className="text-sm text-[var(--color-muted)]">
-              Hi! Ask about your schedule, or tell me to book, move, or cancel something.
-            </p>
+            <p className="text-sm text-[var(--color-muted)]">{tOtter(locale, "emptyGreeting")}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {SUGGESTIONS.map((s) => (
+              {suggestions(locale).map((s) => (
                 <button
                   key={s}
                   type="button"
@@ -414,16 +416,16 @@ export function AiAssistant({
         {action && intent === "create" ? (
           <div className="mt-3 space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
             <span className="inline-block rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--color-accent)]">
-              {KIND_LABEL[action.draft.kind] ?? "Meeting"}
+              {kindLabel(locale, action.draft.kind)}
               {action.matchedEventType ? ` · ${action.matchedEventType.title}` : ""}
             </span>
             <div>
-              <Label htmlFor="otter-title">Title</Label>
+              <Label htmlFor="otter-title">{tOtter(locale, "fieldTitle")}</Label>
               <Input id="otter-title" value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="otter-start">Starts</Label>
+                <Label htmlFor="otter-start">{tOtter(locale, "fieldStarts")}</Label>
                 <Input
                   id="otter-start"
                   type="datetime-local"
@@ -432,7 +434,7 @@ export function AiAssistant({
                 />
               </div>
               <div>
-                <Label htmlFor="otter-dur">Duration (min)</Label>
+                <Label htmlFor="otter-dur">{tOtter(locale, "fieldDuration")}</Label>
                 <Input
                   id="otter-dur"
                   type="number"
@@ -445,15 +447,17 @@ export function AiAssistant({
             </div>
             {action.draft.attendees.length > 0 ? (
               <p className="text-xs text-[var(--color-muted)]">
-                With: {action.draft.attendees.map((a) => a.name || a.email).join(", ")}
+                {tOtter(locale, "withAttendees", {
+                  names: action.draft.attendees.map((a) => a.name || a.email).join(", "),
+                })}
               </p>
             ) : null}
             <div className="flex gap-2">
               <Button size="sm" onClick={confirmCreate} disabled={busy}>
-                {busy ? "Adding…" : "Add to calendar"}
+                {busy ? tOtter(locale, "adding") : tOtter(locale, "addToCalendar")}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
-                Discard
+                {tOtter(locale, "discard")}
               </Button>
             </div>
           </div>
@@ -462,12 +466,13 @@ export function AiAssistant({
         {action && intent === "reschedule" && action.target ? (
           <div className="mt-3 space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
             <span className="inline-block rounded-full bg-[var(--color-accent-soft)] px-2 py-0.5 text-xs font-medium text-[var(--color-accent)]">
-              Reschedule
+              {tOtter(locale, "reschedule")}
             </span>
             <p className="text-sm">
-              Move <strong>{action.target.title}</strong> from{" "}
-              <span className="text-[var(--color-muted)]">{fmtWhen(action.target.startISO)}</span>{" "}
-              to:
+              {tOtter(locale, "moveMeeting", {
+                title: action.target.title,
+                when: fmtWhen(action.target.startISO, locale),
+              })}
             </p>
             <Input
               type="datetime-local"
@@ -476,10 +481,10 @@ export function AiAssistant({
             />
             <div className="flex gap-2">
               <Button size="sm" onClick={confirmReschedule} disabled={busy}>
-                {busy ? "Rescheduling…" : "Reschedule"}
+                {busy ? tOtter(locale, "rescheduling") : tOtter(locale, "reschedule")}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
-                Discard
+                {tOtter(locale, "discard")}
               </Button>
             </div>
           </div>
@@ -488,19 +493,20 @@ export function AiAssistant({
         {action && intent === "cancel" && action.target ? (
           <div className="mt-3 space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
             <span className="inline-block rounded-full bg-[color-mix(in_srgb,var(--color-danger)_15%,transparent)] px-2 py-0.5 text-xs font-medium text-[var(--color-danger)]">
-              Cancel
+              {tOtter(locale, "cancel")}
             </span>
             <p className="text-sm">
-              Cancel <strong>{action.target.title}</strong> on{" "}
-              <span className="text-[var(--color-muted)]">{fmtWhen(action.target.startISO)}</span>?
-              This notifies attendees.
+              {tOtter(locale, "cancelMeetingConfirm", {
+                title: action.target.title,
+                when: fmtWhen(action.target.startISO, locale),
+              })}
             </p>
             <div className="flex gap-2">
               <Button size="sm" variant="danger" onClick={confirmCancel} disabled={busy}>
-                {busy ? "Cancelling…" : "Cancel meeting"}
+                {busy ? tOtter(locale, "cancelling") : tOtter(locale, "cancelMeeting")}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setAction(null)} disabled={busy}>
-                Keep it
+                {tOtter(locale, "keepIt")}
               </Button>
             </div>
           </div>
@@ -533,13 +539,13 @@ export function AiAssistant({
                 disabled={busy}
               >
                 {busy
-                  ? "Working…"
+                  ? tOtter(locale, "working")
                   : toolAction.confirmLevel === "danger"
-                    ? "Confirm delete"
-                    : "Confirm"}
+                    ? tOtter(locale, "confirmDelete")
+                    : tOtter(locale, "confirm")}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setToolAction(null)} disabled={busy}>
-                Discard
+                {tOtter(locale, "discard")}
               </Button>
             </div>
           </div>
@@ -563,14 +569,18 @@ export function AiAssistant({
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={speech.listening ? "Listening…" : "Message Otter…"}
+            placeholder={
+              speech.listening ? tOtter(locale, "listening") : tOtter(locale, "messagePlaceholder")
+            }
             disabled={streaming}
           />
           {speech.supported ? (
             <button
               type="button"
               onClick={speech.toggle}
-              aria-label={speech.listening ? "Stop listening" : "Speak"}
+              aria-label={
+                speech.listening ? tOtter(locale, "stopListening") : tOtter(locale, "speak")
+              }
               aria-pressed={speech.listening}
               className={
                 speech.listening
@@ -584,7 +594,7 @@ export function AiAssistant({
           <Button
             type="submit"
             disabled={streaming || !input.trim()}
-            aria-label="Send"
+            aria-label={tOtter(locale, "send")}
             className="h-10 w-10 shrink-0 px-0"
           >
             <Send size={16} />

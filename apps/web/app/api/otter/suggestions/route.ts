@@ -9,8 +9,8 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 /** Proactive suggestions to show the user right now. */
-export const GET = withUser(async (u) => {
-  const suggestions = await getProactiveSuggestions(u.id);
+export const GET = withUser(async (u, request) => {
+  const suggestions = await getProactiveSuggestions(u.id, request.headers.get("accept-language"));
   return NextResponse.json({ suggestions });
 });
 
