@@ -32,12 +32,12 @@ const body = z.object({
  */
 export const POST = withUser(async (u, request) => {
   if (!aiEnabled) return jsonError("AI scheduling isn't enabled on this server.", 503);
-  // The streaming, multi-turn command bar uses provider-native tool-use, which is
-  // Anthropic-only today. Other providers still power the quick command bar and
-  // every other AI feature (they go through the vendor-agnostic `extract`).
+  // The streaming, multi-turn command bar uses provider-native tool-use. Both the
+  // Anthropic and OpenAI-compatible providers support it; only a hypothetical
+  // tool-less provider would trip this guard (the quick command bar still works).
   if (!supportsAgentTools) {
     return jsonError(
-      "The conversational assistant needs the Anthropic provider. Use the quick command instead.",
+      "The conversational assistant isn't available with the configured AI provider. Use the quick command instead.",
       503,
     );
   }

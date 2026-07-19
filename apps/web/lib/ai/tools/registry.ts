@@ -784,11 +784,11 @@ const BY_NAME = new Map(TOOLS.map((t) => [t.name, t]));
 export function getTool(name: string): AiToolDef | undefined {
   return BY_NAME.get(name);
 }
-/** Anthropic tool definitions for every registry tool. */
-export function anthropicToolDefs() {
+/** Vendor-neutral tool specs for every registry tool (for the agentic loop). */
+export function toolSpecs() {
   return TOOLS.map((t) => ({
     name: t.name,
     description: t.description,
-    input_schema: t.schema,
+    schema: t.schema,
   }));
 }

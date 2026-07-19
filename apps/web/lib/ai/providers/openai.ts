@@ -1,6 +1,13 @@
 import { logger } from "@dayotter/core";
 import OpenAI from "openai";
-import type { ExtractRequest, LlmProvider, ModelTier } from "./types";
+import type {
+  AgentStepRequest,
+  AgentStepResult,
+  AgentTurn,
+  ExtractRequest,
+  LlmProvider,
+  ModelTier,
+} from "./types";
 
 /**
  * OpenAI-compatible provider. Works with OpenAI itself and with any endpoint
@@ -12,6 +19,12 @@ import type { ExtractRequest, LlmProvider, ModelTier } from "./types";
  * JSON Schema in the system prompt, then JSON-parse the reply. (`json_object` is
  * supported almost everywhere; `json_schema` is OpenAI-specific.) The caller
  * still validates the object with its Zod schema, so a stray field is caught.
+ *
+ * The streaming agentic loop (`streamAgentStep`) uses the equally portable Chat
+ * Completions function-calling: stream `delta.content` as tokens and accumulate
+ * `delta.tool_calls` deltas by index, then hand the parsed calls back to the
+ * caller (which runs them and loops). The prompt-caching / adaptive-thinking
+ * knobs the Anthropic provider uses don't apply here, so they're ignored.
  */
 
 const KEY = process.env.OPENAI_API_KEY || "";
@@ -34,10 +47,41 @@ function unwrapJson(raw: string): string {
   return (m?.[1] ?? raw).trim();
 }
 
+/** Map the neutral agent history into OpenAI chat messages. */
+function toOpenAiMessages(
+  system: AgentStepRequest["system"],
+  history: AgentTurn[],
+): OpenAI.Chat.ChatCompletionMessageParam[] {
+  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+    { role: "system", content: system.map((b) => b.text).join("\n\n") },
+  ];
+  for (const turn of history) {
+    switch (turn.role) {
+      case "user":
+        messages.push({ role: "user", content: turn.text });
+        break;
+      case "assistant":
+        messages.push({ role: "assistant", content: turn.text });
+        break;
+      case "assistant_raw":
+        // The stored assistant message (may carry tool_calls) from a prior step.
+        messages.push(turn.raw as OpenAI.Chat.ChatCompletionAssistantMessageParam);
+        break;
+      case "tool_results":
+        // Each result is its own `role: "tool"` message keyed by the call id.
+        for (const r of turn.results) {
+          messages.push({ role: "tool", tool_call_id: r.id, content: r.content });
+        }
+        break;
+    }
+  }
+  return messages;
+}
+
 export const openaiProvider: LlmProvider = {
   name: "openai",
   configured: Boolean(KEY),
-  supportsAgentTools: false,
+  supportsAgentTools: true,
 
   async extract(req: ExtractRequest): Promise<unknown> {
     const model = MODELS[req.tier];
@@ -90,5 +134,77 @@ ${JSON.stringify(req.inputSchema)}`;
       outputTokens: usage?.completion_tokens ?? 0,
     });
     return JSON.parse(unwrapJson(content)) as unknown;
+  },
+
+  async streamAgentStep(req: AgentStepRequest): Promise<AgentStepResult> {
+    const model = MODELS[req.tier];
+    const stream = await getClient().chat.completions.create({
+      model,
+      messages: toOpenAiMessages(req.system, req.history),
+      tools: req.tools.map(
+        (t): OpenAI.Chat.ChatCompletionTool => ({
+          type: "function",
+          function: { name: t.name, description: t.description, parameters: t.schema },
+        }),
+      ),
+      tool_choice: "auto",
+      max_tokens: req.maxTokens ?? 3000,
+      stream: true,
+    });
+
+    let text = "";
+    // Accumulate streamed tool-call deltas by their `index` - id and name arrive
+    // once, arguments arrive as a stream of string fragments to be concatenated.
+    const partial: { id: string; name: string; args: string }[] = [];
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta;
+      if (delta?.content) {
+        text += delta.content;
+        req.onToken?.(delta.content);
+      }
+      for (const tc of delta?.tool_calls ?? []) {
+        let slot = partial[tc.index];
+        if (!slot) {
+          slot = { id: "", name: "", args: "" };
+          partial[tc.index] = slot;
+        }
+        if (tc.id) slot.id = tc.id;
+        if (tc.function?.name) slot.name += tc.function.name;
+        if (tc.function?.arguments) slot.args += tc.function.arguments;
+      }
+    }
+
+    const calls = partial.filter((c) => c?.name);
+    const toolCalls = calls.map((c) => {
+      let input: Record<string, unknown> = {};
+      try {
+        input = c.args ? (JSON.parse(c.args) as Record<string, unknown>) : {};
+      } catch {
+        logger.warn("openai tool-call args not valid JSON", {
+          event: "ai_openai_toolargs_parse_failed",
+          tool: c.name,
+        });
+      }
+      return { id: c.id, name: c.name, input };
+    });
+
+    // The assistant turn to echo back next step, in OpenAI's own shape.
+    const assistant: OpenAI.Chat.ChatCompletionAssistantMessageParam = {
+      role: "assistant",
+      content: text || null,
+      ...(calls.length
+        ? {
+            tool_calls: calls.map(
+              (c): OpenAI.Chat.ChatCompletionMessageToolCall => ({
+                id: c.id,
+                type: "function",
+                function: { name: c.name, arguments: c.args || "{}" },
+              }),
+            ),
+          }
+        : {}),
+    };
+
+    return { text, toolCalls, assistant };
   },
 };
