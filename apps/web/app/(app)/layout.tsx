@@ -5,8 +5,8 @@ import { TimezoneSync } from "@/components/timezone-sync";
 import { ToastProvider } from "@/components/ui/toast";
 import { aiEnabled } from "@/lib/ai/llm";
 import { getSession } from "@/lib/auth/session";
-import { resolveLocale } from "@/lib/i18n";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
+import { resolveUserLocale } from "@/lib/i18n/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
@@ -15,8 +15,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await getSession();
   if (!session?.user) redirect("/sign-in");
   // Server-resolve the locale so client components (Otter chrome) render the same
-  // language on the server and the client - no hydration mismatch.
-  const locale = resolveLocale((await headers()).get("accept-language"));
+  // language on the server and the client - no hydration mismatch. An explicit
+  // stored language preference wins over the browser's Accept-Language header.
+  const locale = await resolveUserLocale(session.user.id, (await headers()).get("accept-language"));
 
   return (
     <LocaleProvider locale={locale}>

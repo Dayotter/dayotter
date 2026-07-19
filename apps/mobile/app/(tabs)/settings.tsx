@@ -1,7 +1,7 @@
 import { ApiError, api } from "@/api";
 import { useAuth } from "@/auth";
 import { Loading } from "@/components/ui";
-import type { UserPreferences } from "@/models";
+import type { Locale, UserPreferences } from "@/models";
 import { serverHost } from "@/server";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +18,14 @@ const WEEK_DAYS = [
   { value: 0, label: "Sunday" },
   { value: 1, label: "Monday" },
   { value: 6, label: "Saturday" },
+];
+// Native-language labels; booking page + Otter chrome are translated (see #81).
+const LOCALES: { value: Locale; label: string }[] = [
+  { value: "en", label: "English" },
+  { value: "es", label: "Español" },
+  { value: "fr", label: "Français" },
+  { value: "de", label: "Deutsch" },
+  { value: "pt", label: "Português" },
 ];
 const REMINDER_OPTIONS = [
   { value: 10080, label: "1 week" },
@@ -38,6 +46,7 @@ export default function SettingsScreen() {
   const [timezone, setTimezone] = useState(user?.timezone ?? "UTC");
   const [timeFormat, setTimeFormat] = useState<"12h" | "24h">("12h");
   const [weekStartsOn, setWeekStartsOn] = useState(0);
+  const [locale, setLocale] = useState<Locale>("en");
   const [reminders, setReminders] = useState<number[]>([1440, 60]);
   const [adaptive, setAdaptive] = useState(false);
   const [maxPerDay, setMaxPerDay] = useState(5);
@@ -70,6 +79,7 @@ export default function SettingsScreen() {
         if (!active) return;
         setTimeFormat(p.timeFormat);
         setWeekStartsOn(p.weekStartsOn);
+        setLocale(p.locale ?? "en");
         setReminders(p.defaultReminderOffsets);
         setAdaptive(p.adaptiveAvailability ?? false);
         setMaxPerDay(p.maxMeetingsPerDay ?? 5);
@@ -115,6 +125,7 @@ export default function SettingsScreen() {
       await api.patch("/api/settings/preferences", {
         timeFormat,
         weekStartsOn,
+        locale,
         defaultReminderOffsets: reminders,
         adaptiveAvailability: adaptive,
         maxMeetingsPerDay: maxPerDay,
@@ -238,6 +249,27 @@ export default function SettingsScreen() {
             </Pressable>
           ))}
         </View>
+
+        <Text style={styles.label}>Language</Text>
+        <View style={styles.wrapPills}>
+          {LOCALES.map((l) => (
+            <Pressable
+              key={l.value}
+              onPress={() => {
+                setLocale(l.value);
+                setSaved(false);
+              }}
+              style={[styles.chip, l.value === locale && styles.pillOn]}
+            >
+              <Text style={[styles.pillText, l.value === locale && styles.pillTextOn]}>
+                {l.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.hint}>
+          Your booking page and Otter use this language. The rest of the app is English for now.
+        </Text>
 
         <Text style={styles.label}>Default reminders</Text>
         <View style={styles.wrapPills}>
