@@ -1,3 +1,4 @@
+import { resolvePublicIp } from "@dayotter/core";
 import icalGenerator from "ical-generator";
 import ical from "node-ical";
 // tsdav is CommonJS; a named ESM import isn't statically resolvable at runtime,
@@ -17,19 +18,16 @@ const { createDAVClient } = tsdav;
 
 const ICLOUD_CALDAV = "https://caldav.icloud.com";
 
-/** Hostnames / IP-literal patterns that must never be used as a CalDAV target -
- * blocks SSRF to cloud metadata, loopback, and private ranges when a user
- * supplies a custom `serverUrl`. */
-const BLOCKED_HOST =
-  /^(localhost|.*\.local|0\.0\.0\.0|127\.|10\.|192\.168\.|169\.254\.|::1|\[?::1\]?|\[?fc00:|\[?fe80:)/i;
-const BLOCKED_172 = /^172\.(1[6-9]|2\d|3[01])\./;
-
 /**
  * Reject a user-supplied CalDAV server URL that isn't a public https endpoint.
- * Defends against SSRF (e.g. `http://169.254.169.254/…`, localhost, private
- * ranges) before we make any server-side request to it.
+ * We now invite arbitrary CalDAV URLs (Nextcloud, Fastmail, self-hosted, ...), so
+ * a hostname allow-list isn't enough: RESOLVE the host and reject any address in
+ * a private/loopback/link-local range (defeats `internal.corp` or a domain that
+ * points at 169.254.169.254 / 127.0.0.1). NB: tsdav re-resolves DNS when it
+ * connects, so this is check-then-use, not a hard IP pin - good enough here since
+ * the credentials are the user's own, but keep it in mind.
  */
-function assertPublicHttpsUrl(raw: string): void {
+async function assertPublicHttpsUrl(raw: string): Promise<void> {
   let url: URL;
   try {
     url = new URL(raw);
@@ -37,8 +35,9 @@ function assertPublicHttpsUrl(raw: string): void {
     throw new Error("Invalid CalDAV server URL");
   }
   if (url.protocol !== "https:") throw new Error("CalDAV server URL must use https");
-  const host = url.hostname.toLowerCase();
-  if (BLOCKED_HOST.test(host) || BLOCKED_172.test(host)) {
+  try {
+    await resolvePublicIp(url.hostname); // throws if it resolves to an internal IP
+  } catch {
     throw new Error("CalDAV server URL points at a disallowed (internal) host");
   }
 }
@@ -70,7 +69,7 @@ export class AppleCalendarAdapter implements CalendarAdapter {
 
   static async connect(creds: AppleCredentials): Promise<AppleCalendarAdapter> {
     const serverUrl = creds.serverUrl ?? ICLOUD_CALDAV;
-    if (creds.serverUrl) assertPublicHttpsUrl(creds.serverUrl);
+    if (creds.serverUrl) await assertPublicHttpsUrl(creds.serverUrl);
     const client = await createDAVClient({
       serverUrl,
       credentials: { username: creds.username, password: creds.password },

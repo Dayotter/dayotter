@@ -6,8 +6,10 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
-  username: z.string().email("Enter your Apple ID email"),
-  password: z.string().min(1, "Enter your app-specific password"),
+  // Apple IDs are emails, but generic CalDAV usernames (Nextcloud, Radicale) may
+  // not be - accept any non-empty string.
+  username: z.string().min(1, "Enter your username"),
+  password: z.string().min(1, "Enter your password"),
   serverUrl: z.string().url().optional(),
 });
 

@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 const PROVIDERS = [
   { id: "google", name: "Google Calendar", color: "#4285F4", available: true },
   { id: "microsoft", name: "Microsoft 365 / Outlook", color: "#0078D4", available: true },
-  { id: "apple", name: "Apple iCloud", color: "#A2AAAD", available: true },
+  { id: "apple", name: "Apple iCloud / CalDAV", color: "#A2AAAD", available: true },
   { id: "ics", name: "Calendar feed (ICS)", color: "#6366F1", available: true },
 ] as const;
 
