@@ -1,3 +1,4 @@
+import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import { jsonError, withUser } from "@/lib/server/http";
 import { DEFAULT_REMINDER_OFFSETS } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
@@ -16,6 +17,7 @@ export const GET = withUser(async (u) => {
       timeFormat: prefs?.timeFormat ?? "12h",
       weekStartsOn: prefs?.weekStartsOn ?? 0,
       theme: prefs?.theme ?? "system",
+      locale: prefs?.locale ?? "en",
       defaultReminderOffsets: prefs?.defaultReminderOffsets ?? [...DEFAULT_REMINDER_OFFSETS],
       adaptiveAvailability: prefs?.adaptiveAvailability ?? false,
       maxMeetingsPerDay: prefs?.maxMeetingsPerDay ?? 5,
@@ -41,6 +43,7 @@ const bodySchema = z.object({
   timeFormat: z.enum(["12h", "24h"]).optional(),
   weekStartsOn: z.number().int().min(0).max(6).optional(),
   theme: z.enum(["system", "light", "dark"]).optional(),
+  locale: z.enum(SUPPORTED_LOCALES).optional(),
   defaultReminderOffsets: z.array(z.number().int().min(0).max(43_200)).max(5).optional(),
   adaptiveAvailability: z.boolean().optional(),
   maxMeetingsPerDay: z.number().int().min(1).max(20).optional(),
@@ -66,6 +69,7 @@ export const PATCH = withUser(async (u, request) => {
   if (d.timeFormat !== undefined) fields.timeFormat = d.timeFormat;
   if (d.weekStartsOn !== undefined) fields.weekStartsOn = d.weekStartsOn;
   if (d.theme !== undefined) fields.theme = d.theme;
+  if (d.locale !== undefined) fields.locale = d.locale;
   if (d.defaultReminderOffsets !== undefined) {
     // De-duplicate + sort reminder offsets (largest lead time first).
     fields.defaultReminderOffsets = [...new Set(d.defaultReminderOffsets)].sort((a, b) => b - a);

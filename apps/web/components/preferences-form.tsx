@@ -6,10 +6,21 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/cn";
+import { type Locale, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Theme = "system" | "light" | "dark";
+
+/** Native-language labels for the language picker. Booking + Otter chrome are
+ *  translated; the rest of the dashboard is English for now (see #81). */
+const LOCALE_LABELS: Record<Locale, string> = {
+  en: "English",
+  es: "Español",
+  fr: "Français",
+  de: "Deutsch",
+  pt: "Português",
+};
 
 /** Same mechanism as ThemeToggle so both controls stay in sync. */
 function applyTheme(theme: Theme) {
@@ -55,6 +66,7 @@ export function PreferencesForm({
     timeFormat: "12h" | "24h";
     weekStartsOn: number;
     theme: Theme;
+    locale: Locale;
     defaultReminderOffsets: number[];
     adaptiveAvailability?: boolean;
     maxMeetingsPerDay?: number;
@@ -73,6 +85,7 @@ export function PreferencesForm({
   const [timeFormat, setTimeFormat] = useState(initial.timeFormat);
   const [weekStartsOn, setWeekStartsOn] = useState(initial.weekStartsOn);
   const [theme, setTheme] = useState<Theme>(initial.theme);
+  const [locale, setLocale] = useState<Locale>(initial.locale);
   const [reminders, setReminders] = useState<number[]>(initial.defaultReminderOffsets);
   const [adaptive, setAdaptive] = useState(initial.adaptiveAvailability ?? false);
   const [maxPerDay, setMaxPerDay] = useState(initial.maxMeetingsPerDay ?? 5);
@@ -122,6 +135,7 @@ export function PreferencesForm({
         timeFormat,
         weekStartsOn,
         theme,
+        locale,
         defaultReminderOffsets: reminders,
         adaptiveAvailability: adaptive,
         maxMeetingsPerDay: maxPerDay,
@@ -144,6 +158,9 @@ export function PreferencesForm({
       return;
     }
     setSaved(true);
+    // The app shell resolves the language on the server, so a change only takes
+    // effect on reload - refresh once so the new locale applies immediately.
+    if (locale !== initial.locale) window.location.reload();
   }
 
   return (
@@ -206,6 +223,28 @@ export function PreferencesForm({
                 ))}
               </Select>
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="pref-language">Language</Label>
+            <Select
+              id="pref-language"
+              value={locale}
+              onChange={(e) => {
+                setLocale(e.target.value as Locale);
+                setSaved(false);
+              }}
+            >
+              {SUPPORTED_LOCALES.map((l) => (
+                <option key={l} value={l}>
+                  {LOCALE_LABELS[l]}
+                </option>
+              ))}
+            </Select>
+            <p className="mt-1 text-xs text-[var(--color-faint)]">
+              Your booking page and the Otter assistant use this language. The rest of the dashboard
+              is English for now.
+            </p>
           </div>
 
           <p className="border-t border-[var(--color-border)] pt-4 text-xs font-semibold uppercase tracking-wide text-[var(--color-faint)]">

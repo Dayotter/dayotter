@@ -98,10 +98,13 @@ export interface NotificationChannel {
   remindersEnabled: boolean;
 }
 
+export type Locale = "en" | "es" | "fr" | "de" | "pt";
+
 export interface UserPreferences {
   timeFormat: "12h" | "24h";
   weekStartsOn: number;
   theme: "system" | "light" | "dark";
+  locale: Locale;
   defaultReminderOffsets: number[];
   adaptiveAvailability?: boolean;
   maxMeetingsPerDay?: number;
