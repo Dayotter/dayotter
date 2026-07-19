@@ -437,6 +437,49 @@ export default function SettingsScreen() {
           <Text style={styles.navText}>Teams</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.faint} />
         </Pressable>
+        <Pressable style={[styles.navRow, { marginTop: 10 }]} onPress={() => router.push("/polls")}>
+          <Ionicons name="bar-chart-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Group polls</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+        <Pressable
+          style={[styles.navRow, { marginTop: 10 }]}
+          onPress={() => router.push("/routing")}
+        >
+          <Ionicons name="git-branch-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Routing forms</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+
+        <Text style={styles.section}>Billing &amp; payments</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/billing")}>
+          <Ionicons name="card-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Plan &amp; billing</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+        <Pressable
+          style={[styles.navRow, { marginTop: 10 }]}
+          onPress={() => router.push("/payouts")}
+        >
+          <Ionicons name="cash-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Payouts</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+        <Pressable
+          style={[styles.navRow, { marginTop: 10 }]}
+          onPress={() => router.push("/packages")}
+        >
+          <Ionicons name="cube-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Packages</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+
+        <Text style={styles.section}>Integrations</Text>
+        <Pressable style={styles.navRow} onPress={() => router.push("/crm")}>
+          <Ionicons name="business-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>CRM</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
 
         <Text style={styles.section}>Calendars</Text>
         <Pressable style={styles.navRow} onPress={() => router.push("/calendars")}>

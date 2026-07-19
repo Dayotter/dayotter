@@ -7,7 +7,16 @@ import { colors, radius, statusColor } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 interface Slot {
   start: string;
@@ -23,6 +32,8 @@ export default function BookingDetailScreen() {
   const [rescheduling, setRescheduling] = useState(false);
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
+  // Optional note sent to attendees on cancel/reschedule (both endpoints accept it).
+  const [reason, setReason] = useState("");
 
   const { data, loading, error, reload } = useAsync<BookingDetail>(async () => {
     const res = await api.get<{ booking: BookingDetail }>(`/api/bookings/${uid}`);
@@ -54,7 +65,8 @@ export default function BookingDetailScreen() {
   async function doCancel(scope: "one" | "series") {
     setCancelling(true);
     try {
-      await api.post(`/api/bookings/${uid}/cancel`, { scope });
+      await api.post(`/api/bookings/${uid}/cancel`, { scope, reason: reason.trim() || undefined });
+      setReason("");
       reload();
     } catch {
       Alert.alert("Could not cancel", "Please try again.");
@@ -138,9 +150,13 @@ export default function BookingDetailScreen() {
         text: "Reschedule",
         onPress: async () => {
           try {
-            await api.post(`/api/bookings/${uid}/reschedule`, { start: slot.start });
+            await api.post(`/api/bookings/${uid}/reschedule`, {
+              start: slot.start,
+              reason: reason.trim() || undefined,
+            });
             setRescheduling(false);
             setSlots(null);
+            setReason("");
             reload();
           } catch (e) {
             const msg =
@@ -208,6 +224,16 @@ export default function BookingDetailScreen() {
                   </Text>
                 </Pressable>
               </View>
+
+              <TextInput
+                style={styles.reasonInput}
+                value={reason}
+                onChangeText={setReason}
+                placeholder="Reason (optional) — shared with attendees"
+                placeholderTextColor={colors.faint}
+                multiline
+                maxLength={500}
+              />
 
               {rescheduling ? (
                 <View style={styles.slotBox}>
@@ -326,6 +352,17 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
     borderRadius: radius.md,
     paddingVertical: 12,
+  },
+  reasonInput: {
+    marginTop: 12,
+    minHeight: 44,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: colors.text,
+    textAlignVertical: "top",
   },
   slotBox: {
     marginTop: 14,

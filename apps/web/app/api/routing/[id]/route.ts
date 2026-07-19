@@ -1,9 +1,23 @@
-import { RoutingError, deleteForm, updateForm } from "@/lib/routing/routing";
+import {
+  RoutingError,
+  deleteForm,
+  getFormForHost,
+  hostEventTypes,
+  updateForm,
+} from "@/lib/routing/routing";
 import { jsonError, withUser } from "@/lib/server/http";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
+
+/** A routing form's full definition + the host's event types (mobile detail). */
+export const GET = withUser(async (u, _request, ctx: { params: Promise<{ id: string }> }) => {
+  const { id } = await ctx.params;
+  const form = await getFormForHost(id, u.id);
+  if (!form) return jsonError("Form not found", 404);
+  return NextResponse.json({ form, eventTypes: await hostEventTypes(u.id) });
+});
 
 const fieldSchema = z.object({
   id: z.string().min(1).max(64),
