@@ -71,13 +71,23 @@ provider rejects the callback.
    ```
 - Push sync uses `APP_URL/api/webhooks/microsoft` (auto).
 
-## Apple iCloud
+## Apple iCloud & CalDAV
 
-No developer setup or env vars - Apple calendars connect over **CalDAV** with a
-per-user **app-specific password**. Each user generates one at
-[appleid.apple.com](https://appleid.apple.com) (Sign-In & Security → App-Specific
-Passwords) and pastes it in **Settings → Calendars → Apple**. Never their real
-Apple ID password.
+No developer setup or env vars - these connect over **CalDAV** with a per-user
+username + password, verified server-side on connect.
+
+- **Apple iCloud:** generate an **app-specific password** at
+  [appleid.apple.com](https://appleid.apple.com) (Sign-In & Security → App-Specific
+  Passwords) and paste it in **Settings → Calendars → Apple iCloud / CalDAV**.
+  Never the real Apple ID password.
+- **Any other CalDAV server** (Fastmail, mailbox.org, Nextcloud, Radicale,
+  self-hosted): pick the provider (or "Other CalDAV server" and enter the server
+  URL, e.g. `https://cloud.example.com/remote.php/dav` for Nextcloud) in the same
+  dialog. The URL must be a public HTTPS endpoint - it's DNS-resolved and rejected
+  if it points at an internal/private address (SSRF-safe).
+
+CalDAV calendars have no push webhooks, so DayOtter polls them on an interval
+(CTag/ETag reconciled) rather than receiving live updates.
 
 ## Salesforce (CRM sync)
 
