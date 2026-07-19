@@ -4,10 +4,11 @@ import { useAsync } from "@/hooks";
 import type { Team } from "@/models";
 import { colors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function TeamsScreen() {
+  const router = useRouter();
   const { data, loading, error, reload } = useAsync<Team[]>(async () => {
     const res = await api.get<{ teams: Team[] }>("/api/teams");
     return res.teams;
@@ -31,19 +32,22 @@ export default function TeamsScreen() {
           />
         ) : (
           data.map((t) => (
-            <Card key={t.id}>
-              <View style={styles.row}>
-                <View style={styles.iconBox}>
-                  <Ionicons name="people" size={20} color={colors.accent} />
+            <Pressable key={t.id} onPress={() => router.push(`/teams/${t.id}`)}>
+              <Card>
+                <View style={styles.row}>
+                  <View style={styles.iconBox}>
+                    <Ionicons name="people" size={20} color={colors.accent} />
+                  </View>
+                  <View style={styles.grow}>
+                    <Text style={styles.name}>{t.name}</Text>
+                    <Text style={styles.members}>
+                      {t.memberCount} member{t.memberCount === 1 ? "" : "s"}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.faint} />
                 </View>
-                <View>
-                  <Text style={styles.name}>{t.name}</Text>
-                  <Text style={styles.members}>
-                    {t.memberCount} member{t.memberCount === 1 ? "" : "s"}
-                  </Text>
-                </View>
-              </View>
-            </Card>
+              </Card>
+            </Pressable>
           ))
         )}
       </ScrollView>
@@ -55,6 +59,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 20, paddingBottom: 32 },
   row: { flexDirection: "row", alignItems: "center" },
+  grow: { flex: 1 },
   iconBox: {
     height: 42,
     width: 42,

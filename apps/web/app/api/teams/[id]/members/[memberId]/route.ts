@@ -65,3 +65,51 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true });
 }
+
+/** Remove a member from the team. Admins/owners only; owners can't be removed. */
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string; memberId: string }> },
+) {
+  const session = await getSession();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id: teamId, memberId } = await params;
+  const db = getDb();
+
+  const caller = await db.query.teamMembers.findFirst({
+    where: and(
+      eq(schema.teamMembers.teamId, teamId),
+      eq(schema.teamMembers.userId, session.user.id),
+    ),
+  });
+  if (!caller || (caller.role !== "owner" && caller.role !== "admin")) {
+    return NextResponse.json({ error: "Only team admins can remove members" }, { status: 403 });
+  }
+
+  const member = await db.query.teamMembers.findFirst({
+    where: and(eq(schema.teamMembers.id, memberId), eq(schema.teamMembers.teamId, teamId)),
+  });
+  if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
+  if (member.role === "owner") {
+    return NextResponse.json({ error: "The team owner can't be removed" }, { status: 400 });
+  }
+
+  await db.delete(schema.teamMembers).where(eq(schema.teamMembers.id, memberId));
+  // Drop the member from the team's round-robin event types too.
+  const teamEventTypes = await db.query.eventTypes.findMany({
+    where: eq(schema.eventTypes.teamId, teamId),
+    columns: { id: true },
+  });
+  for (const et of teamEventTypes) {
+    await db
+      .delete(schema.eventTypeHosts)
+      .where(
+        and(
+          eq(schema.eventTypeHosts.eventTypeId, et.id),
+          eq(schema.eventTypeHosts.userId, member.userId),
+        ),
+      );
+  }
+
+  return NextResponse.json({ ok: true });
+}

@@ -1,9 +1,14 @@
-import { PollError, createPoll } from "@/lib/polls/polls";
+import { PollError, createPoll, listPolls } from "@/lib/polls/polls";
 import { jsonError, withUser } from "@/lib/server/http";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
+
+/** The host's polls with lightweight option/vote rows (mobile Polls list). */
+export const GET = withUser(async (u) => {
+  return NextResponse.json({ polls: await listPolls(u.id) });
+});
 
 const bodySchema = z.object({
   title: z.string().min(1).max(120),
