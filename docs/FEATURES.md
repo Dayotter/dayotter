@@ -79,7 +79,7 @@ confirmation email → 1-day & 1-hour reminders fire → reschedule/cancel works
 | Add to calendar (ICS / Google / Outlook) | P1 |
 | Custom branding (logo, colors) | P1 |
 | Embed widget (inline / popup / floating button) | P1 |
-| i18n / multi-language | P2 |
+| i18n / multi-language | Partial (booking + Otter UI via `lib/i18n/locales/`) |
 | SavvyCal-style: overlay booker's own calendar on the picker | P2 ⭐ |
 | Ranked / preferred time slots | P2 ⭐ |
 

@@ -9,6 +9,7 @@ import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { brandingHidden } from "@/lib/ee/white-label";
 import { resolveLocale, t } from "@/lib/i18n/booking";
+import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { paymentsEnabled } from "@/lib/payments/stripe";
 import { and, eq, getDb, schema } from "@dayotter/db";
 import { Clock, CreditCard, Repeat, Video } from "lucide-react";
@@ -116,15 +117,19 @@ export default async function PublicBookingPage({
           {/* Slot picker */}
           <CardBody className="p-6">
             <h2 className="mb-4 text-sm font-semibold">{t(locale, "selectTime")}</h2>
-            <SlotPicker
-              eventTypeId={eventType.id}
-              questions={eventType.questions}
-              priceLabel={priceLabel}
-              defaultDuration={eventType.durationMinutes}
-              durationOptions={eventType.durationOptions ?? []}
-              requiresCode={eventType.accessCodeHash != null}
-              assistantEnabled={assistantEnabled}
-            />
+            {/* Seed the same server-resolved locale into the client slot picker so
+                its copy matches the page and doesn't hydrate from navigator. */}
+            <LocaleProvider locale={locale}>
+              <SlotPicker
+                eventTypeId={eventType.id}
+                questions={eventType.questions}
+                priceLabel={priceLabel}
+                defaultDuration={eventType.durationMinutes}
+                durationOptions={eventType.durationOptions ?? []}
+                requiresCode={eventType.accessCodeHash != null}
+                assistantEnabled={assistantEnabled}
+              />
+            </LocaleProvider>
           </CardBody>
         </div>
       </Card>

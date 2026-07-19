@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FormError } from "@/components/ui/form";
 import { track } from "@/lib/analytics";
+import type { Locale } from "@/lib/i18n";
+import { tOtter } from "@/lib/i18n/otter";
+import { useAppLocale } from "@/lib/i18n/use-locale";
 import { Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -20,11 +23,12 @@ type Suggestion =
   | { id: string; type: "enable_briefing"; title: string; detail: string };
 
 const DISMISS_KEY = "otter:dismissed";
-const CONFIRM_LABEL: Record<Suggestion["type"], string> = {
-  focus: "Protect",
-  enable_overflow: "Turn on",
-  enable_briefing: "Enable",
-};
+
+function confirmLabel(locale: Locale, type: Suggestion["type"]): string {
+  if (type === "focus") return tOtter(locale, "protect");
+  if (type === "enable_overflow") return tOtter(locale, "turnOn");
+  return tOtter(locale, "enable");
+}
 
 function loadDismissed(): Set<string> {
   try {
@@ -41,13 +45,16 @@ function loadDismissed(): Set<string> {
  * worth nudging. Dismissed suggestions are remembered locally so it stays calm.
  */
 export function ProactiveOtter() {
+  const locale = useAppLocale();
   const [items, setItems] = useState<Suggestion[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    fetch("/api/otter/suggestions")
+    fetch("/api/otter/suggestions", {
+      headers: { "accept-language": locale },
+    })
       .then((r) => r.json())
       .then((d) => {
         if (!active) return;
@@ -58,7 +65,7 @@ export function ProactiveOtter() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [locale]);
 
   function remove(id: string) {
     setItems((prev) => (prev ?? []).filter((s) => s.id !== id));
@@ -85,7 +92,7 @@ export function ProactiveOtter() {
             type: "focus",
             startISO: s.startISO,
             durationMinutes: s.durationMinutes,
-            title: "Deep work",
+            title: tOtter(locale, "deepWork"),
           }
         : { type: s.type };
     const res = await fetch("/api/otter/suggestions", {
@@ -96,7 +103,7 @@ export function ProactiveOtter() {
     setBusy(null);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(typeof data.error === "string" ? data.error : "Couldn't do that");
+      setError(typeof data.error === "string" ? data.error : tOtter(locale, "couldntDoThat"));
       return;
     }
     track("Otter Suggestion Accepted", { type: s.type });
@@ -110,10 +117,11 @@ export function ProactiveOtter() {
       <CardHeader
         title={
           <span className="flex items-center gap-2">
-            <Sparkles size={15} className="text-[var(--color-accent)]" /> Otter noticed
+            <Sparkles size={15} className="text-[var(--color-accent)]" />{" "}
+            {tOtter(locale, "otterNoticed")}
           </span>
         }
-        description="A few things worth doing - nothing happens until you say so."
+        description={tOtter(locale, "proactiveDesc")}
       />
       <CardBody className="space-y-2">
         {error ? <FormError>{error}</FormError> : null}
@@ -128,14 +136,14 @@ export function ProactiveOtter() {
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <Button size="sm" onClick={() => confirm(s)} disabled={busy === s.id}>
-                {busy === s.id ? "…" : CONFIRM_LABEL[s.type]}
+                {busy === s.id ? "…" : confirmLabel(locale, s.type)}
               </Button>
               <button
                 type="button"
                 onClick={() => dismiss(s.id)}
                 className="text-xs text-[var(--color-faint)] transition-colors hover:text-[var(--color-muted)]"
               >
-                Dismiss
+                {tOtter(locale, "dismiss")}
               </button>
             </div>
           </div>

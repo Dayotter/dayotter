@@ -1,4 +1,6 @@
 import { deepWorkSuggestions } from "@/lib/booking/focus-suggestions";
+import { type Locale, resolveLocale } from "@/lib/i18n";
+import { tOtter } from "@/lib/i18n/otter";
 import { and, asc, eq, getDb, gte, lt, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 
@@ -52,7 +54,11 @@ const FOCUS_BLOCK_MINUTES = 90;
  * Compute the proactive nudges to show a user right now. Capped and ordered so
  * the surface stays calm - a couple of high-value proposals, not a firehose.
  */
-export async function getProactiveSuggestions(userId: string): Promise<ProactiveSuggestion[]> {
+export async function getProactiveSuggestions(
+  userId: string,
+  localeInput?: string | null,
+): Promise<ProactiveSuggestion[]> {
+  const locale: Locale = resolveLocale(localeInput);
   const db = getDb();
   const [user, prefs, upcoming] = await Promise.all([
     db.query.users.findFirst({ where: eq(schema.users.id, userId), columns: { timezone: true } }),
@@ -68,13 +74,16 @@ export async function getProactiveSuggestions(userId: string): Promise<Proactive
   // 1. Open deep-work windows worth protecting (top 2).
   const focus = await deepWorkSuggestions(userId, { days: 5, blockMinutes: FOCUS_BLOCK_MINUTES });
   for (const s of focus.slice(0, 2)) {
-    const start = DateTime.fromISO(s.startISO).setZone(tz);
-    const end = DateTime.fromISO(s.endISO).setZone(tz);
+    const start = DateTime.fromISO(s.startISO).setZone(tz).setLocale(locale);
+    const end = DateTime.fromISO(s.endISO).setZone(tz).setLocale(locale);
     out.push({
       id: `focus:${s.startISO}`,
       type: "focus",
-      title: "Protect deep-work time",
-      detail: `${start.toFormat("cccc")} ${start.toFormat("h:mm")}–${end.toFormat("h:mm a")} is open`,
+      title: tOtter(locale, "protectDeepWork"),
+      detail: tOtter(locale, "focusOpen", {
+        day: start.toFormat("cccc"),
+        range: `${start.toFormat("h:mm")}–${end.toFormat("h:mm a")}`,
+      }),
       startISO: s.startISO,
       durationMinutes: Math.round(end.diff(start, "minutes").minutes),
     });
@@ -85,9 +94,8 @@ export async function getProactiveSuggestions(userId: string): Promise<Proactive
     out.push({
       id: "enable_overflow",
       type: "enable_overflow",
-      title: "Turn on running-late alerts",
-      detail:
-        "You've got back-to-back meetings this week. I can warn your next guests if one runs over.",
+      title: tOtter(locale, "turnOnOverflow"),
+      detail: tOtter(locale, "overflowDetail"),
     });
   }
 
@@ -96,9 +104,8 @@ export async function getProactiveSuggestions(userId: string): Promise<Proactive
     out.push({
       id: "enable_briefing",
       type: "enable_briefing",
-      title: "Start the day with a briefing",
-      detail:
-        "Each morning I can text you the day ahead - your meetings and the focus time you've held.",
+      title: tOtter(locale, "startBriefing"),
+      detail: tOtter(locale, "briefingDetail"),
     });
   }
 
