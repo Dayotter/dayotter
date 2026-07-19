@@ -1,7 +1,5 @@
-import type Anthropic from "@anthropic-ai/sdk";
-import { MODELS, anthropicClient } from "./providers/anthropic";
 import { aiEnabled, provider, supportsAgentTools } from "./providers/index";
-import type { Effort, ModelTier } from "./providers/types";
+import type { AgentStepRequest, AgentStepResult, Effort, ModelTier } from "./providers/types";
 
 /**
  * The single LLM layer for the whole platform. Every AI feature goes through
@@ -11,8 +9,17 @@ import type { Effort, ModelTier } from "./providers/types";
  * or any OpenAI-compatible endpoint without any feature module changing.
  */
 
-export { aiEnabled, supportsAgentTools, MODELS };
+export { aiEnabled, supportsAgentTools };
 export type { ModelTier, Effort };
+export type {
+  AgentStepRequest,
+  AgentStepResult,
+  AgentToolCall,
+  AgentToolResult,
+  AgentToolSpec,
+  AgentTurn,
+  SystemBlock,
+} from "./providers/types";
 
 export interface ExtractOptions<T> {
   /** System prompt - set the assistant's scope and rules here. Keep it static so it caches. */
@@ -57,15 +64,11 @@ export async function extract<T>(opts: ExtractOptions<T>): Promise<T> {
 }
 
 /**
- * Raw Anthropic client for the streaming agentic tool-use loop (the command bar).
- * That loop is Anthropic-specific; throws a clear error if a different provider
- * is active so the caller can degrade to the vendor-agnostic command path.
+ * The platform's vendor-neutral agentic tool-use primitive: one step of a
+ * streaming, multi-turn tool loop. The caller runs the returned tool calls and
+ * loops (see `lib/ai/chat.ts` and `lib/ai/agent.ts`). Backed by Anthropic tool
+ * use or OpenAI-compatible function-calling, depending on `AI_PROVIDER`.
  */
-export function getAnthropicClient(): Anthropic {
-  if (provider.name !== "anthropic") {
-    throw new Error(
-      "The conversational command bar requires the Anthropic provider (set AI_PROVIDER=anthropic).",
-    );
-  }
-  return anthropicClient();
+export function agentStep(req: AgentStepRequest): Promise<AgentStepResult> {
+  return provider.streamAgentStep(req);
 }

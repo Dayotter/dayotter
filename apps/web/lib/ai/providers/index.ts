@@ -6,8 +6,8 @@ import type { LlmProvider } from "./types";
  * Selects the active LLM provider from `AI_PROVIDER` (default `anthropic`).
  * Set `AI_PROVIDER=openai` (with `OPENAI_API_KEY`, optionally `OPENAI_BASE_URL`
  * + `OPENAI_MODEL_DEEP/FAST`) to run Otter on OpenAI or any OpenAI-compatible
- * endpoint. Every `extract`-based feature works on either; the streaming command
- * bar is Anthropic-only for now (see `supportsAgentTools`).
+ * endpoint. Every `extract`-based feature AND the streaming agentic command bar
+ * work on either provider (see `supportsAgentTools`).
  */
 const SELECTED = (process.env.AI_PROVIDER || "anthropic").toLowerCase();
 
@@ -20,4 +20,16 @@ export const aiEnabled = provider.configured;
 export const supportsAgentTools = provider.configured && provider.supportsAgentTools;
 
 export { anthropicClient };
-export type { Effort, ExtractRequest, LlmProvider, ModelTier } from "./types";
+export type {
+  AgentStepRequest,
+  AgentStepResult,
+  AgentToolCall,
+  AgentToolResult,
+  AgentToolSpec,
+  AgentTurn,
+  Effort,
+  ExtractRequest,
+  LlmProvider,
+  ModelTier,
+  SystemBlock,
+} from "./types";

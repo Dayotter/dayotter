@@ -1,4 +1,3 @@
-import type Anthropic from "@anthropic-ai/sdk";
 import { logger } from "@dayotter/core";
 import { getPluginTool, pluginTools, runPluginTool } from "@dayotter/plugin-host";
 import { DateTime } from "luxon";
@@ -10,10 +9,16 @@ import {
   commandInputSchema,
 } from "./command-parse";
 import { GUARDRAIL_PREAMBLE } from "./guardrails";
-import { MODELS, getAnthropicClient } from "./llm";
+import {
+  type AgentToolResult,
+  type AgentToolSpec,
+  type AgentTurn,
+  type SystemBlock,
+  agentStep,
+} from "./llm";
 import { retrieveCalendarContext } from "./retrieval";
 import { executeReadTool } from "./tools/exec";
-import { anthropicToolDefs, getTool } from "./tools/registry";
+import { getTool, toolSpecs } from "./tools/registry";
 
 /** One turn of the chat, as the client stores it (plain text, not Anthropic blocks). */
 export interface ChatTurn {
@@ -65,11 +70,11 @@ BEYOND BOOKINGS - you can also read and control the rest of the host's setup wit
 PROTECTING TIME (act like a great EA - do the work, don't just advise): when the host wants focus / deep-work / heads-down time, or time set aside for a task ("block 6 hours of focus this week", "I need 4 hours for the deck by Friday", "protect my mornings"), call find_focus_time FIRST (pass hoursNeeded, an optional byDate deadline, and chunkMinutes if they hint at block length). Briefly tell them the specific times you found, then propose protect_focus_time with those exact blocks. For a single quick hold you may still use create_focus_block. Never invent times - only protect blocks that find_focus_time returned.
 Rules for these: propose exactly ONE action at a time. NEVER say you've done, created, changed, or deleted something - you have only proposed it; the host confirms. Deleting always requires the host's explicit confirmation. For set_weekly_hours and update_preferences, call the matching read tool first and carry over the values the host wants to keep (both replace/merge against current state). Use propose_action ONLY for bookings (create/reschedule/cancel a meeting); use these tools for booking types, availability, preferences, and focus blocks.`;
 
-const PROPOSE_ACTION_TOOL: Anthropic.Tool = {
+const PROPOSE_ACTION_TOOL: AgentToolSpec = {
   name: "propose_action",
   description:
     "Propose a confirm-first scheduling action (create / reschedule / cancel) for the host to review and confirm. Only call this when the host wants to change their calendar - not to answer a question.",
-  input_schema: commandInputSchema as unknown as Anthropic.Tool.InputSchema,
+  schema: commandInputSchema as Record<string, unknown>,
 };
 
 const MAX_STEPS = 4;
@@ -138,55 +143,43 @@ export async function streamAssistant(params: {
   const latestUser = [...turns].reverse().find((t) => t.role === "user");
   const { ctx, tz, block } = await buildContext(userId, latestUser?.content ?? "");
 
-  const client = getAnthropicClient();
-  const system: Anthropic.TextBlockParam[] = [
-    { type: "text", text: GUARDRAIL_PREAMBLE, cache_control: { type: "ephemeral" } },
-    { type: "text", text: CHAT_SYSTEM, cache_control: { type: "ephemeral" } },
-    { type: "text", text: block },
+  const system: SystemBlock[] = [
+    { text: GUARDRAIL_PREAMBLE, cache: true },
+    { text: CHAT_SYSTEM, cache: true },
+    { text: block },
   ];
-  const messages: Anthropic.MessageParam[] = turns.map((t) => ({
-    role: t.role,
-    content: t.content,
-  }));
+  const tools: AgentToolSpec[] = [
+    FREE_SLOTS_TOOL,
+    PROPOSE_ACTION_TOOL,
+    ...toolSpecs(),
+    ...pluginTools().map(
+      (p): AgentToolSpec => ({
+        name: p.name,
+        description: p.tool.description,
+        schema: p.tool.schema as Record<string, unknown>,
+      }),
+    ),
+  ];
+  const history: AgentTurn[] = turns.map((t) => ({ role: t.role, text: t.content }));
 
   let fullText = "";
   for (let step = 0; step < MAX_STEPS; step++) {
-    const stream = client.messages.stream({
-      model: MODELS.deep,
-      max_tokens: 3000,
+    const res = await agentStep({
       system,
-      tools: [
-        FREE_SLOTS_TOOL,
-        PROPOSE_ACTION_TOOL,
-        ...(anthropicToolDefs() as Anthropic.Tool[]),
-        ...pluginTools().map(
-          (p): Anthropic.Tool => ({
-            name: p.name,
-            description: p.tool.description,
-            input_schema: p.tool.schema as Anthropic.Tool.InputSchema,
-          }),
-        ),
-      ],
-      tool_choice: { type: "auto" },
-      output_config: { effort: "medium" },
-      thinking: { type: "adaptive" },
-      messages,
+      history,
+      tools,
+      tier: "deep",
+      effort: "medium",
+      maxTokens: 3000,
+      onToken: (text) => {
+        fullText += text;
+        emit({ type: "token", text });
+      },
     });
-
-    for await (const ev of stream) {
-      if (ev.type === "content_block_delta" && ev.delta.type === "text_delta" && ev.delta.text) {
-        fullText += ev.delta.text;
-        emit({ type: "token", text: ev.delta.text });
-      }
-    }
-
-    const final = await stream.finalMessage();
-    const toolUses = final.content.filter(
-      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
-    );
+    const toolCalls = res.toolCalls;
 
     // 1. Booking create/reschedule/cancel → the rich editable card.
-    const proposal = toolUses.find((b) => b.name === "propose_action");
+    const proposal = toolCalls.find((c) => c.name === "propose_action");
     if (proposal) {
       try {
         const draft = commandDraftSchema.parse(proposal.input);
@@ -201,13 +194,13 @@ export async function streamAssistant(params: {
 
     // 2. Registry write/destructive tool → generic confirm card. NOT executed here;
     //    the client runs it via /api/ai/act only after the host confirms.
-    const actionCall = toolUses.find((b) => {
-      const t = getTool(b.name);
+    const actionCall = toolCalls.find((c) => {
+      const t = getTool(c.name);
       if (t && t.kind !== "read") return true;
-      return getPluginTool(b.name)?.tool.kind === "action";
+      return getPluginTool(c.name)?.tool.kind === "action";
     });
     if (actionCall) {
-      const inp = (actionCall.input ?? {}) as Record<string, unknown>;
+      const inp = actionCall.input;
       const core = getTool(actionCall.name);
       if (core) {
         emit({
@@ -237,18 +230,18 @@ export async function streamAssistant(params: {
     }
 
     // 3. Reads (registry reads + find_free_slots) → run inline, feed back, loop.
-    const reads = toolUses.filter(
-      (b) =>
-        b.name === "find_free_slots" ||
-        getTool(b.name)?.kind === "read" ||
-        getPluginTool(b.name)?.tool.kind === "read",
+    const reads = toolCalls.filter(
+      (c) =>
+        c.name === "find_free_slots" ||
+        getTool(c.name)?.kind === "read" ||
+        getPluginTool(c.name)?.tool.kind === "read",
     );
     if (reads.length === 0) break; // plain conversational answer-done
 
-    messages.push({ role: "assistant", content: final.content });
-    const results: Anthropic.ToolResultBlockParam[] = [];
+    history.push({ role: "assistant_raw", raw: res.assistant });
+    const results: AgentToolResult[] = [];
     for (const call of reads) {
-      const input = (call.input ?? {}) as Record<string, unknown>;
+      const input = call.input;
       let content: string;
       if (call.name === "find_free_slots") {
         content = await findFreeSlots(
@@ -263,9 +256,9 @@ export async function streamAssistant(params: {
       } else {
         content = await runPluginTool(call.name, userId, input).catch(() => "Could not run that.");
       }
-      results.push({ type: "tool_result", tool_use_id: call.id, content });
+      results.push({ id: call.id, content });
     }
-    messages.push({ role: "user", content: results });
+    history.push({ role: "tool_results", results });
   }
 
   emit({ type: "done", text: fullText.trim() });

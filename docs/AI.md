@@ -48,14 +48,17 @@ going**: the advancements and improvements we want the community to help build.
                           execute (reuses the app's own write paths)
 ```
 
-### The LLM layer - `lib/ai/llm.ts`
-The single Anthropic choke point. `aiEnabled` is just "is a key present." Model
-tiers live in one place - `deep: claude-opus-4-8`, `fast: claude-haiku-4-5` -
-swap models without touching features. `extract()` is the shared structured-output
-primitive (forced tool-use → Zod-validated object, with a chain-of-thought
-field), plus prompt caching and streaming. **No feature instantiates its own
-client**, which is what makes the model layer swappable (including to a
-self-hosted or alternative provider).
+### The LLM layer - `lib/ai/llm.ts` + `lib/ai/providers/`
+The single vendor-agnostic choke point. `AI_PROVIDER` selects a provider
+(`anthropic` default, or `openai` for OpenAI / any OpenAI-compatible endpoint);
+each implements one `LlmProvider` contract. `aiEnabled` is just "is a key
+present." Model tiers live in one place per provider - `deep` / `fast` - so you
+swap models without touching features. The facade exposes two primitives, both
+provider-neutral: `extract()` (structured output → Zod-validated object, with a
+chain-of-thought field, prompt caching where supported) and `agentStep()` (one
+streaming, multi-turn tool-use step - native tool use on Claude, function-calling
+on OpenAI - powering the conversational command bar). **No feature instantiates
+its own client**, which is what makes the model layer swappable.
 
 ### The interpret core - `lib/ai/interpret.ts`
 `interpretOtterCommand(userId, text)` is the shared brain for every non-chat
