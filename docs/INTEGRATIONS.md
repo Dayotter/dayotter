@@ -32,6 +32,7 @@ provider rejects the callback.
 | Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_WEBHOOK_SECRET` | - | `APP_URL/api/webhooks/stripe` |
 | Twilio | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM` | - | `APP_URL/api/webhooks/twilio` (set on the number/Messaging Service) |
 | Resend (email) | `RESEND_API_KEY`, `EMAIL_FROM` | - | - |
+| Mobile push | *(none - iOS works out of the box; Android needs your own Firebase project + `google-services.json`)* | - | - |
 
 ---
 
@@ -185,6 +186,45 @@ platform's, DayOtter uses **Stripe Connect (Express)**:
 3. **Inbound replies** (so people can reply to reminders): set the number's (or
    Messaging Service's) incoming-message webhook to `APP_URL/api/webhooks/twilio`.
    On DayOtter Cloud this is DayOtter's managed Twilio; self-hosters bring their own.
+
+## Mobile push (Android / FCM)
+
+The mobile app registers an **Expo push token** and the server delivers through
+Expo's push service (`packages/notifications/src/providers/push.ts`) - so there
+are **no server env vars** for push, and **iOS needs no extra setup**.
+
+Android is the exception: Expo hands Android notifications to **Firebase Cloud
+Messaging**, so each deployment needs its own Firebase project. Without it the
+app still builds and runs - only Android push stays off.
+
+1. [Firebase Console](https://console.firebase.google.com/) → create a project
+   (or pick one) → **Add app → Android**.
+2. **Android package name:** `com.dayotter.app` (must match `android.package` in
+   `apps/mobile/app.json`) → Register.
+3. Download **`google-services.json`**. Put it at `apps/mobile/google-services.json`,
+   or upload it as an EAS **file secret** and expose it as `GOOGLE_SERVICES_JSON`.
+   `apps/mobile/app.config.js` picks up either automatically. It's gitignored -
+   it's specific to your Firebase project.
+4. **Project settings → Service accounts → Generate new private key** → download
+   the JSON. ⚠️ **This is a secret** - treat it like a password. It does *not* go
+   in the repo or in `.env`.
+5. Upload that key to your Expo project so Expo can talk to FCM on your behalf:
+   ```
+   cd apps/mobile && eas credentials
+   # → Android → production → Push Notifications: FCM V1 → upload the JSON from step 4
+   ```
+   (Or expo.dev → your project → Credentials → FCM V1.)
+6. Build a real app (push never works in Expo Go - it needs a dev/production build):
+   ```
+   eas build --platform android --profile preview
+   ```
+7. Install it on a physical device, then **Settings → Notification channels →
+   "Enable push on this device"**. The endpoint sends a real test push before it
+   saves the channel, so a success there means delivery works end to end.
+
+Troubleshooting: "Couldn't get a push token" almost always means Expo Go (use a
+dev build) or missing FCM credentials (step 5). Delivery failures are logged with
+`event: push_dispatch_failed` and the HTTP status from Expo.
 
 ## Resend (transactional email)
 
