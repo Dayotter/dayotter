@@ -26,6 +26,13 @@ pnpm-debug.log*
 # expo (mobile)
 .expo/
 
+# firebase / fcm credentials - each deployment brings its own, never commit them.
+# google-services.json is per-Firebase-project; the service-account key is a SECRET
+# (it belongs in EAS credentials, not in git). See docs/INTEGRATIONS.md.
+google-services.json
+GoogleService-Info.plist
+**/*-firebase-adminsdk-*.json
+
 # claude code (local machine settings)
 .claude/settings.local.json
 
