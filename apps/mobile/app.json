@@ -4,7 +4,7 @@
     "slug": "dayotter",
     "owner": "dayotter",
     "scheme": "dayotter",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dayotter.app",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "DayOtter turns your spoken commands into scheduling actions.",
         "NSMicrophoneUsageDescription": "DayOtter uses the microphone so you can speak scheduling commands."
@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.dayotter.app",
-      "versionCode": 5,
+      "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#12305F"
