@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { COMPARISONS } from "@/lib/comparisons";
 import { ArrowRight, CalendarClock, Check, Focus, Info, Minus, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /* ------------------------------------------------------------------ */
 /* A day with Otter - a timeline of the product living in a real day.  */
@@ -117,7 +117,9 @@ function interpretDemo(text: string): DemoReply {
       type: "reschedule",
       label: "Reschedule",
       title: "1:1 with Dana",
-      detail: "Tue 3:00 PM → Thu 2:30 PM · 30 min",
+      // The tedious part was never moving the event - it's telling everyone.
+      // Say that out loud, because it's the whole point.
+      detail: "Tue 3:00 PM → Thu 2:30 PM · Dana and 2 guests notified",
     };
   }
   if (/\b(free|available|when can|open)\b/.test(t)) {
@@ -136,10 +138,15 @@ function interpretDemo(text: string): DemoReply {
   };
 }
 
+/**
+ * The first entry is the one the demo types out by itself - lead with the
+ * reschedule, because "move it and tell everyone" is the chore people recognise
+ * instantly.
+ */
 const DEMO_CHIPS = [
+  "Move my 3pm to Thursday and let everyone know",
   "Book a 30-min intro with Sam Thursday 2pm",
   "Hold two hours for deep work tomorrow",
-  "Move my 3pm to Thursday afternoon",
   "Am I free Wednesday afternoon?",
 ];
 
@@ -150,14 +157,74 @@ const DEMO_ICON = {
   info: Info,
 } as const;
 
+/** Typing cadence for the scroll-triggered replay. */
+const TYPE_MS = 34;
+const SETTLE_MS = 420;
+
 export function OtterDemo() {
   const [text, setText] = useState<string>(DEMO_CHIPS[0] ?? "");
   const [reply, setReply] = useState<DemoReply>(() => interpretDemo(DEMO_CHIPS[0] ?? ""));
+  // `revealed` starts true so SSR, no-JS and reduced-motion all render exactly
+  // what this demo has always rendered - the replay is purely additive.
+  const [revealed, setRevealed] = useState(true);
+  const hostRef = useRef<HTMLDivElement>(null);
+  const played = useRef(false);
+  const touched = useRef(false);
 
   function run(next: string) {
+    touched.current = true;
     setText(next);
     setReply(interpretDemo(next));
+    setRevealed(true);
   }
+
+  /**
+   * The first time the demo scrolls into view, rewind and type the lead example
+   * out, so the value lands without the visitor doing anything. Any real
+   * interaction cancels it - never fight the user.
+   */
+  useEffect(() => {
+    const lead = DEMO_CHIPS[0];
+    const host = hostRef.current;
+    if (!lead || !host) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting || played.current || touched.current) return;
+        played.current = true;
+        observer.disconnect();
+
+        setRevealed(false);
+        setText("");
+        for (let i = 1; i <= lead.length; i++) {
+          timers.push(
+            setTimeout(() => {
+              if (!touched.current) setText(lead.slice(0, i));
+            }, i * TYPE_MS),
+          );
+        }
+        timers.push(
+          setTimeout(
+            () => {
+              if (!touched.current) {
+                setReply(interpretDemo(lead));
+                setRevealed(true);
+              }
+            },
+            lead.length * TYPE_MS + SETTLE_MS,
+          ),
+        );
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(host);
+    return () => {
+      observer.disconnect();
+      for (const t of timers) clearTimeout(t);
+    };
+  }, []);
 
   const Icon = DEMO_ICON[reply.type];
   const isInfo = reply.type === "info";
@@ -189,7 +256,10 @@ export function OtterDemo() {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-float)]">
+          <div
+            ref={hostRef}
+            className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-float)]"
+          >
             <div className="mb-4 flex items-center gap-2 border-b border-[var(--color-border)] pb-3">
               <BrandMark size={18} />
               <span className="text-sm font-semibold tracking-tight">Ask Otter</span>
@@ -207,7 +277,10 @@ export function OtterDemo() {
             >
               <input
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  touched.current = true;
+                  setText(e.target.value);
+                }}
                 aria-label="Ask Otter"
                 className="min-w-0 flex-1 rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--color-accent)]"
               />
@@ -232,26 +305,35 @@ export function OtterDemo() {
               ))}
             </div>
 
-            <div className="mt-4 rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
-              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">
-                <Icon size={13} /> {reply.label}
-              </p>
-              <p className="mt-1.5 text-sm font-semibold">{reply.title}</p>
-              <p className="text-sm text-[var(--color-muted)]">{reply.detail}</p>
-              {!isInfo ? (
-                <div className="mt-3 flex gap-2">
-                  <span
-                    className={`${buttonVariants({ variant: "primary" })} pointer-events-none h-8 px-3 text-xs`}
-                  >
-                    Confirm
-                  </span>
-                  <span
-                    className={`${buttonVariants({ variant: "ghost" })} pointer-events-none h-8 px-3 text-xs`}
-                  >
-                    Edit
-                  </span>
+            {/* Height is reserved so the replay's reveal never shifts the layout. */}
+            <div className="mt-4 min-h-[118px]">
+              {revealed ? (
+                <div className="animate-dialog-in rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-3">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-accent)]">
+                    <Icon size={13} /> {reply.label}
+                  </p>
+                  <p className="mt-1.5 text-sm font-semibold">{reply.title}</p>
+                  <p className="text-sm text-[var(--color-muted)]">{reply.detail}</p>
+                  {!isInfo ? (
+                    <div className="mt-3 flex gap-2">
+                      <span
+                        className={`${buttonVariants({ variant: "primary" })} pointer-events-none h-8 px-3 text-xs`}
+                      >
+                        Confirm
+                      </span>
+                      <span
+                        className={`${buttonVariants({ variant: "ghost" })} pointer-events-none h-8 px-3 text-xs`}
+                      >
+                        Edit
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
+              ) : (
+                <div className="flex h-[118px] items-center justify-center rounded-[12px] border border-dashed border-[var(--color-border)]">
+                  <span className="text-xs text-[var(--color-faint)]">Reading your calendar…</span>
+                </div>
+              )}
             </div>
             <p className="mt-2 text-center text-xs text-[var(--color-faint)]">
               A preview - nothing's booked.{" "}

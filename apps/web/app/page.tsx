@@ -13,9 +13,11 @@ export default function HomePage() {
       <MarketingNav />
       <main className="relative z-10 pt-14">
         <Hero />
+        {/* The demo sits high on purpose: it's the first thing that shows the
+            product doing the job, rather than describing it. */}
+        <OtterDemo />
         <Marquee />
         <Features />
-        <OtterDemo />
         <Shift />
         <WhyOtter />
         <DayWithOtter />
