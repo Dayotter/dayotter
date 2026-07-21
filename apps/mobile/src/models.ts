@@ -237,6 +237,19 @@ export interface RangeBooking {
 }
 
 /** Scheduling-scoped time insights (GET /api/insights). */
+export interface FocusMetrics {
+  /** Local days (last 30) that had at least one meeting. */
+  busyDays: number;
+  /** Average meetings on a day that had any. */
+  avgMeetingsPerBusyDay: number;
+  /** % of busy days with 3+ meetings (a fragmented day). */
+  fragmentedDaysPct: number;
+  /** % of consecutive same-day meeting pairs separated by < 15 min (rushed). */
+  backToBackPct: number;
+  /** Avg largest gap between meetings on busy days, in minutes (focus window). */
+  avgLongestGapMin: number;
+}
+
 export interface Insights {
   upcomingCount: number;
   bookedMinutes: number;
@@ -245,6 +258,8 @@ export interface Insights {
   thisWeek: number;
   weekday: number[];
   byType: { title: string; color: string | null; minutes: number }[];
+  /** Fragmentation/focus metrics (already returned by /api/insights). */
+  focus?: FocusMetrics;
 }
 
 export interface Attendee {

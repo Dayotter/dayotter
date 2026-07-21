@@ -131,8 +131,36 @@ export default function InsightsScreen() {
               ))
             )}
           </View>
+
+          {data.focus && data.focus.busyDays > 0 ? (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Focus &amp; fragmentation</Text>
+              <Text style={styles.focusIntro}>
+                How broken-up your days are - over {data.focus.busyDays} day
+                {data.focus.busyDays === 1 ? "" : "s"} with meetings.
+              </Text>
+              <View style={styles.focusGrid}>
+                <MiniStat
+                  value={String(data.focus.avgMeetingsPerBusyDay)}
+                  label="Meetings / busy day"
+                />
+                <MiniStat value={`${data.focus.fragmentedDaysPct}%`} label="Fragmented (3+/day)" />
+                <MiniStat value={`${data.focus.backToBackPct}%`} label="Back-to-back (<15m)" />
+                <MiniStat value={fmtHours(data.focus.avgLongestGapMin)} label="Longest focus gap" />
+              </View>
+            </View>
+          ) : null}
         </ScrollView>
       )}
+    </View>
+  );
+}
+
+function MiniStat({ value, label }: { value: string; label: string }) {
+  return (
+    <View style={styles.miniStat}>
+      <Text style={styles.miniStatValue}>{value}</Text>
+      <Text style={styles.miniStatLabel}>{label}</Text>
     </View>
   );
 }
@@ -173,6 +201,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   cardTitle: { fontSize: 14, fontWeight: "600", color: colors.text, marginBottom: 12 },
+  focusIntro: { color: colors.faint, fontSize: 12, marginTop: -6, marginBottom: 12 },
+  focusGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  miniStat: {
+    width: "47%",
+    flexGrow: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: 12,
+    backgroundColor: colors.bg,
+  },
+  miniStatValue: { fontSize: 20, fontWeight: "700", color: colors.text },
+  miniStatLabel: { fontSize: 11, color: colors.muted, marginTop: 2 },
   ringRow: { flexDirection: "row", alignItems: "center", gap: 16 },
   bigNum: { fontSize: 40, fontWeight: "700", color: colors.accent, width: 64, textAlign: "center" },
   track: { height: 8, borderRadius: 999, backgroundColor: colors.surface2, overflow: "hidden" },
