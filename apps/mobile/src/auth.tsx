@@ -1,6 +1,6 @@
 import { type ReactNode, createContext, useContext, useEffect, useMemo, useState } from "react";
 import { ApiError, api, clearToken, hasSession, setToken } from "./api";
-import { getAuthClient } from "./auth-client";
+import { clearBetterAuthSession, getAuthClient } from "./auth-client";
 import type { AppUser } from "./models";
 import { loadServerUrl } from "./server";
 
@@ -28,6 +28,21 @@ export function useAuth(): AuthState {
 interface AuthResponse {
   token?: string;
   user: AppUser;
+}
+
+/**
+ * Load the signed-in profile, retrying through the brief window where a freshly
+ * established Better Auth cookie hasn't been persisted yet (OAuth/phone flows).
+ */
+async function loadMeWithRetry(attempts = 6, delayMs = 250): Promise<AppUser | null> {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return (await api.get<{ user: AppUser }>("/api/me")).user;
+    } catch {
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  return null;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -73,9 +88,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await getAuthClient().signIn.social({ provider: "google", callbackURL: "/" });
       if (res.error) return res.error.message ?? "Google sign-in failed";
-      // The Expo client now holds the session cookie; api.ts sends it. Confirm
-      // by loading the profile.
-      const { user: me } = await api.get<{ user: AppUser }>("/api/me");
+      // The Expo client persists the session cookie asynchronously after the
+      // browser redirect, so the first /api/me can beat the cookie write and
+      // 401 - which sent the user back to the login screen and made them sign in
+      // twice. Retry briefly so the very first attempt lands.
+      const me = await loadMeWithRetry();
+      if (!me) return "Signed in, but couldn't load your profile - please try again.";
       setUser(me);
       return null;
     } catch (err) {
@@ -97,7 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await getAuthClient().phoneNumber.verify({ phoneNumber: phone, code });
       if (res.error) return res.error.message ?? "That code didn't match";
-      const { user: me } = await api.get<{ user: AppUser }>("/api/me");
+      const me = await loadMeWithRetry();
+      if (!me) return "Verified, but couldn't load your profile - please try again.";
       setUser(me);
       return null;
     } catch (err) {
@@ -119,10 +138,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sendPhoneOtp,
       verifyPhoneOtp,
       signOut: async () => {
+        // Clear the account before anything else so a stale session can't leak
+        // into the next sign-in: server signOut (best-effort), the bearer token,
+        // AND the Better Auth Expo cookie storage.
         await getAuthClient()
           .signOut()
           .catch(() => {});
         await clearToken();
+        await clearBetterAuthSession();
         setUser(null);
       },
     }),

@@ -1,5 +1,5 @@
 import { useAuth } from "@/auth";
-import { googleAuthEnabled, phoneAuthEnabled } from "@/auth-client";
+import { googleAuthEnabled } from "@/auth-client";
 import { BrandMark } from "@/components/brand-mark";
 import { hasOnboarded } from "@/onboarding-state";
 import { serverHost } from "@/server";
@@ -21,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, signUp, signInWithGoogle, sendPhoneOtp, verifyPhoneOtp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,11 +30,6 @@ export default function SignInScreen() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [ready, setReady] = useState(false);
-  // Phone/OTP flow: "off" (collapsed) → "phone" (enter number) → "code" (enter OTP).
-  const [phoneMode, setPhoneMode] = useState<"off" | "phone" | "code">("off");
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [phoneLoading, setPhoneLoading] = useState(false);
 
   // First launch → show onboarding before the sign-in form.
   useEffect(() => {
@@ -64,23 +59,9 @@ export default function SignInScreen() {
     else router.replace("/");
   }
 
-  async function phoneSubmit() {
-    setPhoneLoading(true);
-    setError(null);
-    if (phoneMode === "phone") {
-      const err = await sendPhoneOtp(phone.trim());
-      setPhoneLoading(false);
-      if (err) setError(err);
-      else setPhoneMode("code");
-      return;
-    }
-    const err = await verifyPhoneOtp(phone.trim(), otp.trim());
-    setPhoneLoading(false);
-    if (err) setError(err);
-    else router.replace("/");
-  }
-
   if (!ready) return <View style={styles.safe} />;
+
+  const showGoogle = googleAuthEnabled && Platform.OS !== "ios";
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -98,6 +79,26 @@ export default function SignInScreen() {
           </Text>
 
           <View style={styles.form}>
+            {/* Lead with Google - the one-tap path most people want. Hidden on
+                iOS (offering it there would require Sign in with Apple, App Store
+                guideline 4.8); email/password stays available everywhere. */}
+            {showGoogle ? (
+              <Pressable style={styles.googleBtn} onPress={google} disabled={googleLoading}>
+                <Ionicons name="logo-google" size={18} color={colors.text} />
+                <Text style={styles.googleText}>
+                  {googleLoading ? "Opening…" : "Continue with Google"}
+                </Text>
+              </Pressable>
+            ) : null}
+
+            {showGoogle ? (
+              <View style={styles.divider}>
+                <View style={styles.line} />
+                <Text style={styles.dividerText}>or continue with email</Text>
+                <View style={styles.line} />
+              </View>
+            ) : null}
+
             {isSignUp ? (
               <Field label="Name" value={name} onChange={setName} placeholder="Ada Lovelace" />
             ) : null}
@@ -121,87 +122,6 @@ export default function SignInScreen() {
                 {loading ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}
               </Text>
             </Pressable>
-
-            {/* Google hidden on iOS: offering it would require Sign in with Apple
-                (App Store guideline 4.8). Email/password stays available. */}
-            {googleAuthEnabled && Platform.OS !== "ios" ? (
-              <>
-                <View style={styles.divider}>
-                  <View style={styles.line} />
-                  <Text style={styles.dividerText}>or</Text>
-                  <View style={styles.line} />
-                </View>
-                <Pressable style={styles.googleBtn} onPress={google} disabled={googleLoading}>
-                  <Ionicons name="logo-google" size={17} color={colors.text} />
-                  <Text style={styles.googleText}>
-                    {googleLoading ? "Opening…" : "Continue with Google"}
-                  </Text>
-                </Pressable>
-              </>
-            ) : null}
-            {phoneAuthEnabled ? (
-              <>
-                <View style={styles.divider}>
-                  <View style={styles.line} />
-                  <Text style={styles.dividerText}>or</Text>
-                  <View style={styles.line} />
-                </View>
-                {phoneMode === "off" ? (
-                  <Pressable
-                    style={styles.googleBtn}
-                    onPress={() => {
-                      setPhoneMode("phone");
-                      setError(null);
-                    }}
-                  >
-                    <Ionicons name="phone-portrait-outline" size={17} color={colors.text} />
-                    <Text style={styles.googleText}>Continue with phone</Text>
-                  </Pressable>
-                ) : (
-                  <View>
-                    {phoneMode === "phone" ? (
-                      <Field
-                        label="Phone number"
-                        value={phone}
-                        onChange={setPhone}
-                        placeholder="+14155551234"
-                        keyboardType="phone-pad"
-                        textContentType="telephoneNumber"
-                        autoComplete="tel"
-                      />
-                    ) : (
-                      <Field
-                        label={`Code sent to ${phone}`}
-                        value={otp}
-                        onChange={setOtp}
-                        placeholder="123456"
-                        keyboardType="number-pad"
-                        textContentType="oneTimeCode"
-                        autoComplete="sms-otp"
-                      />
-                    )}
-                    <Pressable style={styles.button} onPress={phoneSubmit} disabled={phoneLoading}>
-                      <Text style={styles.buttonText}>
-                        {phoneLoading
-                          ? "Please wait…"
-                          : phoneMode === "phone"
-                            ? "Send code"
-                            : "Verify & sign in"}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        setPhoneMode("off");
-                        setOtp("");
-                        setError(null);
-                      }}
-                    >
-                      <Text style={styles.toggle}>Cancel</Text>
-                    </Pressable>
-                  </View>
-                )}
-              </>
-            ) : null}
 
             <Pressable
               onPress={() => {
