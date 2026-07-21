@@ -33,6 +33,22 @@ export function getAuthClient(): Client {
   return cached.client;
 }
 
+/**
+ * Hard-clear the Better Auth Expo session. The client's own `signOut()` is
+ * best-effort (a network blip leaves the stored cookie behind), and it caches
+ * the cookie in memory - so on sign-out we also delete its SecureStore keys AND
+ * drop the cached client, or the previous account's session leaks into the next
+ * sign-in (e.g. logging out of X then into Y still shows X). Key names come from
+ * @better-auth/expo: `${storagePrefix}_cookie` and `${storagePrefix}_session_data`.
+ */
+export async function clearBetterAuthSession(): Promise<void> {
+  cached = null; // force a fresh client (drops any in-memory cookie) next call
+  await Promise.all([
+    SecureStore.deleteItemAsync("dayotter_cookie").catch(() => {}),
+    SecureStore.deleteItemAsync("dayotter_session_data").catch(() => {}),
+  ]);
+}
+
 /** Whether the "Continue with Google" button should render. */
 export const googleAuthEnabled = process.env.EXPO_PUBLIC_GOOGLE_AUTH === "1";
 
