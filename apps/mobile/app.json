@@ -5,7 +5,7 @@
     "owner": "dayotter",
     "scheme": "dayotter",
     "version": "0.2.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
     "icon": "./assets/icon.png",
@@ -25,7 +25,8 @@
     },
     "android": {
       "package": "com.dayotter.app",
-      "versionCode": 6,
+      "versionCode": 7,
+      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#12305F"
@@ -57,7 +58,9 @@
           "android": {
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
-            "buildToolsVersion": "35.0.0"
+            "buildToolsVersion": "35.0.0",
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
           },
           "ios": {
             "deploymentTarget": "15.1"
