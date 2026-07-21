@@ -1,5 +1,6 @@
-import { AuthProvider } from "@/auth";
+import { AuthProvider, useAuth } from "@/auth";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { OtterLauncher } from "@/components/otter-launcher";
 import { colors } from "@/theme";
 import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
@@ -33,8 +34,16 @@ export default function RootLayout() {
               headerShadowVisible: false,
             }}
           />
+          {/* Floating "Ask DayOtter" - one tap from any signed-in screen. */}
+          <OtterGate />
         </AuthProvider>
       </SafeAreaProvider>
     </ErrorBoundary>
   );
+}
+
+/** Only render the launcher once the user is signed in (never on sign-in/onboarding). */
+function OtterGate() {
+  const { user } = useAuth();
+  return user ? <OtterLauncher /> : null;
 }
