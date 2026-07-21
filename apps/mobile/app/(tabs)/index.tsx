@@ -1,6 +1,5 @@
 import { api, getServerUrl } from "@/api";
 import { useAuth } from "@/auth";
-import { AiCommandBar } from "@/components/ai-command-bar";
 import { BrandMark } from "@/components/brand-mark";
 import { SetupChecklist } from "@/components/setup-checklist";
 import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
@@ -122,10 +121,6 @@ export default function DashboardScreen() {
             </View>
           </Pressable>
         ) : null}
-
-        <View style={{ marginTop: 18 }}>
-          <AiCommandBar onDone={reload} />
-        </View>
 
         {recs && recs.length > 0 ? (
           <>
