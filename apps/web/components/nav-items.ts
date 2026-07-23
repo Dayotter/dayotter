@@ -47,6 +47,7 @@ export const SETTINGS_NAV = [
   { href: "/settings/payouts", label: "Payouts" },
   { href: "/settings/calendars", label: "Calendars" },
   { href: "/settings/crm", label: "CRM" },
+  { href: "/settings/import", label: "Import" },
   { href: "/settings/billing", label: "Billing" },
   { href: "/settings/developer", label: "Developer" },
 ] as const;
