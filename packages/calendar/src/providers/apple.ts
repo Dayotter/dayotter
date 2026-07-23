@@ -27,6 +27,43 @@ const ICLOUD_CALDAV = "https://caldav.icloud.com";
  * connects, so this is check-then-use, not a hard IP pin - good enough here since
  * the credentials are the user's own, but keep it in mind.
  */
+/**
+ * Well-known managed CalDAV hosts allowed by default. Self-hosted servers
+ * (Nextcloud, Baïkal, Radicale, ...) are added by the deployer via
+ * `CALDAV_ALLOWED_HOSTS` (comma-separated hostnames / parent domains).
+ */
+const DEFAULT_CALDAV_HOSTS = [
+  "icloud.com",
+  "me.com",
+  "mac.com",
+  "fastmail.com",
+  "messagingengine.com",
+  "mailbox.org",
+  "posteo.de",
+  "posteo.net",
+  "gmx.net",
+  "web.de",
+  "zoho.com",
+  "yahoo.com",
+];
+
+function allowedCaldavHosts(): string[] {
+  const extra = (process.env.CALDAV_ALLOWED_HOSTS ?? "")
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean);
+  return [...DEFAULT_CALDAV_HOSTS, ...extra];
+}
+
+/**
+ * Validate a user-supplied CalDAV server URL. We resolve-and-reject internal IPs,
+ * but `tsdav` re-resolves DNS at connect time (check-then-use), so that alone is
+ * defeatable by DNS rebinding. The load-bearing control is therefore a HOST
+ * ALLOWLIST - only well-known managed providers (plus any the deployer adds via
+ * CALDAV_ALLOWED_HOSTS) may be reached, which closes the SSRF regardless of what
+ * DNS returns later. Default iCloud connections don't pass a serverUrl and skip
+ * this entirely.
+ */
 async function assertPublicHttpsUrl(raw: string): Promise<void> {
   let url: URL;
   try {
@@ -35,8 +72,17 @@ async function assertPublicHttpsUrl(raw: string): Promise<void> {
     throw new Error("Invalid CalDAV server URL");
   }
   if (url.protocol !== "https:") throw new Error("CalDAV server URL must use https");
+
+  const host = url.hostname.toLowerCase();
+  const allowed = allowedCaldavHosts().some((h) => host === h || host.endsWith(`.${h}`));
+  if (!allowed) {
+    throw new Error(
+      "That CalDAV host isn't on the allowed list. Ask your admin to add it to CALDAV_ALLOWED_HOSTS.",
+    );
+  }
+
   try {
-    await resolvePublicIp(url.hostname); // throws if it resolves to an internal IP
+    await resolvePublicIp(url.hostname); // belt-and-braces: still reject internal IPs
   } catch {
     throw new Error("CalDAV server URL points at a disallowed (internal) host");
   }

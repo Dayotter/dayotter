@@ -21,7 +21,16 @@ const schema = z.object({
   }),
   guests: z.array(z.string().email()).max(10).optional(),
   notes: z.string().max(2000).optional(),
-  responses: z.record(z.unknown()).optional(),
+  // Intake answers, keyed by question id. Bounded so an unauthenticated caller
+  // can't persist a multi-MB blob into bookings.responses: at most 50 answers,
+  // each a short string / boolean / small string[] (matches BookingQuestion types).
+  responses: z
+    .record(
+      z.string().max(64),
+      z.union([z.string().max(5000), z.boolean(), z.array(z.string().max(500)).max(50)]),
+    )
+    .refine((r) => Object.keys(r).length <= 50, { message: "Too many responses" })
+    .optional(),
   durationMinutes: z.number().int().min(5).max(1440).optional(),
   captchaToken: z.string().max(4000).optional(),
   /** Single-use booking-link token, if the booker came through one. */

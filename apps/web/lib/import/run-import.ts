@@ -3,7 +3,7 @@ import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { logger } from "@dayotter/core";
 import { and, eq, getDb, schema } from "@dayotter/db";
 import { mapEventType, mapSchedule, shouldImportEventType } from "./calendly";
-import type { RawCalendlyExport } from "./calendly-client";
+import { MAX_EVENT_TYPES, type RawCalendlyExport } from "./calendly-client";
 
 export interface ImportSummary {
   /** Display name of the imported Calendly account. */
@@ -41,6 +41,11 @@ export async function importCalendlyExport(
   const { organizationId, scheduleId: defaultScheduleId } = await ensureUserWorkspace(userId);
 
   const warnings: string[] = [];
+  if (data.eventTypes.length >= MAX_EVENT_TYPES) {
+    warnings.push(
+      `Import is capped at ${MAX_EVENT_TYPES} event types per run - only the first ${MAX_EVENT_TYPES} were brought in.`,
+    );
+  }
 
   // 1. Availability schedules (only those with real weekly rules). We add them
   //    as named schedules and never flip the user's existing default. Names are
