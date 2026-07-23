@@ -35,7 +35,7 @@ export function OrganizationJsonLd() {
           "@type": "SoftwareApplication",
           name: BRAND.name,
           applicationCategory: "BusinessApplication",
-          operatingSystem: "Web, iOS, Android",
+          operatingSystem: "Web, Android",
           description:
             "AI-native, open-source scheduling platform. Otter books meetings, protects focus, and clears the back-and-forth - confirm-first.",
           offers: [

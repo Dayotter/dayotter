@@ -50,9 +50,11 @@ We think the assistant that reads your calendar and acts on your time is exactly
 
 **Platform** · multi-channel reminders (email, Slack, WhatsApp, SMS, push) · automations & workflows · API keys & webhooks · mobile app (Expo, iOS + Android)
 
-## Mobile app (in progress)
+## Mobile app
 
-A native **iOS + Android** app (`apps/mobile`, built with Expo/React Native) is in active development. It already covers the day-to-day host workflow - dashboard, bookings, availability, event types, calendars, insights, reminders/channels, automations, workflows, and preferences - with voice input for Otter. Remaining screens (payouts, packages, polls, routing) are tracked in [`docs/TASKS.md`](./docs/TASKS.md).
+The **Android app is live on Google Play**: **[play.google.com/store/apps/details?id=com.dayotter.app](https://play.google.com/store/apps/details?id=com.dayotter.app)**. The **iOS** build (same Expo/React Native codebase in `apps/mobile`) is on the way.
+
+It covers the day-to-day host workflow - dashboard, bookings, availability, event types, calendars, insights, reminders/channels, automations, workflows, and preferences - with voice input for Otter.
 
 **Bring your own server - built for organisations.** The app isn't hard-wired to our cloud. It ships with a **Server** setting where anyone can point the same app at *their own* self-hosted DayOtter instance. So an organisation can:
 
