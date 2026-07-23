@@ -46,6 +46,7 @@ export const SETTINGS_NAV = [
   { href: "/settings/automations", label: "Automations" },
   { href: "/settings/packages", label: "Packages" },
   { href: "/settings/payouts", label: "Payouts" },
+  { href: "/settings/apps", label: "Apps" },
   { href: "/settings/calendars", label: "Calendars" },
   { href: "/settings/crm", label: "CRM" },
   { href: "/settings/import", label: "Import" },
