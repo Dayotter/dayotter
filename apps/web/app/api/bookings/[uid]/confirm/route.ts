@@ -15,6 +15,8 @@ export const POST = withUser(async (u, _request, ctx: { params: Promise<{ uid: s
       return jsonError("Not your booking", 403);
     case "not_pending":
       return jsonError("Booking is not awaiting confirmation", 409);
+    case "full":
+      return jsonError("That time was taken before you could approve it.", 409);
     default:
       return jsonError("Booking not found", 404);
   }

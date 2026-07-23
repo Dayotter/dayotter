@@ -337,6 +337,13 @@
       "when": 1784804757786,
       "tag": "0047_daily_hedge_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1784809141906,
+      "tag": "0048_brief_slapstick",
+      "breakpoints": true
     }
   ]
 }

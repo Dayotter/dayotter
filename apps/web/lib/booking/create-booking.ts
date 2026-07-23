@@ -12,7 +12,6 @@ import {
 } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
 import { finalizeConfirmedBooking } from "./finalize-booking";
-import { fanOutBookingLifecycle } from "./lifecycle";
 
 export { BookingError } from "./booking-logic";
 
@@ -241,7 +240,9 @@ export async function createBooking(
           .where(
             and(
               eq(schema.bookings.eventTypeId, eventType.id),
-              eq(schema.bookings.status, "confirmed"),
+              // Count pending (opt-in) requests too - each tentatively holds a
+              // cap slot, so approving them can never exceed the limit.
+              inArray(schema.bookings.status, ["confirmed", "pending"]),
               gte(schema.bookings.startsAt, dayStart),
               lt(schema.bookings.startsAt, nextDay),
             ),
@@ -266,7 +267,7 @@ export async function createBooking(
           .where(
             and(
               eq(schema.bookings.hostId, host.id),
-              eq(schema.bookings.status, "confirmed"),
+              inArray(schema.bookings.status, ["confirmed", "pending"]),
               gte(schema.bookings.startsAt, dayStart),
               lt(schema.bookings.startsAt, nextDay),
             ),
@@ -291,7 +292,7 @@ export async function createBooking(
           .where(
             and(
               eq(schema.bookings.eventTypeId, eventType.id),
-              eq(schema.bookings.status, "confirmed"),
+              inArray(schema.bookings.status, ["confirmed", "pending"]),
               gte(schema.bookings.startsAt, weekStart),
               lt(schema.bookings.startsAt, nextWeek),
             ),
@@ -398,33 +399,14 @@ export async function createBooking(
     event: "booking_created",
     bookingId: booking.id,
     uid,
+    status: booking.status,
     eventTypeId: eventType.id,
     hostId: host.id,
   });
 
-  // Fan out to webhooks, CRM sync, and plugin hooks (all best-effort).
-  await fanOutBookingLifecycle(
-    "created",
-    {
-      bookingId: booking.id,
-      uid,
-      hostId: host.id,
-      eventTypeId: eventType.id,
-      title: eventType.title,
-      startsAt: start.toISOString(),
-      endsAt: end.toISOString(),
-      attendees: [{ name: input.attendee.name, email: input.attendee.email }],
-    },
-    {
-      uid,
-      eventTypeId: eventType.id,
-      title: eventType.title,
-      startsAt: start.toISOString(),
-      endsAt: end.toISOString(),
-      status: booking.status,
-      attendee: { name: input.attendee.name, email: input.attendee.email },
-    },
-  );
+  // NB: the "created" lifecycle fan-out (webhooks / CRM / plugins) fires from
+  // finalizeConfirmedBooking, i.e. only once the booking is actually confirmed -
+  // so a `pending` opt-in request doesn't emit a phantom "created".
 
   // Opt-in bookings stop here: the request is held as `pending` and NONE of the
   // confirmed side-effects run. Tell the attendee it's been requested and the

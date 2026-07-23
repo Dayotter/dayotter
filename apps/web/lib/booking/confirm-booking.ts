@@ -1,10 +1,10 @@
 import { logger } from "@dayotter/core";
-import { and, eq, getDb, schema } from "@dayotter/db";
+import { and, eq, getDb, schema, sql } from "@dayotter/db";
 import { bookingDeclined, sendEmail } from "@dayotter/emails";
 import { finalizeConfirmedBooking } from "./finalize-booking";
 
 /** Outcome of a host review action, mapped to HTTP status by the route. */
-export type ReviewResult = "ok" | "not_found" | "forbidden" | "not_pending";
+export type ReviewResult = "ok" | "not_found" | "forbidden" | "not_pending" | "full";
 
 /**
  * Reconstruct the primary attendee + guest emails from the persisted attendee
@@ -44,13 +44,45 @@ export async function approveBooking(uid: string, hostUserId: string): Promise<R
   if (booking.status !== "pending") return "not_pending";
   if (!booking.host || !booking.eventType) return "not_found";
 
+  // Group events are exempt from the DB slot guards (many share one slot), so a
+  // day could have accrued more pending requests than seats. Re-check confirmed
+  // seats before approving one so approval can't overbook the slot.
+  if (booking.isGroup) {
+    const cap = booking.eventType.maxAttendees ?? 1;
+    const [{ count } = { count: 0 }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.bookings)
+      .where(
+        and(
+          eq(schema.bookings.eventTypeId, booking.eventTypeId),
+          eq(schema.bookings.status, "confirmed"),
+          eq(schema.bookings.startsAt, booking.startsAt),
+        ),
+      );
+    if (count >= cap) return "full";
+  }
+
   // Atomically claim the approval so two concurrent approvals can't both
-  // finalize (double calendar write / confirmation emails).
-  const claimed = await db
-    .update(schema.bookings)
-    .set({ status: "confirmed" })
-    .where(and(eq(schema.bookings.id, booking.id), eq(schema.bookings.status, "pending")))
-    .returning({ id: schema.bookings.id });
+  // finalize (double calendar write / confirmation emails). For non-group events
+  // the slot is already held by this pending row (the partial unique index +
+  // no-overlap constraint include `pending`), so the flip can't collide with
+  // another confirmed booking; the guard is belt-and-braces.
+  let claimed: { id: string }[];
+  try {
+    claimed = await db
+      .update(schema.bookings)
+      .set({ status: "confirmed" })
+      .where(and(eq(schema.bookings.id, booking.id), eq(schema.bookings.status, "pending")))
+      .returning({ id: schema.bookings.id });
+  } catch (err) {
+    // 23505 / exclusion violation: the slot was taken by another booking.
+    logger.warn("booking approve conflict", {
+      event: "booking_approve_conflict",
+      bookingId: booking.id,
+      err,
+    });
+    return "full";
+  }
   if (claimed.length === 0) return "not_pending";
 
   const { attendee, guests } = splitAttendees(booking.attendees, booking.timezone);

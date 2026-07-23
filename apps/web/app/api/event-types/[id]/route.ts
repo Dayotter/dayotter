@@ -79,12 +79,27 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await manageableEventType(id, session.user.id);
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const parsed = eventTypeInputSchema.safeParse(await request.json().catch(() => null));
+  const raw = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+  const parsed = eventTypeInputSchema.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   const d = parsed.data;
 
-  // Validate the chosen schedule belongs to this user (else fall back to default).
-  const scheduleId = await resolveScheduleId(session.user.id, d.scheduleId);
+  // PUT here behaves as a partial update: a field the caller OMITS must keep its
+  // stored value, not silently reset to the zod default. Otherwise a client that
+  // sends a subset of fields (e.g. the mobile editor, which doesn't yet expose
+  // every control) would wipe offsetStartMinutes, requiresConfirmation,
+  // maxAttendees, recurring settings, etc. `keep` picks the parsed value only
+  // when the key was actually present in the request body.
+  const has = (k: string) => raw != null && Object.hasOwn(raw, k);
+  // Use the parsed value only when the caller actually sent the key; otherwise
+  // keep what's stored.
+  const pick = <T>(k: string, next: T, prev: T): T => (has(k) ? next : prev);
+
+  // Validate a newly-chosen schedule belongs to this user; keep the current one
+  // when the caller didn't send one.
+  const scheduleId = has("scheduleId")
+    ? await resolveScheduleId(session.user.id, d.scheduleId)
+    : existing.scheduleId;
 
   try {
     await getDb()
@@ -94,30 +109,74 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         title: d.title,
         slug: d.slug,
         durationMinutes: d.durationMinutes,
-        description: d.description ?? null,
+        description: pick("description", d.description ?? null, existing.description),
         location: d.location,
-        locationDetail: d.locationDetail ?? null,
-        bufferBeforeMinutes: d.bufferBeforeMinutes,
-        bufferAfterMinutes: d.bufferAfterMinutes,
-        minimumNoticeMinutes: d.minimumNoticeMinutes,
-        slotIntervalMinutes: d.slotIntervalMinutes,
-        offsetStartMinutes: d.offsetStartMinutes,
-        minimumGapMinutes: d.minimumGapMinutes,
-        durationOptions: d.durationOptions,
-        bookingWindowDays: d.bookingWindowDays,
-        dailyBookingLimit: d.dailyBookingLimit,
-        weeklyBookingLimit: d.weeklyBookingLimit,
-        maxAttendees: d.maxAttendees,
-        recurringCount: d.recurringCount,
-        recurringFrequency: d.recurringFrequency,
-        isPrivate: d.isPrivate,
-        requiresConfirmation: d.requiresConfirmation,
-        redirectUrl: d.redirectUrl,
-        color: d.color,
-        price: d.price,
-        currency: d.currency,
-        depositAmount: d.depositAmount,
-        questions: d.questions,
+        locationDetail: pick("locationDetail", d.locationDetail ?? null, existing.locationDetail),
+        bufferBeforeMinutes: pick(
+          "bufferBeforeMinutes",
+          d.bufferBeforeMinutes,
+          existing.bufferBeforeMinutes,
+        ),
+        bufferAfterMinutes: pick(
+          "bufferAfterMinutes",
+          d.bufferAfterMinutes,
+          existing.bufferAfterMinutes,
+        ),
+        minimumNoticeMinutes: pick(
+          "minimumNoticeMinutes",
+          d.minimumNoticeMinutes,
+          existing.minimumNoticeMinutes,
+        ),
+        slotIntervalMinutes: pick(
+          "slotIntervalMinutes",
+          d.slotIntervalMinutes,
+          existing.slotIntervalMinutes,
+        ),
+        offsetStartMinutes: pick(
+          "offsetStartMinutes",
+          d.offsetStartMinutes,
+          existing.offsetStartMinutes,
+        ),
+        minimumGapMinutes: pick(
+          "minimumGapMinutes",
+          d.minimumGapMinutes,
+          existing.minimumGapMinutes,
+        ),
+        durationOptions: pick("durationOptions", d.durationOptions, existing.durationOptions),
+        bookingWindowDays: pick(
+          "bookingWindowDays",
+          d.bookingWindowDays,
+          existing.bookingWindowDays,
+        ),
+        dailyBookingLimit: pick(
+          "dailyBookingLimit",
+          d.dailyBookingLimit,
+          existing.dailyBookingLimit,
+        ),
+        weeklyBookingLimit: pick(
+          "weeklyBookingLimit",
+          d.weeklyBookingLimit,
+          existing.weeklyBookingLimit,
+        ),
+        maxAttendees: pick("maxAttendees", d.maxAttendees, existing.maxAttendees),
+        recurringCount: pick("recurringCount", d.recurringCount, existing.recurringCount),
+        recurringFrequency: pick(
+          "recurringFrequency",
+          d.recurringFrequency,
+          existing.recurringFrequency,
+        ),
+        isPrivate: pick("isPrivate", d.isPrivate, existing.isPrivate),
+        requiresConfirmation: pick(
+          "requiresConfirmation",
+          d.requiresConfirmation,
+          existing.requiresConfirmation,
+        ),
+        redirectUrl: pick("redirectUrl", d.redirectUrl, existing.redirectUrl),
+        color: pick("color", d.color, existing.color as typeof d.color),
+        price: pick("price", d.price, existing.price),
+        currency: pick("currency", d.currency, existing.currency as typeof d.currency),
+        depositAmount: pick("depositAmount", d.depositAmount, existing.depositAmount),
+        questions: pick("questions", d.questions, existing.questions),
         // Access code: undefined = unchanged, null = remove, string = set.
         ...(d.accessCode === undefined
           ? {}

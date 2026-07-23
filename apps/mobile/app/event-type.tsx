@@ -80,6 +80,8 @@ export default function EventTypeForm() {
   const [redirectUrl, setRedirectUrl] = useState("");
   const [color, setColor] = useState<EventColor>("violet");
   const [minGap, setMinGap] = useState("0");
+  const [offsetStart, setOffsetStart] = useState("0");
+  const [requiresConfirmation, setRequiresConfirmation] = useState(false);
   const [durationOptions, setDurationOptions] = useState<number[]>([]);
   const [questions, setQuestions] = useState<BookingQuestion[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -138,6 +140,8 @@ export default function EventTypeForm() {
           setDeposit((e.depositAmount / 100).toFixed(2));
         }
         setMinGap(String(e.minimumGapMinutes ?? 0));
+        setOffsetStart(String(e.offsetStartMinutes ?? 0));
+        setRequiresConfirmation(e.requiresConfirmation ?? false);
         setDurationOptions(e.durationOptions ?? []);
         setQuestions(e.questions ?? []);
       })
@@ -175,6 +179,8 @@ export default function EventTypeForm() {
       minimumNoticeMinutes: minimumNotice,
       bookingWindowDays: Number(bookingWindow) || 60,
       minimumGapMinutes: Number(minGap) || 0,
+      offsetStartMinutes: Number(offsetStart) || 0,
+      requiresConfirmation,
       durationOptions: durationOptions.length ? [...durationOptions].sort((a, b) => a - b) : null,
       dailyBookingLimit: dailyLimitOn ? Number(dailyLimit) || 1 : null,
       isPrivate,
@@ -360,6 +366,14 @@ export default function EventTypeForm() {
           numeric
         />
 
+        <Field
+          label="Offset slot start (min)"
+          value={offsetStart}
+          onChange={setOffsetStart}
+          placeholder="0"
+          numeric
+        />
+
         <Text style={styles.label}>Offer multiple durations</Text>
         <View style={styles.wrapPills}>
           {[15, 30, 45, 60, 90, 120].map((d) => {
@@ -412,6 +426,19 @@ export default function EventTypeForm() {
           <Switch
             value={isPrivate}
             onValueChange={setIsPrivate}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Requires confirmation</Text>
+            <Text style={styles.hint}>
+              Each booking waits as a request until you approve or decline it.
+            </Text>
+          </View>
+          <Switch
+            value={requiresConfirmation}
+            onValueChange={setRequiresConfirmation}
             trackColor={{ true: colors.accent }}
           />
         </View>
