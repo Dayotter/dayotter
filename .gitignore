@@ -44,3 +44,6 @@ GoogleService-Info.plist
 
 # test
 coverage/
+
+# Local security audit notes (not for the public repo)
+SECURITY-AUDIT.md
