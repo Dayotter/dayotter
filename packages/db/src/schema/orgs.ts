@@ -49,6 +49,8 @@ export const users = pgTable(
     /** Optional phone sign-in (Better Auth phoneNumber plugin). */
     phoneNumber: text("phone_number").unique(),
     phoneNumberVerified: boolean("phone_number_verified").notNull().default(false),
+    /** Better Auth twoFactor plugin: whether TOTP 2FA is active for this account. */
+    twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
     timezone: text("timezone").notNull().default("UTC"),
     /** Stripe Connect (Express) account that receives this host's booking/package
      * payments. Null until the host onboards. Charges/payouts flags mirror Stripe. */
