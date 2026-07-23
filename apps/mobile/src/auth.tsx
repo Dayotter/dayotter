@@ -68,7 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function authenticate(path: string, body: unknown): Promise<string | null> {
     try {
-      const data = await api.post<AuthResponse>(path, body);
+      const data = await api.post<AuthResponse & { twoFactorRedirect?: boolean }>(path, body);
+      // The account has 2FA on. Native TOTP entry isn't wired yet, so point the
+      // user at a path that works today rather than a bare "failed" (they can
+      // still use Google / phone / the web).
+      if (data.twoFactorRedirect) {
+        return "This account uses two-factor authentication. Sign in with Google, a phone number, or on the web for now.";
+      }
       if (!data.token) return "Authentication failed";
       await setToken(data.token);
       setUser(data.user);

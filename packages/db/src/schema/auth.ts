@@ -1,5 +1,14 @@
 import { relations } from "drizzle-orm";
-import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { timestamps } from "./_shared";
 import { organizations, users } from "./orgs";
 
@@ -86,8 +95,39 @@ export const invitations = pgTable(
   (t) => [index("invitations_org_idx").on(t.organizationId)],
 );
 
+/**
+ * Better Auth twoFactor-plugin `twoFactor`: the user's TOTP secret + backup
+ * codes. One row per user with 2FA set up (see `users.twoFactorEnabled`). The
+ * plugin manages these; we only provide the table.
+ */
+export const twoFactors = pgTable(
+  "two_factors",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Base32 TOTP secret. */
+    secret: text("secret").notNull(),
+    /** Encoded one-time backup/recovery codes. */
+    backupCodes: text("backup_codes").notNull(),
+    // Remaining fields are managed by the Better Auth twoFactor plugin
+    // (field names/types mirror its schema; see plugins/two-factor/schema).
+    verified: boolean("verified").notNull().default(true),
+    failedVerificationCount: integer("failed_verification_count").notNull().default(0),
+    /** Set when repeated failures temporarily lock verification. */
+    lockedUntil: timestamp("locked_until", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index("two_factors_user_idx").on(t.userId)],
+);
+
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const twoFactorsRelations = relations(twoFactors, ({ one }) => ({
+  user: one(users, { fields: [twoFactors.userId], references: [users.id] }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({

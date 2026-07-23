@@ -344,6 +344,13 @@
       "when": 1784809141906,
       "tag": "0048_brief_slapstick",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1784831055675,
+      "tag": "0049_faithful_white_queen",
+      "breakpoints": true
     }
   ]
 }

@@ -5,7 +5,7 @@ import { sendTextSms, twilioConfigured } from "@dayotter/notifications";
 import { type BetterAuthPlugin, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { bearer, organization, phoneNumber } from "better-auth/plugins";
+import { bearer, organization, phoneNumber, twoFactor } from "better-auth/plugins";
 
 /**
  * Better Auth server instance - the single source of truth for identity and
@@ -30,6 +30,7 @@ export const auth = betterAuth({
       organization: schema.organizations,
       member: schema.memberships,
       invitation: schema.invitations,
+      twoFactor: schema.twoFactors,
     },
   }),
   emailAndPassword: {
@@ -108,6 +109,12 @@ export const auth = betterAuth({
   // runs and registers its endpoints at runtime.
   plugins: [
     organization(),
+    // TOTP two-factor auth (authenticator apps) + recovery codes. When a user
+    // has it enabled, email/password sign-in returns a `twoFactorRedirect`
+    // instead of a session until they verify a code (see the web sign-in step).
+    // Cast for the same TS2742 reason as expo()/phoneNumber() below - keeps the
+    // inferred auth type portable; the plugin still registers its endpoints.
+    twoFactor({ issuer: "DayOtter" }) as BetterAuthPlugin,
     // Phone + OTP sign-in - enabled only when Twilio is configured (it sends the
     // code). Phone-only users get an auto-provisioned account via a temp email.
     ...(twilioConfigured()
