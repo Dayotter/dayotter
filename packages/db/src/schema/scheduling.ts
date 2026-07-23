@@ -162,6 +162,7 @@ export const eventTypes = pgTable(
     bufferAfterMinutes: integer("buffer_after_minutes").notNull().default(0),
     minimumNoticeMinutes: integer("minimum_notice_minutes").notNull().default(60),
     slotIntervalMinutes: integer("slot_interval_minutes"),
+    offsetStartMinutes: integer("offset_start_minutes").notNull().default(0),
     /** Minimum free time enforced around the host's own bookings (0 = none). */
     minimumGapMinutes: integer("minimum_gap_minutes").notNull().default(0),
     /** How far into the future bookings are allowed (null = unlimited). */

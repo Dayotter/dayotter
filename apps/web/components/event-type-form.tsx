@@ -54,6 +54,7 @@ export interface EventTypeInitial {
   bufferAfterMinutes?: number;
   minimumNoticeMinutes?: number;
   slotIntervalMinutes?: number | null;
+  offsetStartMinutes?: number | null;
   minimumGapMinutes?: number;
   durationOptions?: number[] | null;
   bookingWindowDays?: number;
@@ -105,6 +106,7 @@ export function EventTypeForm({
   const [slotInterval, setSlotInterval] = useState<number | null>(
     initial?.slotIntervalMinutes ?? null,
   );
+  const [offsetStart, setOffsetStart] = useState(initial?.offsetStartMinutes ?? 0);
   const [minimumGap, setMinimumGap] = useState(initial?.minimumGapMinutes ?? 0);
   const [durationOptions, setDurationOptions] = useState<number[]>(initial?.durationOptions ?? []);
   const [bookingWindow, setBookingWindow] = useState(initial?.bookingWindowDays ?? 60);
@@ -213,6 +215,7 @@ export function EventTypeForm({
       bufferAfterMinutes: bufferAfter,
       minimumNoticeMinutes: minimumNotice,
       slotIntervalMinutes: slotInterval,
+      offsetStartMinutes: offsetStart,
       minimumGapMinutes: minimumGap,
       durationOptions:
         durationOptions.length > 0 ? [...durationOptions].sort((a, b) => a - b) : null,
@@ -509,6 +512,24 @@ export function EventTypeForm({
                         </option>
                       ))}
                     </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="offset-start">Offset slot start</Label>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        id="offset-start"
+                        type="number"
+                        min={0}
+                        max={120}
+                        value={offsetStart}
+                        onChange={(e) =>
+                          setOffsetStart(Math.max(0, Math.min(120, Number(e.target.value) || 0)))
+                        }
+                      />
+                      <span className="text-sm text-[var(--color-faint)]">
+                        min (e.g. 5 → :05/:35)
+                      </span>
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="min-gap">Gap between bookings</Label>

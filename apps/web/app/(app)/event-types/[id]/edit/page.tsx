@@ -38,6 +38,7 @@ export default async function EditEventTypePage({
           bufferAfterMinutes: eventType.bufferAfterMinutes,
           minimumNoticeMinutes: eventType.minimumNoticeMinutes,
           slotIntervalMinutes: eventType.slotIntervalMinutes,
+          offsetStartMinutes: eventType.offsetStartMinutes,
           minimumGapMinutes: eventType.minimumGapMinutes,
           durationOptions: eventType.durationOptions,
           bookingWindowDays: eventType.bookingWindowDays ?? undefined,
