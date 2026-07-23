@@ -1,0 +1,1 @@
+ALTER TABLE "event_types" ADD COLUMN "offset_start_minutes" integer DEFAULT 0 NOT NULL;

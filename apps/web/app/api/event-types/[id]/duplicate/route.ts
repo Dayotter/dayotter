@@ -50,6 +50,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       bufferAfterMinutes: source.bufferAfterMinutes,
       minimumNoticeMinutes: source.minimumNoticeMinutes,
       slotIntervalMinutes: source.slotIntervalMinutes,
+      offsetStartMinutes: source.offsetStartMinutes,
       minimumGapMinutes: source.minimumGapMinutes,
       durationOptions: source.durationOptions,
       bookingWindowDays: source.bookingWindowDays,

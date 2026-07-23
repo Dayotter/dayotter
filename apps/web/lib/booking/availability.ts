@@ -114,6 +114,7 @@ export function eventConstraints(eventType: EventTypeRow): EventConstraints {
     bufferAfterMinutes: eventType.bufferAfterMinutes,
     minimumNoticeMinutes: eventType.minimumNoticeMinutes,
     slotIntervalMinutes: eventType.slotIntervalMinutes ?? undefined,
+    offsetStartMinutes: eventType.offsetStartMinutes ?? undefined,
     bookingWindowDays: eventType.bookingWindowDays ?? undefined,
   };
 }

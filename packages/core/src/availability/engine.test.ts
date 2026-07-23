@@ -121,6 +121,15 @@ describe("computeAvailability - constraints", () => {
     expect(starts).toContain("2026-01-05T14:15:00.000Z"); // 09:15
   });
 
+  it("shifts the slot grid by offsetStartMinutes", () => {
+    const starts = computeAvailability({
+      ...base,
+      event: { ...base.event, offsetStartMinutes: 5 },
+    }).map((s) => s.start.toISOString());
+    expect(starts).toContain("2026-01-05T14:05:00.000Z"); // 09:05 (shifted)
+    expect(starts).not.toContain("2026-01-05T14:00:00.000Z"); // 09:00 no longer offered
+  });
+
   it("treats busy intervals as half-open (adjacent is not a conflict)", () => {
     // Busy 08:00–09:00 ends exactly when the 09:00 slot starts -> allowed.
     const adjacent = computeAvailability({

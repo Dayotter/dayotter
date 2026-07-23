@@ -71,6 +71,7 @@ export async function POST(request: Request) {
         bufferAfterMinutes: d.bufferAfterMinutes,
         minimumNoticeMinutes: d.minimumNoticeMinutes,
         slotIntervalMinutes: d.slotIntervalMinutes,
+        offsetStartMinutes: d.offsetStartMinutes,
         minimumGapMinutes: d.minimumGapMinutes,
         durationOptions: d.durationOptions,
         bookingWindowDays: d.bookingWindowDays,

@@ -63,6 +63,7 @@ export interface EventTypeDetail {
   bufferAfterMinutes: number;
   minimumNoticeMinutes: number;
   slotIntervalMinutes: number | null;
+  offsetStartMinutes?: number;
   minimumGapMinutes: number;
   durationOptions: number[] | null;
   bookingWindowDays: number | null;

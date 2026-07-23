@@ -93,6 +93,7 @@ export function computeAvailability(input: AvailabilityInput): Slot[] {
   const slots: Slot[] = [];
   const durationMs = duration * 60_000;
   const intervalMs = interval * 60_000;
+  const offsetMs = (event.offsetStartMinutes ?? 0) * 60_000;
 
   // Iterate day-by-day in the schedule's timezone so DST is handled correctly.
   // The day/window boundaries use Luxon (DST-aware); the inner slot loop is plain
@@ -103,7 +104,12 @@ export function computeAvailability(input: AvailabilityInput): Slot[] {
 
   while (cursor <= lastDay) {
     for (const win of windowsForDay(cursor, schedule.rules, schedule.overrides)) {
-      for (let startMs = win.start; startMs + durationMs <= win.end; startMs += intervalMs) {
+      // Optional offset shifts the whole slot grid forward within the window.
+      for (
+        let startMs = win.start + offsetMs;
+        startMs + durationMs <= win.end;
+        startMs += intervalMs
+      ) {
         const endMs = startMs + durationMs;
         if (
           startMs >= earliest &&

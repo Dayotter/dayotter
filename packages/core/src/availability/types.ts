@@ -35,6 +35,8 @@ export interface EventConstraints {
   minimumNoticeMinutes: number;
   /** Slot cadence; defaults to durationMinutes when unset. */
   slotIntervalMinutes?: number;
+  /** Shift the slot grid forward by N minutes (e.g. 5 → :05/:35 instead of :00/:30). */
+  offsetStartMinutes?: number;
   /** Max days into the future bookable; null/undefined = unlimited. */
   bookingWindowDays?: number | null;
 }
