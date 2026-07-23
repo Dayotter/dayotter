@@ -81,14 +81,16 @@ export const bookings = pgTable(
     // booking-creation path, and the analytics group-by, which all filter
     // event_type_id + a starts_at range.
     index("bookings_event_starts_idx").on(t.eventTypeId, t.startsAt),
-    // Prevent a check-then-insert race from creating two confirmed bookings for
-    // the same host at the same instant. Enforced only for live bookings so a
-    // cancelled slot can be re-booked. NB: a stronger GiST EXCLUSION constraint
+    // Prevent a check-then-insert race from creating two live bookings for the
+    // same host at the same instant. `pending` (opt-in) requests count too, so a
+    // request that's awaiting confirmation reserves its slot and can't be
+    // preempted by another booking before the host approves it; a cancelled /
+    // rejected slot re-opens. NB: a stronger GiST EXCLUSION constraint
     // (`bookings_no_overlap`, migration 0019) additionally rejects cross-duration
     // OVERLAPS - it can't be expressed in the drizzle DSL, so it lives in raw SQL.
     uniqueIndex("bookings_host_slot_active_idx")
       .on(t.hostId, t.startsAt)
-      .where(sql`${t.status} = 'confirmed' AND ${t.isGroup} = false`),
+      .where(sql`${t.status} IN ('confirmed', 'pending') AND ${t.isGroup} = false`),
   ],
 );
 

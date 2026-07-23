@@ -59,6 +59,33 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
   const recurringCount = !isGroup ? Math.min(52, Math.max(1, eventType.recurringCount ?? 1)) : 1;
   const isRecurring = recurringCount > 1 && Boolean(recurrenceUid);
 
+  // Fan out to webhooks / CRM sync / plugin hooks (best-effort). This fires HERE,
+  // when the booking is actually confirmed - so an opt-in request that's still
+  // `pending` (or later declined) never emits a phantom "created", and a request
+  // the host approves emits it exactly once, on approval.
+  await fanOutBookingLifecycle(
+    "created",
+    {
+      bookingId: booking.id,
+      uid,
+      hostId: host.id,
+      eventTypeId: eventType.id,
+      title: eventType.title,
+      startsAt: start.toISOString(),
+      endsAt: end.toISOString(),
+      attendees: [{ name: attendee.name, email: attendee.email }],
+    },
+    {
+      uid,
+      eventTypeId: eventType.id,
+      title: eventType.title,
+      startsAt: start.toISOString(),
+      endsAt: end.toISOString(),
+      status: "confirmed",
+      attendee: { name: attendee.name, email: attendee.email },
+    },
+  );
+
   // Zoom event types: auto-create a real Zoom meeting when the host has Zoom
   // connected (falls back to any manual link otherwise). Best-effort.
   // Group events share one link (the host's configured location) and are NOT

@@ -43,7 +43,15 @@ export async function importCalendlyExport(
   const warnings: string[] = [];
 
   // 1. Availability schedules (only those with real weekly rules). We add them
-  //    as named schedules and never flip the user's existing default.
+  //    as named schedules and never flip the user's existing default. Names are
+  //    de-duped against the user's existing schedules so re-running the import
+  //    doesn't pile up copies.
+  const existingSchedules = await db.query.schedules.findMany({
+    where: eq(schema.schedules.userId, userId),
+    columns: { name: true },
+  });
+  const takenScheduleNames = new Set(existingSchedules.map((s) => s.name));
+
   let schedulesImported = 0;
   let rulesImported = 0;
   let importedDefaultScheduleId: string | null = null;
@@ -51,6 +59,8 @@ export async function importCalendlyExport(
   for (const raw of data.schedules) {
     const mapped = mapSchedule(raw);
     if (mapped.rules.length === 0) continue;
+    if (takenScheduleNames.has(mapped.name)) continue;
+    takenScheduleNames.add(mapped.name);
     const [created] = await db
       .insert(schema.schedules)
       .values({
@@ -101,6 +111,11 @@ export async function importCalendlyExport(
     if (raw.pooling_type) {
       warnings.push(
         `"${m.title}" was a Calendly team event - imported as a personal event type you host.`,
+      );
+    }
+    if (raw.kind === "group") {
+      warnings.push(
+        `"${m.title}" was a Calendly group event - imported as a 1:1; set its capacity to re-enable group seats.`,
       );
     }
 

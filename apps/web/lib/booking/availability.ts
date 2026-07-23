@@ -332,7 +332,9 @@ function bookingsFor(
   return getDb().query.bookings.findMany({
     where: and(
       inArray(schema.bookings.hostId, hostIds),
-      eq(schema.bookings.status, "confirmed"),
+      // `pending` (opt-in) requests hold their slot too, so it isn't offered to
+      // someone else while the host is still deciding (see the slot indexes).
+      inArray(schema.bookings.status, ["confirmed", "pending"]),
       gte(schema.bookings.endsAt, rangeStart),
       lte(schema.bookings.startsAt, rangeEnd),
       // When re-validating a reschedule, the booking being moved must not count
