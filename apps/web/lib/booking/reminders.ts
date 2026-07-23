@@ -177,6 +177,33 @@ export async function hostWantsOverflowNotice(userId: string): Promise<boolean> 
   return prefs?.overflowNotifyEnabled ?? false;
 }
 
+export interface HostBookingPrefs {
+  wantsOverflow: boolean;
+  wantsScribe: boolean;
+  reminderOffsets: number[];
+}
+
+/**
+ * The host preferences the booking-finalize path needs, in ONE read instead of
+ * three separate `userPreferences` lookups for the same row.
+ */
+export async function hostBookingPrefs(userId: string): Promise<HostBookingPrefs> {
+  const prefs = await getDb().query.userPreferences.findFirst({
+    where: eq(schema.userPreferences.userId, userId),
+    columns: {
+      overflowNotifyEnabled: true,
+      scribeEnabled: true,
+      defaultReminderOffsets: true,
+    },
+  });
+  const offsets = prefs?.defaultReminderOffsets;
+  return {
+    wantsOverflow: prefs?.overflowNotifyEnabled ?? false,
+    wantsScribe: prefs?.scribeEnabled ?? false,
+    reminderOffsets: offsets && offsets.length > 0 ? offsets : [...DEFAULT_REMINDER_OFFSETS],
+  };
+}
+
 /** Whether the host has opted into the post-meeting recap ("Scribe"). */
 export async function hostWantsScribe(userId: string): Promise<boolean> {
   const prefs = await getDb().query.userPreferences.findFirst({
