@@ -1,0 +1,1 @@
+ALTER TABLE "event_types" ADD COLUMN "requires_confirmation" boolean DEFAULT false NOT NULL;

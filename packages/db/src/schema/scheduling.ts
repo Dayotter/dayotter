@@ -191,6 +191,10 @@ export const eventTypes = pgTable(
 
     isActive: boolean("is_active").notNull().default(true),
     isPrivate: boolean("is_private").notNull().default(false),
+    /** Opt-in bookings: each request is created `pending` and the host must
+     * approve it before it's confirmed (calendar write + confirmation emails).
+     * Enforcement lives in the booking flow (see #100). */
+    requiresConfirmation: boolean("requires_confirmation").notNull().default(false),
     color: text("color"),
     /** Where to send the booker after they book (null = the dayotter confirmation). */
     redirectUrl: text("redirect_url"),

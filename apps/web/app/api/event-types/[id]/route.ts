@@ -57,6 +57,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       // Never leak the hash - only whether a code is required.
       hasAccessCode: et.accessCodeHash != null,
       isPrivate: et.isPrivate,
+      requiresConfirmation: et.requiresConfirmation,
       redirectUrl: et.redirectUrl,
       color: et.color,
       price: et.price,
@@ -108,6 +109,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         recurringCount: d.recurringCount,
         recurringFrequency: d.recurringFrequency,
         isPrivate: d.isPrivate,
+        requiresConfirmation: d.requiresConfirmation,
         redirectUrl: d.redirectUrl,
         color: d.color,
         price: d.price,

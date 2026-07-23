@@ -68,6 +68,8 @@ export interface EventTypeDetail {
   bookingWindowDays: number | null;
   dailyBookingLimit: number | null;
   isPrivate: boolean;
+  /** Opt-in bookings: each request waits pending until the host approves (#100). */
+  requiresConfirmation?: boolean;
   redirectUrl: string | null;
   color: string | null;
   price: number | null;

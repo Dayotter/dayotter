@@ -48,6 +48,7 @@ export default async function EditEventTypePage({
           recurringFrequency: eventType.recurringFrequency as "weekly" | "biweekly" | "monthly",
           hasAccessCode: eventType.accessCodeHash != null,
           isPrivate: eventType.isPrivate,
+          requiresConfirmation: eventType.requiresConfirmation,
           redirectUrl: eventType.redirectUrl,
           color: eventType.color,
           price: eventType.price,
