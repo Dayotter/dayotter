@@ -57,7 +57,7 @@ export function Hero() {
             className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)]/60 px-3.5 py-1.5 text-sm text-[var(--color-muted)] backdrop-blur transition-colors hover:text-[var(--color-text)]"
           >
             <Smartphone size={14} className="text-[var(--color-accent)]" />
-            On the web today - iOS &amp; Android on the way
+            On the web and Android today - iOS on the way
             <ArrowRight size={13} />
           </a>
         </FadeUp>

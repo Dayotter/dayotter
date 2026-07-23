@@ -10,6 +10,16 @@ export const metadata: Metadata = {
 const ENTRIES = [
   {
     date: "July 2026",
+    title: "DayOtter for Android is live on Google Play",
+    items: [
+      "The Android app is now on Google Play - the full host workflow in your pocket, with push reminders and voice input for Otter. iOS is on the way.",
+      "Import from Calendly: bring your event types and weekly availability across in one step.",
+      "Opt-in bookings: require your approval before a request is confirmed.",
+      "Offset start times: shift a booking type's slots off the hour (e.g. :05 / :35).",
+    ],
+  },
+  {
+    date: "July 2026",
     title: "Ask Otter, a refreshed interface & new sign-in",
     items: [
       "Ask Otter: a conversational assistant in your dashboard - by chat or voice - that reads your schedule and can act on your whole setup (bookings, booking types, availability, focus time, preferences, teams, reminder channels, automations). Always confirm-first; deletes ask twice.",

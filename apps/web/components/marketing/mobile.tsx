@@ -35,14 +35,42 @@ function PlayLogo({ size = 18 }: { size?: number }) {
   );
 }
 
-function StoreBadge({ logo, label }: { logo: React.ReactNode; label: string }) {
-  return (
-    <div className="inline-flex items-center gap-3 rounded-[13px] border border-white/10 bg-[#0d0c11] px-4 py-2.5 text-white shadow-[var(--shadow-card)]">
+function StoreBadge({
+  logo,
+  label,
+  href,
+}: {
+  logo: React.ReactNode;
+  label: string;
+  /** When set, the badge is a live download link; otherwise it reads "Coming soon". */
+  href?: string;
+}) {
+  const cls =
+    "inline-flex items-center gap-3 rounded-[13px] border border-white/10 bg-[#0d0c11] px-4 py-2.5 text-white shadow-[var(--shadow-card)]";
+  const inner = (
+    <>
       {logo}
       <div className="text-left leading-tight">
-        <div className="text-[10px] uppercase tracking-[0.12em] text-white/60">Coming soon</div>
+        <div className="text-[10px] uppercase tracking-[0.12em] text-white/60">
+          {href ? "Get it on" : "Coming soon"}
+        </div>
         <div className="text-[15px] font-semibold">{label}</div>
       </div>
+    </>
+  );
+  return href ? (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`Get DayOtter on ${label}`}
+      className={`${cls} transition-transform hover:-translate-y-0.5`}
+    >
+      {inner}
+    </a>
+  ) : (
+    <div className={`${cls} opacity-80`} aria-label={`${label} - coming soon`}>
+      {inner}
     </div>
   );
 }
@@ -142,16 +170,20 @@ export function MobileApps() {
             Your calendar, <em className="text-[var(--color-accent)]">in your pocket.</em>
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-[var(--color-muted)]">
-            Native apps for iPhone and Android are on the way - the same calm scheduling, built for
+            The DayOtter Android app is live on Google Play - the same calm scheduling, built for
             the moments you're on the move. Push reminders, one-tap booking, and your whole team's
-            availability, wherever you are.
+            availability, wherever you are. iPhone is on the way.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
+            <StoreBadge
+              logo={<PlayLogo />}
+              label="Google Play"
+              href="https://play.google.com/store/apps/details?id=com.dayotter.app"
+            />
             <StoreBadge logo={<AppleLogo />} label="App Store" />
-            <StoreBadge logo={<PlayLogo />} label="Google Play" />
           </div>
           <p className="mt-4 text-sm text-[var(--color-faint)]">
-            Available on the web today · native apps landing soon.
+            On the web and Android today · iOS landing soon.
           </p>
         </Reveal>
 
