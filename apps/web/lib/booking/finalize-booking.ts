@@ -9,9 +9,7 @@ import { createZoomMeeting } from "../integrations/zoom";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { fanOutBookingLifecycle } from "./lifecycle";
 import {
-  hostWantsOverflowNotice,
-  hostWantsScribe,
-  reminderOffsetsForHost,
+  hostBookingPrefs,
   scheduleBookingReminders,
   scheduleOverflowCheck,
   scheduleScribe,
@@ -146,14 +144,12 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
     await db.update(schema.bookings).set({ meetingUrl }).where(eq(schema.bookings.id, booking.id));
   }
 
-  // Host opt-ins (computed once; reused for the recurring occurrences below).
-  const [wantsOverflow, wantsScribe] = await Promise.all([
-    hostWantsOverflowNotice(host.id),
-    hostWantsScribe(host.id),
-  ]);
+  // Host opt-ins + reminder offsets in ONE read (reused for the recurring
+  // occurrences below), instead of three separate userPreferences lookups.
+  const { wantsOverflow, wantsScribe, reminderOffsets } = await hostBookingPrefs(host.id);
 
   // Schedule reminders at the host's preferred lead times.
-  await scheduleBookingReminders(booking.id, start, await reminderOffsetsForHost(host.id));
+  await scheduleBookingReminders(booking.id, start, reminderOffsets);
 
   // Proactive overflow: if the host opted in, schedule an end-of-meeting check
   // that auto-notifies a back-to-back next meeting when this one runs over.
@@ -236,12 +232,11 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
   if (isRecurring) {
     const zone = attendee.timezone || host.timezone || "UTC";
     const base = DateTime.fromJSDate(start).setZone(zone);
-    const offsets = await reminderOffsetsForHost(host.id);
     const attendeeList = [
       { email: attendee.email, name: attendee.name },
       ...guests.map((email) => ({ email })),
     ];
-    for (let i = 1; i < recurringCount; i++) {
+    const finalizeOccurrence = async (i: number): Promise<void> => {
       const occStart =
         eventType.recurringFrequency === "monthly"
           ? base.plus({ months: i }).toJSDate()
@@ -269,7 +264,7 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
             recurrenceUid,
           })
           .returning();
-        if (!occ) continue;
+        if (!occ) return;
         await db.insert(schema.bookingAttendees).values([
           {
             bookingId: occ.id,
@@ -279,7 +274,7 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
           },
           ...guests.map((email) => ({ bookingId: occ.id, email })),
         ]);
-        await scheduleBookingReminders(occ.id, occStart, offsets);
+        await scheduleBookingReminders(occ.id, occStart, reminderOffsets);
         const written = await writeBookingToCalendar(host.id, {
           title: eventType.title,
           description: notes ?? undefined,
@@ -361,6 +356,15 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
           err,
         });
       }
+    };
+
+    // Occurrences are independent; run them in bounded-concurrency chunks so a
+    // long series doesn't serialize ~50 × (calendar write + fan-out) on the
+    // request path - while not firing all 51 calendar writes at once.
+    const CONCURRENCY = 4;
+    const indices = Array.from({ length: recurringCount - 1 }, (_, k) => k + 1);
+    for (let c = 0; c < indices.length; c += CONCURRENCY) {
+      await Promise.all(indices.slice(c, c + CONCURRENCY).map(finalizeOccurrence));
     }
   }
 }

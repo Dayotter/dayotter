@@ -65,6 +65,11 @@ async function resolveHost(
   if (free.length === 0) throw new BookingError("No host available at that time", 409);
 
   // One grouped query for all free hosts' current load (was N queries).
+  // "Current load" for round-robin fairness = recent + upcoming meetings, not
+  // every booking the host has ever had. Windowing keeps this from scanning an
+  // unbounded history as hosts accrue bookings (and matches the intent - a
+  // meeting from two years ago shouldn't tilt today's assignment).
+  const loadWindowStart = new Date(Date.now() - 30 * 86_400_000);
   const loads = await db
     .select({ hostId: schema.bookings.hostId, count: sql<number>`count(*)::int` })
     .from(schema.bookings)
@@ -75,6 +80,7 @@ async function resolveHost(
           free.map((h) => h.userId),
         ),
         eq(schema.bookings.status, "confirmed"),
+        gte(schema.bookings.startsAt, loadWindowStart),
       ),
     )
     .groupBy(schema.bookings.hostId);

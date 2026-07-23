@@ -101,9 +101,11 @@ export async function importCalendlyExport(
   });
   const takenSlugs = new Set(existing.map((e) => e.slug));
 
-  let eventTypesImported = 0;
   let eventTypesSkipped = 0;
 
+  // Build the insert rows in one pass (slug dedup is in-memory), then insert them
+  // in a single batch instead of a round-trip per event type.
+  const rows: (typeof schema.eventTypes.$inferInsert)[] = [];
   for (const raw of data.eventTypes) {
     if (!shouldImportEventType(raw)) {
       eventTypesSkipped++;
@@ -124,30 +126,48 @@ export async function importCalendlyExport(
       );
     }
 
+    rows.push({
+      organizationId,
+      ownerId: userId,
+      scheduleId: targetScheduleId,
+      title: m.title,
+      slug,
+      durationMinutes: m.durationMinutes,
+      description: m.description,
+      location: m.location,
+      locationDetail: m.locationDetail,
+      color: m.color,
+      isActive: m.isActive,
+      isPrivate: m.isPrivate,
+      questions: m.questions,
+    });
+  }
+
+  let eventTypesImported = 0;
+  if (rows.length > 0) {
     try {
-      await db.insert(schema.eventTypes).values({
-        organizationId,
-        ownerId: userId,
-        scheduleId: targetScheduleId,
-        title: m.title,
-        slug,
-        durationMinutes: m.durationMinutes,
-        description: m.description,
-        location: m.location,
-        locationDetail: m.locationDetail,
-        color: m.color,
-        isActive: m.isActive,
-        isPrivate: m.isPrivate,
-        questions: m.questions,
-      });
-      eventTypesImported++;
+      await db.insert(schema.eventTypes).values(rows);
+      eventTypesImported = rows.length;
     } catch (err) {
-      eventTypesSkipped++;
-      logger.error("calendly event type import failed", {
-        event: "calendly_import_event_type_failed",
-        title: m.title,
+      // A batch failure (unexpected - slugs are pre-deduped) shouldn't sink the
+      // whole import; retry per row so one bad row is isolated and attributable.
+      logger.warn("calendly batch insert failed; falling back to per-row", {
+        event: "calendly_import_batch_fallback",
         err,
       });
+      for (const r of rows) {
+        try {
+          await db.insert(schema.eventTypes).values(r);
+          eventTypesImported++;
+        } catch (rowErr) {
+          eventTypesSkipped++;
+          logger.error("calendly event type import failed", {
+            event: "calendly_import_event_type_failed",
+            title: r.title,
+            err: rowErr,
+          });
+        }
+      }
     }
   }
 
