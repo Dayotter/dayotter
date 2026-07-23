@@ -36,6 +36,12 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
     .filter((r) => r.value !== undefined && r.value !== "" && r.value !== false);
 
   const cancelled = booking.status === "cancelled";
+  const rejected = booking.status === "rejected";
+  // Opt-in bookings sit in `pending` until the host approves them: nothing is on
+  // any calendar yet, so we show "request sent" rather than "you're booked".
+  const pending = booking.status === "pending";
+  const negative = cancelled || rejected;
+  const confirmed = !negative && !pending;
   const when = DateTime.fromJSDate(booking.startsAt)
     .setZone(booking.timezone)
     .toFormat("cccc, LLLL d, yyyy");
@@ -46,18 +52,30 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
       <Card>
         <CardBody className="p-6 sm:p-8">
           <div className="flex flex-col items-center text-center">
-            {cancelled ? (
+            {negative ? (
               <CalendarX2 size={44} className="text-[var(--color-danger)]" />
+            ) : pending ? (
+              <Clock size={44} className="text-[var(--color-amber)]" />
             ) : (
               <CheckCircle2 size={44} className="text-[var(--color-success)]" />
             )}
             <h1 className="font-display mt-4 text-2xl leading-tight tracking-[-0.01em]">
-              {cancelled ? "Booking cancelled" : "You're booked!"}
+              {cancelled
+                ? "Booking cancelled"
+                : rejected
+                  ? "Request declined"
+                  : pending
+                    ? "Request sent"
+                    : "You're booked!"}
             </h1>
             <p className="mt-1 text-sm text-[var(--color-muted)]">
               {cancelled
                 ? "This meeting has been cancelled."
-                : `A confirmation was sent to ${booking.attendees[0]?.email ?? "your email"}.`}
+                : rejected
+                  ? `${booking.host?.name ?? "Your host"} wasn't able to confirm this request.`
+                  : pending
+                    ? `We've asked ${booking.host?.name ?? "your host"} to confirm — you'll get an email the moment it's approved.`
+                    : `A confirmation was sent to ${booking.attendees[0]?.email ?? "your email"}.`}
             </p>
           </div>
 
@@ -72,7 +90,7 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
                 {when} · {time}
                 <span className="text-[var(--color-muted)]">({booking.timezone})</span>
               </p>
-              {booking.meetingUrl && !cancelled ? (
+              {booking.meetingUrl && confirmed ? (
                 <p className="flex items-center gap-2">
                   <Video size={15} className="text-[var(--color-muted)]" />
                   <a
@@ -119,7 +137,7 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
             ) : null}
           </div>
 
-          {!cancelled ? (
+          {confirmed ? (
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <a
                 href={googleCalendarUrl({
@@ -146,19 +164,21 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
             </div>
           ) : null}
 
-          {!cancelled ? (
+          {confirmed || pending ? (
             <div className="mt-3 flex justify-center gap-2">
-              <Link
-                href={`/booking/${uid}/reschedule`}
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-              >
-                Reschedule
-              </Link>
+              {confirmed ? (
+                <Link
+                  href={`/booking/${uid}/reschedule`}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  Reschedule
+                </Link>
+              ) : null}
               <Link
                 href={`/booking/${uid}/cancel`}
                 className={buttonVariants({ variant: "ghost", size: "sm" })}
               >
-                Cancel booking
+                {pending ? "Cancel request" : "Cancel booking"}
               </Link>
             </div>
           ) : null}

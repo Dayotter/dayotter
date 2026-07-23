@@ -128,11 +128,14 @@ export function BookingsWorkspace({ tz, history }: { tz: string; history: Histor
 function HistoryRow({ b, tz }: { b: HistoryBooking; tz: string }) {
   const router = useRouter();
   const [status, setStatus] = useState(b.status);
+  const [reviewing, setReviewing] = useState(false);
   const open = () => router.push(`/booking/${b.uid}`);
   const isPast = new Date(b.endsAt).getTime() < Date.now();
   // Past meetings auto-complete, so the no-show toggle covers confirmed/completed/no_show.
   const canMark =
     isPast && (status === "confirmed" || status === "completed" || status === "no_show");
+  // Opt-in bookings: the host approves or declines while the request is pending.
+  const canReview = status === "pending" && !isPast;
 
   async function toggleNoShow() {
     const noShow = status !== "no_show";
@@ -144,6 +147,17 @@ function HistoryRow({ b, tz }: { b: HistoryBooking; tz: string }) {
       body: JSON.stringify({ noShow }),
     });
     if (!res.ok) setStatus(b.status);
+  }
+
+  async function review(action: "confirm" | "decline") {
+    setReviewing(true);
+    const res = await fetch(`/api/bookings/${b.uid}/${action}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    });
+    setReviewing(false);
+    if (res.ok) setStatus(action === "confirm" ? "confirmed" : "rejected");
   }
 
   return (
@@ -177,6 +191,32 @@ function HistoryRow({ b, tz }: { b: HistoryBooking; tz: string }) {
           {b.attendees.join(", ") || "No attendees"}
         </p>
       </div>
+      {canReview ? (
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            disabled={reviewing}
+            onClick={(e) => {
+              e.stopPropagation();
+              review("confirm");
+            }}
+            className="rounded-full bg-[var(--color-success)] px-3 py-1 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            Approve
+          </button>
+          <button
+            type="button"
+            disabled={reviewing}
+            onClick={(e) => {
+              e.stopPropagation();
+              review("decline");
+            }}
+            className="rounded-full border border-[var(--color-border-strong)] px-3 py-1 text-xs font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)] disabled:opacity-50"
+          >
+            Decline
+          </button>
+        </div>
+      ) : null}
       {canMark ? (
         <button
           type="button"
