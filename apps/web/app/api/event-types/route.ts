@@ -82,6 +82,7 @@ export async function POST(request: Request) {
         // On create, a code is only set when a non-empty value is supplied.
         accessCodeHash: d.accessCode ? sha256hex(d.accessCode) : null,
         isPrivate: d.isPrivate,
+        requiresConfirmation: d.requiresConfirmation,
         redirectUrl: d.redirectUrl,
         color: d.color,
         price: d.price,

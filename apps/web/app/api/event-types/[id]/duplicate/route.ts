@@ -58,6 +58,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       maxAttendees: source.maxAttendees,
       accessCodeHash: source.accessCodeHash,
       isPrivate: source.isPrivate,
+      requiresConfirmation: source.requiresConfirmation,
       redirectUrl: source.redirectUrl,
       color: source.color,
       price: source.price,

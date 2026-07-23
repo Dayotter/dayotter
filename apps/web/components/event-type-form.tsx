@@ -64,6 +64,7 @@ export interface EventTypeInitial {
   recurringFrequency?: "weekly" | "biweekly" | "monthly";
   hasAccessCode?: boolean;
   isPrivate?: boolean;
+  requiresConfirmation?: boolean;
   redirectUrl?: string | null;
   color?: string | null;
   price?: number | null;
@@ -129,6 +130,9 @@ export function EventTypeForm({
     initial?.maxAttendees && initial.maxAttendees > 1 ? initial.maxAttendees : 10,
   );
   const [isPrivate, setIsPrivate] = useState(initial?.isPrivate ?? false);
+  const [requiresConfirmation, setRequiresConfirmation] = useState(
+    initial?.requiresConfirmation ?? false,
+  );
   const [redirectUrl, setRedirectUrl] = useState(initial?.redirectUrl ?? "");
   const [color, setColor] = useState<EventColor>(
     (initial?.color as EventColor) && EVENT_COLORS.includes(initial?.color as EventColor)
@@ -221,6 +225,7 @@ export function EventTypeForm({
       // undefined (omitted) = keep existing code; null = clear; string = set new.
       accessCode: accessCodeOn ? accessCode.trim() || undefined : null,
       isPrivate,
+      requiresConfirmation,
       redirectUrl: redirectUrl.trim() || null,
       scheduleId: scheduleId || null,
       color,
@@ -715,6 +720,21 @@ export function EventTypeForm({
                     <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
                       Hidden from your public booking page. Still bookable by anyone with the direct
                       link.
+                    </span>
+                  </span>
+                </label>
+                <label className="mt-3 flex items-start gap-2 text-sm text-[var(--color-text)]">
+                  <input
+                    type="checkbox"
+                    checked={requiresConfirmation}
+                    onChange={(e) => setRequiresConfirmation(e.target.checked)}
+                    className="mt-0.5 accent-[var(--color-accent)]"
+                  />
+                  <span>
+                    Requires confirmation
+                    <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                      Each booking waits as a request until you approve it. You'll be emailed to
+                      confirm or decline.
                     </span>
                   </span>
                 </label>
