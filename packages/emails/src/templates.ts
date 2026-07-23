@@ -176,6 +176,66 @@ export function bookingMessage(d: BookingEmailData & { body: string }): Rendered
   };
 }
 
+/**
+ * Sent to the ATTENDEE when they book an event that needs host approval. The
+ * booking is held as `pending` - nothing is on anyone's calendar yet.
+ */
+export function bookingRequested(d: BookingEmailData): Rendered {
+  const when = fmt(d.start, d.timezone);
+  return {
+    subject: `Request sent: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
+    text: `Thanks - your request has been sent.\n\n${d.eventTitle} with ${d.hostName}\nRequested: ${when}\n\n${d.hostName} will review it; you'll get a confirmation email the moment it's approved.\n\nView or withdraw: ${d.manageUrl}`,
+    html: shell(
+      "Your request has been sent ✋",
+      [
+        `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)}`,
+        `🗓 ${when}`,
+        `This event needs ${esc(d.hostName)}'s approval. We'll email you the moment it's confirmed - nothing is on the calendar yet.`,
+      ],
+      { label: "View request", url: d.manageUrl },
+    ),
+  };
+}
+
+/**
+ * Sent to the HOST when a booking request is awaiting their approval. `manageUrl`
+ * should point at the host's bookings dashboard where they approve / decline.
+ */
+export function newBookingRequest(d: BookingEmailData): Rendered {
+  const when = fmt(d.start, d.timezone);
+  return {
+    subject: `Approve? ${d.eventTitle} - ${d.attendeeName}`,
+    text: `${d.attendeeName} requested ${d.eventTitle}.\nWhen: ${when}\n\nApprove or decline it: ${d.manageUrl}`,
+    html: shell(
+      "New booking request",
+      [
+        `<strong>${esc(d.attendeeName)}</strong> requested <strong>${esc(d.eventTitle)}</strong>.`,
+        `🗓 ${when}`,
+        "It's on hold until you approve or decline it.",
+      ],
+      { label: "Review request", url: d.manageUrl },
+    ),
+  };
+}
+
+/** Sent to the ATTENDEE when the host declines a pending request. */
+export function bookingDeclined(d: BookingEmailData): Rendered {
+  const note = d.reason ? `Reason: ${d.reason}` : "";
+  return {
+    subject: `Not confirmed: ${d.eventTitle}`,
+    text: `Unfortunately ${d.hostName} couldn't confirm your request for ${d.eventTitle} (${fmt(d.start, d.timezone)}).${note ? `\n\n${note}` : ""}\n\nYou're welcome to pick another time: ${d.manageUrl}`,
+    html: shell(
+      "Your request wasn't confirmed",
+      [
+        `Unfortunately ${esc(d.hostName)} couldn't confirm <strong>${esc(d.eventTitle)}</strong>.`,
+        `Requested: ${fmt(d.start, d.timezone)}`,
+        note ? `💬 ${esc(note)}` : "",
+      ].filter(Boolean),
+      { label: "Pick another time", url: d.manageUrl },
+    ),
+  };
+}
+
 export function bookingCancellation(d: BookingEmailData): Rendered {
   const note = d.reason ? `Reason: ${d.reason}` : "";
   return {

@@ -2,11 +2,8 @@ import { randomUUID } from "node:crypto";
 import { consumeCredit } from "@/lib/packages/credits";
 import { logger, roundRobinPick, safeEqual, sha256hex } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
-import { bookingConfirmation, sendEmail } from "@dayotter/emails";
+import { bookingRequested, newBookingRequest, sendEmail } from "@dayotter/emails";
 import { DateTime } from "luxon";
-import { applyBookingRules } from "../automation/apply-rules";
-import { writeBookingToCalendar } from "../calendar/host-calendar";
-import { createZoomMeeting } from "../integrations/zoom";
 import {
   SLOT_REVALIDATION_WINDOW_MS,
   combineHostSlots,
@@ -14,18 +11,8 @@ import {
   isAllowedDuration,
 } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
-import { AUTO_CONFERENCE } from "./event-type-input";
+import { finalizeConfirmedBooking } from "./finalize-booking";
 import { fanOutBookingLifecycle } from "./lifecycle";
-import {
-  hostWantsOverflowNotice,
-  hostWantsScribe,
-  reminderOffsetsForHost,
-  scheduleBookingReminders,
-  scheduleOverflowCheck,
-  scheduleScribe,
-  scheduleWorkflowMessages,
-} from "./reminders";
-import { reserveTravelBlocks } from "./travel";
 
 export { BookingError } from "./booking-logic";
 
@@ -206,6 +193,17 @@ export async function createBooking(
   const isRecurring = recurringCount > 1;
   const recurrenceUid = isRecurring ? randomUUID() : null;
 
+  // Opt-in bookings: the host reviews each request before it's confirmed. The
+  // booking is stored `pending` with none of the confirmed side-effects run
+  // (no calendar write, meeting link, reminders, or recurring occurrences) - the
+  // host approves it later (see `approveBooking`), which finalizes it. Paid /
+  // credit bookings skip the hold: payment is the commitment, and holding one
+  // would mean refunding on decline. The daily/weekly/focus caps below still
+  // count only `confirmed` rows, so a pending request never consumes a cap slot.
+  const requiresConfirmation =
+    Boolean(eventType.requiresConfirmation) && !input.payment && !input.redeemCredit;
+  const initialStatus = requiresConfirmation ? "pending" : "confirmed";
+
   // Persist booking + attendees atomically. The partial unique index on
   // (hostId, startsAt) guards against a concurrent double-book: a request that
   // wins the availability check but loses the insert raises a 23505 → 409.
@@ -366,7 +364,7 @@ export async function createBooking(
           startsAt: start,
           endsAt: end,
           timezone: input.attendee.timezone,
-          status: "confirmed",
+          status: initialStatus,
           isGroup,
           location: eventType.locationDetail,
           responses: input.responses,
@@ -428,288 +426,73 @@ export async function createBooking(
     },
   );
 
-  // Zoom event types: auto-create a real Zoom meeting when the host has Zoom
-  // connected (falls back to any manual link otherwise). Best-effort.
-  // Group events share one link (the host's configured location) and are NOT
-  // written to the host calendar - a per-booking event would sync back as busy
-  // and wrongly close the shared slot, and per-booking Zoom links would differ.
-  let zoomUrl: string | null = null;
-  if (!isGroup && eventType.location === "zoom") {
-    zoomUrl = await createZoomMeeting(host.id, {
-      topic: eventType.title,
-      startISO: start.toISOString(),
-      durationMinutes: duration,
-      timezone: input.attendee.timezone,
-    });
-  }
-
-  // Write to the host's calendar (best-effort; booking stands without it).
-  // Skipped for group events (see above).
-  let meetingUrl: string | undefined = zoomUrl ?? undefined;
-  try {
-    const written = isGroup
-      ? null
-      : await writeBookingToCalendar(host.id, {
-          title: eventType.title,
-          description: input.notes,
-          start,
-          end,
-          timezone: input.attendee.timezone,
-          attendees: [
-            { email: input.attendee.email, name: input.attendee.name },
-            ...guests.map((email) => ({ email })),
-          ],
-          // Prefer the fresh Zoom link so the calendar invite carries it.
-          location: zoomUrl ?? eventType.locationDetail ?? undefined,
-          createConference: AUTO_CONFERENCE.includes(eventType.location),
-        });
-    if (written) {
-      // A provider conference (Google Meet / Teams) wins if one was created;
-      // otherwise keep the Zoom link.
-      meetingUrl = written.meetingUrl ?? meetingUrl;
-      await db.insert(schema.bookingReferences).values({
-        bookingId: booking.id,
-        calendarId: written.calendarId,
-        provider: written.provider,
-        externalEventId: written.externalEventId,
-      });
-    }
-  } catch (err) {
-    logger.error("calendar write failed", {
-      event: "calendar_write_failed",
-      bookingId: booking.id,
-      hostId: host.id,
-      err,
-    });
-  }
-
-  // Persist the resolved meeting URL (Zoom and/or a calendar conference).
-  if (meetingUrl) {
-    await db.update(schema.bookings).set({ meetingUrl }).where(eq(schema.bookings.id, booking.id));
-  }
-
-  // Host opt-ins (computed once; reused for the recurring occurrences below).
-  const [wantsOverflow, wantsScribe] = await Promise.all([
-    hostWantsOverflowNotice(host.id),
-    hostWantsScribe(host.id),
-  ]);
-
-  // Schedule reminders at the host's preferred lead times.
-  await scheduleBookingReminders(booking.id, start, await reminderOffsetsForHost(host.id));
-
-  // Proactive overflow: if the host opted in, schedule an end-of-meeting check
-  // that auto-notifies a back-to-back next meeting when this one runs over.
-  if (wantsOverflow) {
-    await scheduleOverflowCheck(booking.id, end);
-  }
-
-  // Post-meeting recap ("Scribe"): if the host opted in, nudge them just after
-  // the meeting ends to capture notes and line up the next step.
-  if (wantsScribe) {
-    await scheduleScribe(booking.id, end);
-  }
-
-  // Schedule the host's workflow messages (custom reminders / follow-ups).
-  await scheduleWorkflowMessages(booking.id, eventType.organizationId, eventType.id, start, end);
-
-  // Automation rules (prep blocks / buffers / follow-ups). Best-effort.
-  await applyBookingRules({
-    bookingId: booking.id,
-    hostId: host.id,
-    title: eventType.title,
-    startsAt: start,
-    endsAt: end,
-  });
-
-  // Travel-Aware Scheduling: reserve travel time around in-person meetings.
-  await reserveTravelBlocks({
-    hostId: host.id,
-    bookingId: booking.id,
-    location: eventType.location,
-    startsAt: start,
-    endsAt: end,
-    place: eventType.locationDetail,
-  });
-
-  // Confirmation emails to attendee + host. Send them INDEPENDENTLY: a failure to
-  // the host (e.g. a provider that only allows verified recipients in test mode)
-  // must not stop the attendee's mail, and each failure is logged with its
-  // recipient so the cause is visible instead of a single opaque error.
-  const manageUrl = `${appUrl}/booking/${uid}`;
-  const sendConfirmation = async (
-    to: string,
-    timezone: string,
-    hostName: string,
-    recipient: "attendee" | "host",
-  ) => {
+  // Opt-in bookings stop here: the request is held as `pending` and NONE of the
+  // confirmed side-effects run. Tell the attendee it's been requested and the
+  // host it needs approval; the rest happens when the host approves it.
+  if (requiresConfirmation) {
+    const attendeeManageUrl = `${appUrl}/booking/${uid}`;
+    const hostReviewUrl = `${appUrl}/bookings`;
     try {
       await sendEmail({
-        ...bookingConfirmation({
+        ...bookingRequested({
           eventTitle: eventType.title,
           start,
           end,
-          timezone,
-          hostName,
+          timezone: input.attendee.timezone,
+          hostName: host.name ?? "your host",
           attendeeName: input.attendee.name,
           location: eventType.locationDetail ?? undefined,
-          meetingUrl,
-          manageUrl,
+          manageUrl: attendeeManageUrl,
         }),
-        to,
+        to: input.attendee.email,
       });
     } catch (err) {
-      logger.error("confirmation email failed", {
-        event: "confirmation_email_failed",
+      logger.error("booking request email failed", {
+        event: "request_email_failed",
         bookingId: booking.id,
-        recipient,
-        to,
+        recipient: "attendee",
         err,
       });
     }
-  };
-  await sendConfirmation(
-    input.attendee.email,
-    input.attendee.timezone,
-    host.name ?? "your host",
-    "attendee",
-  );
-  if (host.email) {
-    await sendConfirmation(host.email, host.timezone, host.name ?? "you", "host");
-  }
-
-  // Recurring series: create the remaining occurrences (best-effort each; an
-  // occurrence that collides with an existing booking is skipped). Attendees get
-  // one confirmation for the first meeting above - the rest land on the calendar.
-  if (isRecurring) {
-    const zone = input.attendee.timezone || host.timezone || "UTC";
-    const base = DateTime.fromJSDate(start).setZone(zone);
-    const offsets = await reminderOffsetsForHost(host.id);
-    const attendeeList = [
-      { email: input.attendee.email, name: input.attendee.name },
-      ...guests.map((email) => ({ email })),
-    ];
-    for (let i = 1; i < recurringCount; i++) {
-      const occStart =
-        eventType.recurringFrequency === "monthly"
-          ? base.plus({ months: i }).toJSDate()
-          : eventType.recurringFrequency === "biweekly"
-            ? base.plus({ weeks: 2 * i }).toJSDate()
-            : base.plus({ weeks: i }).toJSDate();
-      const occEnd = new Date(occStart.getTime() + duration * 60_000);
+    if (host.email) {
       try {
-        const [occ] = await db
-          .insert(schema.bookings)
-          .values({
-            organizationId: eventType.organizationId,
-            eventTypeId: eventType.id,
-            hostId: host.id,
-            title: eventType.title,
-            description: input.notes,
-            startsAt: occStart,
-            endsAt: occEnd,
-            timezone: input.attendee.timezone,
-            status: "confirmed",
-            isGroup: false,
-            location: eventType.locationDetail,
-            responses: input.responses,
-            uid: randomUUID(),
-            recurrenceUid,
-          })
-          .returning();
-        if (!occ) continue;
-        await db.insert(schema.bookingAttendees).values([
-          {
-            bookingId: occ.id,
-            name: input.attendee.name,
-            email: input.attendee.email,
-            timezone: input.attendee.timezone,
-          },
-          ...guests.map((email) => ({ bookingId: occ.id, email })),
-        ]);
-        await scheduleBookingReminders(occ.id, occStart, offsets);
-        const written = await writeBookingToCalendar(host.id, {
-          title: eventType.title,
-          description: input.notes,
-          start: occStart,
-          end: occEnd,
-          timezone: input.attendee.timezone,
-          attendees: attendeeList,
-          location: zoomUrl ?? eventType.locationDetail ?? undefined,
-          createConference: AUTO_CONFERENCE.includes(eventType.location),
-        }).catch(() => null);
-        if (written) {
-          await db
-            .update(schema.bookings)
-            .set({ meetingUrl: written.meetingUrl ?? undefined })
-            .where(eq(schema.bookings.id, occ.id));
-          await db.insert(schema.bookingReferences).values({
-            bookingId: occ.id,
-            calendarId: written.calendarId,
-            provider: written.provider,
-            externalEventId: written.externalEventId,
-          });
-        }
-
-        // Parity with the primary booking: each occurrence must also fan out to
-        // webhooks/CRM/plugins and get workflows, overflow, scribe, and travel/
-        // rule blocks - otherwise downstream systems only ever see meeting #1.
-        const occStartISO = occStart.toISOString();
-        const occEndISO = occEnd.toISOString();
-        await fanOutBookingLifecycle(
-          "created",
-          {
-            bookingId: occ.id,
-            uid: occ.uid,
-            hostId: host.id,
-            eventTypeId: eventType.id,
-            title: eventType.title,
-            startsAt: occStartISO,
-            endsAt: occEndISO,
-            attendees: [{ name: input.attendee.name, email: input.attendee.email }],
-          },
-          {
-            uid: occ.uid,
-            eventTypeId: eventType.id,
-            title: eventType.title,
-            startsAt: occStartISO,
-            endsAt: occEndISO,
-            status: occ.status,
-            attendee: { name: input.attendee.name, email: input.attendee.email },
-          },
-        ).catch(() => {});
-        await scheduleWorkflowMessages(
-          occ.id,
-          eventType.organizationId,
-          eventType.id,
-          occStart,
-          occEnd,
-        ).catch(() => {});
-        if (wantsOverflow) await scheduleOverflowCheck(occ.id, occEnd).catch(() => {});
-        if (wantsScribe) await scheduleScribe(occ.id, occEnd).catch(() => {});
-        await applyBookingRules({
-          bookingId: occ.id,
-          hostId: host.id,
-          title: eventType.title,
-          startsAt: occStart,
-          endsAt: occEnd,
-        }).catch(() => {});
-        await reserveTravelBlocks({
-          hostId: host.id,
-          bookingId: occ.id,
-          location: eventType.location,
-          startsAt: occStart,
-          endsAt: occEnd,
-          place: eventType.locationDetail,
-        }).catch(() => {});
+        await sendEmail({
+          ...newBookingRequest({
+            eventTitle: eventType.title,
+            start,
+            end,
+            timezone: host.timezone,
+            hostName: host.name ?? "you",
+            attendeeName: input.attendee.name,
+            location: eventType.locationDetail ?? undefined,
+            manageUrl: hostReviewUrl,
+          }),
+          to: host.email,
+        });
       } catch (err) {
-        logger.error("recurring occurrence skipped", {
-          event: "recurrence_skipped",
-          index: i,
+        logger.error("booking request email failed", {
+          event: "request_email_failed",
+          bookingId: booking.id,
+          recipient: "host",
           err,
         });
       }
     }
+    return { uid, redirectUrl: eventType.redirectUrl ?? null };
   }
+
+  // Confirmed immediately: run every confirmed-booking side-effect (meeting link,
+  // host calendar, reminders, workflows, travel, confirmation emails, recurring
+  // occurrences). Shared verbatim with the host-approval path.
+  await finalizeConfirmedBooking({
+    booking,
+    eventType,
+    host,
+    attendee: input.attendee,
+    guests,
+    notes: input.notes,
+    appUrl,
+  });
 
   return { uid, redirectUrl: eventType.redirectUrl ?? null };
 }
