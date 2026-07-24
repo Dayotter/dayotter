@@ -1,6 +1,7 @@
 import { AppleConnectError, connectAppleAccount } from "@/lib/calendar/calendar-connect";
 import { jsonError, withUser } from "@/lib/server/http";
 import { NextResponse } from "next/server";
+import { logger } from "@dayotter/core";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,12 @@ export const POST = withUser(async (u, request) => {
     return NextResponse.json({ ok: true, calendarCount: result.calendarCount });
   } catch (err) {
     if (err instanceof AppleConnectError) return jsonError(err.message, 400);
-    console.error("[calendars/apple] connect failed:", err);
+    logger.error("[calendars/apple] connect failed:",
+      {
+        event:"[calendars/apple] connect failed",
+        userId :u.id,
+        error: err instanceof Error ? err.message :String(err)
+      });
     return jsonError("Could not connect. Please try again.", 500);
   }
 });
