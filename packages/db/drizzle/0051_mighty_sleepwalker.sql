@@ -1,0 +1,1 @@
+ALTER TYPE "public"."location_type" ADD VALUE 'jitsi' BEFORE 'phone';

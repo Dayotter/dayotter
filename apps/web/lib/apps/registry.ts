@@ -119,6 +119,15 @@ export const APPS: AppDefinition[] = [
     connection: { kind: "conferencing", provider: "zoom" },
   },
   {
+    id: "jitsi",
+    name: "Jitsi Meet",
+    category: "video",
+    blurb: "Auto-generate a Jitsi video room per booking - no account, self-hostable.",
+    color: "#1d76b5",
+    href: "/settings/apps",
+    builtIn: true,
+  },
+  {
     id: "google-meet",
     name: "Google Meet",
     category: "video",

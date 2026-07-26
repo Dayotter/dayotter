@@ -5,6 +5,7 @@ import { bookingConfirmation, sendEmail } from "@dayotter/emails";
 import { DateTime } from "luxon";
 import { applyBookingRules } from "../automation/apply-rules";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
+import { jitsiRoomUrl } from "../integrations/jitsi";
 import { createZoomMeeting } from "../integrations/zoom";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { fanOutBookingLifecycle } from "./lifecycle";
@@ -98,10 +99,13 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
       timezone: attendee.timezone,
     });
   }
+  // Jitsi: we mint the room URL ourselves (no account/OAuth). Works for group
+  // events too - everyone shares the one room.
+  const jitsiUrl = eventType.location === "jitsi" ? jitsiRoomUrl(uid) : null;
 
   // Write to the host's calendar (best-effort; booking stands without it).
   // Skipped for group events (see above).
-  let meetingUrl: string | undefined = zoomUrl ?? undefined;
+  let meetingUrl: string | undefined = zoomUrl ?? jitsiUrl ?? undefined;
   try {
     const written = isGroup
       ? null
@@ -115,8 +119,8 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
             { email: attendee.email, name: attendee.name },
             ...guests.map((email) => ({ email })),
           ],
-          // Prefer the fresh Zoom link so the calendar invite carries it.
-          location: zoomUrl ?? eventType.locationDetail ?? undefined,
+          // Prefer the generated Zoom/Jitsi link so the calendar invite carries it.
+          location: meetingUrl ?? eventType.locationDetail ?? undefined,
           createConference: AUTO_CONFERENCE.includes(eventType.location),
         });
     if (written) {
@@ -265,6 +269,7 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
           })
           .returning();
         if (!occ) return;
+        const occJitsi = eventType.location === "jitsi" ? jitsiRoomUrl(occ.uid) : null;
         await db.insert(schema.bookingAttendees).values([
           {
             bookingId: occ.id,
@@ -282,14 +287,19 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
           end: occEnd,
           timezone: attendee.timezone,
           attendees: attendeeList,
-          location: zoomUrl ?? eventType.locationDetail ?? undefined,
+          location: zoomUrl ?? occJitsi ?? eventType.locationDetail ?? undefined,
           createConference: AUTO_CONFERENCE.includes(eventType.location),
         }).catch(() => null);
-        if (written) {
+        // Jitsi occurrences get their own room; persist it (no provider
+        // conference is created, so `written.meetingUrl` would be null).
+        const occMeetingUrl = written?.meetingUrl ?? zoomUrl ?? occJitsi ?? undefined;
+        if (occMeetingUrl) {
           await db
             .update(schema.bookings)
-            .set({ meetingUrl: written.meetingUrl ?? undefined })
+            .set({ meetingUrl: occMeetingUrl })
             .where(eq(schema.bookings.id, occ.id));
+        }
+        if (written) {
           await db.insert(schema.bookingReferences).values({
             bookingId: occ.id,
             calendarId: written.calendarId,
