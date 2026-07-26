@@ -20,6 +20,8 @@ const LOCALE_LABELS: Record<Locale, string> = {
   fr: "Français",
   de: "Deutsch",
   pt: "Português",
+  it: "Italiano",
+  nl: "Nederlands",
 };
 
 /** Same mechanism as ThemeToggle so both controls stay in sync. */
