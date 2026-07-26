@@ -1,5 +1,6 @@
 import { eq, getDb, schema } from "@dayotter/db";
 import type { CSSProperties } from "react";
+import { type BookingPixelConfig, sanitizePixelConfig } from "./analytics-pixels";
 
 export interface HostBranding {
   brandColor: string | null;
@@ -16,6 +17,16 @@ export async function getHostBranding(userId: string): Promise<HostBranding> {
     brandColor: prefs?.brandColor ?? null,
     welcomeMessage: prefs?.welcomeMessage ?? null,
   };
+}
+
+/** Load a host's booking-page analytics pixels, re-sanitized on read (so a row
+ *  written before validation tightened can never inject). */
+export async function getHostPixels(userId: string): Promise<BookingPixelConfig> {
+  const prefs = await getDb().query.userPreferences.findFirst({
+    where: eq(schema.userPreferences.userId, userId),
+    columns: { bookingPageAnalytics: true },
+  });
+  return sanitizePixelConfig(prefs?.bookingPageAnalytics ?? null);
 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/;

@@ -21,7 +21,7 @@ export default async function ProfileSettingsPage() {
     }),
     db.query.userPreferences.findFirst({
       where: eq(schema.userPreferences.userId, userId),
-      columns: { brandColor: true, welcomeMessage: true },
+      columns: { brandColor: true, welcomeMessage: true, bookingPageAnalytics: true },
     }),
   ]);
 
@@ -34,6 +34,7 @@ export default async function ProfileSettingsPage() {
           handle: user?.handle ?? "",
           brandColor: prefs?.brandColor ?? null,
           welcomeMessage: prefs?.welcomeMessage ?? "",
+          bookingPageAnalytics: prefs?.bookingPageAnalytics ?? null,
         }}
       />
       <ChangePasswordForm />

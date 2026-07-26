@@ -351,6 +351,13 @@
       "when": 1784831055675,
       "tag": "0049_faithful_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1785080778161,
+      "tag": "0050_tranquil_jigsaw",
+      "breakpoints": true
     }
   ]
 }
