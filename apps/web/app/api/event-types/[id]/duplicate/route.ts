@@ -56,6 +56,8 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       bookingWindowDays: source.bookingWindowDays,
       dailyBookingLimit: source.dailyBookingLimit,
       weeklyBookingLimit: source.weeklyBookingLimit,
+      monthlyBookingLimit: source.monthlyBookingLimit,
+      yearlyBookingLimit: source.yearlyBookingLimit,
       maxAttendees: source.maxAttendees,
       accessCodeHash: source.accessCodeHash,
       isPrivate: source.isPrivate,

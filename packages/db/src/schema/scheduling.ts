@@ -170,6 +170,10 @@ export const eventTypes = pgTable(
     dailyBookingLimit: integer("daily_booking_limit"),
     /** Max confirmed bookings per host-local ISO week (null = unlimited). */
     weeklyBookingLimit: integer("weekly_booking_limit"),
+    /** Max bookings per host-local calendar month (null = unlimited). */
+    monthlyBookingLimit: integer("monthly_booking_limit"),
+    /** Max bookings per host-local calendar year (null = unlimited). */
+    yearlyBookingLimit: integer("yearly_booking_limit"),
     /** Group events: seats per slot. 1 = a normal 1:1 event; >1 = many bookers
      * share one slot until it fills. Only for individual (owner) event types. */
     maxAttendees: integer("max_attendees").notNull().default(1),

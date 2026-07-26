@@ -60,6 +60,8 @@ export interface EventTypeInitial {
   bookingWindowDays?: number;
   dailyBookingLimit?: number | null;
   weeklyBookingLimit?: number | null;
+  monthlyBookingLimit?: number | null;
+  yearlyBookingLimit?: number | null;
   maxAttendees?: number;
   recurringCount?: number;
   recurringFrequency?: "weekly" | "biweekly" | "monthly";
@@ -118,6 +120,14 @@ export function EventTypeForm({
     initial?.weeklyBookingLimit != null && initial.weeklyBookingLimit > 0,
   );
   const [weeklyLimit, setWeeklyLimit] = useState(initial?.weeklyBookingLimit ?? 20);
+  const [monthlyLimitOn, setMonthlyLimitOn] = useState(
+    initial?.monthlyBookingLimit != null && initial.monthlyBookingLimit > 0,
+  );
+  const [monthlyLimit, setMonthlyLimit] = useState(initial?.monthlyBookingLimit ?? 80);
+  const [yearlyLimitOn, setYearlyLimitOn] = useState(
+    initial?.yearlyBookingLimit != null && initial.yearlyBookingLimit > 0,
+  );
+  const [yearlyLimit, setYearlyLimit] = useState(initial?.yearlyBookingLimit ?? 500);
   const [accessCodeOn, setAccessCodeOn] = useState(initial?.hasAccessCode ?? false);
   const [accessCode, setAccessCode] = useState("");
   const [recurringOn, setRecurringOn] = useState((initial?.recurringCount ?? 1) > 1);
@@ -222,6 +232,8 @@ export function EventTypeForm({
       bookingWindowDays: bookingWindow,
       dailyBookingLimit: dailyLimitOn ? dailyLimit : null,
       weeklyBookingLimit: weeklyLimitOn ? weeklyLimit : null,
+      monthlyBookingLimit: monthlyLimitOn ? monthlyLimit : null,
+      yearlyBookingLimit: yearlyLimitOn ? yearlyLimit : null,
       maxAttendees: groupOn ? maxAttendees : 1,
       recurringCount: recurringOn ? recurringCount : 1,
       recurringFrequency,
@@ -605,6 +617,68 @@ export function EventTypeForm({
                   ) : (
                     <p className="mt-1 text-xs text-[var(--color-faint)]">
                       Cap how many times this can be booked in a single week.
+                    </p>
+                  )}
+                </div>
+                <div className="mt-3 rounded-md border border-[var(--color-border)] p-3">
+                  <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                    <input
+                      type="checkbox"
+                      checked={monthlyLimitOn}
+                      onChange={(e) => setMonthlyLimitOn(e.target.checked)}
+                      className="accent-[var(--color-accent)]"
+                    />
+                    Limit bookings per month
+                  </label>
+                  {monthlyLimitOn ? (
+                    <div className="mt-2 flex items-center gap-1">
+                      <Input
+                        aria-label="Maximum bookings per month"
+                        type="number"
+                        min={1}
+                        max={2000}
+                        value={monthlyLimit}
+                        onChange={(e) => setMonthlyLimit(Number(e.target.value) || 1)}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-[var(--color-faint)]">
+                        bookings max per month
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-xs text-[var(--color-faint)]">
+                      Cap how many times this can be booked in a calendar month.
+                    </p>
+                  )}
+                </div>
+                <div className="mt-3 rounded-md border border-[var(--color-border)] p-3">
+                  <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                    <input
+                      type="checkbox"
+                      checked={yearlyLimitOn}
+                      onChange={(e) => setYearlyLimitOn(e.target.checked)}
+                      className="accent-[var(--color-accent)]"
+                    />
+                    Limit bookings per year
+                  </label>
+                  {yearlyLimitOn ? (
+                    <div className="mt-2 flex items-center gap-1">
+                      <Input
+                        aria-label="Maximum bookings per year"
+                        type="number"
+                        min={1}
+                        max={20000}
+                        value={yearlyLimit}
+                        onChange={(e) => setYearlyLimit(Number(e.target.value) || 1)}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-[var(--color-faint)]">
+                        bookings max per year
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-xs text-[var(--color-faint)]">
+                      Cap how many times this can be booked in a calendar year.
                     </p>
                   )}
                 </div>

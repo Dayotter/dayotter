@@ -77,6 +77,8 @@ export async function POST(request: Request) {
         bookingWindowDays: d.bookingWindowDays,
         dailyBookingLimit: d.dailyBookingLimit,
         weeklyBookingLimit: d.weeklyBookingLimit,
+        monthlyBookingLimit: d.monthlyBookingLimit,
+        yearlyBookingLimit: d.yearlyBookingLimit,
         maxAttendees: d.maxAttendees,
         recurringCount: d.recurringCount,
         recurringFrequency: d.recurringFrequency,
