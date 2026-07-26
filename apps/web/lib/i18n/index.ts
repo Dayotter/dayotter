@@ -5,7 +5,7 @@
  * is never half-translated.
  */
 
-export const SUPPORTED_LOCALES = ["en", "es", "fr", "de", "pt"] as const;
+export const SUPPORTED_LOCALES = ["en", "es", "fr", "de", "pt", "it", "nl"] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 

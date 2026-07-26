@@ -12,6 +12,8 @@ import de from "./locales/de/booking.json";
 import en from "./locales/en/booking.json";
 import es from "./locales/es/booking.json";
 import fr from "./locales/fr/booking.json";
+import it from "./locales/it/booking.json";
+import nl from "./locales/nl/booking.json";
 import pt from "./locales/pt/booking.json";
 
 export {
@@ -29,6 +31,8 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
   fr,
   de,
   pt,
+  it,
+  nl,
 };
 
 /** Translate a booking-surface key, interpolating `{name}` placeholders. */

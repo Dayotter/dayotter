@@ -8,6 +8,8 @@ import de from "./locales/de/otter.json";
 import en from "./locales/en/otter.json";
 import es from "./locales/es/otter.json";
 import fr from "./locales/fr/otter.json";
+import it from "./locales/it/otter.json";
+import nl from "./locales/nl/otter.json";
 import pt from "./locales/pt/otter.json";
 
 export type OtterKey = keyof typeof en;
@@ -18,6 +20,8 @@ const MESSAGES: Record<Locale, Record<OtterKey, string>> = {
   fr,
   de,
   pt,
+  it,
+  nl,
 };
 
 /** Translate an Otter/AI UI key, interpolating `{name}` placeholders. */
