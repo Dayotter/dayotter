@@ -391,6 +391,22 @@ importers:
         specifier: ^5.7.2
         version: 5.7.3
 
+  packages/embed-react:
+    dependencies:
+      react-dom:
+        specifier: '>=18'
+        version: 19.2.7(react@19.0.0)
+    devDependencies:
+      '@types/react':
+        specifier: ~19.1.0
+        version: 19.1.17
+      react:
+        specifier: ^19.0.0
+        version: 19.0.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
   packages/integrations:
     dependencies:
       '@dayotter/calendar':
@@ -10654,7 +10670,6 @@ snapshots:
     dependencies:
       react: 19.0.0
       scheduler: 0.27.0
-    optional: true
 
   react-dom@19.2.7(react@19.2.7):
     dependencies:

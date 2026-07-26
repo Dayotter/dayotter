@@ -1,0 +1,17 @@
+{
+  "name": "@dayotter/embed-react",
+  "version": "0.1.0",
+  "description": "White-label React components to embed DayOtter scheduling in your own app.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "exports": { ".": "./src/index.tsx" },
+  "files": ["src"],
+  "keywords": ["dayotter", "scheduling", "booking", "embed", "react"],
+  "scripts": { "typecheck": "tsc --noEmit" },
+  "peerDependencies": { "react": ">=18", "react-dom": ">=18" },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "react": "^19.0.0",
+    "typescript": "^5.7.2"
+  }
+}

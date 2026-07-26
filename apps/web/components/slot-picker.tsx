@@ -25,6 +25,7 @@ export function SlotPicker({
   linkToken,
   requiresCode = false,
   assistantEnabled = false,
+  embed = false,
 }: {
   eventTypeId: string;
   questions?: BookingQuestionInput[];
@@ -37,6 +38,8 @@ export function SlotPicker({
   requiresCode?: boolean;
   /** Show the floating "find me a time" AI helper (host preference). */
   assistantEnabled?: boolean;
+  /** Rendered inside an embed iframe: relay booking success to the parent page. */
+  embed?: boolean;
 }) {
   const router = useRouter();
   const zone = useLocalZone();
@@ -116,6 +119,11 @@ export function SlotPicker({
       return;
     }
     track("Booking Confirmed", { eventTypeId });
+    // Embed: tell the host page a booking landed (their React SDK / embed.js
+    // surfaces this as onBookingSuccessful) before we navigate inside the frame.
+    if (embed && typeof window !== "undefined" && window.parent !== window) {
+      window.parent.postMessage({ type: "dayotter:booking", uid: data.uid, url: data.url }, "*");
+    }
     // Honor a host-configured redirect (external URL) over the DayOtter confirmation.
     if (typeof data.redirectUrl === "string" && /^https?:\/\//.test(data.redirectUrl)) {
       window.location.href = data.redirectUrl;

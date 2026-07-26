@@ -247,6 +247,15 @@ export const APPS: AppDefinition[] = [
     href: "/settings/developer",
     builtIn: true,
   },
+  {
+    id: "embed-sdk",
+    name: "Embed & React SDK",
+    category: "automation",
+    blurb: "Drop your booking pages into any site (embed.js) or React app (@dayotter/embed-react).",
+    color: "#0ea5e9",
+    href: "/settings/developer",
+    builtIn: true,
+  },
 
   // ---- Migration ----
   {
