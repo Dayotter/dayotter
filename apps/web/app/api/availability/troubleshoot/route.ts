@@ -18,6 +18,11 @@ export const GET = withUser(async (u, request) => {
   if (!eventTypeId || !dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     return jsonError("eventTypeId and a YYYY-MM-DD date are required", 400);
   }
+  // eventTypeId is a uuid column - reject a malformed value up front rather than
+  // letting Postgres throw an uncaught "invalid input syntax for type uuid" 500.
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventTypeId)) {
+    return jsonError("Event type not found", 404);
+  }
   const date = new Date(`${dateStr}T12:00:00Z`);
   if (Number.isNaN(date.getTime())) return jsonError("Invalid date", 400);
 

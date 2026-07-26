@@ -49,8 +49,9 @@ export default async function EmbedBookingPage({
   const priceLabel =
     chargeAmount > 0 ? formatMoney(chargeAmount, eventType.currency ?? "usd") : null;
   const offered = offeredLocations(eventType);
+  // Group events share one meeting - no per-booker location choice.
   const locationChoices =
-    offered.length > 1
+    offered.length > 1 && (eventType.maxAttendees ?? 1) <= 1
       ? offered.map((o) => ({ type: o.type, label: LOCATION_LABELS[o.type] ?? o.type }))
       : [];
 
