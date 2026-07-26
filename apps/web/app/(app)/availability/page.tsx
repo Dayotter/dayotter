@@ -1,3 +1,4 @@
+import { AvailabilityTroubleshooter } from "@/components/availability-troubleshooter";
 import { FocusDefense } from "@/components/focus-defense";
 import { OutOfOffice } from "@/components/out-of-office";
 import { PageHeader } from "@/components/page-header";
@@ -75,6 +76,7 @@ export default async function AvailabilityPage() {
       />
       <TimeBlocks />
       <OutOfOffice />
+      <AvailabilityTroubleshooter />
     </>
   );
 }

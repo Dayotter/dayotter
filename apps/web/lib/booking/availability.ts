@@ -1,7 +1,10 @@
 import {
+  type AvailabilityInput,
+  type DayDiagnosis,
   type EventConstraints,
   type Slot,
   computeAvailability,
+  explainDay,
   intersectAvailability,
 } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lte, ne, schema, sql } from "@dayotter/db";
@@ -411,6 +414,97 @@ async function groupSlotCounts(
 }
 
 /** The user ids who host an event type (owner for individual; hosts for team). */
+/**
+ * Assemble the exact {@link AvailabilityInput} the engine sees for one host on a
+ * day - schedule + every busy source (calendar, own bookings padded by the gap,
+ * focus blocks, lunch, team rules) - and run {@link explainDay} over it. Mirrors
+ * the assembly in {@link hostSlots} (the booking path is left untouched) so the
+ * troubleshooter's reasons match what bookers actually get. Returns null when the
+ * host has no schedule.
+ */
+export async function troubleshootHostDay(
+  userId: string,
+  scheduleId: string | null,
+  event: EventConstraints,
+  date: Date,
+  gapMinutes = 0,
+): Promise<DayDiagnosis | null> {
+  const db = getDb();
+  const schedule = scheduleId
+    ? await db.query.schedules.findFirst({
+        where: eq(schema.schedules.id, scheduleId),
+        with: { availabilityRules: true, dateOverrides: true },
+      })
+    : await db.query.schedules.findFirst({
+        where: and(eq(schema.schedules.userId, userId), eq(schema.schedules.isDefault, true)),
+        with: { availabilityRules: true, dateOverrides: true },
+      });
+  if (!schedule) return null;
+
+  const zone = schedule.timezone;
+  const rangeStart = DateTime.fromJSDate(date, { zone }).startOf("day").toJSDate();
+  const rangeEnd = DateTime.fromJSDate(date, { zone }).endOf("day").toJSDate();
+
+  const connections = await db.query.calendarConnections.findMany({
+    where: eq(schema.calendarConnections.userId, userId),
+    with: { calendars: true },
+  });
+  const calendarIds = connections
+    .flatMap((c) => c.calendars)
+    .filter((cal) => cal.checkForConflicts)
+    .map((cal) => cal.id);
+
+  const [busyRows, ownBookings, blocks, prefs, teamRuleRows] = await Promise.all([
+    calendarIds.length ? busyBlocksFor(calendarIds, rangeStart, rangeEnd) : Promise.resolve([]),
+    bookingsFor([userId], rangeStart, rangeEnd),
+    timeBlocksFor(userId, rangeStart, rangeEnd),
+    getDb().query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, userId),
+      columns: { lunchEnabled: true, lunchStartMinute: true, lunchEndMinute: true },
+    }),
+    teamRulesFor(userId),
+  ]);
+
+  const teamBusy = teamRuleRows.length
+    ? teamRuleIntervals(teamRuleRows, zone, rangeStart, rangeEnd)
+    : [];
+  const lunchBusy = prefs?.lunchEnabled
+    ? lunchIntervals(prefs.lunchStartMinute, prefs.lunchEndMinute, zone, rangeStart, rangeEnd)
+    : [];
+
+  const input: AvailabilityInput = {
+    schedule: {
+      timezone: zone,
+      rules: schedule.availabilityRules.map((r) => ({
+        dayOfWeek: r.dayOfWeek,
+        startTime: r.startTime,
+        endTime: r.endTime,
+      })),
+      overrides: schedule.dateOverrides.map((o) => ({
+        date: o.date,
+        startTime: o.startTime,
+        endTime: o.endTime,
+      })),
+    },
+    busy: [
+      ...busyRows.map((b) => ({ start: b.startsAt, end: b.endsAt })),
+      ...blocks.map((b) => ({ start: b.startsAt, end: b.endsAt })),
+      ...ownBookings.map((b) => ({
+        start: new Date(b.startsAt.getTime() - gapMinutes * 60_000),
+        end: new Date(b.endsAt.getTime() + gapMinutes * 60_000),
+      })),
+      ...lunchBusy,
+      ...teamBusy,
+    ],
+    event,
+    rangeStart,
+    rangeEnd,
+    now: new Date(),
+  };
+
+  return explainDay(input);
+}
+
 export async function eventTypeHostIds(eventType: EventTypeRow): Promise<string[]> {
   if (eventType.ownerId) return [eventType.ownerId];
   const hosts = await getDb().query.eventTypeHosts.findMany({
