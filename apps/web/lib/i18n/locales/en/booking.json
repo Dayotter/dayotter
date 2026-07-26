@@ -32,5 +32,6 @@
   "accessHint": "This booking page is protected.",
   "accessRequired": "Access code",
   "accessSubmit": "Continue",
-  "accessWrong": "That code isn't right."
+  "accessWrong": "That code isn't right.",
+  "location": "Location"
 }

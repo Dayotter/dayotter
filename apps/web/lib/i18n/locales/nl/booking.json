@@ -32,5 +32,6 @@
   "accessHint": "Deze boekingspagina is beveiligd.",
   "accessRequired": "Toegangscode",
   "accessSubmit": "Doorgaan",
-  "accessWrong": "Die code klopt niet."
+  "accessWrong": "Die code klopt niet.",
+  "location": "Locatie"
 }

@@ -59,6 +59,10 @@ export interface EventTypeDetail {
   description: string | null;
   location: LocationType;
   locationDetail: string | null;
+  /** Optional multi-location menu; null/absent = the single `location` above. The
+   * mobile editor only edits the primary today, but must round-trip this untouched
+   * so saving from mobile never wipes a menu set on the web. */
+  locations?: { type: LocationType; detail?: string | null }[] | null;
   bufferBeforeMinutes: number;
   bufferAfterMinutes: number;
   minimumNoticeMinutes: number;

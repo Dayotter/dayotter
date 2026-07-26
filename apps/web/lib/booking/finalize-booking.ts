@@ -49,6 +49,17 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
   const { booking, eventType, host, attendee, guests, notes, appUrl } = ctx;
   const db = getDb();
 
+  // Multi-location: honour the location the booker chose (persisted on the booking)
+  // over the event type's primary, so the right meeting link is generated and the
+  // invite carries the chosen place. Single-location / older rows have no
+  // locationType and keep the event type's own values. Every downstream reference
+  // reads eventType.location(Detail), so overriding here covers them all - including
+  // the recurring-occurrence expansion below.
+  if (booking.locationType) {
+    eventType.location = booking.locationType;
+    eventType.locationDetail = booking.location;
+  }
+
   const start = booking.startsAt;
   const end = booking.endsAt;
   const uid = booking.uid;
@@ -263,6 +274,7 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
             status: "confirmed",
             isGroup: false,
             location: eventType.locationDetail,
+            locationType: booking.locationType ?? eventType.location,
             responses: booking.responses,
             uid: randomUUID(),
             recurrenceUid,

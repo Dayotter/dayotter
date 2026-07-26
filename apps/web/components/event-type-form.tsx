@@ -50,6 +50,7 @@ export interface EventTypeInitial {
   description?: string | null;
   location?: LocationTypeValue;
   locationDetail?: string | null;
+  locations?: { type: string; detail?: string | null }[] | null;
   bufferBeforeMinutes?: number;
   bufferAfterMinutes?: number;
   minimumNoticeMinutes?: number;
@@ -100,8 +101,25 @@ export function EventTypeForm({
   const [slugTouched, setSlugTouched] = useState(mode === "edit");
   const [duration, setDuration] = useState(initial?.durationMinutes ?? 30);
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [location, setLocation] = useState<LocationTypeValue>(initial?.location ?? "google_meet");
-  const [locationDetail, setLocationDetail] = useState(initial?.locationDetail ?? "");
+  // One or more locations the booker can choose from. The first is the primary and
+  // mirrors into the single location columns server-side.
+  const [locations, setLocations] = useState<{ type: LocationTypeValue; detail: string }[]>(
+    initial?.locations && initial.locations.length > 0
+      ? initial.locations.map((l) => ({
+          type: l.type as LocationTypeValue,
+          detail: l.detail ?? "",
+        }))
+      : [{ type: initial?.location ?? "google_meet", detail: initial?.locationDetail ?? "" }],
+  );
+  const setLocationRow = (i: number, patch: Partial<{ type: LocationTypeValue; detail: string }>) =>
+    setLocations((ls) => ls.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  const addLocation = () => {
+    const used = new Set(locations.map((l) => l.type));
+    const next = LOCATION_TYPES.find((t) => !used.has(t)) ?? "custom";
+    setLocations((ls) => [...ls, { type: next, detail: "" }]);
+  };
+  const removeLocation = (i: number) =>
+    setLocations((ls) => (ls.length > 1 ? ls.filter((_, idx) => idx !== i) : ls));
   const [bufferBefore, setBufferBefore] = useState(initial?.bufferBeforeMinutes ?? 0);
   const [bufferAfter, setBufferAfter] = useState(initial?.bufferAfterMinutes ?? 0);
   const [minimumNotice, setMinimumNotice] = useState(initial?.minimumNoticeMinutes ?? 60);
@@ -173,7 +191,15 @@ export function EventTypeForm({
   // everything else is tucked away (expanded by default when editing).
   const [showMore, setShowMore] = useState(mode === "edit");
 
-  const needsDetail = NEEDS_DETAIL.includes(location);
+  // Normalized location list for submit: keep a detail only where the type needs one.
+  const cleanLocations = locations.map((l) => ({
+    type: l.type,
+    detail: NEEDS_DETAIL.includes(l.type) ? l.detail.trim() : undefined,
+  }));
+  const primaryLocation = cleanLocations[0] ?? {
+    type: "google_meet" as LocationTypeValue,
+    detail: undefined,
+  };
 
   // Load the user's named schedules so this event type can be pointed at one.
   useEffect(() => {
@@ -219,8 +245,11 @@ export function EventTypeForm({
       slug: slug || slugify(title),
       durationMinutes: duration,
       description: description || undefined,
-      location,
-      locationDetail: needsDetail ? locationDetail : undefined,
+      location: primaryLocation.type,
+      locationDetail: primaryLocation.detail,
+      // Send the full menu when there's more than one; an empty array clears any
+      // stored menu back to the single primary location.
+      locations: cleanLocations.length > 1 ? cleanLocations : [],
       bufferBeforeMinutes: bufferBefore,
       bufferAfterMinutes: bufferAfter,
       minimumNoticeMinutes: minimumNotice,
@@ -276,7 +305,8 @@ export function EventTypeForm({
     }
     track(mode === "create" ? "Event Type Created" : "Event Type Updated", {
       durationMinutes: duration,
-      location,
+      location: primaryLocation.type,
+      locationCount: cleanLocations.length,
       questionCount: questions.length,
     });
     router.push("/event-types");
@@ -399,25 +429,67 @@ export function EventTypeForm({
           </div>
 
           <div>
-            <Label htmlFor="location">Location</Label>
-            <Select
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value as LocationTypeValue)}
-            >
-              {LOCATION_TYPES.map((loc) => (
-                <option key={loc} value={loc}>
-                  {LOCATION_LABELS[loc]}
-                </option>
-              ))}
-            </Select>
-            {needsDetail ? (
-              <Input
-                className="mt-2"
-                value={locationDetail}
-                onChange={(e) => setLocationDetail(e.target.value)}
-                placeholder={LOCATION_DETAIL_PLACEHOLDER[location]}
-              />
+            <Label htmlFor="location">{locations.length > 1 ? "Locations" : "Location"}</Label>
+            {locations.length > 1 ? (
+              <p className="mt-0.5 mb-2 text-xs text-[var(--color-faint)]">
+                Bookers pick one of these when they book.
+              </p>
+            ) : null}
+            <div className="space-y-2">
+              {locations.map((row, i) => {
+                const usedElsewhere = new Set(
+                  locations.filter((_, j) => j !== i).map((l) => l.type),
+                );
+                return (
+                  <div key={i} className="rounded-md border border-[var(--color-border)] p-2">
+                    {/* rows are positional (no stable id) - index key is fine here */}
+                    <div className="flex items-center gap-2">
+                      <Select
+                        id={i === 0 ? "location" : undefined}
+                        aria-label={`Location ${i + 1}`}
+                        value={row.type}
+                        onChange={(e) =>
+                          setLocationRow(i, { type: e.target.value as LocationTypeValue })
+                        }
+                      >
+                        {LOCATION_TYPES.map((loc) => (
+                          <option key={loc} value={loc} disabled={usedElsewhere.has(loc)}>
+                            {LOCATION_LABELS[loc]}
+                          </option>
+                        ))}
+                      </Select>
+                      {locations.length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => removeLocation(i)}
+                          aria-label="Remove location"
+                          className="shrink-0 rounded-md p-2 text-[var(--color-faint)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-danger)]"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      ) : null}
+                    </div>
+                    {NEEDS_DETAIL.includes(row.type) ? (
+                      <Input
+                        className="mt-2"
+                        aria-label={`Location ${i + 1} details`}
+                        value={row.detail}
+                        onChange={(e) => setLocationRow(i, { detail: e.target.value })}
+                        placeholder={LOCATION_DETAIL_PLACEHOLDER[row.type]}
+                      />
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+            {locations.length < LOCATION_TYPES.length ? (
+              <button
+                type="button"
+                onClick={addLocation}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--color-accent)] hover:underline"
+              >
+                <Plus size={14} /> Add another location
+              </button>
             ) : null}
           </div>
 

@@ -2,7 +2,7 @@ import { EmbedBridge } from "@/components/embed-bridge";
 import { SlotPicker } from "@/components/slot-picker";
 import { aiEnabled } from "@/lib/ai/llm";
 import { brandStyle, getHostBranding } from "@/lib/booking/branding";
-import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
+import { LOCATION_LABELS, offeredLocations } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { resolveLocale, t } from "@/lib/i18n/booking";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
@@ -48,6 +48,11 @@ export default async function EmbedBookingPage({
   const chargeAmount = paymentsEnabled ? chargeFor(eventType.price, eventType.depositAmount) : 0;
   const priceLabel =
     chargeAmount > 0 ? formatMoney(chargeAmount, eventType.currency ?? "usd") : null;
+  const offered = offeredLocations(eventType);
+  const locationChoices =
+    offered.length > 1
+      ? offered.map((o) => ({ type: o.type, label: LOCATION_LABELS[o.type] ?? o.type }))
+      : [];
 
   const themeParam = typeof sp.theme === "string" ? sp.theme : "auto";
   const theme = themeParam === "dark" ? "dark" : themeParam === "light" ? "light" : "auto";
@@ -71,7 +76,10 @@ export default async function EmbedBookingPage({
                 <Clock size={14} /> {t(locale, "minutes", { n: eventType.durationMinutes })}
               </span>
               <span className="flex items-center gap-1.5">
-                <Video size={14} /> {LOCATION_LABELS[eventType.location] ?? eventType.location}
+                <Video size={14} />{" "}
+                {locationChoices.length > 1
+                  ? locationChoices.map((l) => l.label).join(" · ")
+                  : (LOCATION_LABELS[eventType.location] ?? eventType.location)}
               </span>
               {priceLabel ? <span className="font-medium">{priceLabel}</span> : null}
             </div>
@@ -88,6 +96,7 @@ export default async function EmbedBookingPage({
           defaultDuration={eventType.durationMinutes}
           durationOptions={eventType.durationOptions ?? []}
           requiresCode={eventType.accessCodeHash != null}
+          locations={locationChoices}
         />
       </LocaleProvider>
     </main>

@@ -7,7 +7,7 @@ import { aiEnabled } from "@/lib/ai/llm";
 import { getEntitlements } from "@/lib/billing/entitlements";
 import { sanitizePixelConfig } from "@/lib/booking/analytics-pixels";
 import { brandStyle, getHostBranding } from "@/lib/booking/branding";
-import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
+import { LOCATION_LABELS, offeredLocations } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { brandingHidden } from "@/lib/ee/white-label";
 import { resolveLocale, t } from "@/lib/i18n/booking";
@@ -53,6 +53,13 @@ export default async function PublicBookingPage({
   const hostToday =
     DateTime.now().setZone(host.timezone).toISODate() ?? DateTime.now().toISODate() ?? "";
   const activeOoo = hostToday ? await outOfOfficeOn(host.id, hostToday) : null;
+
+  // Locations the booker may choose from (falls back to the single location).
+  const offered = offeredLocations(eventType);
+  const locationChoices =
+    offered.length > 1
+      ? offered.map((o) => ({ type: o.type, label: LOCATION_LABELS[o.type] ?? o.type }))
+      : [];
 
   const chargeAmount = paymentsEnabled ? chargeFor(eventType.price, eventType.depositAmount) : 0;
 
@@ -124,7 +131,10 @@ export default async function PublicBookingPage({
                 <Clock size={15} /> {t(locale, "minutes", { n: eventType.durationMinutes })}
               </p>
               <p className="flex items-center gap-2">
-                <Video size={15} /> {LOCATION_LABELS[eventType.location] ?? eventType.location}
+                <Video size={15} />{" "}
+                {locationChoices.length > 1
+                  ? locationChoices.map((l) => l.label).join(" · ")
+                  : (LOCATION_LABELS[eventType.location] ?? eventType.location)}
               </p>
               {eventType.recurringCount > 1 ? (
                 <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
@@ -164,6 +174,7 @@ export default async function PublicBookingPage({
                 durationOptions={eventType.durationOptions ?? []}
                 requiresCode={eventType.accessCodeHash != null}
                 assistantEnabled={assistantEnabled}
+                locations={locationChoices}
               />
             </LocaleProvider>
           </CardBody>

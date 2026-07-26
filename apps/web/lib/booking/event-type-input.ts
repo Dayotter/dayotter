@@ -30,6 +30,59 @@ export const LOCATION_LABELS: Record<LocationTypeValue, string> = {
   custom: "Custom",
 };
 
+/** One location option offered by an event type. */
+export interface LocationOption {
+  type: LocationTypeValue;
+  detail?: string | null;
+}
+
+export const locationOptionSchema = z.object({
+  type: z.enum(LOCATION_TYPES),
+  detail: z.string().max(500).nullish(),
+});
+
+/**
+ * The list of locations a booker may choose from for an event type. When the event
+ * type has an explicit `locations` list, that is the menu; otherwise it's the single
+ * `location`/`locationDetail`. Deduped by type so a stale mirror row can't double up.
+ */
+export function offeredLocations(et: {
+  location: string;
+  locationDetail?: string | null;
+  locations?: { type: string; detail?: string | null }[] | null;
+}): LocationOption[] {
+  const raw =
+    et.locations && et.locations.length > 0
+      ? et.locations
+      : [{ type: et.location, detail: et.locationDetail ?? null }];
+  const seen = new Set<string>();
+  const out: LocationOption[] = [];
+  for (const l of raw) {
+    if (!LOCATION_TYPES.includes(l.type as LocationTypeValue) || seen.has(l.type)) continue;
+    seen.add(l.type);
+    out.push({ type: l.type as LocationTypeValue, detail: l.detail ?? null });
+  }
+  return out.length > 0 ? out : [{ type: "google_meet", detail: null }];
+}
+
+/**
+ * Resolve the booker's chosen location against what the event type actually offers.
+ * Returns the matching option, defaults to the first when none was chosen, or `null`
+ * when the booker picked a type that isn't on the menu (the caller should reject it).
+ */
+export function resolveChosenLocation(
+  et: {
+    location: string;
+    locationDetail?: string | null;
+    locations?: { type: string; detail?: string | null }[] | null;
+  },
+  chosen?: string | null,
+): LocationOption | null {
+  const offered = offeredLocations(et);
+  if (!chosen) return offered[0] ?? null;
+  return offered.find((o) => o.type === chosen) ?? null;
+}
+
 export const LOCATION_DETAIL_PLACEHOLDER: Record<LocationTypeValue, string> = {
   google_meet: "",
   ms_teams: "",
@@ -103,6 +156,12 @@ export const eventTypeInputSchema = z
     description: z.string().max(2000).optional(),
     location: z.enum(LOCATION_TYPES).default("google_meet"),
     locationDetail: z.string().max(500).optional(),
+    /**
+     * Multiple locations the booker can choose from (e.g. Zoom OR phone OR in
+     * person). null/empty = just the single `location` above. When set, the API
+     * mirrors the first entry into `location`/`locationDetail`.
+     */
+    locations: z.array(locationOptionSchema).max(6).nullable().default(null),
     bufferBeforeMinutes: z.number().int().min(0).max(240).default(0),
     bufferAfterMinutes: z.number().int().min(0).max(240).default(0),
     // 0 = no minimum; capped at 30 days.
@@ -154,6 +213,18 @@ export const eventTypeInputSchema = z
       !NEEDS_DETAIL.includes(d.location) ||
       Boolean(d.locationDetail && d.locationDetail.trim().length > 0),
     { message: "Add the details for this location type", path: ["locationDetail"] },
+  )
+  .refine(
+    (d) =>
+      !d.locations ||
+      d.locations.every(
+        (l) => !NEEDS_DETAIL.includes(l.type) || Boolean(l.detail && l.detail.trim().length > 0),
+      ),
+    { message: "Add the details for each location that needs them", path: ["locations"] },
+  )
+  .refine(
+    (d) => !d.locations || new Set(d.locations.map((l) => l.type)).size === d.locations.length,
+    { message: "Each location can only be added once", path: ["locations"] },
   );
 
 export type EventTypeInput = z.infer<typeof eventTypeInputSchema>;

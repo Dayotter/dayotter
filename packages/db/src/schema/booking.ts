@@ -10,7 +10,13 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { bookingStatus, calendarProvider, paymentStatus, timestamps } from "./_shared";
+import {
+  bookingStatus,
+  calendarProvider,
+  locationType,
+  paymentStatus,
+  timestamps,
+} from "./_shared";
 import { calendars } from "./calendar";
 import { organizations, users } from "./orgs";
 import { eventTypes } from "./scheduling";
@@ -40,6 +46,10 @@ export const bookings = pgTable(
     status: bookingStatus("status").notNull().default("confirmed"),
 
     location: text("location"),
+    /** The location TYPE the booker chose (for multi-location event types). Null on
+     * older rows / single-location events - callers fall back to the event type's
+     * own `location`. Drives which meeting link (Meet/Zoom/Jitsi) gets generated. */
+    locationType: locationType("location_type"),
     meetingUrl: text("meeting_url"),
 
     /** Answers to the event type's intake questions. */
