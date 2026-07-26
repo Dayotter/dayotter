@@ -194,7 +194,7 @@ export async function hostSlots(
     .filter((cal) => cal.checkForConflicts)
     .map((cal) => cal.id);
 
-  const [busyRows, existingBookings, blocks, prefs, teamRuleRows] = await Promise.all([
+  const [busyRows, existingBookings, blocks, prefs, teamRuleRows, oooRows] = await Promise.all([
     calendarIds.length ? busyBlocksFor(calendarIds, rangeStart, rangeEnd) : Promise.resolve([]),
     bookingsFor([userId], rangeStart, rangeEnd, excludeBookingId, ignoreGroupEventTypeId),
     timeBlocksFor(userId, rangeStart, rangeEnd),
@@ -209,6 +209,7 @@ export async function hostSlots(
       },
     }),
     teamRulesFor(userId),
+    outOfOfficeFor(userId, rangeStart, rangeEnd),
   ]);
 
   const ownBookings = existingBookings.filter((b) => b.hostId === userId);
@@ -217,6 +218,8 @@ export async function hostSlots(
   const teamBusy = teamRuleRows.length
     ? teamRuleIntervals(teamRuleRows, schedule.timezone, rangeStart, rangeEnd)
     : [];
+  // First-class out-of-office periods fully block their local days.
+  const oooBusy = oooRows.length ? oooIntervals(oooRows, schedule.timezone) : [];
   // A daily lunch break blocks time like any other busy interval.
   const lunchBusy = prefs?.lunchEnabled
     ? lunchIntervals(
@@ -255,6 +258,8 @@ export async function hostSlots(
       ...lunchBusy,
       // Team holidays / meeting-free windows.
       ...teamBusy,
+      // First-class out-of-office days.
+      ...oooBusy,
     ],
     event,
     rangeStart,
@@ -307,6 +312,39 @@ function teamRulesFor(userId: string): Promise<TeamRule[]> {
     .from(schema.teamRules)
     .innerJoin(schema.teamMembers, eq(schema.teamRules.teamId, schema.teamMembers.teamId))
     .where(eq(schema.teamMembers.userId, userId));
+}
+
+/**
+ * First-class out-of-office periods overlapping the window, expanded into busy
+ * intervals that cover each period's full local days in `timezone` (DST-correct):
+ * a period [Mar 3, Mar 5] blocks 00:00 Mar 3 through 24:00 Mar 5 wall-clock. This
+ * is distinct from all-day OOO events synced from the external calendar - those
+ * arrive as ordinary busy_blocks. Pure given its rows, so easy to reason about.
+ */
+export function oooIntervals(
+  rows: { startDate: string; endDate: string }[],
+  timezone: string,
+): { start: Date; end: Date }[] {
+  return rows.map((r) => ({
+    start: DateTime.fromISO(r.startDate, { zone: timezone }).startOf("day").toJSDate(),
+    end: DateTime.fromISO(r.endDate, { zone: timezone }).endOf("day").toJSDate(),
+  }));
+}
+
+/** OOO periods that OVERLAP [rangeStart, rangeEnd] for a user. Compared on the
+ * date columns using the window's date bounds (a day of slack each side keeps a
+ * period whose local day straddles the UTC range edge - the tz math is exact). */
+function outOfOfficeFor(userId: string, rangeStart: Date, rangeEnd: Date) {
+  const from = DateTime.fromJSDate(rangeStart).minus({ days: 1 }).toISODate() ?? "1970-01-01";
+  const to = DateTime.fromJSDate(rangeEnd).plus({ days: 1 }).toISODate() ?? "9999-12-31";
+  return getDb().query.outOfOfficePeriods.findMany({
+    where: and(
+      eq(schema.outOfOfficePeriods.userId, userId),
+      lte(schema.outOfOfficePeriods.startDate, to),
+      gte(schema.outOfOfficePeriods.endDate, from),
+    ),
+    columns: { startDate: true, endDate: true },
+  });
 }
 
 /** Busy blocks that OVERLAP the window (not just those that start inside it - a

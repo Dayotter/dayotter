@@ -1,4 +1,5 @@
 import { FocusDefense } from "@/components/focus-defense";
+import { OutOfOffice } from "@/components/out-of-office";
 import { PageHeader } from "@/components/page-header";
 import { SchedulesManager } from "@/components/schedules-manager";
 import { TimeBlocks } from "@/components/time-blocks";
@@ -73,6 +74,7 @@ export default async function AvailabilityPage() {
         initialDetail={{ timezone: detail?.timezone ?? "UTC", days, overrides }}
       />
       <TimeBlocks />
+      <OutOfOffice />
     </>
   );
 }
