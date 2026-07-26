@@ -31,6 +31,7 @@ export const locationType = pgEnum("location_type", [
   "google_meet",
   "zoom",
   "ms_teams",
+  "jitsi",
   "phone",
   "in_person",
   "custom",
