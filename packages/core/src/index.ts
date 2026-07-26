@@ -1,5 +1,6 @@
 export * from "./availability/types";
 export { computeAvailability, intersectAvailability } from "./availability/engine";
+export { explainDay, type DayDiagnosis, type DayWindow } from "./availability/troubleshoot";
 export {
   encrypt,
   decrypt,

@@ -5,3 +5,4 @@
 export * from "./types";
 export { computeAvailability, intersectAvailability } from "./engine";
 export { roundRobinPick, type RoundRobinCandidate } from "../round-robin";
+export { explainDay, type DayDiagnosis, type DayWindow } from "./troubleshoot";
