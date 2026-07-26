@@ -175,6 +175,13 @@ export async function createBooking(
   const capacity = eventType.maxAttendees ?? 1;
   const isGroup = capacity > 1 && Boolean(eventType.ownerId);
 
+  // A group event is ONE shared meeting, so every attendee gets the event's primary
+  // location - a per-booker choice would put mismatched locations on one meeting.
+  // (The booking page hides the picker for groups; this enforces it server-side.)
+  const finalLocation = isGroup
+    ? (resolveChosenLocation(eventType, null) ?? chosenLocation)
+    : chosenLocation;
+
   // Re-validate server-side (the picker may be stale / manipulated). Compute the
   // per-host slots once (for the chosen duration) and reuse them for the check
   // and host resolution.
@@ -441,8 +448,8 @@ export async function createBooking(
           timezone: input.attendee.timezone,
           status: initialStatus,
           isGroup,
-          location: chosenLocation.detail ?? null,
-          locationType: chosenLocation.type,
+          location: finalLocation.detail ?? null,
+          locationType: finalLocation.type,
           responses: input.responses,
           uid,
           recurrenceUid,
@@ -498,7 +505,7 @@ export async function createBooking(
           timezone: input.attendee.timezone,
           hostName: host.name ?? "your host",
           attendeeName: input.attendee.name,
-          location: chosenLocation.detail ?? undefined,
+          location: finalLocation.detail ?? undefined,
           manageUrl: attendeeManageUrl,
         }),
         to: input.attendee.email,
@@ -521,7 +528,7 @@ export async function createBooking(
             timezone: host.timezone,
             hostName: host.name ?? "you",
             attendeeName: input.attendee.name,
-            location: chosenLocation.detail ?? undefined,
+            location: finalLocation.detail ?? undefined,
             manageUrl: hostReviewUrl,
           }),
           to: host.email,

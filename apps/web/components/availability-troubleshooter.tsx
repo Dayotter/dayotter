@@ -151,7 +151,7 @@ export function AvailabilityTroubleshooter() {
                 <dd className="text-[var(--color-text)]">{result.blockedByBusy}</dd>
               </div>
               <div>
-                <dt>Inside min-notice</dt>
+                <dt>Notice / booking window</dt>
                 <dd className="text-[var(--color-text)]">{result.blockedByNoticeOrRange}</dd>
               </div>
             </dl>

@@ -49,6 +49,14 @@ export async function rescheduleBooking(
   });
   if (!eventType) throw new RescheduleError("Event type not found", 404);
 
+  // Honor the location the booker chose (persisted on the booking) over the event
+  // type's primary - mirrors finalizeConfirmedBooking - so a reschedule keeps the
+  // booker's chosen meeting type/link instead of silently resetting to the default.
+  if (booking.locationType) {
+    eventType.location = booking.locationType;
+    eventType.locationDetail = booking.location;
+  }
+
   const newStart = new Date(newStartISO);
   if (Number.isNaN(newStart.getTime())) throw new RescheduleError("Invalid time", 400);
   // Preserve the booking's ACTUAL length (multi-duration event types), not the

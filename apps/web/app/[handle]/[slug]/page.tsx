@@ -55,9 +55,10 @@ export default async function PublicBookingPage({
   const activeOoo = hostToday ? await outOfOfficeOn(host.id, hostToday) : null;
 
   // Locations the booker may choose from (falls back to the single location).
+  // A group event is one shared meeting, so no per-booker choice - use the primary.
   const offered = offeredLocations(eventType);
   const locationChoices =
-    offered.length > 1
+    offered.length > 1 && (eventType.maxAttendees ?? 1) <= 1
       ? offered.map((o) => ({ type: o.type, label: LOCATION_LABELS[o.type] ?? o.type }))
       : [];
 

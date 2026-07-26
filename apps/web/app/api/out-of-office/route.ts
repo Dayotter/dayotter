@@ -1,6 +1,6 @@
 import { isValidDelegate, listOutOfOffice, listTeammates } from "@/lib/out-of-office";
 import { jsonError, withUser } from "@/lib/server/http";
-import { getDb, schema } from "@dayotter/db";
+import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -30,6 +30,17 @@ export const POST = withUser(async (u, request) => {
   }
   const d = parsed.data;
   if (d.endDate < d.startDate) return jsonError("End date must be on or after start date", 400);
+
+  // Cap how many periods one user can hold, so a runaway client can't fill the
+  // table (each row is scanned on every availability computation for that user).
+  const existing = await getDb().query.outOfOfficePeriods.findMany({
+    where: eq(schema.outOfOfficePeriods.userId, u.id),
+    columns: { id: true },
+    limit: 200,
+  });
+  if (existing.length >= 100) {
+    return jsonError("You've reached the maximum number of out-of-office periods (100)", 400);
+  }
 
   // A delegate must be a real teammate - never let an arbitrary user id through.
   if (d.delegateUserId && !(await isValidDelegate(u.id, d.delegateUserId))) {
