@@ -225,11 +225,22 @@ export async function createBooking(
       const capApplies =
         eventType.dailyBookingLimit != null ||
         eventType.weeklyBookingLimit != null ||
+        eventType.monthlyBookingLimit != null ||
+        eventType.yearlyBookingLimit != null ||
         (!isGroup && Boolean(focusPrefs?.adaptiveAvailability));
       if (capApplies) {
         const zone = host.timezone || "UTC";
-        const weekKey = DateTime.fromJSDate(start).setZone(zone).startOf("week").toISODate();
-        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`${host.id}:${weekKey}`}))`);
+        const at = DateTime.fromJSDate(start).setZone(zone);
+        // Serialize on the COARSEST active window, so every finer cap (a subset of
+        // it - day ⊂ week ⊂ month ⊂ year) is race-safe under the same lock.
+        // Different periods never block each other.
+        const lockKey =
+          eventType.yearlyBookingLimit != null
+            ? `y:${at.year}`
+            : eventType.monthlyBookingLimit != null
+              ? `m:${at.year}-${at.month}`
+              : `w:${at.startOf("week").toISODate()}`;
+        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`${host.id}:${lockKey}`}))`);
       }
 
       // Daily cap: count this event type's confirmed bookings on the same
@@ -305,6 +316,50 @@ export async function createBooking(
           );
         if (count >= eventType.weeklyBookingLimit) {
           throw new BookingError("This week is fully booked. Please pick another week.", 409);
+        }
+      }
+
+      // Monthly cap: over the host-local calendar month containing the slot.
+      if (eventType.monthlyBookingLimit != null) {
+        const zone = host.timezone || "UTC";
+        const m = DateTime.fromJSDate(start).setZone(zone);
+        const monthStart = m.startOf("month").toJSDate();
+        const nextMonth = m.startOf("month").plus({ months: 1 }).toJSDate();
+        const [{ count } = { count: 0 }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.bookings)
+          .where(
+            and(
+              eq(schema.bookings.eventTypeId, eventType.id),
+              inArray(schema.bookings.status, ["confirmed", "pending"]),
+              gte(schema.bookings.startsAt, monthStart),
+              lt(schema.bookings.startsAt, nextMonth),
+            ),
+          );
+        if (count >= eventType.monthlyBookingLimit) {
+          throw new BookingError("This month is fully booked. Please pick another month.", 409);
+        }
+      }
+
+      // Yearly cap: over the host-local calendar year.
+      if (eventType.yearlyBookingLimit != null) {
+        const zone = host.timezone || "UTC";
+        const y = DateTime.fromJSDate(start).setZone(zone);
+        const yearStart = y.startOf("year").toJSDate();
+        const nextYear = y.startOf("year").plus({ years: 1 }).toJSDate();
+        const [{ count } = { count: 0 }] = await tx
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.bookings)
+          .where(
+            and(
+              eq(schema.bookings.eventTypeId, eventType.id),
+              inArray(schema.bookings.status, ["confirmed", "pending"]),
+              gte(schema.bookings.startsAt, yearStart),
+              lt(schema.bookings.startsAt, nextYear),
+            ),
+          );
+        if (count >= eventType.yearlyBookingLimit) {
+          throw new BookingError("This year is fully booked. Please pick another time.", 409);
         }
       }
 

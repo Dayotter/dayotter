@@ -54,6 +54,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       bookingWindowDays: et.bookingWindowDays,
       dailyBookingLimit: et.dailyBookingLimit,
       weeklyBookingLimit: et.weeklyBookingLimit,
+      monthlyBookingLimit: et.monthlyBookingLimit,
+      yearlyBookingLimit: et.yearlyBookingLimit,
       maxAttendees: et.maxAttendees,
       // Never leak the hash - only whether a code is required.
       hasAccessCode: et.accessCodeHash != null,
@@ -157,6 +159,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           "weeklyBookingLimit",
           d.weeklyBookingLimit,
           existing.weeklyBookingLimit,
+        ),
+        monthlyBookingLimit: pick(
+          "monthlyBookingLimit",
+          d.monthlyBookingLimit,
+          existing.monthlyBookingLimit,
+        ),
+        yearlyBookingLimit: pick(
+          "yearlyBookingLimit",
+          d.yearlyBookingLimit,
+          existing.yearlyBookingLimit,
         ),
         maxAttendees: pick("maxAttendees", d.maxAttendees, existing.maxAttendees),
         recurringCount: pick("recurringCount", d.recurringCount, existing.recurringCount),
