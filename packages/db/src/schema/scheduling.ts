@@ -101,6 +101,34 @@ export const timeBlocks = pgTable(
 );
 
 /**
+ * A first-class out-of-office period the user sets in-app - distinct from all-day
+ * OOO events synced from an external calendar (which we already respect). Fully
+ * blocks the user's own availability across the date range, and optionally names a
+ * delegate teammate that the public booking page redirects new bookers to while
+ * they're away. Dates are inclusive and interpreted in the user's default schedule
+ * timezone.
+ */
+export const outOfOfficePeriods = pgTable(
+  "out_of_office_periods",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    startDate: date("start_date").notNull(),
+    endDate: date("end_date").notNull(),
+    reason: text("reason"),
+    /** Optional teammate to redirect new bookings to while away. Nulls out (rather
+     * than cascade-deleting the period) if the delegate's account is removed. */
+    delegateUserId: uuid("delegate_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (t) => [index("ooo_user_idx").on(t.userId, t.startDate)],
+);
+
+/**
  * Automation rule (Automation Engine): when a booking matches, automatically
  * take an action - e.g. "every interview → 15-min prep block before". Composes
  * the Planning Engine (creates time_blocks). trigger is currently booking-created.

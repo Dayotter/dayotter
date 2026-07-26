@@ -12,9 +12,11 @@ import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { brandingHidden } from "@/lib/ee/white-label";
 import { resolveLocale, t } from "@/lib/i18n/booking";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
+import { outOfOfficeOn } from "@/lib/out-of-office";
 import { paymentsEnabled } from "@/lib/payments/stripe";
 import { and, eq, getDb, schema } from "@dayotter/db";
-import { Clock, CreditCard, Repeat, Video } from "lucide-react";
+import { ArrowRight, Clock, CreditCard, Repeat, TreePalm, Video } from "lucide-react";
+import { DateTime } from "luxon";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -46,6 +48,12 @@ export default async function PublicBookingPage({
   const branding = await getHostBranding(host.id);
   const locale = resolveLocale((await headers()).get("accept-language"));
 
+  // If the host is out of office right now (their local "today"), surface it and,
+  // when they've named a delegate, offer to redirect the booker to that teammate.
+  const hostToday =
+    DateTime.now().setZone(host.timezone).toISODate() ?? DateTime.now().toISODate() ?? "";
+  const activeOoo = hostToday ? await outOfOfficeOn(host.id, hostToday) : null;
+
   const chargeAmount = paymentsEnabled ? chargeFor(eventType.price, eventType.depositAmount) : 0;
 
   // Booking-page AI helper: on when AI is configured and the host hasn't opted out.
@@ -70,6 +78,30 @@ export default async function PublicBookingPage({
     >
       <ViewTracker eventTypeId={eventType.id} />
       <BookingPixels config={pixels} />
+      {activeOoo ? (
+        <div className="mb-4 flex items-start gap-3 rounded-lg border border-[var(--color-amber)]/40 bg-[var(--color-surface-2)] px-4 py-3 text-sm">
+          <TreePalm size={17} className="mt-0.5 shrink-0 text-[var(--color-amber)]" />
+          <div className="min-w-0">
+            <p className="font-medium">
+              {host.name ?? host.handle} is out of office through{" "}
+              {DateTime.fromISO(activeOoo.endDate).toFormat("LLL d, yyyy")}.
+            </p>
+            {activeOoo.delegate?.handle ? (
+              <a
+                href={`/${activeOoo.delegate.handle}`}
+                className="mt-1 inline-flex items-center gap-1 font-medium text-[var(--color-accent)] hover:underline"
+              >
+                Book with {activeOoo.delegate.name ?? `@${activeOoo.delegate.handle}`} instead
+                <ArrowRight size={14} />
+              </a>
+            ) : (
+              <p className="mt-0.5 text-[var(--color-muted)]">
+                You can still book a time once they're back.
+              </p>
+            )}
+          </div>
+        </div>
+      ) : null}
       <Card>
         <div className="grid gap-0 md:grid-cols-[280px_1fr]">
           {/* Event details */}
