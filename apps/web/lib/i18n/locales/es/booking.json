@@ -32,5 +32,6 @@
   "accessHint": "Esta página de reserva está protegida.",
   "accessRequired": "Código de acceso",
   "accessSubmit": "Continuar",
-  "accessWrong": "Ese código no es correcto."
+  "accessWrong": "Ese código no es correcto.",
+  "location": "Ubicación"
 }

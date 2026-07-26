@@ -32,5 +32,6 @@
   "accessHint": "Esta página de agendamento é protegida.",
   "accessRequired": "Código de acesso",
   "accessSubmit": "Continuar",
-  "accessWrong": "Esse código não está correto."
+  "accessWrong": "Esse código não está correto.",
+  "location": "Local"
 }

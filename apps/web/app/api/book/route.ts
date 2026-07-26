@@ -32,6 +32,8 @@ const schema = z.object({
     .refine((r) => Object.keys(r).length <= 50, { message: "Too many responses" })
     .optional(),
   durationMinutes: z.number().int().min(5).max(1440).optional(),
+  /** Chosen location type for multi-location event types (validated server-side). */
+  location: z.string().max(32).nullish(),
   captchaToken: z.string().max(4000).optional(),
   /** Single-use booking-link token, if the booker came through one. */
   linkToken: z.string().max(64).optional(),
@@ -74,6 +76,7 @@ export async function POST(request: Request) {
     notes: parsed.data.notes,
     responses: parsed.data.responses,
     durationMinutes: parsed.data.durationMinutes,
+    location: parsed.data.location ?? undefined,
     linkToken: parsed.data.linkToken,
     accessCode: parsed.data.accessCode,
   };

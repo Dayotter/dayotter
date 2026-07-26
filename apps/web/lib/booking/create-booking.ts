@@ -11,6 +11,7 @@ import {
   isAllowedDuration,
 } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
+import { resolveChosenLocation } from "./event-type-input";
 import { finalizeConfirmedBooking } from "./finalize-booking";
 
 export { BookingError } from "./booking-logic";
@@ -107,6 +108,9 @@ export interface CreateBookingInput {
   responses?: Record<string, unknown>;
   /** The booker's chosen duration for multi-duration event types (minutes). */
   durationMinutes?: number;
+  /** The booker's chosen location type for multi-location event types. Must be one
+   * the event type offers; falls back to the primary location when omitted. */
+  location?: string;
   /** Single-use booking-link token to consume atomically with the booking. */
   linkToken?: string;
   /** Access code, required when the event type is password-protected. */
@@ -134,6 +138,15 @@ export async function createBooking(
   });
   if (!eventType || !eventType.isActive) {
     throw new BookingError("Event type not found", 404);
+  }
+
+  // Resolve the booker's chosen location against the event type's menu. This is the
+  // source of truth persisted on the booking (see the insert below) so it survives
+  // the pending -> approval gap for opt-in bookings; finalizeConfirmedBooking reads
+  // it back to generate the right meeting link.
+  const chosenLocation = resolveChosenLocation(eventType, input.location);
+  if (!chosenLocation) {
+    throw new BookingError("That location isn't available for this event type", 400);
   }
 
   // Password-protected event type: require a matching access code before booking.
@@ -428,7 +441,8 @@ export async function createBooking(
           timezone: input.attendee.timezone,
           status: initialStatus,
           isGroup,
-          location: eventType.locationDetail,
+          location: chosenLocation.detail ?? null,
+          locationType: chosenLocation.type,
           responses: input.responses,
           uid,
           recurrenceUid,
@@ -484,7 +498,7 @@ export async function createBooking(
           timezone: input.attendee.timezone,
           hostName: host.name ?? "your host",
           attendeeName: input.attendee.name,
-          location: eventType.locationDetail ?? undefined,
+          location: chosenLocation.detail ?? undefined,
           manageUrl: attendeeManageUrl,
         }),
         to: input.attendee.email,
@@ -507,7 +521,7 @@ export async function createBooking(
             timezone: host.timezone,
             hostName: host.name ?? "you",
             attendeeName: input.attendee.name,
-            location: eventType.locationDetail ?? undefined,
+            location: chosenLocation.detail ?? undefined,
             manageUrl: hostReviewUrl,
           }),
           to: host.email,

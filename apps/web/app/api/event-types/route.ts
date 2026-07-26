@@ -65,8 +65,11 @@ export async function POST(request: Request) {
         slug: d.slug,
         durationMinutes: d.durationMinutes,
         description: d.description,
-        location: d.location,
-        locationDetail: d.locationDetail,
+        // Multi-location: the first entry mirrors into the single columns so every
+        // single-location consumer (calendar write, mobile, legacy) keeps working.
+        location: d.locations?.length ? d.locations[0]!.type : d.location,
+        locationDetail: d.locations?.length ? (d.locations[0]!.detail ?? null) : d.locationDetail,
+        locations: d.locations?.length ? d.locations : null,
         bufferBeforeMinutes: d.bufferBeforeMinutes,
         bufferAfterMinutes: d.bufferAfterMinutes,
         minimumNoticeMinutes: d.minimumNoticeMinutes,

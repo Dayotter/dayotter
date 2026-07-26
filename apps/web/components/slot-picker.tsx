@@ -25,6 +25,7 @@ export function SlotPicker({
   linkToken,
   requiresCode = false,
   assistantEnabled = false,
+  locations = [],
   embed = false,
 }: {
   eventTypeId: string;
@@ -32,6 +33,8 @@ export function SlotPicker({
   priceLabel?: string | null;
   defaultDuration: number;
   durationOptions?: number[];
+  /** Locations the booker can choose from. 0 or 1 = no picker (single location). */
+  locations?: { type: string; label: string }[];
   /** When booking through a single-use link, carried so the server consumes it. */
   linkToken?: string;
   /** Event type is password-protected - gate the flow behind an access code. */
@@ -47,6 +50,7 @@ export function SlotPicker({
   const hasDurations = durationOptions.length > 0;
   const [accessCode, setAccessCode] = useState<string | null>(requiresCode ? null : "");
   const [duration, setDuration] = useState(defaultDuration);
+  const [chosenLocation, setChosenLocation] = useState(locations[0]?.type ?? "");
   const [selected, setSelected] = useState<Slot | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -98,6 +102,7 @@ export function SlotPicker({
         notes: notes || undefined,
         responses: questions.length ? answers : undefined,
         durationMinutes: hasDurations ? duration : undefined,
+        location: locations.length > 1 ? chosenLocation : undefined,
         captchaToken: captchaToken || undefined,
         linkToken: linkToken || undefined,
         accessCode: accessCode || undefined,
@@ -193,6 +198,22 @@ export function SlotPicker({
         <span className="text-[var(--color-muted)]"> · {zone}</span>
       </div>
       <div className="space-y-4">
+        {locations.length > 1 ? (
+          <div>
+            <Label htmlFor="b-location">{t(locale, "location")}</Label>
+            <Select
+              id="b-location"
+              value={chosenLocation}
+              onChange={(e) => setChosenLocation(e.target.value)}
+            >
+              {locations.map((l) => (
+                <option key={l.type} value={l.type}>
+                  {l.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
         <div>
           <Label htmlFor="b-name">{t(locale, "yourName")}</Label>
           <Input

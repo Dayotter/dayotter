@@ -184,6 +184,13 @@ export const eventTypes = pgTable(
     schedulingType: schedulingType("scheduling_type").notNull().default("individual"),
     location: locationType("location").notNull().default("google_meet"),
     locationDetail: text("location_detail"),
+    /**
+     * Optional list of locations the booker can choose from (e.g. Zoom OR phone OR
+     * in person). null/empty = the single `location`/`locationDetail` above is the
+     * only option. When set, `location`/`locationDetail` mirror the first entry so
+     * every single-location consumer keeps working unchanged.
+     */
+    locations: jsonb("locations").$type<{ type: string; detail?: string | null }[]>(),
 
     // Availability controls
     bufferBeforeMinutes: integer("buffer_before_minutes").notNull().default(0),

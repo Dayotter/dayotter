@@ -44,6 +44,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       description: et.description,
       location: et.location,
       locationDetail: et.locationDetail,
+      locations: et.locations,
       bufferBeforeMinutes: et.bufferBeforeMinutes,
       bufferAfterMinutes: et.bufferAfterMinutes,
       minimumNoticeMinutes: et.minimumNoticeMinutes,
@@ -112,8 +113,23 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         slug: d.slug,
         durationMinutes: d.durationMinutes,
         description: pick("description", d.description ?? null, existing.description),
-        location: d.location,
-        locationDetail: pick("locationDetail", d.locationDetail ?? null, existing.locationDetail),
+        // Location: a non-empty `locations` list drives everything (first entry
+        // mirrors into the single columns); sending `locations: []` clears the menu
+        // back to a single location; omitting `locations` preserves the stored menu
+        // while single-column edits still apply.
+        location:
+          has("locations") && d.locations?.length
+            ? d.locations[0]!.type
+            : pick("location", d.location, existing.location),
+        locationDetail:
+          has("locations") && d.locations?.length
+            ? (d.locations[0]!.detail ?? null)
+            : pick("locationDetail", d.locationDetail ?? null, existing.locationDetail),
+        locations: has("locations")
+          ? d.locations?.length
+            ? d.locations
+            : null
+          : existing.locations,
         bufferBeforeMinutes: pick(
           "bufferBeforeMinutes",
           d.bufferBeforeMinutes,

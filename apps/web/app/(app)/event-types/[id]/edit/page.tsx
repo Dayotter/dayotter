@@ -34,6 +34,7 @@ export default async function EditEventTypePage({
           description: eventType.description,
           location: eventType.location,
           locationDetail: eventType.locationDetail,
+          locations: eventType.locations,
           bufferBeforeMinutes: eventType.bufferBeforeMinutes,
           bufferAfterMinutes: eventType.bufferAfterMinutes,
           minimumNoticeMinutes: eventType.minimumNoticeMinutes,

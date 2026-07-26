@@ -32,5 +32,6 @@
   "accessHint": "Diese Buchungsseite ist geschützt.",
   "accessRequired": "Zugangscode",
   "accessSubmit": "Weiter",
-  "accessWrong": "Dieser Code stimmt nicht."
+  "accessWrong": "Dieser Code stimmt nicht.",
+  "location": "Ort"
 }
