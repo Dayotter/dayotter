@@ -1,9 +1,11 @@
+import { BookingPixels } from "@/components/booking-pixels";
 import { HostAvatar } from "@/components/host-avatar";
 import { SlotPicker } from "@/components/slot-picker";
 import { Card, CardBody } from "@/components/ui/card";
 import { ViewTracker } from "@/components/view-tracker";
 import { aiEnabled } from "@/lib/ai/llm";
 import { getEntitlements } from "@/lib/billing/entitlements";
+import { sanitizePixelConfig } from "@/lib/booking/analytics-pixels";
 import { brandStyle, getHostBranding } from "@/lib/booking/branding";
 import { LOCATION_LABELS } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
@@ -49,9 +51,10 @@ export default async function PublicBookingPage({
   // Booking-page AI helper: on when AI is configured and the host hasn't opted out.
   const hostPrefs = await db.query.userPreferences.findFirst({
     where: eq(schema.userPreferences.userId, host.id),
-    columns: { bookingPageAssistant: true },
+    columns: { bookingPageAssistant: true, bookingPageAnalytics: true },
   });
   const assistantEnabled = aiEnabled && hostPrefs?.bookingPageAssistant !== false;
+  const pixels = sanitizePixelConfig(hostPrefs?.bookingPageAnalytics ?? null);
   const priceLabel =
     chargeAmount > 0 ? formatMoney(chargeAmount, eventType.currency ?? "usd") : null;
   const isDeposit =
@@ -66,6 +69,7 @@ export default async function PublicBookingPage({
       className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12"
     >
       <ViewTracker eventTypeId={eventType.id} />
+      <BookingPixels config={pixels} />
       <Card>
         <div className="grid gap-0 md:grid-cols-[280px_1fr]">
           {/* Event details */}

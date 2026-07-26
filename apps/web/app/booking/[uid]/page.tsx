@@ -1,5 +1,7 @@
+import { BookingPixels } from "@/components/booking-pixels";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
+import { getHostPixels } from "@/lib/booking/branding";
 import { googleCalendarUrl } from "@/lib/booking/ics";
 import { formatMoney } from "@/lib/booking/money";
 import { eq, getDb, schema } from "@dayotter/db";
@@ -47,8 +49,12 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
     .toFormat("cccc, LLLL d, yyyy");
   const time = `${DateTime.fromJSDate(booking.startsAt).setZone(booking.timezone).toFormat("h:mm a")} – ${DateTime.fromJSDate(booking.endsAt).setZone(booking.timezone).toFormat("h:mm a")}`;
 
+  const pixels = await getHostPixels(booking.hostId);
+
   return (
     <main className="mx-auto max-w-lg px-4 py-12 sm:py-16">
+      {/* Fire the host's analytics conversion event once the booking is confirmed. */}
+      <BookingPixels config={pixels} trackBooking={confirmed} />
       <Card>
         <CardBody className="p-6 sm:p-8">
           <div className="flex flex-col items-center text-center">

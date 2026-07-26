@@ -33,6 +33,7 @@ export function ProfileForm({
     handle: string;
     brandColor?: string | null;
     welcomeMessage?: string;
+    bookingPageAnalytics?: Record<string, string> | null;
   };
 }) {
   const router = useRouter();
@@ -48,6 +49,8 @@ export function ProfileForm({
   const [handle, setHandle] = useState(initial.handle);
   const [brandColor, setBrandColor] = useState<string | null>(initial.brandColor ?? null);
   const [welcomeMessage, setWelcomeMessage] = useState(initial.welcomeMessage ?? "");
+  const [pixels, setPixels] = useState<Record<string, string>>(initial.bookingPageAnalytics ?? {});
+  const setPixel = (key: string, value: string) => setPixels((p) => ({ ...p, [key]: value }));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +69,7 @@ export function ProfileForm({
         handle,
         brandColor,
         welcomeMessage: welcomeMessage.trim() || null,
+        bookingPageAnalytics: pixels,
       }),
     });
     setSaving(false);
@@ -193,6 +197,40 @@ export function ProfileForm({
                     className="h-4 w-4 cursor-pointer border-0 bg-transparent p-0"
                   />
                 </label>
+              </div>
+            </div>
+
+            {/* Booking-page analytics: typed provider IDs only (validated + sanitized
+                server-side), never raw <script> snippets. */}
+            <div className="mt-5 border-t border-[var(--color-border)] pt-4">
+              <p className="mb-1 text-sm font-medium">Analytics</p>
+              <p className="mb-3 text-xs text-[var(--color-faint)]">
+                Fire your own analytics on the public booking page. Paste each provider's ID - not a
+                script snippet.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(
+                  [
+                    { key: "ga4", label: "Google Analytics 4", ph: "G-XXXXXXX" },
+                    { key: "gtm", label: "Google Tag Manager", ph: "GTM-XXXXXX" },
+                    { key: "metaPixel", label: "Meta Pixel ID", ph: "123456789012345" },
+                    { key: "fathom", label: "Fathom site ID", ph: "ABCDEFGH" },
+                    { key: "plausible", label: "Plausible domain", ph: "book.acme.com" },
+                  ] as const
+                ).map((f) => (
+                  <div key={f.key}>
+                    <Label htmlFor={`px-${f.key}`}>{f.label}</Label>
+                    <Input
+                      id={`px-${f.key}`}
+                      value={pixels[f.key] ?? ""}
+                      onChange={(e) => {
+                        setPixel(f.key, e.target.value);
+                        setSaved(false);
+                      }}
+                      placeholder={f.ph}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>

@@ -74,6 +74,9 @@ export const userPreferences = pgTable(
     brandColor: text("brand_color"),
     /** Short welcome / bio shown on the public profile + booking pages. */
     welcomeMessage: text("welcome_message"),
+    /** Booking-page analytics pixels (typed provider IDs only - see
+     * lib/booking/analytics-pixels). e.g. { ga4, gtm, metaPixel, fathom, plausible }. */
+    bookingPageAnalytics: jsonb("booking_page_analytics").$type<Record<string, string>>(),
 
     /** Encrypted JSON for sensitive / evolving preferences. */
     encryptedData: text("encrypted_data"),

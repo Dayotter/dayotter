@@ -1,3 +1,4 @@
+import { sanitizePixelConfig } from "@/lib/booking/analytics-pixels";
 import { jsonError, withUser } from "@/lib/server/http";
 import { and, eq, getDb, ne, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
@@ -51,6 +52,9 @@ const bodySchema = z.object({
     .nullable()
     .optional(),
   welcomeMessage: z.string().max(280).nullable().optional(),
+  /** Booking-page analytics pixels: raw map of provider → ID; sanitized below so
+   *  only well-formed IDs (never script snippets) are ever persisted. */
+  bookingPageAnalytics: z.record(z.string(), z.string()).optional(),
 });
 
 export const PATCH = withUser(async (u, request) => {
@@ -58,7 +62,7 @@ export const PATCH = withUser(async (u, request) => {
   if (!parsed.success) {
     return jsonError(parsed.error.issues[0]?.message ?? "Check the highlighted fields", 400);
   }
-  const { name, timezone, handle, brandColor, welcomeMessage } = parsed.data;
+  const { name, timezone, handle, brandColor, welcomeMessage, bookingPageAnalytics } = parsed.data;
 
   if (RESERVED_HANDLES.has(handle)) {
     return jsonError("That handle is reserved. Try another.", 409);
@@ -73,16 +77,23 @@ export const PATCH = withUser(async (u, request) => {
 
   await db.update(schema.users).set({ name, timezone, handle }).where(eq(schema.users.id, u.id));
 
-  // Persist booking-page branding onto the prefs row (upsert; only when provided).
-  if (brandColor !== undefined || welcomeMessage !== undefined) {
-    const branding = {
-      ...(brandColor !== undefined ? { brandColor: brandColor || null } : {}),
-      ...(welcomeMessage !== undefined ? { welcomeMessage: welcomeMessage?.trim() || null } : {}),
-    };
+  // Persist booking-page branding + analytics onto the prefs row (upsert; only
+  // the fields that were provided). Analytics IDs are sanitized so a stored value
+  // can never be a script snippet.
+  const prefsUpdate = {
+    ...(brandColor !== undefined ? { brandColor: brandColor || null } : {}),
+    ...(welcomeMessage !== undefined ? { welcomeMessage: welcomeMessage?.trim() || null } : {}),
+    ...(bookingPageAnalytics !== undefined
+      ? {
+          bookingPageAnalytics: sanitizePixelConfig(bookingPageAnalytics) as Record<string, string>,
+        }
+      : {}),
+  };
+  if (Object.keys(prefsUpdate).length > 0) {
     await db
       .insert(schema.userPreferences)
-      .values({ userId: u.id, ...branding })
-      .onConflictDoUpdate({ target: schema.userPreferences.userId, set: branding });
+      .values({ userId: u.id, ...prefsUpdate })
+      .onConflictDoUpdate({ target: schema.userPreferences.userId, set: prefsUpdate });
   }
 
   return NextResponse.json({ ok: true, handle });
