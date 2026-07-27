@@ -1,5 +1,5 @@
 import { expoClient } from "@better-auth/expo/client";
-import { phoneNumberClient } from "better-auth/client/plugins";
+import { phoneNumberClient, twoFactorClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import * as SecureStore from "expo-secure-store";
 import { getServerUrl } from "./server";
@@ -20,6 +20,9 @@ function makeClient(baseURL: string) {
     plugins: [
       expoClient({ scheme: "dayotter", storagePrefix: "dayotter", storage: SecureStore }),
       phoneNumberClient(),
+      // Lets a 2FA account finish sign-in natively (verifyTotp / verifyBackupCode)
+      // instead of being bounced to the web.
+      twoFactorClient(),
     ],
   });
 }

@@ -32,8 +32,9 @@ export default function BookingDetailScreen() {
   const [rescheduling, setRescheduling] = useState(false);
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
-  // Optional note sent to attendees on cancel/reschedule (both endpoints accept it).
+  // Optional note sent to attendees on cancel/reschedule/decline (all accept it).
   const [reason, setReason] = useState("");
+  const [deciding, setDeciding] = useState<"approve" | "decline" | null>(null);
 
   const { data, loading, error, reload } = useAsync<BookingDetail>(async () => {
     const res = await api.get<{ booking: BookingDetail }>(`/api/bookings/${uid}`);
@@ -41,6 +42,32 @@ export default function BookingDetailScreen() {
   }, [uid]);
 
   const isPast = data ? new Date(data.endsAt).getTime() < Date.now() : false;
+
+  // Opt-in (requires-confirmation) requests land as `pending`; the host approves
+  // or declines them here (parity with the web /bookings review).
+  async function approve() {
+    setDeciding("approve");
+    try {
+      await api.post(`/api/bookings/${uid}/confirm`, {});
+      reload();
+    } catch (e) {
+      Alert.alert("Couldn't approve", e instanceof ApiError ? e.message : "Please try again.");
+    } finally {
+      setDeciding(null);
+    }
+  }
+
+  async function decline() {
+    setDeciding("decline");
+    try {
+      await api.post(`/api/bookings/${uid}/decline`, { reason: reason.trim() || undefined });
+      reload();
+    } catch (e) {
+      Alert.alert("Couldn't decline", e instanceof ApiError ? e.message : "Please try again.");
+    } finally {
+      setDeciding(null);
+    }
+  }
 
   function confirmCancel() {
     // Recurring booking: let the host cancel just this one or the whole series.
@@ -202,6 +229,33 @@ export default function BookingDetailScreen() {
               </Pressable>
             ) : null}
           </View>
+
+          {/* Opt-in request awaiting the host's decision: approve or decline. */}
+          {data.status === "pending" && !isPast ? (
+            <>
+              <Text style={styles.pendingNote}>This request is awaiting your confirmation.</Text>
+              <TextInput
+                style={styles.reasonInput}
+                value={reason}
+                onChangeText={setReason}
+                placeholder="Note (optional) — shared if you decline"
+                placeholderTextColor={colors.faint}
+                multiline
+                maxLength={500}
+              />
+              <Pressable style={styles.approve} onPress={approve} disabled={deciding !== null}>
+                <Ionicons name="checkmark-circle-outline" size={16} color={colors.white} />
+                <Text style={styles.approveText}>
+                  {deciding === "approve" ? "Approving…" : "Approve"}
+                </Text>
+              </Pressable>
+              <Pressable style={styles.cancel} onPress={decline} disabled={deciding !== null}>
+                <Text style={styles.cancelText}>
+                  {deciding === "decline" ? "Declining…" : "Decline"}
+                </Text>
+              </Pressable>
+            </>
+          ) : null}
 
           {/* Upcoming confirmed meeting: running-late, reschedule, cancel. */}
           {data.status === "confirmed" && !isPast ? (
@@ -390,6 +444,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cancelText: { color: colors.white, fontWeight: "600" },
+  pendingNote: { marginTop: 14, color: colors.muted, fontSize: 13 },
+  approve: {
+    marginTop: 12,
+    flexDirection: "row",
+    gap: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+  },
+  approveText: { color: colors.white, fontWeight: "600" },
   back: { marginTop: 14, alignItems: "center" },
   backText: { color: colors.muted },
 });
