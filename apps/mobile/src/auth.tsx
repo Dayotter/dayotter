@@ -4,6 +4,13 @@ import { clearBetterAuthSession, getAuthClient } from "./auth-client";
 import type { AppUser } from "./models";
 import { loadServerUrl } from "./server";
 
+/**
+ * Sentinel returned by signIn when the account has 2FA on: the password was
+ * accepted but an authenticator code is still needed. The caller shows the code
+ * step (see `twoFactorPending`) instead of treating it as an error or success.
+ */
+export const TWO_FACTOR_REQUIRED = "__2fa_required__";
+
 interface AuthState {
   user: AppUser | null;
   initializing: boolean;
@@ -14,6 +21,12 @@ interface AuthState {
   sendPhoneOtp: (phone: string) => Promise<string | null>;
   /** Verify the OTP; on success a session is established and the user is set. */
   verifyPhoneOtp: (phone: string, code: string) => Promise<string | null>;
+  /** True while a 2FA account is mid-sign-in and owes an authenticator code. */
+  twoFactorPending: boolean;
+  /** Complete a 2FA sign-in with a TOTP (or backup) code. */
+  verifyTwoFactor: (code: string, useBackup: boolean) => Promise<string | null>;
+  /** Abandon the 2FA step and return to the sign-in form. */
+  cancelTwoFactor: () => void;
   signOut: () => Promise<void>;
 }
 
@@ -48,6 +61,7 @@ async function loadMeWithRetry(attempts = 6, delayMs = 250): Promise<AppUser | n
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [initializing, setInitializing] = useState(true);
+  const [twoFactorPending, setTwoFactorPending] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -69,11 +83,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function authenticate(path: string, body: unknown): Promise<string | null> {
     try {
       const data = await api.post<AuthResponse & { twoFactorRedirect?: boolean }>(path, body);
-      // The account has 2FA on. Native TOTP entry isn't wired yet, so point the
-      // user at a path that works today rather than a bare "failed" (they can
-      // still use Google / phone / the web).
+      // The account has 2FA on: the password was accepted but an authenticator
+      // code is still required. Re-run the sign-in through the Better Auth Expo
+      // client so it captures the 2FA challenge cookie (the raw bearer POST above
+      // can't), then hand off to the code step via `twoFactorPending`. Only 2FA
+      // accounts take this path - everyone else stays on the bearer flow below.
       if (data.twoFactorRedirect) {
-        return "This account uses two-factor authentication. Sign in with Google, a phone number, or on the web for now.";
+        const creds = body as { email?: string; password?: string };
+        if (creds.email && creds.password) {
+          try {
+            await getAuthClient().signIn.email({ email: creds.email, password: creds.password });
+          } catch {
+            /* the client call also 2FA-redirects; we only need the cookie it sets */
+          }
+          setTwoFactorPending(true);
+          return TWO_FACTOR_REQUIRED;
+        }
+        return "This account uses two-factor authentication. Sign in on the web for now.";
       }
       if (!data.token) return "Authentication failed";
       await setToken(data.token);
@@ -130,8 +156,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  /**
+   * Finish a 2FA sign-in with an authenticator (or backup) code. The 2FA cookie
+   * was set on the Expo client during `authenticate`; verify against it, then load
+   * the profile over that session (like Google / phone - no bearer token).
+   */
+  async function verifyTwoFactor(code: string, useBackup: boolean): Promise<string | null> {
+    try {
+      const client = getAuthClient();
+      const res = useBackup
+        ? await client.twoFactor.verifyBackupCode({ code: code.trim() })
+        : await client.twoFactor.verifyTotp({ code: code.trim() });
+      if (res.error) {
+        return (
+          res.error.message ??
+          (useBackup ? "That recovery code didn't match." : "That code didn't match.")
+        );
+      }
+      const me = await loadMeWithRetry();
+      if (!me) return "Signed in, but couldn't load your profile - please try again.";
+      setUser(me);
+      setTwoFactorPending(false);
+      return null;
+    } catch (err) {
+      return err instanceof Error ? err.message : "Verification failed";
+    }
+  }
+
   // The handler closures are stable enough for our needs; re-memoizing only when
-  // user/initializing change is intentional (adding them would defeat the memo).
+  // user/initializing/twoFactorPending change is intentional.
   // biome-ignore lint/correctness/useExhaustiveDependencies: stable auth closures
   const value = useMemo<AuthState>(
     () => ({
@@ -143,6 +196,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       sendPhoneOtp,
       verifyPhoneOtp,
+      twoFactorPending,
+      verifyTwoFactor,
+      cancelTwoFactor: () => setTwoFactorPending(false),
       signOut: async () => {
         // Clear the account before anything else so a stale session can't leak
         // into the next sign-in: server signOut (best-effort), the bearer token,
@@ -155,7 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       },
     }),
-    [user, initializing],
+    [user, initializing, twoFactorPending],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

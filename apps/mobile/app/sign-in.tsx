@@ -1,4 +1,4 @@
-import { useAuth } from "@/auth";
+import { TWO_FACTOR_REQUIRED, useAuth } from "@/auth";
 import { googleAuthEnabled } from "@/auth-client";
 import { BrandMark } from "@/components/brand-mark";
 import { hasOnboarded } from "@/onboarding-state";
@@ -21,7 +21,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, twoFactorPending, verifyTwoFactor, cancelTwoFactor } =
+    useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,6 +31,10 @@ export default function SignInScreen() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  // 2FA step
+  const [code, setCode] = useState("");
+  const [useBackup, setUseBackup] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   // First launch → show onboarding before the sign-in form.
   useEffect(() => {
@@ -46,8 +51,26 @@ export default function SignInScreen() {
       ? await signUp(name.trim(), email.trim(), password)
       : await signIn(email.trim(), password);
     setLoading(false);
+    // 2FA account: stay put; the authenticator-code step renders below.
+    if (err === TWO_FACTOR_REQUIRED) return;
     if (err) setError(err);
     else router.replace("/");
+  }
+
+  async function verify2fa() {
+    setVerifying(true);
+    setError(null);
+    const err = await verifyTwoFactor(code, useBackup);
+    setVerifying(false);
+    if (err) setError(err);
+    else router.replace("/");
+  }
+
+  function backFrom2fa() {
+    cancelTwoFactor();
+    setCode("");
+    setUseBackup(false);
+    setError(null);
   }
 
   async function google() {
@@ -60,6 +83,67 @@ export default function SignInScreen() {
   }
 
   if (!ready) return <View style={styles.safe} />;
+
+  // 2FA account mid-sign-in: collect the authenticator (or backup) code.
+  if (twoFactorPending) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.flex}
+        >
+          <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+            <View style={styles.logoRow}>
+              <BrandMark size={48} />
+            </View>
+            <Text style={styles.heading}>Two-factor authentication</Text>
+            <Text style={styles.sub}>
+              {useBackup
+                ? "Enter one of your backup recovery codes."
+                : "Enter the 6-digit code from your authenticator app."}
+            </Text>
+            <View style={styles.form}>
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+              <TextInput
+                style={styles.input}
+                value={code}
+                onChangeText={setCode}
+                placeholder={useBackup ? "Backup code" : "123456"}
+                placeholderTextColor={colors.faint}
+                keyboardType={useBackup ? "default" : "number-pad"}
+                autoCapitalize="none"
+                autoFocus
+                autoComplete={useBackup ? "off" : "one-time-code"}
+                onSubmitEditing={verify2fa}
+                returnKeyType="go"
+              />
+              <Pressable
+                style={[styles.button, { marginTop: 16 }]}
+                onPress={verify2fa}
+                disabled={verifying || code.trim().length === 0}
+              >
+                <Text style={styles.buttonText}>{verifying ? "Verifying…" : "Verify"}</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setUseBackup((v) => !v);
+                  setCode("");
+                  setError(null);
+                }}
+              >
+                <Text style={styles.toggle}>
+                  {useBackup ? "Use an authenticator code" : "Use a backup code instead"}
+                </Text>
+              </Pressable>
+              <Pressable onPress={backFrom2fa}>
+                <Text style={styles.serverLink}>Back to sign in</Text>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
 
   const showGoogle = googleAuthEnabled && Platform.OS !== "ios";
 
