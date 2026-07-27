@@ -3,7 +3,7 @@ import { ErrorText, Loading } from "@/components/ui";
 import type { Schedule } from "@/models";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
@@ -12,6 +12,7 @@ const LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"
 type Range = { start: string; end: string };
 
 export default function AvailabilityScreen() {
+  const router = useRouter();
   const [timezone, setTimezone] = useState("UTC");
   const [days, setDays] = useState<Range[][] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -181,6 +182,22 @@ export default function AvailabilityScreen() {
           <Text style={styles.saveText}>{saving ? "Saving…" : "Save availability"}</Text>
         </Pressable>
         {saved ? <Text style={styles.savedText}>✓ Saved</Text> : null}
+
+        <View style={styles.links}>
+          <Pressable style={styles.linkRow} onPress={() => router.push("/out-of-office")}>
+            <Ionicons name="airplane-outline" size={18} color={colors.accent} />
+            <Text style={styles.linkText}>Out of office</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+          </Pressable>
+          <Pressable
+            style={styles.linkRow}
+            onPress={() => router.push("/availability-troubleshooter")}
+          >
+            <Ionicons name="help-buoy-outline" size={18} color={colors.accent} />
+            <Text style={styles.linkText}>Troubleshoot availability</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+          </Pressable>
+        </View>
       </ScrollView>
     </View>
   );
@@ -256,4 +273,12 @@ const styles = StyleSheet.create({
   },
   saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
   savedText: { color: colors.success, textAlign: "center", marginTop: 10 },
+  links: { marginTop: 28, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 12 },
+  linkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 14,
+  },
+  linkText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
 });
