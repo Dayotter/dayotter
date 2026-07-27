@@ -12,6 +12,7 @@ import {
   type QuestionType,
 } from "@/models";
 import { colors, radius } from "@/theme";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
@@ -76,6 +77,27 @@ export default function EventTypeForm() {
   const [bookingWindow, setBookingWindow] = useState("60");
   const [dailyLimitOn, setDailyLimitOn] = useState(false);
   const [dailyLimit, setDailyLimit] = useState("5");
+  const [weeklyLimitOn, setWeeklyLimitOn] = useState(false);
+  const [weeklyLimit, setWeeklyLimit] = useState("20");
+  const [monthlyLimitOn, setMonthlyLimitOn] = useState(false);
+  const [monthlyLimit, setMonthlyLimit] = useState("60");
+  const [yearlyLimitOn, setYearlyLimitOn] = useState(false);
+  const [yearlyLimit, setYearlyLimit] = useState("500");
+  const [groupOn, setGroupOn] = useState(false);
+  const [maxAttendees, setMaxAttendees] = useState("2");
+  const [recurringOn, setRecurringOn] = useState(false);
+  const [recurringCount, setRecurringCount] = useState("4");
+  const [recurringFrequency, setRecurringFrequency] = useState<"weekly" | "biweekly" | "monthly">(
+    "weekly",
+  );
+  const [accessCodeOn, setAccessCodeOn] = useState(false);
+  const [accessCode, setAccessCode] = useState("");
+  const [hadAccessCode, setHadAccessCode] = useState(false);
+  // Extra locations beyond the primary above (multi-location; #103). Each booker
+  // picks one on the booking page. The primary + these form the offered menu.
+  const [extraLocations, setExtraLocations] = useState<{ type: LocationType; detail: string }[]>(
+    [],
+  );
   const [isPrivate, setIsPrivate] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState("");
   const [color, setColor] = useState<EventColor>("violet");
@@ -127,6 +149,26 @@ export default function EventTypeForm() {
         setBookingWindow(String(e.bookingWindowDays ?? 60));
         setDailyLimitOn(e.dailyBookingLimit != null && e.dailyBookingLimit > 0);
         setDailyLimit(String(e.dailyBookingLimit ?? 5));
+        setWeeklyLimitOn(e.weeklyBookingLimit != null && e.weeklyBookingLimit > 0);
+        setWeeklyLimit(String(e.weeklyBookingLimit ?? 20));
+        setMonthlyLimitOn(e.monthlyBookingLimit != null && e.monthlyBookingLimit > 0);
+        setMonthlyLimit(String(e.monthlyBookingLimit ?? 60));
+        setYearlyLimitOn(e.yearlyBookingLimit != null && e.yearlyBookingLimit > 0);
+        setYearlyLimit(String(e.yearlyBookingLimit ?? 500));
+        setGroupOn((e.maxAttendees ?? 1) > 1);
+        setMaxAttendees(String(e.maxAttendees && e.maxAttendees > 1 ? e.maxAttendees : 2));
+        setRecurringOn((e.recurringCount ?? 1) > 1);
+        setRecurringCount(String(e.recurringCount && e.recurringCount > 1 ? e.recurringCount : 4));
+        setRecurringFrequency(e.recurringFrequency ?? "weekly");
+        setAccessCodeOn(Boolean(e.hasAccessCode));
+        setHadAccessCode(Boolean(e.hasAccessCode));
+        // Multi-location: first entry is the primary (already set above); the rest
+        // are the extra options a booker can choose from.
+        if (e.locations && e.locations.length > 1) {
+          setExtraLocations(
+            e.locations.slice(1).map((l) => ({ type: l.type, detail: l.detail ?? "" })),
+          );
+        }
         setIsPrivate(e.isPrivate);
         setRedirectUrl(e.redirectUrl ?? "");
         if (e.color && e.color in EVENT_COLOR_HEX) setColor(e.color as EventColor);
@@ -167,6 +209,23 @@ export default function EventTypeForm() {
   async function save() {
     setSaving(true);
     setError(null);
+    // Multi-location: the primary + any extras form the offered menu. An empty
+    // menu (no extras) sends [] so the API keeps this as a single-location event.
+    const extraClean = extraLocations
+      .filter((l) => !NEEDS_DETAIL.includes(l.type) || l.detail.trim().length > 0)
+      .map((l) => ({
+        type: l.type,
+        detail: NEEDS_DETAIL.includes(l.type) ? l.detail.trim() : undefined,
+      }));
+    const locationsPayload = extraClean.length
+      ? [{ type: location, detail: needsDetail ? locationDetail : undefined }, ...extraClean]
+      : [];
+    // Access code: null removes it, a string sets/replaces it, undefined leaves
+    // the stored code untouched.
+    let accessCodePayload: string | null | undefined;
+    if (!accessCodeOn && hadAccessCode) accessCodePayload = null;
+    else if (accessCodeOn && accessCode.trim()) accessCodePayload = accessCode.trim();
+
     const body = {
       title,
       slug: slug || slugify(title),
@@ -174,6 +233,14 @@ export default function EventTypeForm() {
       description: description || undefined,
       location,
       locationDetail: needsDetail ? locationDetail : undefined,
+      locations: locationsPayload,
+      weeklyBookingLimit: weeklyLimitOn ? Number(weeklyLimit) || 1 : null,
+      monthlyBookingLimit: monthlyLimitOn ? Number(monthlyLimit) || 1 : null,
+      yearlyBookingLimit: yearlyLimitOn ? Number(yearlyLimit) || 1 : null,
+      maxAttendees: groupOn ? Math.max(2, Number(maxAttendees) || 2) : 1,
+      recurringCount: recurringOn ? Math.max(2, Number(recurringCount) || 2) : 1,
+      recurringFrequency,
+      ...(accessCodePayload === undefined ? {} : { accessCode: accessCodePayload }),
       bufferBeforeMinutes: Number(bufferBefore) || 0,
       bufferAfterMinutes: Number(bufferAfter) || 0,
       minimumNoticeMinutes: minimumNotice,
@@ -305,6 +372,80 @@ export default function EventTypeForm() {
           <View style={{ height: 18 }} />
         )}
 
+        {/* Extra locations the booker can choose from (multi-location). */}
+        {extraLocations.map((row, i) => {
+          const rowNeedsDetail = NEEDS_DETAIL.includes(row.type);
+          return (
+            <View key={`loc-${i}`} style={styles.extraLoc}>
+              <View style={styles.extraLocHead}>
+                <Text style={styles.hint}>Alternative location {i + 1}</Text>
+                <Pressable
+                  onPress={() => setExtraLocations((ls) => ls.filter((_, j) => j !== i))}
+                  hitSlop={8}
+                >
+                  <Ionicons name="close-circle" size={20} color={colors.faint} />
+                </Pressable>
+              </View>
+              <View style={styles.wrapPills}>
+                {LOCATIONS.map((l) => {
+                  // Each location type can appear once (the API rejects duplicates),
+                  // so disable a type already used by the primary or another row.
+                  const usedElsewhere =
+                    l.value !== row.type &&
+                    (l.value === location ||
+                      extraLocations.some((r, j) => j !== i && r.type === l.value));
+                  return (
+                    <Pressable
+                      key={l.value}
+                      disabled={usedElsewhere}
+                      onPress={() =>
+                        setExtraLocations((ls) =>
+                          ls.map((r, j) => (j === i ? { ...r, type: l.value } : r)),
+                        )
+                      }
+                      style={[
+                        styles.chip,
+                        l.value === row.type && styles.pillOn,
+                        usedElsewhere && { opacity: 0.35 },
+                      ]}
+                    >
+                      <Text style={[styles.pillText, l.value === row.type && styles.pillTextOn]}>
+                        {l.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              {rowNeedsDetail ? (
+                <TextInput
+                  style={styles.input}
+                  value={row.detail}
+                  onChangeText={(v) =>
+                    setExtraLocations((ls) => ls.map((r, j) => (j === i ? { ...r, detail: v } : r)))
+                  }
+                  placeholder="Link, number, or address"
+                  placeholderTextColor={colors.faint}
+                />
+              ) : null}
+            </View>
+          );
+        })}
+        {extraLocations.length < LOCATIONS.length - 1 ? (
+          <Pressable
+            onPress={() =>
+              setExtraLocations((ls) => {
+                const used = new Set<LocationType>([location, ...ls.map((r) => r.type)]);
+                const next = LOCATIONS.find((l) => !used.has(l.value))?.value ?? "phone";
+                return [...ls, { type: next, detail: "" }];
+              })
+            }
+            style={styles.addLoc}
+          >
+            <Ionicons name="add" size={16} color={colors.accent} />
+            <Text style={styles.addLocText}>Add another location</Text>
+          </Pressable>
+        ) : null}
+
         <Field
           label="Description (optional)"
           value={description}
@@ -414,6 +555,63 @@ export default function EventTypeForm() {
             numeric
           />
         ) : null}
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Limit bookings per week</Text>
+          </View>
+          <Switch
+            value={weeklyLimitOn}
+            onValueChange={setWeeklyLimitOn}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+        {weeklyLimitOn ? (
+          <Field
+            label="Max bookings per week"
+            value={weeklyLimit}
+            onChange={setWeeklyLimit}
+            placeholder="20"
+            numeric
+          />
+        ) : null}
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Limit bookings per month</Text>
+          </View>
+          <Switch
+            value={monthlyLimitOn}
+            onValueChange={setMonthlyLimitOn}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+        {monthlyLimitOn ? (
+          <Field
+            label="Max bookings per month"
+            value={monthlyLimit}
+            onChange={setMonthlyLimit}
+            placeholder="60"
+            numeric
+          />
+        ) : null}
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Limit bookings per year</Text>
+          </View>
+          <Switch
+            value={yearlyLimitOn}
+            onValueChange={setYearlyLimitOn}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+        {yearlyLimitOn ? (
+          <Field
+            label="Max bookings per year"
+            value={yearlyLimit}
+            onChange={setYearlyLimit}
+            placeholder="500"
+            numeric
+          />
+        ) : null}
 
         <Text style={styles.section}>Advanced</Text>
         <View style={styles.toggleRow}>
@@ -442,6 +640,84 @@ export default function EventTypeForm() {
             trackColor={{ true: colors.accent }}
           />
         </View>
+
+        {/* Group event: several attendees share one slot. */}
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Group event</Text>
+            <Text style={styles.hint}>Let several people book the same time slot.</Text>
+          </View>
+          <Switch value={groupOn} onValueChange={setGroupOn} trackColor={{ true: colors.accent }} />
+        </View>
+        {groupOn ? (
+          <Field
+            label="Max attendees per slot"
+            value={maxAttendees}
+            onChange={setMaxAttendees}
+            placeholder="2"
+            numeric
+          />
+        ) : null}
+
+        {/* Recurring: repeat the meeting on a cadence. */}
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Recurring</Text>
+            <Text style={styles.hint}>Book a repeating series in one go.</Text>
+          </View>
+          <Switch
+            value={recurringOn}
+            onValueChange={setRecurringOn}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+        {recurringOn ? (
+          <>
+            <Field
+              label="Number of sessions"
+              value={recurringCount}
+              onChange={setRecurringCount}
+              placeholder="4"
+              numeric
+            />
+            <Text style={styles.label}>Frequency</Text>
+            <View style={styles.pills}>
+              {(["weekly", "biweekly", "monthly"] as const).map((f) => (
+                <Pressable
+                  key={f}
+                  onPress={() => setRecurringFrequency(f)}
+                  style={[styles.chip, f === recurringFrequency && styles.pillOn]}
+                >
+                  <Text style={[styles.pillText, f === recurringFrequency && styles.pillTextOn]}>
+                    {f === "biweekly" ? "Every 2 weeks" : f === "monthly" ? "Monthly" : "Weekly"}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        ) : null}
+
+        {/* Access code: gate booking behind a shared code. */}
+        <View style={styles.toggleRow}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Require an access code</Text>
+            <Text style={styles.hint}>Only people with the code can book.</Text>
+          </View>
+          <Switch
+            value={accessCodeOn}
+            onValueChange={setAccessCodeOn}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
+        {accessCodeOn ? (
+          <Field
+            label={hadAccessCode ? "New access code (leave blank to keep current)" : "Access code"}
+            value={accessCode}
+            onChange={setAccessCode}
+            placeholder={hadAccessCode ? "••••••" : "e.g. vip-2026"}
+          />
+        ) : null}
+
         <Field
           label="Redirect after booking (optional)"
           value={redirectUrl}
@@ -699,6 +975,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 18,
   },
+  extraLoc: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: 12,
+    marginBottom: 12,
+  },
+  extraLocHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  addLoc: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 18 },
+  addLocText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
   swatches: { flexDirection: "row", gap: 12, marginBottom: 18 },
   swatch: { width: 34, height: 34, borderRadius: 999 },
   swatchOn: { borderWidth: 3, borderColor: colors.text },

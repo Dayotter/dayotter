@@ -72,6 +72,16 @@ export interface EventTypeDetail {
   durationOptions: number[] | null;
   bookingWindowDays: number | null;
   dailyBookingLimit: number | null;
+  weeklyBookingLimit?: number | null;
+  monthlyBookingLimit?: number | null;
+  yearlyBookingLimit?: number | null;
+  /** Group event capacity: seats per slot (1 = a normal 1:1 event). */
+  maxAttendees?: number;
+  /** Recurring meetings: occurrences per booking (1 = single) + cadence. */
+  recurringCount?: number;
+  recurringFrequency?: "weekly" | "biweekly" | "monthly";
+  /** Whether an access code is set (the code itself is never returned). */
+  hasAccessCode?: boolean;
   isPrivate: boolean;
   /** Opt-in bookings: each request waits pending until the host approves (#100). */
   requiresConfirmation?: boolean;
