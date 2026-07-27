@@ -1,6 +1,8 @@
 import { BookingPixels } from "@/components/booking-pixels";
 import { HostAvatar } from "@/components/host-avatar";
+import { LanguagePicker } from "@/components/language-picker";
 import { SlotPicker } from "@/components/slot-picker";
+import { Tr } from "@/components/tr";
 import { Card, CardBody } from "@/components/ui/card";
 import { ViewTracker } from "@/components/view-tracker";
 import { aiEnabled } from "@/lib/ai/llm";
@@ -10,7 +12,7 @@ import { brandStyle, getHostBranding } from "@/lib/booking/branding";
 import { LOCATION_LABELS, offeredLocations } from "@/lib/booking/event-type-input";
 import { chargeFor, formatMoney } from "@/lib/booking/money";
 import { brandingHidden } from "@/lib/ee/white-label";
-import { resolveLocale, t } from "@/lib/i18n/booking";
+import { resolveLocale } from "@/lib/i18n/booking";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { outOfOfficeOn } from "@/lib/out-of-office";
 import { paymentsEnabled } from "@/lib/payments/stripe";
@@ -110,63 +112,68 @@ export default async function PublicBookingPage({
           </div>
         </div>
       ) : null}
-      <Card>
-        <div className="grid gap-0 md:grid-cols-[280px_1fr]">
-          {/* Event details */}
-          <div className="border-b border-[var(--color-border)] p-6 md:border-b-0 md:border-r">
-            <div className="flex items-center gap-2">
-              <HostAvatar name={host.name ?? host.handle ?? "?"} image={host.image} size={36} />
-              <span className="text-sm text-[var(--color-muted)]">{host.name ?? host.handle}</span>
-            </div>
-            {branding.welcomeMessage ? (
-              <p className="mt-3 text-sm text-[var(--color-muted)]">{branding.welcomeMessage}</p>
-            ) : null}
-            <h1 className="font-display mt-4 text-2xl leading-tight tracking-[-0.01em]">
-              {eventType.title}
-            </h1>
-            {eventType.description ? (
-              <p className="mt-2 text-sm text-[var(--color-muted)]">{eventType.description}</p>
-            ) : null}
-            <div className="mt-4 space-y-2 text-sm text-[var(--color-muted)]">
-              <p className="flex items-center gap-2">
-                <Clock size={15} /> {t(locale, "minutes", { n: eventType.durationMinutes })}
-              </p>
-              <p className="flex items-center gap-2">
-                <Video size={15} />{" "}
-                {locationChoices.length > 1
-                  ? locationChoices.map((l) => l.label).join(" · ")
-                  : (LOCATION_LABELS[eventType.location] ?? eventType.location)}
-              </p>
-              {eventType.recurringCount > 1 ? (
-                <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
-                  <Repeat size={15} /> Repeats{" "}
-                  {eventType.recurringFrequency === "monthly"
-                    ? "monthly"
-                    : eventType.recurringFrequency === "biweekly"
-                      ? "every 2 weeks"
-                      : "weekly"}{" "}
-                  · {eventType.recurringCount} sessions
-                </p>
+      <LocaleProvider locale={locale}>
+        <Card>
+          <div className="grid gap-0 md:grid-cols-[280px_1fr]">
+            {/* Event details */}
+            <div className="border-b border-[var(--color-border)] p-6 md:border-b-0 md:border-r">
+              <div className="flex items-center gap-2">
+                <HostAvatar name={host.name ?? host.handle ?? "?"} image={host.image} size={36} />
+                <span className="text-sm text-[var(--color-muted)]">
+                  {host.name ?? host.handle}
+                </span>
+              </div>
+              {branding.welcomeMessage ? (
+                <p className="mt-3 text-sm text-[var(--color-muted)]">{branding.welcomeMessage}</p>
               ) : null}
-              {priceLabel ? (
-                <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
-                  <CreditCard size={15} /> {priceLabel}
-                  {isDeposit ? (
-                    <span className="text-xs font-normal text-[var(--color-faint)]">
-                      {t(locale, "deposit")}
-                    </span>
-                  ) : null}
-                </p>
+              <h1 className="font-display mt-4 text-2xl leading-tight tracking-[-0.01em]">
+                {eventType.title}
+              </h1>
+              {eventType.description ? (
+                <p className="mt-2 text-sm text-[var(--color-muted)]">{eventType.description}</p>
               ) : null}
+              <div className="mt-4 space-y-2 text-sm text-[var(--color-muted)]">
+                <p className="flex items-center gap-2">
+                  <Clock size={15} /> <Tr k="minutes" vars={{ n: eventType.durationMinutes }} />
+                </p>
+                <p className="flex items-center gap-2">
+                  <Video size={15} />{" "}
+                  {locationChoices.length > 1
+                    ? locationChoices.map((l) => l.label).join(" · ")
+                    : (LOCATION_LABELS[eventType.location] ?? eventType.location)}
+                </p>
+                {eventType.recurringCount > 1 ? (
+                  <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
+                    <Repeat size={15} /> Repeats{" "}
+                    {eventType.recurringFrequency === "monthly"
+                      ? "monthly"
+                      : eventType.recurringFrequency === "biweekly"
+                        ? "every 2 weeks"
+                        : "weekly"}{" "}
+                    · {eventType.recurringCount} sessions
+                  </p>
+                ) : null}
+                {priceLabel ? (
+                  <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
+                    <CreditCard size={15} /> {priceLabel}
+                    {isDeposit ? (
+                      <span className="text-xs font-normal text-[var(--color-faint)]">
+                        <Tr k="deposit" />
+                      </span>
+                    ) : null}
+                  </p>
+                ) : null}
+              </div>
             </div>
-          </div>
 
-          {/* Slot picker */}
-          <CardBody className="p-6">
-            <h2 className="mb-4 text-sm font-semibold">{t(locale, "selectTime")}</h2>
-            {/* Seed the same server-resolved locale into the client slot picker so
-                its copy matches the page and doesn't hydrate from navigator. */}
-            <LocaleProvider locale={locale}>
+            {/* Slot picker */}
+            <CardBody className="p-6">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold">
+                  <Tr k="selectTime" />
+                </h2>
+                <LanguagePicker />
+              </div>
               <SlotPicker
                 eventTypeId={eventType.id}
                 questions={eventType.questions}
@@ -177,10 +184,10 @@ export default async function PublicBookingPage({
                 assistantEnabled={assistantEnabled}
                 locations={locationChoices}
               />
-            </LocaleProvider>
-          </CardBody>
-        </div>
-      </Card>
+            </CardBody>
+          </div>
+        </Card>
+      </LocaleProvider>
       {hideBranding ? null : (
         <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-[var(--color-faint)]">
           <span className="relative inline-block h-3.5 w-3.5 shrink-0 overflow-hidden rounded-[3px]">

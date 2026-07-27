@@ -9,6 +9,17 @@ export const SUPPORTED_LOCALES = ["en", "es", "fr", "de", "pt", "it", "nl"] as c
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 
+/** Each locale's name in its own language, for language pickers. */
+export const LOCALE_LABELS: Record<Locale, string> = {
+  en: "English",
+  es: "Español",
+  fr: "Français",
+  de: "Deutsch",
+  pt: "Português",
+  it: "Italiano",
+  nl: "Nederlands",
+};
+
 /** Map a browser/Accept-Language value (e.g. "es-419,es;q=0.9") to a supported locale. */
 export function resolveLocale(input: string | null | undefined): Locale {
   if (!input) return DEFAULT_LOCALE;
