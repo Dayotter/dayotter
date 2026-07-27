@@ -187,3 +187,79 @@ export async function importCalendlyExport(
     warnings,
   };
 }
+
+export interface CalcomImportSummary {
+  eventTypesImported: number;
+  eventTypesSkipped: number;
+  warnings: string[];
+}
+
+/**
+ * Persist mapped Cal.com event types into the user's DayOtter workspace. Mirrors
+ * the Calendly event-type path: slugs are deduped against the user's existing
+ * ones + this run, and rows are batch-inserted with a per-row fallback. Cal.com
+ * has no exportable availability schedules via the v1 event-types endpoint, so we
+ * only import event types (attached to the user's default schedule).
+ */
+export async function importCalcomEventTypes(
+  userId: string,
+  mapped: import("./calcom").MappedEventType[],
+): Promise<CalcomImportSummary> {
+  const db = getDb();
+  const { organizationId, scheduleId: defaultScheduleId } = await ensureUserWorkspace(userId);
+
+  const existing = await db.query.eventTypes.findMany({
+    where: and(eq(schema.eventTypes.ownerId, userId), notPersonalType),
+    columns: { slug: true },
+  });
+  const takenSlugs = new Set(existing.map((e) => e.slug));
+
+  const rows: (typeof schema.eventTypes.$inferInsert)[] = [];
+  for (const m of mapped) {
+    const slug = uniqueSlug(m.slug, takenSlugs);
+    takenSlugs.add(slug);
+    rows.push({
+      organizationId,
+      ownerId: userId,
+      scheduleId: defaultScheduleId,
+      title: m.title,
+      slug,
+      durationMinutes: m.durationMinutes,
+      description: m.description,
+      location: m.location,
+      locationDetail: m.locationDetail,
+      requiresConfirmation: m.requiresConfirmation,
+      minimumNoticeMinutes: m.minimumNoticeMinutes,
+      isPrivate: m.isPrivate,
+    });
+  }
+
+  let eventTypesImported = 0;
+  let eventTypesSkipped = 0;
+  if (rows.length > 0) {
+    try {
+      await db.insert(schema.eventTypes).values(rows);
+      eventTypesImported = rows.length;
+    } catch (err) {
+      logger.warn("cal.com batch insert failed; falling back to per-row", {
+        event: "calcom_import_batch_fallback",
+        err,
+      });
+      for (const r of rows) {
+        try {
+          await db.insert(schema.eventTypes).values(r);
+          eventTypesImported++;
+        } catch (rowErr) {
+          eventTypesSkipped++;
+          logger.error("cal.com event type import failed", {
+            event: "calcom_import_event_type_failed",
+            title: r.title,
+            err: rowErr,
+          });
+        }
+      }
+    }
+  }
+
+  return { eventTypesImported, eventTypesSkipped, warnings: [] };
+}

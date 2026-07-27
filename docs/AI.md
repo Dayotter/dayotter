@@ -92,6 +92,36 @@ recognition.
 ### Where your time goes - `lib/analytics/time-allocation/`  ([README](../apps/web/lib/analytics/time-allocation/README.md))
 A pluggable metric registry over your bookings + focus time. Add a `TimeMetric`.
 
+## Self-hosting the AI
+
+Otter's model layer is vendor-agnostic (`AI_PROVIDER` selects the backend in
+`lib/ai/providers/`). There are four honest setups, from "no AI" to "fully local,
+nothing leaves the box":
+
+| Mode | Configure | What leaves your server |
+|---|---|---|
+| **No AI** (pure scheduler) | *nothing* — leave `AI_PROVIDER` unset | Nothing. Every Otter surface is hidden; booking, teams, routing, reminders, payments all work. |
+| **Anthropic** | `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` | Scheduling context → Anthropic, only when you use Otter. |
+| **OpenAI / compatible** | `AI_PROVIDER=openai` + `OPENAI_API_KEY` | Scheduling context → OpenAI, only when you use Otter. |
+| **Local model (no phone-home)** | `AI_PROVIDER=openai` + `OPENAI_BASE_URL=http://localhost:11434/v1` + `OPENAI_API_KEY=ollama` + `OPENAI_MODEL_DEEP`/`OPENAI_MODEL_FAST` | **Nothing.** Otter talks to your local Ollama / LM Studio / vLLM. |
+
+`aiEnabled` (`lib/ai/providers/index.ts`) is `provider.configured`, so with no key
+the whole assistant is simply off and DayOtter is a complete, self-contained
+scheduler. Larger local models give better Otter quality; small ones still handle
+the common "book / move / cancel" commands.
+
+**Local quickstart (Ollama):**
+
+```bash
+ollama pull llama3.1:8b
+# in apps/web/.env
+AI_PROVIDER=openai
+OPENAI_BASE_URL=http://localhost:11434/v1
+OPENAI_API_KEY=ollama            # any non-empty string; Ollama ignores it
+OPENAI_MODEL_DEEP=llama3.1:8b
+OPENAI_MODEL_FAST=llama3.1:8b
+```
+
 ## How the AI stays open
 
 - **Bring your own key / model.** Set `ANTHROPIC_API_KEY` and everything works.

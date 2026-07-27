@@ -1,3 +1,4 @@
+import { CalcomImport } from "@/components/calcom-import";
 import { CalendlyImport } from "@/components/calendly-import";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
@@ -11,11 +12,11 @@ export default async function ImportSettingsPage() {
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold">Import from Calendly</h2>
+        <h2 className="text-lg font-semibold">Import your event types</h2>
         <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Switching over? Bring your event types and weekly availability across in one step. We read
-          them straight from Calendly with a token you paste below - nothing is changed on the
-          Calendly side, and existing DayOtter data is never overwritten.
+          Switching over? Bring your event types across in one step. We read them straight from the
+          source with a token/key you paste below - nothing is changed on the other side, and
+          existing DayOtter data is never overwritten.
         </p>
       </div>
 
@@ -26,6 +27,16 @@ export default async function ImportSettingsPage() {
         />
         <CardBody>
           <CalendlyImport />
+        </CardBody>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader
+          title="Cal.com"
+          description="Event types from Cal.com cloud or a self-hosted instance, via a v1 API key."
+        />
+        <CardBody>
+          <CalcomImport />
         </CardBody>
       </Card>
 

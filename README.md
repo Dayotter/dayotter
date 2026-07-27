@@ -5,7 +5,7 @@
 **The AI-native, open-source scheduling platform.**
 Say it once - Otter books the meeting, protects your focus, and clears the back-and-forth. Confirm-first, always.
 
-[Website](https://dayotter.com) · [Docs](./docs) · [Discord](https://discord.gg/cxwETDsY85) · [Roadmap](./docs/ROADMAP.md) · [Good first tasks](./docs/TASKS.md) · [AI architecture](./docs/AI.md) · [Contributing](./CONTRIBUTING.md)
+[Website](https://dayotter.com) · [Docs](./docs) · [Compare](./docs/COMPARISON.md) · [Discord](https://discord.gg/cxwETDsY85) · [Roadmap](./docs/ROADMAP.md) · [Good first tasks](./docs/TASKS.md) · [AI architecture](./docs/AI.md) · [Contributing](./CONTRIBUTING.md)
 
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
 ![Self-hostable](https://img.shields.io/badge/self--hostable-yes-brightgreen)
@@ -25,6 +25,8 @@ DayOtter is a complete scheduling platform - booking pages, team round-robin, ca
 Most schedulers hand out a link and stop there. Otter actually does the work. You describe what you want in plain language - in the app, by voice, or over **WhatsApp / SMS** - and Otter drafts the action; you approve it. It **protects your focus time**, nudges your next meeting when you're **running late**, surfaces **proactive suggestions**, and **learns your patterns** over time. Crucially, it is **confirm-first**: it never changes your calendar without your OK.
 
 Think Calendly + Motion + a real assistant - except **open-source and self-hostable in one command**, with every AI feature included.
+
+> **The AI is optional and never a black box.** DayOtter runs as a complete scheduler with **no AI configured at all**. Turn Otter on by pointing it at a model *you* choose: Anthropic or OpenAI, any OpenAI-compatible endpoint, or a **local model via Ollama / LM Studio / vLLM - so nothing has to leave your server**. See [Self-hosting the AI](./docs/AI.md#self-hosting-the-ai).
 
 **Who it's for**
 
@@ -74,6 +76,10 @@ DayOtter is **open-core**, the way Cal.com _used to be_:
 - **`ee/` is a small, separately-licensed commercial layer** for *cloud-only infrastructure* - Managed AI (no key to configure), SSO, white-label, hosted messaging. It's inert unless `DAYOTTER_CLOUD=1`. See [`apps/web/lib/ee/LICENSE.md`](./apps/web/lib/ee/LICENSE.md) and [`docs/ENTERPRISE.md`](./docs/ENTERPRISE.md).
 
 You do **not** need `ee/` to run the full product.
+
+**How we intend to make money — and our promise.** The plan is a hosted **DayOtter Cloud** (convenience: managed AI with no key to configure, hosted messaging, SSO, white-label) for people who don't want to run servers. That's it. The self-hostable product — booking, teams, routing, workflows, insights, payments, and all of Otter's AI logic — **stays AGPLv3 and free, forever.** We will not move the core to a closed or "source-available" repo. If that ever changes, AGPLv3 guarantees the last open version can be forked and carried on by anyone — which is the whole point.
+
+> **Project status: early and moving fast.** DayOtter is a young project (first public code mid-2026). It's broad and usable, but it is **not yet battle-tested at scale**, and enterprise pieces (SSO/SAML, SCIM, audit logs, SOC 2 / HIPAA) are on the [roadmap](./docs/ROADMAP.md), not shipped. Kick the tires, self-host it, and help shape it - issues and PRs welcome.
 
 ## Monorepo layout
 

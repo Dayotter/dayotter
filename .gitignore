@@ -47,3 +47,6 @@ coverage/
 
 # Local security audit notes (not for the public repo)
 SECURITY-AUDIT.md
+
+# Internal launch strategy (not for publication)
+LAUNCH-POSITIONING.md
