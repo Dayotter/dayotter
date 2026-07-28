@@ -1,0 +1,82 @@
+# Render Blueprint - one-click DayOtter (web + worker + Postgres + Redis).
+# Deploy: https://render.com/deploy?repo=https://github.com/Dayotter/dayotter
+#
+# ⚠️ Two values can't be auto-provisioned and must be set once, then redeploy:
+#   1. ENCRYPTION_KEY - a 32-byte hex key. Generate with:  openssl rand -hex 32
+#      (Render's generateValue can't produce a fixed-length hex string.)
+#   2. APP_URL / NEXT_PUBLIC_APP_URL - your assigned https://<name>.onrender.com.
+#      NEXT_PUBLIC_APP_URL is baked at build time, so set it and trigger a rebuild.
+# Everything else (calendars, Stripe, Twilio, AI) is optional and off by default -
+# DayOtter runs as a full scheduler with none of it. See .env.example.
+
+databases:
+  - name: dayotter-db
+    databaseName: dayotter
+    user: dayotter
+    plan: basic-256mb
+
+services:
+  # Redis / Key Value store (Render renamed "Redis" to "Key Value"; if your
+  # account only offers `type: keyvalue`, rename this one line).
+  - type: redis
+    name: dayotter-redis
+    plan: starter
+    ipAllowList: [] # internal traffic only
+    maxmemoryPolicy: noeviction
+
+  - type: web
+    name: dayotter-web
+    runtime: docker
+    dockerfilePath: ./apps/web/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /api/me # returns fast (401 when unauthenticated) = alive
+    # Run DB migrations before each deploy goes live.
+    preDeployCommand: pnpm --filter @dayotter/db migrate
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dayotter-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: dayotter-redis
+          type: redis
+          property: connectionString
+      - key: AUTH_SECRET # 32+ char random - Render generates a good one
+        generateValue: true
+      - key: ENCRYPTION_KEY # MUST be 64 hex chars: openssl rand -hex 32
+        sync: false
+      - key: APP_URL # set to https://<your-web-name>.onrender.com, then redeploy
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL # same URL; baked at build time -> rebuild after setting
+        sync: false
+      - key: BETTER_AUTH_URL # same as APP_URL
+        sync: false
+      - key: AI_PROVIDER # optional: "anthropic" or "openai" (leave unset = no AI)
+        sync: false
+
+  - type: worker
+    name: dayotter-worker
+    runtime: docker
+    dockerfilePath: ./apps/worker/Dockerfile
+    dockerContext: .
+    plan: starter
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dayotter-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: dayotter-redis
+          type: redis
+          property: connectionString
+      - key: ENCRYPTION_KEY # must match the web service's key exactly
+        sync: false
+      - key: APP_URL
+        sync: false
