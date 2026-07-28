@@ -2,10 +2,14 @@
 
 # DayOtter
 
-**The AI-native, open-source scheduling platform.**
-Say it once - Otter books the meeting, protects your focus, and clears the back-and-forth. Confirm-first, always.
+**Make all your calendars work as one.**
+The open-source calendar & scheduling app for people juggling **multiple calendars** - connect every calendar (personal + work + clients), never get double-booked, protect your focus, and share **one booking link that respects them all**. With an AI assistant, Otter, built into the core.
 
-[Website](https://dayotter.com) · [Docs](./docs) · [Compare](./docs/COMPARISON.md) · [Discord](https://discord.gg/cxwETDsY85) · [Roadmap](./docs/ROADMAP.md) · [Good first tasks](./docs/TASKS.md) · [AI architecture](./docs/AI.md) · [Contributing](./CONTRIBUTING.md)
+**[▶ Try the hosted version](https://dayotter.com)** &nbsp;·&nbsp; [🐳 Self-host with Docker](#self-hosting-production) &nbsp;·&nbsp; [How we compare](./docs/COMPARISON.md)
+
+<!-- TODO(launch): add a 20-30s product GIF or a hero screenshot here - it's the single biggest README conversion lever. -->
+
+[Website](https://dayotter.com) · [Docs](./docs) · [Discord](https://discord.gg/cxwETDsY85) · [Roadmap](./docs/ROADMAP.md) · [Discussions](https://github.com/Dayotter/dayotter/discussions) · [Good first tasks](./docs/TASKS.md) · [Contributing](./CONTRIBUTING.md)
 
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
 ![Self-hostable](https://img.shields.io/badge/self--hostable-yes-brightgreen)
@@ -20,11 +24,17 @@ Say it once - Otter books the meeting, protects your focus, and clears the back-
 
 ## What is DayOtter?
 
-DayOtter is a complete scheduling platform - booking pages, team round-robin, calendar sync, reminders, and payments - with an AI assistant, **Otter**, built into the core rather than bolted on.
+DayOtter connects **all** your calendars - Google, Microsoft 365, Apple (CalDAV), and any ICS feed - and treats them as one. Your booking availability, your focus time, and every conflict check respect *every* calendar you own, so a personal appointment automatically blocks a work slot and you never get double-booked across accounts. On top of that: booking pages, team round-robin, reminders, and payments - with an AI assistant, **Otter**, built into the core rather than bolted on.
 
 Most schedulers hand out a link and stop there. Otter actually does the work. You describe what you want in plain language - in the app, by voice, or over **WhatsApp / SMS** - and Otter drafts the action; you approve it. It **protects your focus time**, nudges your next meeting when you're **running late**, surfaces **proactive suggestions**, and **learns your patterns** over time. Crucially, it is **confirm-first**: it never changes your calendar without your OK.
 
 Think Calendly + Motion + a real assistant - except **open-source and self-hostable in one command**, with every AI feature included.
+
+### Why DayOtter
+
+- **One link, every calendar.** Share a single booking page that's conflict-aware across all your Google / Microsoft / Apple accounts at once - not one link per calendar.
+- **Genuinely open, including the AI.** AGPLv3; self-host the whole product - Otter included - for free, forever. (Calendly is closed; [Cal.com went closed-source in 2026](./docs/COMPARISON.md).)
+- **The AI runs where you want it.** Local model via Ollama/vLLM for zero phone-home, or bring your own key - and it's **confirm-first**, so it never reshuffles your calendar behind your back.
 
 > **The AI is optional and never a black box.** DayOtter runs as a complete scheduler with **no AI configured at all**. Turn Otter on by pointing it at a model *you* choose: Anthropic or OpenAI, any OpenAI-compatible endpoint, or a **local model via Ollama / LM Studio / vLLM - so nothing has to leave your server**. See [Self-hosting the AI](./docs/AI.md#self-hosting-the-ai).
 
@@ -132,6 +142,8 @@ Run the mobile app against your local server with `pnpm --filter @dayotter/mobil
 **Stack:** TypeScript · Next.js 15 · Expo (mobile) · Postgres + Drizzle · Redis + BullMQ · Luxon · Anthropic (Otter) · Better Auth · Stripe · Twilio.
 
 ## Self-hosting (production)
+
+**Requirements:** Docker + Docker Compose, a Postgres database, and a Redis instance (both come up in the compose stack). AI is **optional** - DayOtter is a full scheduler with no model configured; add a key or a local model to turn Otter on. **Typical first-boot: ~10 minutes** to `docker compose up` and connect a calendar; OAuth for Google/Microsoft needs client IDs (see the integrations guide).
 
 Docker Compose brings up Postgres, Redis, migrations, web, worker, and a reverse proxy. See [`deploy/README.md`](./deploy/README.md) and [`docs/SELF_HOSTING.md`](./docs/SELF_HOSTING.md). Redeploys always run migrations via [`deploy/deploy.sh`](./deploy/deploy.sh).
 
