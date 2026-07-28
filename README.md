@@ -7,7 +7,11 @@ The open-source calendar & scheduling app for people juggling **multiple calenda
 
 **[▶ Try the hosted version](https://dayotter.com)** &nbsp;·&nbsp; [🐳 Self-host with Docker](#self-hosting-production) &nbsp;·&nbsp; [How we compare](./docs/COMPARISON.md)
 
-<!-- TODO(launch): add a 20-30s product GIF or a hero screenshot here - it's the single biggest README conversion lever. -->
+<br>
+
+<a href="https://dayotter.com"><img src="./.github/assets/hero-booking.png" alt="A DayOtter booking page: one link that's conflict-aware across all your calendars, with AI-recommended times" width="820"></a>
+
+<br>
 
 [Website](https://dayotter.com) · [Docs](./docs) · [Discord](https://discord.gg/cxwETDsY85) · [Roadmap](./docs/ROADMAP.md) · [Discussions](https://github.com/Dayotter/dayotter/discussions) · [Good first tasks](./docs/TASKS.md) · [Contributing](./CONTRIBUTING.md)
 
