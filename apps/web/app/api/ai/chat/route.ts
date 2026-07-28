@@ -71,7 +71,11 @@ export const POST = withUser(async (u, request) => {
           await streamAssistant({ userId: u.id, turns, emit: send });
         }
       } catch (err) {
-        logger.error("ai chat stream failed", { event: "ai_chat_failed", userId: u.id, err });
+        logger.error("ai chat stream failed", 
+          { event: "ai_chat_failed", 
+            userId: u.id, 
+            error: err instanceof Error ? err.message : String(err)
+          });
         send({ type: "error", message: "The assistant hit a snag. Please try again." });
       } finally {
         controller.close();

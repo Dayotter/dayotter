@@ -38,7 +38,11 @@ export const POST = withUser(async (u, request) => {
         400,
       );
     }
-    logger.error("calendly import failed", { event: "calendly_import_failed", userId: u.id, err });
+    logger.error("calendly import failed",
+       { event: "calendly_import_failed", 
+        userId: u.id, 
+        error: err instanceof Error ? err.message : String(err)
+      });
     return jsonError("Couldn't import from Calendly right now. Please try again.", 502);
   }
 });
