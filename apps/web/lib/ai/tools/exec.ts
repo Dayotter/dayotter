@@ -10,6 +10,7 @@ import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { getAgenda } from "@/lib/calendar/agenda";
 import { type BusyItem, analyzeSchedule } from "@/lib/calendar/analyze";
+import { updateBookingCalendarEvent } from "@/lib/calendar/host-calendar";
 import { recurringBlockOccurrences } from "@/lib/calendar/recurrence";
 import {
   channelInputSchema,
@@ -777,6 +778,106 @@ export async function executeActionTool(
           const msg = err instanceof Error ? err.message : "that time wasn't available";
           return { ok: false, message: `Couldn't move “${owned.title}” - ${msg}.` };
         }
+      }
+
+      case "update_booking": {
+        const uid = input.uid as string;
+        const booking = await db.query.bookings.findFirst({
+          where: and(eq(schema.bookings.uid, uid), eq(schema.bookings.hostId, userId)),
+          columns: {
+            id: true,
+            status: true,
+            title: true,
+            description: true,
+            startsAt: true,
+            endsAt: true,
+            timezone: true,
+            location: true,
+          },
+          with: { attendees: { columns: { email: true, name: true } } },
+        });
+        if (!booking || booking.status === "cancelled") {
+          return { ok: false, message: "I couldn't find that booking." };
+        }
+
+        // Field changes on the booking row.
+        const set: Record<string, unknown> = {};
+        if (input.title !== undefined) set.title = input.title;
+        if (input.notes !== undefined) set.description = input.notes;
+        if (input.location !== undefined) {
+          set.locationType = input.location;
+          if (input.locationDetail !== undefined) set.location = input.locationDetail;
+        } else if (input.locationDetail !== undefined) {
+          set.location = input.locationDetail;
+        }
+
+        // Attendee add/remove, de-duplicated against the current list.
+        const removeEmails = new Set(
+          ((input.removeGuests as string[] | undefined) ?? []).map((e) => e.toLowerCase()),
+        );
+        const currentEmails = new Set(booking.attendees.map((a) => a.email.toLowerCase()));
+        const toAdd = ((input.addGuests as { email: string; name?: string }[] | undefined) ?? [])
+          .filter((g) => g.email.includes("@"))
+          .filter((g) => !currentEmails.has(g.email.toLowerCase()));
+
+        if (Object.keys(set).length === 0 && toAdd.length === 0 && removeEmails.size === 0) {
+          return { ok: false, message: "Tell me what to change on that booking." };
+        }
+
+        if (Object.keys(set).length > 0) {
+          await db.update(schema.bookings).set(set).where(eq(schema.bookings.id, booking.id));
+        }
+        if (removeEmails.size > 0) {
+          await db
+            .delete(schema.bookingAttendees)
+            .where(eq(schema.bookingAttendees.bookingId, booking.id));
+          // Re-insert the survivors + additions below in one pass.
+        }
+        const survivors = booking.attendees.filter((a) => !removeEmails.has(a.email.toLowerCase()));
+        const finalAttendees = [
+          ...survivors.map((a) => ({ email: a.email, name: a.name ?? undefined })),
+          ...toAdd.map((g) => ({ email: g.email, name: g.name })),
+        ];
+        if (removeEmails.size > 0 || toAdd.length > 0) {
+          if (removeEmails.size === 0) {
+            // Only additions - insert just the new ones.
+            if (toAdd.length > 0) {
+              await db.insert(schema.bookingAttendees).values(
+                toAdd.map((g) => ({
+                  bookingId: booking.id,
+                  email: g.email,
+                  name: g.name ?? null,
+                  timezone: booking.timezone,
+                })),
+              );
+            }
+          } else if (finalAttendees.length > 0) {
+            // We cleared the table above; rewrite the full surviving + added set.
+            await db.insert(schema.bookingAttendees).values(
+              finalAttendees.map((a) => ({
+                bookingId: booking.id,
+                email: a.email,
+                name: a.name ?? null,
+                timezone: booking.timezone,
+              })),
+            );
+          }
+        }
+
+        // Push the change to the connected calendar (best-effort). The provider
+        // sends updated invites to attendees, so no separate email is needed.
+        await updateBookingCalendarEvent(booking.id, {
+          title: (set.title as string) ?? booking.title,
+          description: (set.description as string) ?? booking.description ?? undefined,
+          start: booking.startsAt,
+          end: booking.endsAt,
+          timezone: booking.timezone,
+          attendees: finalAttendees,
+          location: (set.location as string) ?? booking.location ?? undefined,
+          createConference: false,
+        }).catch(() => undefined);
+
+        return { ok: true, message: `Updated “${(set.title as string) ?? booking.title}”.` };
       }
 
       case "shift_bookings": {

@@ -985,6 +985,67 @@ export const TOOLS: AiToolDef[] = [
         : `Set ${i.date} hours to ${i.start}–${i.end}`,
   },
   {
+    name: "update_booking",
+    description:
+      "Edit an existing booking's details (NOT its time - use reschedule for that) by its public id (uid, from search_bookings or context). Change the title, the notes/description, the location, and/or add or remove guests by email. Only the fields you pass change; attendees are notified via the updated calendar invite. Confirm-first.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        uid: { type: "string", description: "The booking's public id." },
+        title: { type: "string", description: "New title." },
+        notes: { type: "string", description: "New description / notes." },
+        location: { type: "string", enum: LOCATIONS as unknown as string[] },
+        locationDetail: {
+          type: "string",
+          description: "Address, phone number, or meeting link for the location.",
+        },
+        addGuests: {
+          type: "array",
+          description: "Guests to invite (need an email).",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: { email: { type: "string" }, name: { type: "string" } },
+            required: ["email"],
+          },
+        },
+        removeGuests: {
+          type: "array",
+          items: { type: "string" },
+          description: "Emails of guests to remove.",
+        },
+      },
+      required: ["uid"],
+    },
+    zod: z.object({
+      uid: z.string().min(1).max(120),
+      title: z.string().min(1).max(200).optional(),
+      notes: z.string().max(2000).optional(),
+      location: z.enum(LOCATIONS).optional(),
+      locationDetail: z.string().max(500).optional(),
+      addGuests: z
+        .array(z.object({ email: z.string().email(), name: z.string().max(120).optional() }))
+        .max(20)
+        .optional(),
+      removeGuests: z.array(z.string().email()).max(20).optional(),
+    }),
+    title: "Edit booking",
+    summarize: (i) => {
+      const parts: string[] = [];
+      if (i.title !== undefined) parts.push("title");
+      if (i.notes !== undefined) parts.push("notes");
+      if (i.location !== undefined) parts.push("location");
+      const add = (i.addGuests as unknown[] | undefined)?.length ?? 0;
+      const rem = (i.removeGuests as unknown[] | undefined)?.length ?? 0;
+      if (add) parts.push(`add ${add} guest${add === 1 ? "" : "s"}`);
+      if (rem) parts.push(`remove ${rem} guest${rem === 1 ? "" : "s"}`);
+      return `Edit this booking: ${parts.length ? parts.join(", ") : "no changes"}`;
+    },
+  },
+  {
     name: "reschedule_booking",
     description:
       "Move ONE booking to a new time by its public id (uid). Use this to act on a specific booking you found with search_bookings - a past, far-future, or otherwise not-in-context meeting, or to resolve which of several you mean. For the common case of moving a booking that's already listed in the context, use propose_action instead. Confirm-first.",
