@@ -936,8 +936,106 @@ export const TOOLS: AiToolDef[] = [
         ? `Mark ${i.date} as a day off`
         : `Set ${i.date} hours to ${i.start}–${i.end}`,
   },
+  {
+    name: "reschedule_booking",
+    description:
+      "Move ONE booking to a new time by its public id (uid). Use this to act on a specific booking you found with search_bookings - a past, far-future, or otherwise not-in-context meeting, or to resolve which of several you mean. For the common case of moving a booking that's already listed in the context, use propose_action instead. Confirm-first.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        uid: { type: "string", description: "The booking's public id (from search_bookings)." },
+        newStartISO: { type: "string", description: "New start, ISO-8601 instant." },
+      },
+      required: ["uid", "newStartISO"],
+    },
+    zod: z.object({
+      uid: z.string().min(1).max(120),
+      newStartISO: z.string().datetime({ offset: true }),
+    }),
+    title: "Reschedule booking",
+    summarize: () => "Move this booking to the new time",
+  },
+  {
+    name: "shift_bookings",
+    description:
+      "Move SEVERAL bookings by the same relative amount - e.g. 'push everything on Friday back an hour' (deltaMinutes 60) or 'move my morning meetings 30 min earlier' (deltaMinutes -30). Pass the booking uids (from search_bookings). Each move is re-validated against availability; any that can't move are reported. Confirm-first.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        uids: {
+          type: "array",
+          items: { type: "string" },
+          description: "Public ids of the bookings to move (from search_bookings).",
+        },
+        deltaMinutes: {
+          type: "integer",
+          description: "Minutes to shift by; positive = later, negative = earlier.",
+        },
+      },
+      required: ["uids", "deltaMinutes"],
+    },
+    zod: z.object({
+      uids: z.array(z.string().min(1).max(120)).min(1).max(25),
+      deltaMinutes: z
+        .number()
+        .int()
+        .min(-1440)
+        .max(1440)
+        .refine((n) => n !== 0, "non-zero"),
+    }),
+    title: "Shift bookings",
+    summarize: (i) => {
+      const n = (i.uids as unknown[])?.length ?? 0;
+      const mins = Math.abs(i.deltaMinutes as number);
+      const dir = (i.deltaMinutes as number) > 0 ? "later" : "earlier";
+      return `Move ${n} booking${n === 1 ? "" : "s"} ${mins} min ${dir}`;
+    },
+  },
 
   // ---- Destructive (danger confirm; deleting ALWAYS requires confirmation) ----
+  {
+    name: "cancel_bookings",
+    description:
+      "Cancel one or more bookings by their public ids (uids from search_bookings), notifying attendees. Use this for bulk cancellation ('cancel all my meetings tomorrow') or to cancel a specific found/past booking - or pass scope 'series' with a single uid to cancel a whole recurring series. Destructive - requires explicit confirmation. (For cancelling a single booking already in context, propose_action is fine too.)",
+    kind: "destructive",
+    confirmLevel: "danger",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        uids: {
+          type: "array",
+          items: { type: "string" },
+          description: "Public ids of the bookings to cancel (from search_bookings).",
+        },
+        scope: {
+          type: "string",
+          enum: ["one", "series"],
+          description: "'series' cancels the whole recurring series of each uid (default 'one').",
+        },
+        reason: { type: "string", description: "Optional cancellation note sent to attendees." },
+      },
+      required: ["uids"],
+    },
+    zod: z.object({
+      uids: z.array(z.string().min(1).max(120)).min(1).max(50),
+      scope: z.enum(["one", "series"]).optional(),
+      reason: z.string().max(500).optional(),
+    }),
+    title: "Cancel bookings",
+    summarize: (i) => {
+      const n = (i.uids as unknown[])?.length ?? 0;
+      return i.scope === "series"
+        ? `Cancel ${n === 1 ? "this recurring series" : `${n} recurring series`}`
+        : `Cancel ${n} booking${n === 1 ? "" : "s"}`;
+    },
+  },
   {
     name: "delete_booking_type",
     description:
