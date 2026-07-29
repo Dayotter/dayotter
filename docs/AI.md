@@ -73,6 +73,32 @@ destructive actions get a danger confirm.** Execution reuses the app's own
 validated DB writes - the assistant can never do anything the app itself
 couldn't. To give Otter a new capability, add a tool.
 
+Reads cover the whole workspace: the merged agenda (DayOtter bookings **plus**
+synced Google/Outlook/Apple events via `get_agenda`), `search_bookings`,
+`check_availability`, booking types, availability, out-of-office, preferences,
+focus blocks, channels, teams, automations, workflows, and analytics. Writes and
+destructive actions cover booking types, focus time, out-of-office, preferences,
+working hours, channels, teams, automations, and workflows. Bookings themselves
+(create / reschedule / cancel) go through the richer `propose_action` card.
+
+### The prompt & knowledge catalogues - `lib/ai/catalogue/`
+Two curated, pure (no-I/O, unit-tested) data sources that make Otter more capable
+without new model plumbing:
+
+- **`prompts.ts` - the prompt catalogue.** A categorized library of real,
+  useful requests. It powers the suggestion chips in the assistant UI *and*
+  feeds `capabilitySummary()` into the system prompt, so the model knows the
+  shape of what it can do and maps fuzzy asks onto the right tool. **Extension
+  point:** when a capability lands, add a prompt here - it's the single source of
+  truth for "what can I ask Otter?".
+- **`knowledge.ts` - the knowledge catalogue.** A small set of grounded,
+  DayOtter-specific reference articles (protecting focus, reducing no-shows,
+  availability & time off, booking types, automations vs workflows, connecting
+  calendars, team scheduling). Otter retrieves them with the `search_knowledge`
+  tool to answer "how do I..." / "what's the best way to..." questions from
+  fact instead of guesswork. **Extension point:** add an article (title +
+  keywords + body); keyword+title retrieval needs nothing heavier.
+
 ### Memory - `lib/ai/memory/`  ([module README](../apps/web/lib/ai/memory/README.md))
 Long-term, per-user patterns (typical duration, frequent contacts, active hours,
 busiest weekday, meeting load) derived from real history and injected into the

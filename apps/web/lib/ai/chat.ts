@@ -2,6 +2,7 @@ import { logger } from "@dayotter/core";
 import { getPluginTool, pluginTools, runPluginTool } from "@dayotter/plugin-host";
 import { DateTime } from "luxon";
 import { FREE_SLOTS_TOOL, findFreeSlots } from "./agent";
+import { capabilitySummary } from "./catalogue";
 import {
   type BookingContext,
   type CommandDraft,
@@ -66,8 +67,11 @@ HOW YOU WORK:
 - If you're only answering a question (not proposing a change), reply in plain text and do not call propose_action.
 
 BEYOND BOOKINGS - you can also read and control the rest of the host's setup with these tools:
-- Reads (use freely to answer questions, and BEFORE changing something so you know the current values): get_agenda, list_booking_types, get_availability, get_preferences, list_focus_blocks, list_notification_channels, find_focus_time.
-- Actions (each shows the host a confirm card - nothing happens until they tap Confirm): create_booking_type, create_focus_block, protect_focus_time, update_preferences, set_weekly_hours, delete_booking_type, delete_focus_block.
+- Reads (use freely to answer questions, and BEFORE changing something so you know the current values): get_agenda, search_bookings, check_availability, list_booking_types, get_booking_type, get_availability, list_out_of_office, get_preferences, list_focus_blocks, list_notification_channels, find_focus_time, get_analytics.
+- Actions (each shows the host a confirm card - nothing happens until they tap Confirm): create_booking_type, create_focus_block, protect_focus_time, update_preferences, set_weekly_hours, set_out_of_office, delete_booking_type, delete_focus_block, and more (booking types, channels, teams, automations, workflows).
+- Prefer a tool over guessing. To find a specific past or upcoming meeting, use search_bookings (the per-turn context only lists a few). To answer "am I free at X", use check_availability.
+
+KNOWLEDGE: for "how do I...", "what's the best way to...", or "can DayOtter..." questions, call search_knowledge FIRST and answer from the returned article(s) in your own words - don't guess at product behaviour.
 
 PROTECTING TIME (act like a great EA - do the work, don't just advise): when the host wants focus / deep-work / heads-down time, or time set aside for a task ("block 6 hours of focus this week", "I need 4 hours for the deck by Friday", "protect my mornings"), call find_focus_time FIRST (pass hoursNeeded, an optional byDate deadline, and chunkMinutes if they hint at block length). Briefly tell them the specific times you found, then propose protect_focus_time with those exact blocks. For a single quick hold you may still use create_focus_block. Never invent times - only protect blocks that find_focus_time returned.
 Rules for these: propose exactly ONE action at a time. NEVER say you've done, created, changed, or deleted something - you have only proposed it; the host confirms. Deleting always requires the host's explicit confirmation. For set_weekly_hours and update_preferences, call the matching read tool first and carry over the values the host wants to keep (both replace/merge against current state). Use propose_action ONLY for bookings (create/reschedule/cancel a meeting); use these tools for booking types, availability, preferences, and focus blocks.`;
@@ -160,6 +164,7 @@ export async function streamAssistant(params: {
   const system: SystemBlock[] = [
     { text: GUARDRAIL_PREAMBLE, cache: true },
     { text: CHAT_SYSTEM, cache: true },
+    { text: capabilitySummary(), cache: true },
     { text: block },
   ];
   const tools: AgentToolSpec[] = [

@@ -1,3 +1,4 @@
+import { searchKnowledge } from "@/lib/ai/catalogue";
 import { computeAnalytics } from "@/lib/booking/analytics";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { findFocusBlocks } from "@/lib/booking/focus-suggestions";
@@ -10,6 +11,7 @@ import {
   configFromInput,
   maskChannel,
 } from "@/lib/notifications/channel-input";
+import { listOutOfOffice } from "@/lib/out-of-office";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import {
   DEFAULT_REMINDER_OFFSETS,
@@ -18,7 +20,7 @@ import {
   logger,
   sha256hex,
 } from "@dayotter/core";
-import { and, asc, desc, eq, getDb, gte, schema } from "@dayotter/db";
+import { and, asc, desc, eq, getDb, gte, lte, ne, schema } from "@dayotter/db";
 import { availableChannels, dispatchToChannel } from "@dayotter/notifications";
 import type { ChannelConfig, DeliverableChannel } from "@dayotter/notifications";
 import { DateTime } from "luxon";
@@ -63,6 +65,145 @@ export async function executeReadTool(
         note: items.length
           ? "'booking' = a DayOtter booking (can be rescheduled/cancelled); 'external' = a synced calendar event (read-only)."
           : "Nothing scheduled in that window - the host is free.",
+      });
+    }
+    case "search_bookings": {
+      const q = ((input?.query as string) ?? "").trim().toLowerCase();
+      const includePast = input?.includePast === true;
+      const now = new Date();
+      const fromRaw = input?.fromISO ? new Date(input.fromISO as string) : null;
+      const toRaw = input?.toISO ? new Date(input.toISO as string) : null;
+      const from = fromRaw && !Number.isNaN(fromRaw.getTime()) ? fromRaw : includePast ? null : now;
+      const to = toRaw && !Number.isNaN(toRaw.getTime()) ? toRaw : null;
+      const conds = [eq(schema.bookings.hostId, userId), ne(schema.bookings.status, "cancelled")];
+      if (from) conds.push(gte(schema.bookings.startsAt, from));
+      if (to) conds.push(lte(schema.bookings.startsAt, to));
+      const rows = await db.query.bookings.findMany({
+        where: and(...conds),
+        orderBy: includePast ? desc(schema.bookings.startsAt) : asc(schema.bookings.startsAt),
+        limit: q ? 200 : 40,
+        with: { attendees: { columns: { name: true, email: true } } },
+      });
+      const matched = rows
+        .filter((b) => {
+          if (!q) return true;
+          const hay =
+            `${b.title} ${b.attendees.map((a) => `${a.name ?? ""} ${a.email}`).join(" ")}`.toLowerCase();
+          return hay.includes(q);
+        })
+        .slice(0, 25)
+        .map((b) => ({
+          uid: b.uid,
+          title: b.title,
+          startsAt: b.startsAt.toISOString(),
+          endsAt: b.endsAt.toISOString(),
+          status: b.status,
+          attendees: b.attendees.map((a) => a.name ?? a.email),
+        }));
+      return JSON.stringify({ count: matched.length, bookings: matched });
+    }
+    case "check_availability": {
+      const from = new Date(input?.fromISO as string);
+      const to = new Date(input?.toISO as string);
+      if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || to <= from) {
+        return JSON.stringify({ error: "Pass a valid fromISO/toISO window (to after from)." });
+      }
+      const [agenda, focus] = await Promise.all([
+        // Bookings + synced external calendar events, already merged.
+        getAgenda(userId, from, to, 100),
+        // Held focus / personal blocks (not part of getAgenda) also make the host busy.
+        db.query.timeBlocks.findMany({
+          where: and(
+            eq(schema.timeBlocks.userId, userId),
+            gte(schema.timeBlocks.endsAt, from),
+            lte(schema.timeBlocks.startsAt, to),
+          ),
+          columns: { title: true, kind: true, startsAt: true, endsAt: true },
+        }),
+      ]);
+      const conflicts = [
+        ...agenda.map((i) => ({
+          title: i.title,
+          source: i.source,
+          startsAt: i.startsAt.toISOString(),
+          endsAt: i.endsAt.toISOString(),
+        })),
+        ...focus.map((f) => ({
+          title: f.title,
+          source: f.kind,
+          startsAt: f.startsAt.toISOString(),
+          endsAt: f.endsAt.toISOString(),
+        })),
+      ].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+      return JSON.stringify({
+        from: from.toISOString(),
+        to: to.toISOString(),
+        free: conflicts.length === 0,
+        conflicts,
+        note:
+          conflicts.length === 0
+            ? "Nothing is on the calendar in that window. (This reflects existing commitments, not working hours - use find_free_slots for bookable openings.)"
+            : "These commitments overlap the window, so the host is not fully free.",
+      });
+    }
+    case "list_out_of_office": {
+      const periods = await listOutOfOffice(userId);
+      return JSON.stringify(
+        periods.map((p) => ({
+          id: p.id,
+          startDate: p.startDate,
+          endDate: p.endDate,
+          reason: p.reason,
+          delegate: p.delegate ? (p.delegate.name ?? p.delegate.handle) : null,
+        })),
+      );
+    }
+    case "get_booking_type": {
+      const id = input?.id as string | undefined;
+      const slug = input?.slug as string | undefined;
+      if (!id && !slug) return JSON.stringify({ error: "Pass an id or slug." });
+      const et = await db.query.eventTypes.findFirst({
+        where: and(
+          eq(schema.eventTypes.ownerId, userId),
+          id ? eq(schema.eventTypes.id, id) : eq(schema.eventTypes.slug, slug as string),
+        ),
+      });
+      if (!et) return JSON.stringify({ error: "No booking type with that id or slug." });
+      return JSON.stringify({
+        id: et.id,
+        title: et.title,
+        slug: et.slug,
+        description: et.description,
+        durationMinutes: et.durationMinutes,
+        location: et.location,
+        color: et.color,
+        isActive: et.isActive,
+        bufferBeforeMinutes: et.bufferBeforeMinutes,
+        bufferAfterMinutes: et.bufferAfterMinutes,
+        minimumNoticeMinutes: et.minimumNoticeMinutes,
+        bookingWindowDays: et.bookingWindowDays,
+        dailyBookingLimit: et.dailyBookingLimit,
+        weeklyBookingLimit: et.weeklyBookingLimit,
+        maxAttendees: et.maxAttendees,
+        requiresConfirmation: et.requiresConfirmation,
+        isPrivate: et.isPrivate,
+        price: et.price,
+        currency: et.currency,
+      });
+    }
+    case "search_knowledge": {
+      const query = (input?.query as string) ?? "";
+      const matches = searchKnowledge(query, 2);
+      if (matches.length === 0) {
+        return JSON.stringify({
+          found: 0,
+          note: "No matching article. Answer from the tools you have, or ask the host to clarify.",
+        });
+      }
+      return JSON.stringify({
+        found: matches.length,
+        articles: matches.map((m) => ({ title: m.title, content: m.body })),
+        note: "Answer the host from these articles, in your own words and concisely.",
       });
     }
     case "list_booking_types": {
@@ -425,6 +566,39 @@ export async function executeActionTool(
           if (rows.length) await tx.insert(schema.availabilityRules).values(rows);
         });
         return { ok: true, message: `Updated working hours for ${days.length} day(s).` };
+      }
+
+      case "set_out_of_office": {
+        const startDate = input.startDate as string;
+        const endDate = input.endDate as string;
+        if (endDate < startDate) {
+          return { ok: false, message: "The end date must be on or after the start date." };
+        }
+        // Cap per user (mirrors the settings route) so a runaway client can't fill
+        // the table - every OOO row is scanned on each availability computation.
+        const existing = await db.query.outOfOfficePeriods.findMany({
+          where: eq(schema.outOfOfficePeriods.userId, userId),
+          columns: { id: true },
+          limit: 200,
+        });
+        if (existing.length >= 100) {
+          return { ok: false, message: "You've hit the maximum of 100 out-of-office periods." };
+        }
+        const reason = (input.reason as string | undefined)?.trim();
+        await db.insert(schema.outOfOfficePeriods).values({
+          userId,
+          startDate,
+          endDate,
+          reason: reason?.length ? reason : null,
+          delegateUserId: null,
+        });
+        return {
+          ok: true,
+          message:
+            startDate === endDate
+              ? `You're set out of office on ${startDate}.`
+              : `You're set out of office from ${startDate} to ${endDate}.`,
+        };
       }
 
       case "delete_booking_type": {
