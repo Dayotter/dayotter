@@ -4,6 +4,7 @@ import { findFocusBlocks } from "@/lib/booking/focus-suggestions";
 import { notPersonalType } from "@/lib/booking/personal-event-type";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
+import { getAgenda } from "@/lib/calendar/agenda";
 import {
   channelInputSchema,
   configFromInput,
@@ -38,6 +39,32 @@ export async function executeReadTool(
 ): Promise<string> {
   const db = getDb();
   switch (name) {
+    case "get_agenda": {
+      const now = new Date();
+      const fromRaw = input?.fromISO ? new Date(input.fromISO as string) : now;
+      const from = Number.isNaN(fromRaw.getTime()) ? now : fromRaw;
+      const toRaw = input?.toISO ? new Date(input.toISO as string) : null;
+      const to =
+        toRaw && !Number.isNaN(toRaw.getTime()) && toRaw > from
+          ? toRaw
+          : new Date(from.getTime() + 7 * 86_400_000);
+      const items = await getAgenda(userId, from, to, 100);
+      return JSON.stringify({
+        from: from.toISOString(),
+        to: to.toISOString(),
+        count: items.length,
+        items: items.map((i) => ({
+          title: i.title,
+          startsAt: i.startsAt.toISOString(),
+          endsAt: i.endsAt.toISOString(),
+          source: i.source,
+          ...(i.attendees.length ? { attendees: i.attendees } : {}),
+        })),
+        note: items.length
+          ? "'booking' = a DayOtter booking (can be rescheduled/cancelled); 'external' = a synced calendar event (read-only)."
+          : "Nothing scheduled in that window - the host is free.",
+      });
+    }
     case "list_booking_types": {
       const rows = await db.query.eventTypes.findMany({
         where: and(eq(schema.eventTypes.ownerId, userId), notPersonalType),
