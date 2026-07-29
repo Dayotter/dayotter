@@ -248,6 +248,8 @@ function OtterSheet({ onClose }: { onClose: () => void }) {
           // Map to the real event type when one was matched, so its location,
           // workflows and reminders apply (not the hidden Personal type).
           eventTypeSlug: draft.eventTypeSlug || undefined,
+          // "focus" is held as a personal focus block, not a meeting.
+          kind: draft.kind,
         });
         finish("Added to your calendar.");
       } else if (draft.intent === "reschedule" && target) {
