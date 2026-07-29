@@ -38,6 +38,8 @@ interface Draft {
   durationMinutes: number;
   attendees: { name: string; email: string }[];
   notes: string;
+  /** Slug of a matched event type, so the booking maps to the real type. */
+  eventTypeSlug?: string;
   newStartISO: string;
   message: string;
 }
@@ -243,6 +245,9 @@ function OtterSheet({ onClose }: { onClose: () => void }) {
           durationMinutes: draft.durationMinutes,
           notes: draft.notes || undefined,
           attendees: draft.attendees,
+          // Map to the real event type when one was matched, so its location,
+          // workflows and reminders apply (not the hidden Personal type).
+          eventTypeSlug: draft.eventTypeSlug || undefined,
         });
         finish("Added to your calendar.");
       } else if (draft.intent === "reschedule" && target) {
