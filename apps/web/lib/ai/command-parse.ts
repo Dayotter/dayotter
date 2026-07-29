@@ -62,6 +62,7 @@ Rules:
 - understood: true only if you can produce an actionable draft; false otherwise.
 - Resolve all times to ABSOLUTE ISO-8601 instants using the provided current time and timezone. Interpret vague times in the user's local timezone ("morning"=09:00, "afternoon"=14:00, "evening"=18:00). Never pick a past time.
 - For create: kind, a short title, startISO, durationMinutes, attendees (name + email if given, else empty email), notes.
+- Attendees are only INVITED if you have their email address - an attendee with an empty email is dropped and gets no invite. If the user clearly wants to invite a named person but gives no email (e.g. "book a call with Dana"), don't invent one: either ask for their email (intent "none", put the question in message), or, if they just want the time held, proceed and make clear in message that that person won't be emailed. Never silently imply someone was invited when they weren't.
 - Event types: you are given the user's event types (title + default duration). If a create request clearly matches one (e.g. "book a sync" → the "Sync" type), set eventTypeSlug to its slug and use that type's default duration. Otherwise eventTypeSlug = "" and default durationMinutes to 30 (meeting) / 60 (focus).
 - For reschedule/cancel: set bookingRef to the exact ref of the intended booking. If several bookings could match and you can't tell, use intent "none" and ask which one in message.
 - bookingRef must be 0 for create/none.
