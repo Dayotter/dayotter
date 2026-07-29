@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
+import { PROMPT_CATEGORIES, promptsByCategory } from "@/lib/ai/catalogue";
 import type { ChatAction, ChatToolAction } from "@/lib/ai/chat";
 import { track } from "@/lib/analytics";
 import type { Locale } from "@/lib/i18n";
@@ -374,18 +375,43 @@ export function AiAssistant({
         {messages.length === 0 ? (
           <div>
             <p className="text-sm text-[var(--color-muted)]">{tOtter(locale, "emptyGreeting")}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {suggestions(locale).map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => void send(s)}
-                  className="rounded-full border border-[var(--color-border-strong)] px-3 py-1.5 text-xs text-[var(--color-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
+            {locale === "en" ? (
+              <div className="mt-3 space-y-3">
+                {PROMPT_CATEGORIES.map((cat) => (
+                  <div key={cat.key}>
+                    <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-[var(--color-faint)]">
+                      {cat.title}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {promptsByCategory(cat.key).map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          title={p.prompt}
+                          onClick={() => void send(p.prompt)}
+                          className="rounded-full border border-[var(--color-border-strong)] px-3 py-1.5 text-xs text-[var(--color-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {suggestions(locale).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => void send(s)}
+                    className="rounded-full border border-[var(--color-border-strong)] px-3 py-1.5 text-xs text-[var(--color-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
