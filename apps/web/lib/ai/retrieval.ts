@@ -1,4 +1,5 @@
 import { and, asc, eq, getDb, gte, schema } from "@dayotter/db";
+import { syncedExternalEvents } from "../calendar/agenda";
 
 /**
  * Lightweight retrieval ("RAG-lite") for the scheduling assistant. Rather than
@@ -33,6 +34,11 @@ export interface CalendarContext {
   /** Relevance + recency selected, in chronological order. */
   bookings: RetrievedBooking[];
   eventTypes: RetrievedEventType[];
+  /** Busy events synced from the host's connected calendars (Google / Microsoft /
+   * Apple), next ~14 days. Read-only - the AI can see them to answer "how's my
+   * calendar looking" but can't act on them. Without these the assistant is blind
+   * to everything except DayOtter's own bookings. */
+  externalEvents: { title: string; startsAt: Date; endsAt: Date }[];
 }
 
 const STOPWORDS = new Set([
@@ -135,13 +141,15 @@ export async function retrieveCalendarContext(
   const limit = opts.limit ?? 12;
   const db = getDb();
 
-  const [user, upcoming, eventTypeRows] = await Promise.all([
+  const now = new Date();
+  const in14Days = new Date(now.getTime() + 14 * 86_400_000);
+  const [user, upcoming, eventTypeRows, externalEvents] = await Promise.all([
     db.query.users.findFirst({ where: eq(schema.users.id, userId), columns: { timezone: true } }),
     db.query.bookings.findMany({
       where: and(
         eq(schema.bookings.hostId, userId),
         eq(schema.bookings.status, "confirmed"),
-        gte(schema.bookings.startsAt, new Date()),
+        gte(schema.bookings.startsAt, now),
       ),
       orderBy: asc(schema.bookings.startsAt),
       limit: 60,
@@ -152,6 +160,10 @@ export async function retrieveCalendarContext(
       columns: { title: true, slug: true, durationMinutes: true },
       limit: 30,
     }),
+    // The host's real synced calendar (Google/Microsoft/Apple) for the next 2 weeks
+    // - so "how's my calendar looking?" reflects their whole schedule, not just
+    // DayOtter bookings.
+    syncedExternalEvents(userId, now, in14Days, 40),
   ]);
 
   const all: RetrievedBooking[] = upcoming.map((b) => ({
@@ -175,5 +187,5 @@ export async function retrieveCalendarContext(
     .slice(0, 8)
     .map(({ e }) => e);
 
-  return { timezone: user?.timezone ?? "UTC", bookings, eventTypes };
+  return { timezone: user?.timezone ?? "UTC", bookings, eventTypes, externalEvents };
 }

@@ -1,5 +1,6 @@
+import { syncedExternalEvents } from "@/lib/calendar/agenda";
 import { jsonError, withUser } from "@/lib/server/http";
-import { and, asc, eq, getDb, gte, inArray, lt, ne, schema } from "@dayotter/db";
+import { and, asc, eq, getDb, gte, lt, ne, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -37,49 +38,12 @@ export const GET = withUser(async (u, request) => {
   });
 
   // Also surface the host's real (synced) calendar events, so the calendar shows
-  // their whole schedule - not just DayOtter bookings. Busy, non-all-day only.
-  const conns = await getDb().query.calendarConnections.findMany({
-    where: eq(schema.calendarConnections.userId, u.id),
-    with: { calendars: { columns: { id: true, checkForConflicts: true } } },
-  });
-  const calIds = conns
-    .flatMap((c) => c.calendars)
-    .filter((c) => c.checkForConflicts)
-    .map((c) => c.id);
-
-  let events: { title: string; startsAt: string; endsAt: string }[] = [];
-  if (calIds.length > 0) {
-    // A DayOtter booking we write to the host's calendar syncs back as an event.
-    // Exclude those mirrors by their external id so a booking doesn't appear
-    // twice (once as a booking, once as a synced event) in the calendar view.
-    const refs = await getDb().query.bookingReferences.findMany({
-      where: inArray(schema.bookingReferences.calendarId, calIds),
-      columns: { externalEventId: true },
-    });
-    const mirrorIds = new Set(refs.map((r) => r.externalEventId));
-
-    const evRows = await getDb().query.calendarEvents.findMany({
-      where: and(
-        inArray(schema.calendarEvents.calendarId, calIds),
-        gte(schema.calendarEvents.endsAt, start),
-        lt(schema.calendarEvents.startsAt, end),
-        ne(schema.calendarEvents.transparency, "transparent"),
-        eq(schema.calendarEvents.allDay, false),
-      ),
-      columns: { title: true, startsAt: true, endsAt: true, externalEventId: true },
-      // Deterministic order so the 500-row cap keeps the EARLIEST events, not an
-      // arbitrary slice, when a host has a very dense window.
-      orderBy: asc(schema.calendarEvents.startsAt),
-      limit: 500,
-    });
-    events = evRows
-      .filter((e) => !mirrorIds.has(e.externalEventId))
-      .map((e) => ({
-        title: e.title ?? "Busy",
-        startsAt: e.startsAt.toISOString(),
-        endsAt: e.endsAt.toISOString(),
-      }));
-  }
+  // their whole schedule - not just DayOtter bookings. Shared with the AI agenda.
+  const events = (await syncedExternalEvents(u.id, start, end)).map((e) => ({
+    title: e.title,
+    startsAt: e.startsAt.toISOString(),
+    endsAt: e.endsAt.toISOString(),
+  }));
 
   return NextResponse.json({
     bookings: rows.map((b) => ({

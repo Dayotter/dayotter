@@ -44,6 +44,27 @@ const COLORS = ["violet", "mint", "amber", "coral", "sky"] as const;
 export const TOOLS: AiToolDef[] = [
   // ---- Reads (run immediately) ----
   {
+    name: "get_agenda",
+    description:
+      "Get the host's real agenda for a date range: their DayOtter bookings AND the busy events synced from their connected Google / Outlook / Apple calendars, merged in time order. This is the source of truth for 'what's on my calendar', 'how busy is Tuesday', 'when's my next meeting', or 'am I free on the 14th'. The per-turn context already lists the next ~2 weeks; call this to look further ahead or to double-check a specific window. Times are ISO-8601; omit them to default to the next 7 days.",
+    kind: "read",
+    confirmLevel: "none",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        fromISO: { type: "string", description: "ISO-8601 start of the window (default: now)." },
+        toISO: {
+          type: "string",
+          description: "ISO-8601 end of the window (default: 7 days from the start).",
+        },
+      },
+    },
+    zod: z.object({ fromISO: z.string().optional(), toISO: z.string().optional() }),
+    title: "Agenda",
+    summarize: () => "Read agenda",
+  },
+  {
     name: "list_booking_types",
     description:
       "List the host's booking types (event types): title, slug, duration, active state, and public URL.",
