@@ -670,6 +670,54 @@ export const TOOLS: AiToolDef[] = [
     summarize: (i) => `Block ${i.durationMinutes} min for “${i.title}”`,
   },
   {
+    name: "create_recurring_block",
+    description:
+      "Reserve a REPEATING weekly focus / personal time block that holds bookable time - for requests like 'hold lunch 12-1 every weekday', 'block Friday afternoons every week', or 'standup every Monday at 9'. Give the weekdays (0=Sunday…6=Saturday), a local start time (HH:MM), and a duration; it creates the series for the next `weeks` weeks (default 12) as one group the host can later remove in one go. Confirm-first.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        title: { type: "string" },
+        daysOfWeek: {
+          type: "array",
+          items: { type: "integer" },
+          description: "Weekdays to repeat on: 0=Sunday … 6=Saturday. E.g. [1,2,3,4,5] = Mon–Fri.",
+        },
+        start: { type: "string", description: "Local start time, HH:MM 24h." },
+        durationMinutes: { type: "integer", description: "15–480." },
+        weeks: { type: "integer", description: "How many weeks to repeat, 1–52 (default 12)." },
+        kind: { type: "string", enum: ["focus", "personal", "travel", "other"] },
+        timezone: { type: "string", description: "IANA timezone (defaults to the host's)." },
+      },
+      required: ["title", "daysOfWeek", "start", "durationMinutes"],
+    },
+    zod: z.object({
+      title: z.string().min(1).max(120),
+      daysOfWeek: z.array(z.number().int().min(0).max(6)).min(1).max(7),
+      start: z.string().regex(/^\d{1,2}:\d{2}$/),
+      durationMinutes: z.number().int().min(15).max(480),
+      weeks: z.number().int().min(1).max(52).optional(),
+      kind: z.enum(["focus", "personal", "travel", "other"]).optional(),
+      timezone: z.string().min(1).max(64).optional(),
+    }),
+    title: "Hold recurring time",
+    summarize: (i) => {
+      const days = (i.daysOfWeek as number[] | undefined) ?? [];
+      const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const label =
+        days.length === 5 && [1, 2, 3, 4, 5].every((d) => days.includes(d))
+          ? "weekdays"
+          : days
+              .slice()
+              .sort((a, b) => a - b)
+              .map((d) => names[d])
+              .join(", ");
+      return `Hold “${i.title}” at ${i.start} for ${i.durationMinutes} min every ${label}`;
+    },
+  },
+  {
     name: "find_focus_time",
     description:
       'Find concrete open blocks on the host\'s calendar to protect for focus / deep work or a task. Returns specific candidate blocks (already clear of meetings and busy times) that add up toward the hours requested. ALWAYS call this before protect_focus_time, then pass the returned blocks through. Use it whenever the host wants to reserve time ("block 6 hours of focus this week", "find 4 hours for the deck by Friday").',
