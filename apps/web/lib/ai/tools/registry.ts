@@ -65,6 +65,100 @@ export const TOOLS: AiToolDef[] = [
     summarize: () => "Read agenda",
   },
   {
+    name: "search_bookings",
+    description:
+      "Search the host's bookings beyond the handful already in context - by keyword (title or attendee name) and/or a date range, upcoming or past. Use it to find a specific meeting ('my call with Dana next week', 'the demo I had in March') or to list what's booked in a window. Returns each match with its numeric-free public id, time, status, and attendees.",
+    kind: "read",
+    confirmLevel: "none",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "Keyword to match in title or attendee names." },
+        fromISO: { type: "string", description: "ISO-8601 start of the window (optional)." },
+        toISO: { type: "string", description: "ISO-8601 end of the window (optional)." },
+        includePast: {
+          type: "boolean",
+          description: "Include bookings before now (default false = upcoming only).",
+        },
+      },
+    },
+    zod: z.object({
+      query: z.string().max(200).optional(),
+      fromISO: z.string().optional(),
+      toISO: z.string().optional(),
+      includePast: z.boolean().optional(),
+    }),
+    title: "Search bookings",
+    summarize: () => "Search bookings",
+  },
+  {
+    name: "check_availability",
+    description:
+      "Check whether the host is free over a specific window and list what would conflict - their DayOtter bookings, synced calendar events, and held focus blocks. Use this to answer 'am I free Friday at 2pm?' or 'is Tuesday afternoon open?'. This reports what's ALREADY on the calendar; to find bookable openings that respect working hours, use find_free_slots instead.",
+    kind: "read",
+    confirmLevel: "none",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        fromISO: { type: "string", description: "ISO-8601 start of the window to check." },
+        toISO: { type: "string", description: "ISO-8601 end of the window to check." },
+      },
+      required: ["fromISO", "toISO"],
+    },
+    zod: z.object({ fromISO: z.string(), toISO: z.string() }),
+    title: "Check availability",
+    summarize: () => "Check availability",
+  },
+  {
+    name: "list_out_of_office",
+    description:
+      "List the host's out-of-office periods (start date, end date, reason, and any delegate their bookings redirect to while away).",
+    kind: "read",
+    confirmLevel: "none",
+    schema: empty,
+    zod: z.object({}),
+    title: "Out of office",
+    summarize: () => "List out-of-office",
+  },
+  {
+    name: "get_booking_type",
+    description:
+      "Get the full detail of one booking type by id or slug: duration, location, buffers, notice and booking windows, daily/weekly limits, group capacity, price, and active state. Use before updating one so you know the current values.",
+    kind: "read",
+    confirmLevel: "none",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        id: { type: "string", description: "Booking type id (from list_booking_types)." },
+        slug: { type: "string", description: "Booking type slug (alternative to id)." },
+      },
+    },
+    zod: z.object({ id: z.string().optional(), slug: z.string().optional() }),
+    title: "Booking type detail",
+    summarize: () => "Read booking type",
+  },
+  {
+    name: "search_knowledge",
+    description:
+      "Search DayOtter's built-in knowledge base for how-to and best-practice guidance (protecting focus time, reducing no-shows, availability & time off, designing booking types, automations vs workflows, connecting calendars, team scheduling). Call this whenever the host asks 'how do I...', 'what's the best way to...', or 'can DayOtter...' - then answer from the returned article(s) instead of guessing.",
+    kind: "read",
+    confirmLevel: "none",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        query: { type: "string", description: "What the host wants to know how to do." },
+      },
+      required: ["query"],
+    },
+    zod: z.object({ query: z.string().min(1).max(300) }),
+    title: "Knowledge base",
+    summarize: () => "Search knowledge base",
+  },
+  {
     name: "list_booking_types",
     description:
       "List the host's booking types (event types): title, slug, duration, active state, and public URL.",
@@ -711,6 +805,31 @@ export const TOOLS: AiToolDef[] = [
     }),
     title: "Update working hours",
     summarize: (i) => `Set working hours for ${(i.days as unknown[])?.length ?? 0} day(s)`,
+  },
+  {
+    name: "set_out_of_office",
+    description:
+      "Mark the host out of office for a date range (inclusive), so their booking page shows an away banner and stops offering slots on those days. Dates are YYYY-MM-DD. Optionally add a short reason. Confirm-first.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        startDate: { type: "string", description: "First day away, YYYY-MM-DD." },
+        endDate: { type: "string", description: "Last day away, YYYY-MM-DD (inclusive)." },
+        reason: { type: "string", description: "Optional short note, e.g. 'Vacation'." },
+      },
+      required: ["startDate", "endDate"],
+    },
+    zod: z.object({
+      startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      reason: z.string().max(200).optional(),
+    }),
+    title: "Set out of office",
+    summarize: (i) =>
+      `Out of office ${i.startDate}${i.endDate !== i.startDate ? ` → ${i.endDate}` : ""}${i.reason ? ` (${i.reason})` : ""}`,
   },
 
   // ---- Destructive (danger confirm; deleting ALWAYS requires confirmation) ----
