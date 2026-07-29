@@ -42,7 +42,10 @@ function whenLabel(iso: string, tz: string): string {
  * "reply YES to confirm" prompt - confirm-first, over text.
  */
 export async function interpretForSms(userId: string, text: string): Promise<InterpretResult> {
-  const { draft, timezone: tz, target } = await interpretOtterCommand(userId, text);
+  const { draft, timezone: tz, target, answer } = await interpretOtterCommand(userId, text);
+
+  // A question / out-of-scope ask → text the answer straight back, nothing to confirm.
+  if (answer) return { reply: answer };
 
   if (!draft.understood || draft.intent === "none") {
     return {

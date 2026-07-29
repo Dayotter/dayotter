@@ -34,7 +34,13 @@ export const POST = withUser(async (u, request) => {
   if (!parsed.success) return jsonError("Enter a request", 400);
 
   try {
-    const { draft, target, matchedEventType } = await interpretOtterCommand(u.id, parsed.data.text);
+    const { draft, target, matchedEventType, answer } = await interpretOtterCommand(
+      u.id,
+      parsed.data.text,
+    );
+
+    // A question / out-of-scope ask → a plain-text reply, nothing to confirm.
+    if (answer) return NextResponse.json({ answer, draft, target: null });
 
     // Manage intent that couldn't be resolved to a real booking → tell the user.
     if ((draft.intent === "reschedule" || draft.intent === "cancel") && !target) {
