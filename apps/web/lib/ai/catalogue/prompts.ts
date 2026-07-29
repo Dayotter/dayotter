@@ -93,6 +93,12 @@ export const PROMPT_CATALOGUE: CataloguePrompt[] = [
     label: "Find time for the deck",
     prompt: "I need 3 hours for the deck by Thursday - find and hold the time.",
   },
+  {
+    id: "focus-lunch",
+    category: "focus",
+    label: "Hold lunch every day",
+    prompt: "Hold 12–1 for lunch every weekday.",
+  },
 
   // ---- Manage meetings ----
   {

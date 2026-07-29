@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { searchKnowledge } from "@/lib/ai/catalogue";
 import { computeAnalytics } from "@/lib/booking/analytics";
 import { cancelBooking, cancelBookingSeries } from "@/lib/booking/cancel-booking";
@@ -9,6 +10,7 @@ import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { getAgenda } from "@/lib/calendar/agenda";
 import { type BusyItem, analyzeSchedule } from "@/lib/calendar/analyze";
+import { recurringBlockOccurrences } from "@/lib/calendar/recurrence";
 import {
   channelInputSchema,
   configFromInput,
@@ -519,6 +521,50 @@ export async function executeActionTool(
           seriesId: null,
         });
         return { ok: true, message: `Held ${input.durationMinutes} min for “${input.title}”.` };
+      }
+
+      case "create_recurring_block": {
+        let timezone = input.timezone as string | undefined;
+        if (!timezone) {
+          const u = await db.query.users.findFirst({
+            where: eq(schema.users.id, userId),
+            columns: { timezone: true },
+          });
+          timezone = u?.timezone ?? "UTC";
+        }
+        const occ = recurringBlockOccurrences(
+          {
+            daysOfWeek: input.daysOfWeek as number[],
+            start: input.start as string,
+            durationMinutes: input.durationMinutes as number,
+            weeks: (input.weeks as number) ?? 12,
+            timezone,
+          },
+          new Date(),
+        );
+        if (occ.length === 0) {
+          return {
+            ok: false,
+            message: "That didn't produce any upcoming times to hold - check the days and time.",
+          };
+        }
+        // One shared seriesId so the whole series shows as a group and can be
+        // removed together via delete_focus_block(series: true).
+        const seriesId = randomUUID();
+        await db.insert(schema.timeBlocks).values(
+          occ.map((o) => ({
+            userId,
+            title: input.title as string,
+            kind: (input.kind as "focus" | "personal" | "travel" | "other") ?? "focus",
+            startsAt: o.startsAt,
+            endsAt: o.endsAt,
+            seriesId,
+          })),
+        );
+        return {
+          ok: true,
+          message: `Holding “${input.title}” ${occ.length} times over the next ${(input.weeks as number) ?? 12} weeks.`,
+        };
       }
 
       case "protect_focus_time": {
