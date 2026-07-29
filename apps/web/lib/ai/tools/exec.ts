@@ -1,8 +1,10 @@
 import { searchKnowledge } from "@/lib/ai/catalogue";
 import { computeAnalytics } from "@/lib/booking/analytics";
+import { cancelBooking, cancelBookingSeries } from "@/lib/booking/cancel-booking";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { findFocusBlocks } from "@/lib/booking/focus-suggestions";
 import { notPersonalType } from "@/lib/booking/personal-event-type";
+import { rescheduleBooking } from "@/lib/booking/reschedule-booking";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { getAgenda } from "@/lib/calendar/agenda";
@@ -21,7 +23,7 @@ import {
   logger,
   sha256hex,
 } from "@dayotter/core";
-import { and, asc, desc, eq, getDb, gte, lte, ne, schema } from "@dayotter/db";
+import { and, asc, desc, eq, getDb, gte, inArray, lte, ne, schema } from "@dayotter/db";
 import { availableChannels, dispatchToChannel } from "@dayotter/notifications";
 import type { ChannelConfig, DeliverableChannel } from "@dayotter/notifications";
 import { DateTime } from "luxon";
@@ -709,6 +711,89 @@ export async function executeActionTool(
             ? `${date} is now marked as a day off.`
             : `On ${date} your hours are now ${input.start as string}–${input.end as string}.`,
         };
+      }
+
+      case "reschedule_booking": {
+        const uid = input.uid as string;
+        // Ownership guard: only the host may move their own booking, even though
+        // rescheduleBooking() looks up by uid globally.
+        const owned = await db.query.bookings.findFirst({
+          where: and(eq(schema.bookings.uid, uid), eq(schema.bookings.hostId, userId)),
+          columns: { status: true, title: true },
+        });
+        if (!owned || owned.status === "cancelled") {
+          return { ok: false, message: "I couldn't find that booking." };
+        }
+        try {
+          await rescheduleBooking(uid, input.newStartISO as string);
+          return { ok: true, message: `Moved “${owned.title}” to the new time.` };
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "that time wasn't available";
+          return { ok: false, message: `Couldn't move “${owned.title}” - ${msg}.` };
+        }
+      }
+
+      case "shift_bookings": {
+        const uids = input.uids as string[];
+        const delta = input.deltaMinutes as number;
+        const owned = await db.query.bookings.findMany({
+          where: and(
+            inArray(schema.bookings.uid, uids),
+            eq(schema.bookings.hostId, userId),
+            ne(schema.bookings.status, "cancelled"),
+          ),
+          columns: { uid: true, title: true, startsAt: true },
+        });
+        if (owned.length === 0) return { ok: false, message: "I couldn't find those bookings." };
+        // Order so the shifted set doesn't collide with itself: moving later,
+        // move the latest first; moving earlier, the earliest first.
+        const ordered = [...owned].sort((a, b) =>
+          delta > 0
+            ? b.startsAt.getTime() - a.startsAt.getTime()
+            : a.startsAt.getTime() - b.startsAt.getTime(),
+        );
+        let moved = 0;
+        const failed: string[] = [];
+        for (const b of ordered) {
+          const newStart = new Date(b.startsAt.getTime() + delta * 60_000).toISOString();
+          try {
+            await rescheduleBooking(b.uid, newStart);
+            moved++;
+          } catch {
+            failed.push(b.title);
+          }
+        }
+        if (moved === 0) {
+          return { ok: false, message: "Couldn't move any of them - the new times weren't free." };
+        }
+        return {
+          ok: true,
+          message: failed.length
+            ? `Moved ${moved}; couldn't move ${failed.length} (${failed.join(", ")}) - those times weren't free.`
+            : `Moved ${moved} booking${moved === 1 ? "" : "s"}.`,
+        };
+      }
+
+      case "cancel_bookings": {
+        const uids = input.uids as string[];
+        const series = input.scope === "series";
+        const reason = input.reason as string | undefined;
+        const owned = await db.query.bookings.findMany({
+          where: and(inArray(schema.bookings.uid, uids), eq(schema.bookings.hostId, userId)),
+          columns: { uid: true },
+        });
+        const ownedUids = new Set(owned.map((b) => b.uid));
+        if (ownedUids.size === 0) return { ok: false, message: "I couldn't find those bookings." };
+        let count = 0;
+        for (const uid of uids) {
+          if (!ownedUids.has(uid)) continue;
+          if (series) count += await cancelBookingSeries(uid, reason);
+          else if (await cancelBooking(uid, reason)) count++;
+        }
+        if (count === 0) {
+          return { ok: false, message: "Nothing to cancel - they may already be cancelled." };
+        }
+        return { ok: true, message: `Cancelled ${count} booking${count === 1 ? "" : "s"}.` };
       }
 
       case "delete_booking_type": {
