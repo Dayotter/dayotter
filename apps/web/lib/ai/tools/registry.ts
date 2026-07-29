@@ -565,7 +565,7 @@ export const TOOLS: AiToolDef[] = [
   {
     name: "update_booking_type",
     description:
-      "Update fields on an existing booking type by id - title, description, duration, or colour. Only the fields you pass change. Get the id from list_booking_types.",
+      "Update fields on an existing booking type by id. Only the fields you pass change; the rest are preserved. Get the id and current values from get_booking_type / list_booking_types first. You can change its title, description, duration, colour, location, buffers before/after, minimum notice, how far ahead people can book (bookingWindowDays), daily/weekly booking limits, group capacity (maxAttendees), whether it requires confirmation, and whether it's private (link-only).",
     kind: "write",
     confirmLevel: "confirm",
     schema: {
@@ -577,6 +577,25 @@ export const TOOLS: AiToolDef[] = [
         description: { type: "string" },
         durationMinutes: { type: "integer", description: "5–480." },
         color: { type: "string", enum: COLORS as unknown as string[] },
+        location: { type: "string", enum: LOCATIONS as unknown as string[] },
+        bufferBeforeMinutes: { type: "integer", description: "Gap held before, 0–120." },
+        bufferAfterMinutes: { type: "integer", description: "Gap held after, 0–120." },
+        minimumNoticeMinutes: {
+          type: "integer",
+          description: "Min notice before a booking, 0–20160.",
+        },
+        bookingWindowDays: {
+          type: "integer",
+          description: "How far ahead people can book, 1–365.",
+        },
+        dailyBookingLimit: { type: "integer", description: "Max bookings/day (0 = no limit)." },
+        weeklyBookingLimit: { type: "integer", description: "Max bookings/week (0 = no limit)." },
+        maxAttendees: { type: "integer", description: "Group capacity, 1–100 (1 = one-on-one)." },
+        requiresConfirmation: {
+          type: "boolean",
+          description: "Hold the slot until the host approves.",
+        },
+        isPrivate: { type: "boolean", description: "Link-only; hidden from the public profile." },
       },
       required: ["id"],
     },
@@ -586,6 +605,16 @@ export const TOOLS: AiToolDef[] = [
       description: z.string().max(2000).optional(),
       durationMinutes: z.number().int().min(5).max(480).optional(),
       color: z.enum(COLORS).optional(),
+      location: z.enum(LOCATIONS).optional(),
+      bufferBeforeMinutes: z.number().int().min(0).max(120).optional(),
+      bufferAfterMinutes: z.number().int().min(0).max(120).optional(),
+      minimumNoticeMinutes: z.number().int().min(0).max(20_160).optional(),
+      bookingWindowDays: z.number().int().min(1).max(365).optional(),
+      dailyBookingLimit: z.number().int().min(0).max(100).optional(),
+      weeklyBookingLimit: z.number().int().min(0).max(500).optional(),
+      maxAttendees: z.number().int().min(1).max(100).optional(),
+      requiresConfirmation: z.boolean().optional(),
+      isPrivate: z.boolean().optional(),
     }),
     title: "Update booking type",
     summarize: (i) => {
@@ -632,7 +661,7 @@ export const TOOLS: AiToolDef[] = [
     },
     zod: z.object({
       title: z.string().min(1).max(120),
-      startISO: z.string().datetime(),
+      startISO: z.string().datetime({ offset: true }),
       durationMinutes: z.number().int().min(15).max(480),
       kind: z.enum(["focus", "personal", "travel", "other"]).optional(),
       timezone: z.string().min(1).max(64).optional(),
@@ -706,7 +735,7 @@ export const TOOLS: AiToolDef[] = [
       blocks: z
         .array(
           z.object({
-            startISO: z.string().datetime(),
+            startISO: z.string().datetime({ offset: true }),
             durationMinutes: z.number().int().min(15).max(480),
           }),
         )
@@ -750,6 +779,17 @@ export const TOOLS: AiToolDef[] = [
           description: "Minutes from midnight, e.g. 720 = 12:00.",
         },
         lunchEndMinute: { type: "integer" },
+        reminderOffsetsMinutes: {
+          type: "array",
+          items: { type: "integer" },
+          description:
+            "When to send meeting reminders, as minutes-before-start, e.g. [1440, 30] = 1 day and 30 minutes before. Replaces the current set.",
+        },
+        briefingEnabled: {
+          type: "boolean",
+          description: "Send a daily morning briefing of the day's schedule.",
+        },
+        briefingHour: { type: "integer", description: "Hour (0–23) to send the briefing." },
       },
     },
     zod: z.object({
@@ -764,6 +804,9 @@ export const TOOLS: AiToolDef[] = [
       lunchEnabled: z.boolean().optional(),
       lunchStartMinute: z.number().int().min(0).max(1439).optional(),
       lunchEndMinute: z.number().int().min(1).max(1440).optional(),
+      reminderOffsetsMinutes: z.array(z.number().int().min(0).max(20_160)).max(5).optional(),
+      briefingEnabled: z.boolean().optional(),
+      briefingHour: z.number().int().min(0).max(23).optional(),
     }),
     title: "Update preferences",
     summarize: (i) => `Update ${Object.keys(i).join(", ")}`,
@@ -814,8 +857,8 @@ export const TOOLS: AiToolDef[] = [
             dayOfWeek: z.number().int().min(0).max(6),
             ranges: z.array(
               z.object({
-                start: z.string().regex(/^\d{2}:\d{2}$/),
-                end: z.string().regex(/^\d{2}:\d{2}$/),
+                start: z.string().regex(/^\d{1,2}:\d{2}$/),
+                end: z.string().regex(/^\d{1,2}:\d{2}$/),
               }),
             ),
           }),
@@ -828,7 +871,7 @@ export const TOOLS: AiToolDef[] = [
   {
     name: "set_out_of_office",
     description:
-      "Mark the host out of office for a date range (inclusive), so their booking page shows an away banner and stops offering slots on those days. Dates are YYYY-MM-DD. Optionally add a short reason. Confirm-first.",
+      "Mark the host out of office for a date range (inclusive), so their booking page shows an away banner and stops offering slots on those days. Dates are YYYY-MM-DD. Optionally add a reason, and a delegate (by email) to redirect new bookings to while away - the delegate must be a teammate (from list_teams). Confirm-first.",
     kind: "write",
     confirmLevel: "confirm",
     schema: {
@@ -838,6 +881,10 @@ export const TOOLS: AiToolDef[] = [
         startDate: { type: "string", description: "First day away, YYYY-MM-DD." },
         endDate: { type: "string", description: "Last day away, YYYY-MM-DD (inclusive)." },
         reason: { type: "string", description: "Optional short note, e.g. 'Vacation'." },
+        delegateEmail: {
+          type: "string",
+          description: "Optional teammate email to redirect bookings to while away.",
+        },
       },
       required: ["startDate", "endDate"],
     },
@@ -845,10 +892,49 @@ export const TOOLS: AiToolDef[] = [
       startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       reason: z.string().max(200).optional(),
+      delegateEmail: z.string().email().optional(),
     }),
     title: "Set out of office",
     summarize: (i) =>
-      `Out of office ${i.startDate}${i.endDate !== i.startDate ? ` → ${i.endDate}` : ""}${i.reason ? ` (${i.reason})` : ""}`,
+      `Out of office ${i.startDate}${i.endDate !== i.startDate ? ` → ${i.endDate}` : ""}${i.reason ? ` (${i.reason})` : ""}${i.delegateEmail ? `, delegate ${i.delegateEmail}` : ""}`,
+  },
+  {
+    name: "set_date_override",
+    description:
+      "Set a one-off availability override for a specific date (YYYY-MM-DD) on the host's default schedule - either a full day off, or custom hours that replace the normal weekly hours just for that date. Use for 'take Friday afternoon off', 'I'm only free 10–2 next Tuesday', 'work extra hours this Saturday'. Confirm-first.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        date: { type: "string", description: "The date to override, YYYY-MM-DD." },
+        unavailable: {
+          type: "boolean",
+          description: "true = full day off (no custom hours). Omit start/end when true.",
+        },
+        start: { type: "string", description: "Custom start HH:MM (24h), when giving hours." },
+        end: { type: "string", description: "Custom end HH:MM (24h), when giving hours." },
+      },
+      required: ["date"],
+    },
+    zod: z.object({
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      unavailable: z.boolean().optional(),
+      start: z
+        .string()
+        .regex(/^\d{1,2}:\d{2}$/)
+        .optional(),
+      end: z
+        .string()
+        .regex(/^\d{1,2}:\d{2}$/)
+        .optional(),
+    }),
+    title: "Set date override",
+    summarize: (i) =>
+      i.unavailable || (!i.start && !i.end)
+        ? `Mark ${i.date} as a day off`
+        : `Set ${i.date} hours to ${i.start}–${i.end}`,
   },
 
   // ---- Destructive (danger confirm; deleting ALWAYS requires confirmation) ----
