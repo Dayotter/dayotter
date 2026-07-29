@@ -12,7 +12,7 @@ import {
   configFromInput,
   maskChannel,
 } from "@/lib/notifications/channel-input";
-import { listOutOfOffice } from "@/lib/out-of-office";
+import { listOutOfOffice, listTeammates } from "@/lib/out-of-office";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import {
   DEFAULT_REMINDER_OFFSETS,
@@ -285,6 +285,9 @@ export async function executeReadTool(
         maxMeetingsPerDay: p?.maxMeetingsPerDay ?? 5,
         travelBufferMinutes: p?.travelBufferMinutes ?? 0,
         reclaimCancelledTime: p?.reclaimCancelledTime ?? false,
+        overflowNotifyEnabled: p?.overflowNotifyEnabled ?? false,
+        briefingEnabled: p?.briefingEnabled ?? false,
+        briefingHour: p?.briefingHour ?? 8,
         lunchEnabled: p?.lunchEnabled ?? false,
         lunchStartMinute: p?.lunchStartMinute ?? 720,
         lunchEndMinute: p?.lunchEndMinute ?? 780,
@@ -552,6 +555,11 @@ export async function executeActionTool(
         const cur = await db.query.userPreferences.findFirst({
           where: eq(schema.userPreferences.userId, userId),
         });
+        // `reminderOffsetsMinutes` is the model-facing alias for the DB column
+        // `defaultReminderOffsets`; translate + strip it so it isn't inserted raw.
+        const { reminderOffsetsMinutes, ...rest } = input as Record<string, unknown> & {
+          reminderOffsetsMinutes?: number[];
+        };
         const merged = {
           timeFormat: cur?.timeFormat ?? "12h",
           weekStartsOn: cur?.weekStartsOn ?? 0,
@@ -562,10 +570,13 @@ export async function executeActionTool(
           travelBufferMinutes: cur?.travelBufferMinutes ?? 0,
           reclaimCancelledTime: cur?.reclaimCancelledTime ?? false,
           overflowNotifyEnabled: cur?.overflowNotifyEnabled ?? false,
+          briefingEnabled: cur?.briefingEnabled ?? false,
+          briefingHour: cur?.briefingHour ?? 8,
           lunchEnabled: cur?.lunchEnabled ?? false,
           lunchStartMinute: cur?.lunchStartMinute ?? 720,
           lunchEndMinute: cur?.lunchEndMinute ?? 780,
-          ...input,
+          ...rest,
+          ...(reminderOffsetsMinutes ? { defaultReminderOffsets: reminderOffsetsMinutes } : {}),
         };
         merged.lunchEnabled =
           merged.lunchEnabled && merged.lunchEndMinute > merged.lunchStartMinute;
@@ -576,7 +587,9 @@ export async function executeActionTool(
           .insert(schema.userPreferences)
           .values({ userId, ...merged })
           .onConflictDoUpdate({ target: schema.userPreferences.userId, set: merged });
-        return { ok: true, message: `Updated ${Object.keys(input).join(", ")}.` };
+        const changed = Object.keys(rest);
+        if (reminderOffsetsMinutes) changed.push("reminder timing");
+        return { ok: true, message: `Updated ${changed.join(", ")}.` };
       }
 
       case "set_weekly_hours": {
@@ -585,8 +598,12 @@ export async function executeActionTool(
           dayOfWeek: number;
           ranges: { start: string; end: string }[];
         }[];
+        // Normalize "9:00" → "09:00" so pg `time` accepts it and the end>start
+        // comparison is correct (lexical compare needs zero-padded hours).
+        const hhmm = (s: string) => s.padStart(5, "0");
         const rows = days.flatMap((day) =>
           day.ranges
+            .map((r) => ({ start: hhmm(r.start), end: hhmm(r.end) }))
             .filter((r) => r.end > r.start)
             .map((r) => ({
               scheduleId,
@@ -626,20 +643,71 @@ export async function executeActionTool(
         if (existing.length >= 100) {
           return { ok: false, message: "You've hit the maximum of 100 out-of-office periods." };
         }
+        // A delegate must be a real teammate - resolve the email against the host's
+        // teammates and validate, never trust an arbitrary address.
+        let delegateUserId: string | null = null;
+        const delegateEmail = (input.delegateEmail as string | undefined)?.toLowerCase();
+        if (delegateEmail) {
+          const teammates = await listTeammates(userId);
+          const delegateUser = await db.query.users.findFirst({
+            where: eq(schema.users.email, delegateEmail),
+            columns: { id: true, name: true },
+          });
+          if (!delegateUser || !teammates.some((t) => t.id === delegateUser.id)) {
+            return {
+              ok: false,
+              message: `${delegateEmail} isn't one of your teammates - I can only redirect bookings to someone you share a team with.`,
+            };
+          }
+          delegateUserId = delegateUser.id;
+        }
         const reason = (input.reason as string | undefined)?.trim();
         await db.insert(schema.outOfOfficePeriods).values({
           userId,
           startDate,
           endDate,
           reason: reason?.length ? reason : null,
-          delegateUserId: null,
+          delegateUserId,
         });
+        const span =
+          startDate === endDate
+            ? `out of office on ${startDate}`
+            : `out of office from ${startDate} to ${endDate}`;
         return {
           ok: true,
-          message:
-            startDate === endDate
-              ? `You're set out of office on ${startDate}.`
-              : `You're set out of office from ${startDate} to ${endDate}.`,
+          message: `You're set ${span}${delegateEmail ? `, with bookings redirected to ${delegateEmail}` : ""}.`,
+        };
+      }
+
+      case "set_date_override": {
+        const { scheduleId } = await ensureUserWorkspace(userId);
+        const date = input.date as string;
+        const dayOff = input.unavailable === true || (!input.start && !input.end);
+        let startTime: string | null = null;
+        let endTime: string | null = null;
+        if (!dayOff) {
+          const hhmm = (s: string) => s.padStart(5, "0");
+          const start = hhmm(input.start as string);
+          const end = hhmm(input.end as string);
+          if (end <= start) {
+            return { ok: false, message: "The end time must be after the start time." };
+          }
+          startTime = `${start}:00`;
+          endTime = `${end}:00`;
+        }
+        // Upsert: one override per (schedule, date).
+        await db
+          .insert(schema.dateOverrides)
+          .values({ scheduleId, date, startTime, endTime })
+          .onConflictDoUpdate({
+            target: [schema.dateOverrides.scheduleId, schema.dateOverrides.date],
+            set: { startTime, endTime },
+          });
+        return {
+          ok: true,
+          message: dayOff
+            ? `${date} is now marked as a day off.`
+            : `On ${date} your hours are now ${input.start as string}–${input.end as string}.`,
         };
       }
 
@@ -698,10 +766,25 @@ export async function executeActionTool(
         });
         if (!et) return { ok: false, message: "I couldn't find that booking type." };
         const set: Record<string, unknown> = {};
-        if (input.title !== undefined) set.title = input.title;
-        if (input.description !== undefined) set.description = input.description;
-        if (input.durationMinutes !== undefined) set.durationMinutes = input.durationMinutes;
-        if (input.color !== undefined) set.color = input.color;
+        // Only fields the caller passed are changed (partial update).
+        for (const k of [
+          "title",
+          "description",
+          "durationMinutes",
+          "color",
+          "location",
+          "bufferBeforeMinutes",
+          "bufferAfterMinutes",
+          "minimumNoticeMinutes",
+          "bookingWindowDays",
+          "dailyBookingLimit",
+          "weeklyBookingLimit",
+          "maxAttendees",
+          "requiresConfirmation",
+          "isPrivate",
+        ] as const) {
+          if (input[k] !== undefined) set[k] = input[k];
+        }
         if (Object.keys(set).length === 0) {
           return { ok: false, message: "Tell me what to change on that booking type." };
         }
@@ -790,7 +873,16 @@ export async function executeActionTool(
         if (!DateTime.local().setZone(tz).isValid) {
           return { ok: false, message: `“${tz}” isn't a valid timezone.` };
         }
-        await db.update(schema.users).set({ timezone: tz }).where(eq(schema.users.id, userId));
+        // The availability engine computes bookable slots from the SCHEDULE's
+        // timezone, not users.timezone - so update both, or slot generation
+        // wouldn't move with the user (was a silent no-op for scheduling).
+        await db.transaction(async (tx) => {
+          await tx.update(schema.users).set({ timezone: tz }).where(eq(schema.users.id, userId));
+          await tx
+            .update(schema.schedules)
+            .set({ timezone: tz })
+            .where(and(eq(schema.schedules.userId, userId), eq(schema.schedules.isDefault, true)));
+        });
         return { ok: true, message: `Your timezone is now ${tz}.` };
       }
 
