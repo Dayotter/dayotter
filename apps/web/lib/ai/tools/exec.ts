@@ -6,6 +6,7 @@ import { notPersonalType } from "@/lib/booking/personal-event-type";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { getAgenda } from "@/lib/calendar/agenda";
+import { type BusyItem, analyzeSchedule } from "@/lib/calendar/analyze";
 import {
   channelInputSchema,
   configFromInput,
@@ -101,6 +102,47 @@ export async function executeReadTool(
           attendees: b.attendees.map((a) => a.name ?? a.email),
         }));
       return JSON.stringify({ count: matched.length, bookings: matched });
+    }
+    case "analyze_schedule": {
+      const from = new Date(input?.fromISO as string);
+      const to = new Date(input?.toISO as string);
+      if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || to <= from) {
+        return JSON.stringify({ error: "Pass a valid fromISO/toISO window (to after from)." });
+      }
+      const [agenda, focus, user] = await Promise.all([
+        getAgenda(userId, from, to, 200),
+        db.query.timeBlocks.findMany({
+          where: and(
+            eq(schema.timeBlocks.userId, userId),
+            gte(schema.timeBlocks.endsAt, from),
+            lte(schema.timeBlocks.startsAt, to),
+          ),
+          columns: { title: true, kind: true, startsAt: true, endsAt: true },
+        }),
+        db.query.users.findFirst({
+          where: eq(schema.users.id, userId),
+          columns: { timezone: true },
+        }),
+      ]);
+      const items: BusyItem[] = [
+        ...agenda.map((i) => ({
+          title: i.title,
+          startsAt: i.startsAt,
+          endsAt: i.endsAt,
+          source: i.source,
+        })),
+        ...focus.map((f) => ({
+          title: f.title,
+          startsAt: f.startsAt,
+          endsAt: f.endsAt,
+          source: f.kind,
+        })),
+      ];
+      const analysis = analyzeSchedule(items, from, to, user?.timezone ?? "UTC");
+      return JSON.stringify({
+        ...analysis,
+        note: "busyHours merges overlaps (double-booked time counted once). 'finish time' = lastEndISO. For bookable openings that respect working hours, use find_free_slots.",
+      });
     }
     case "check_availability": {
       const from = new Date(input?.fromISO as string);

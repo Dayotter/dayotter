@@ -93,6 +93,25 @@ export const TOOLS: AiToolDef[] = [
     summarize: () => "Search bookings",
   },
   {
+    name: "analyze_schedule",
+    description:
+      "Compute aggregate stats over a date range instead of counting by hand: how many commitments, total busy hours (double-booked time counted once), the busiest day, first start and last end (the host's 'finish time'), the longest gap between commitments, and any double-booked/overlapping pairs. Use for 'how many meetings this week?', 'how many hours of meetings?', 'when do I finish today?', 'am I double-booked?', 'what's my longest free stretch?'. Covers bookings + synced calendar events + held focus blocks.",
+    kind: "read",
+    confirmLevel: "none",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        fromISO: { type: "string", description: "ISO-8601 start of the window." },
+        toISO: { type: "string", description: "ISO-8601 end of the window." },
+      },
+      required: ["fromISO", "toISO"],
+    },
+    zod: z.object({ fromISO: z.string(), toISO: z.string() }),
+    title: "Analyze schedule",
+    summarize: () => "Analyze schedule",
+  },
+  {
     name: "check_availability",
     description:
       "Check whether the host is free over a specific window and list what would conflict - their DayOtter bookings, synced calendar events, and held focus blocks. Use this to answer 'am I free Friday at 2pm?' or 'is Tuesday afternoon open?'. This reports what's ALREADY on the calendar; to find bookable openings that respect working hours, use find_free_slots instead.",
