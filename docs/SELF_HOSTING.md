@@ -28,15 +28,17 @@ a one-shot migration, web, worker, and a reverse proxy.
 
 ```bash
 cd deploy
-cp .env.example .env            # fill in production values
+cp .env.prod.example .env       # fill in production values
 ./deploy.sh                     # build → run migrations → start
 ```
 
 `deploy.sh` **always runs migrations before starting the app** - a plain
 `docker compose up -d` reuses the completed migrate container and can boot new
 code against an un-migrated DB. Full walkthrough (nginx + TLS options) in
-[`deploy/README.md`](../deploy/README.md). To update: `git pull` then re-run
-`./deploy.sh`.
+[`deploy/README.md`](../deploy/README.md). To move to a newer version, use the
+safe upgrade script `./deploy/upgrade.sh` - it backs up Postgres, pulls, migrates,
+restarts, and waits for `/api/health` to go green, with rollback guidance if a step
+fails.
 
 ## Configuration
 
@@ -121,6 +123,8 @@ schema directly.
 - Rotate `BETTER_AUTH_SECRET` / `ENCRYPTION_KEY` carefully - changing
   `ENCRYPTION_KEY` invalidates stored OAuth tokens (users reconnect calendars).
 - The worker writes a Redis heartbeat; monitor it for liveness.
+- `GET /api/health` reports overall status plus a `version` field (the running git
+  build id) - useful for uptime checks and confirming an upgrade landed.
 
 ## Troubleshooting
 

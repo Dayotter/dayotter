@@ -1,6 +1,6 @@
 # dayotter - Feature Plan
 
-> Open-source (permissive, Apache-2.0) team scheduling & calendar platform.
+> Open-source (copyleft, AGPLv3) team scheduling & calendar platform.
 > Superset of Calendly / Cal.com / SavvyCal / Reclaim / Motion / Clockwise, with
 > **shared team availability as a first-class primitive** as the core wedge.
 
@@ -229,10 +229,11 @@ References: **Planif.ai** (minimal, color-coded, confirm-first AI) and **Todofi*
 - Mobile-first interactions (gestures, drag-drop) - see mobile note below.
 - Meaningful analytics (where your time actually went), **no vanity metrics**.
 
-## Mobile (Android + iOS) - structural readiness now
-Native apps are planned. The codebase is kept **API-first**: all domain logic in
-`packages/*`, a versioned REST/OpenAPI contract, token-based auth, shared Zod
-DTOs, and push as a notification channel. See
+## Mobile (Android + iOS)
+The Android app is **live on Google Play**; iOS is in progress. The codebase is
+kept **API-first**: all domain logic in `packages/*`, a versioned REST/OpenAPI
+contract, token-based auth, shared Zod DTOs, and push as a notification channel.
+The native client lives in `apps/mobile` (Expo / React Native). See
 [DECISIONS.md](DECISIONS.md#2-api-first--web-and-mobile-are-peer-clients).
 
 ## What P0 (MVP) explicitly includes

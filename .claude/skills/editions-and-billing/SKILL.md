@@ -10,7 +10,6 @@ DayOtter ships in two editions chosen **at deploy time** by one env var.
 ```ts
 // apps/web/lib/billing/edition.ts
 export const isCloud = process.env.DAYOTTER_CLOUD === "1";
-export const isSelfHosted = !isCloud;
 ```
 
 - **Self-hosted (flag unset - the default):** every Pro feature is unlocked, no

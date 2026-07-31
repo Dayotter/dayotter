@@ -46,7 +46,7 @@ Think Calendly + Motion + a real assistant - except **open-source and self-hosta
 
 - **Individuals** - a booking page and an assistant that clears the scheduling back-and-forth for you.
 - **Teams** - weighted round-robin, collective availability, routing forms, and shared analytics.
-- **Organisations & self-hosters** - run the entire product on your own infrastructure under AGPLv3, keep your calendar data on your servers, and roll the mobile app out to your whole team pointed at your own instance (see [Mobile app](#mobile-app-in-progress)).
+- **Organisations & self-hosters** - run the entire product on your own infrastructure under AGPLv3, keep your calendar data on your servers, and roll the mobile app out to your whole team pointed at your own instance (see [Mobile app](#mobile-app)).
 
 ## Why we're building it
 
@@ -80,7 +80,7 @@ It covers the day-to-day host workflow - dashboard, bookings, availability, even
 
 No forking, no per-org app build required. One app, any DayOtter server.
 
-> Note: the app is pre-1.0 and evolving quickly. Android push needs a Firebase `google-services.json` to deliver remote reminders - see [`docs/TASKS.md`](./docs/TASKS.md).
+> Note: the app is pre-1.0 and evolving quickly. Android push works out of the box for the Play Store build. Self-hosters point it at their own Firebase project by dropping `apps/mobile/google-services.json` (or setting `GOOGLE_SERVICES_JSON`); `app.config.js` wires it up automatically.
 
 ## Open-core
 
@@ -117,7 +117,7 @@ Full breakdown: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ## Quick start (development)
 
-**Prerequisites:** Node 20+, [pnpm](https://pnpm.io) 9+, and Docker (for Postgres + Redis). Everything else installs with `pnpm install`.
+**Prerequisites:** Node 20+, [pnpm](https://pnpm.io) 10+, and Docker (for Postgres + Redis). Everything else installs with `pnpm install`.
 
 ```bash
 git clone https://github.com/Dayotter/dayotter && cd dayotter

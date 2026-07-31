@@ -6,8 +6,8 @@ Living map of the **original brief requirements → status**. Legend: ✅ done �
 > This page tracks the *original* asks. For where the product is heading next, see
 > the [Roadmap](ROADMAP.md) (the maintained forward-looking list) and the full
 > [Feature catalog](FEATURES.md). The original brief is now essentially complete;
-> the one requirement not fully shipped is native mobile (built, pending a device
-> test + store submission).
+> the one requirement not fully shipped is native iOS - the Android app is live on
+> Google Play (v0.3.0), and iOS ships from the same Expo codebase (in progress).
 
 ## Original must-haves (first brief)
 
@@ -25,7 +25,7 @@ Living map of the **original brief requirements → status**. Legend: ✅ done �
 |---|---|---|---|
 | 1 | Timezone correctness (no wrong-hour bookings) | ✅ | UTC-everywhere; DST unit-tested. |
 | 2 | Remember user preferences (encrypted at rest) | ✅ | `user_preferences` (AES-GCM blob for sensitive data) + full Settings UI (profile, preferences, notifications, automations, calendars, CRM, billing, developer). |
-| 3 | iOS + Android apps | 🟡 | Expo / React Native app (`apps/mobile`, SDK 53, shares `@dayotter/core`): auth, dashboard, event types (CRUD), teams, bookings (+ detail & cancel), availability editor, voice capture. Typechecks + Metro-bundles clean. **Remaining: run on a device, then build the AAB and submit to the stores** (also clears the Google Play 16 KB page-size gate). |
+| 3 | iOS + Android apps | 🟡 | Expo / React Native app (`apps/mobile`, SDK 53, shares `@dayotter/core`) with near-full web parity: auth, dashboard, event types (CRUD), teams (+ detail), bookings (detail, cancel/reschedule with reason), availability editor, voice capture, plus payouts, packages, polls, routing, CRM, billing, insights/analytics, automations/workflows, out-of-office, and inbox screens. **Android is live on Google Play** (v0.3.0, versionCode 12); iOS ships from the same codebase and is in progress. |
 | 4 | AI: calendar blocking, deep work, invite replies | ✅ | Otter does confirm-first focus/deep-work blocking; calendar invites surface in the Inbox with accept/decline; running-late overflow nudges ship. |
 | 5 | Stay in calendar/scheduling scope | ✅ | Guardrail documented + enforced in Otter's system prompt. |
 | 6 | Meeting-overflow "running late" nudge | ✅ | Worker detects overrun and notifies the next meeting's attendees (opt-in per user). |
@@ -49,10 +49,10 @@ Living map of the **original brief requirements → status**. Legend: ✅ done �
 | Native CRM sync (Salesforce / HubSpot) | 🟡 beta (built; needs a live test with provider credentials) |
 | Webhooks + API keys, automations/workflows, group polls, routing forms | ✅ |
 | Self-host: Docker/compose, one-command + AWS one-click installers | ✅ |
-| Mobile app (Expo, iOS + Android) | 🟡 built; pending device test + store submission |
+| Mobile app (Expo, iOS + Android) | 🟡 Android live on Google Play (v0.3.0); iOS in progress |
 
 ## Remaining gaps (priority order)
 
-1. **Mobile: device test → build AAB → submit to stores** (clears the Google Play 16 KB gate). The only original requirement not fully shipped.
+1. **Mobile: ship iOS** - the Android app is live on Google Play (v0.3.0); iOS ships from the same Expo codebase and is the remaining store submission. The only original requirement not fully shipped.
 2. **CRM sync: beta → GA** - live-test the Salesforce/HubSpot OAuth + push, then add field mapping and CRM-side routing.
 3. Everything else is forward-looking - see the [Roadmap](ROADMAP.md): Real Scribe (transcription), team briefings, deeper analytics, Zapier app, self-host SSO, proactive weekly planning.

@@ -17,7 +17,8 @@ Every feature builds on these; nothing duplicates their logic.
    busy blocks + constraints → bookable slots. DST-correct, unit-tested.
 4. **Notification** (`packages/jobs` + `apps/worker/reminders` + `packages/notifications`) -
    durable BullMQ delayed jobs; multi-channel delivery.
-5. **LLM** (`apps/web/lib/ai/llm.ts`) - the single Anthropic choke point; model
+5. **LLM** (`apps/web/lib/ai/llm.ts`) - the single vendor-agnostic choke point
+   (Anthropic / OpenAI / OpenAI-compatible, selected by `AI_PROVIDER`); model
    tiering, prompt caching, structured output. Every AI feature goes through it.
 
 ## Monorepo layout
@@ -36,6 +37,10 @@ packages/
   notifications Slack / Twilio (SMS·WhatsApp) / Expo push / web push
   emails        Nodemailer + transactional templates
   auth          Better Auth server instance (identity + organizations)
+  embed-react   White-label React components for embedding the booking flow
+  plugin-sdk    Public contract for building in-process DayOtter extensions
+  plugin-host   Loads config-listed plugins and runs their hooks in-process
+  plugins       First-party bundled plugins (notes, webhook-relay)
 ```
 
 ## `apps/web/lib` - by domain

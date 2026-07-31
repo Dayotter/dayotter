@@ -19,11 +19,11 @@ The hosted product at dayotter.com has:
 
 - **Free tier** - all core scheduling: unlimited event types, availability,
   Google/Microsoft/Apple calendar sync, booking management, email reminders,
-  teams.
+  teams - plus Otter AI, deep-work defense, the developer platform (API /
+  webhooks / embed), and Slack/WhatsApp reminders, which are free on cloud too.
 - **Pro - $9/seat/month** - unlocks the differentiator bundle (the same features
-  self-hosters get for free): AI + Intelligence, automations, analytics,
-  Slack/WhatsApp/SMS reminders, adaptive availability, travel-aware, deep-work
-  defense, accept-payments, and the developer platform.
+  self-hosters get for free): automations, workflows, analytics, SMS reminders,
+  adaptive availability, travel-aware, and accept-payments.
 - **Cloud-only** (commercial `ee/`, Pro): **Managed AI** (no API key to
   configure), **SSO** (SAML / Google Workspace), **White-label** (remove branding
   + custom booking domain), and **Hosted messaging** (SMS/WhatsApp on dayotter's

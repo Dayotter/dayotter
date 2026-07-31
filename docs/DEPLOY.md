@@ -108,6 +108,17 @@ published from your own dashboard, so it can't ship in the repo):
    `REDIS_URL` - reference both on each service.
 3. Set the three values above; expose the web service and use its domain as `APP_URL`.
 
+## One-click: AWS
+
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/quickcreate?templateURL=https://raw.githubusercontent.com/Dayotter/dayotter/main/deploy/aws/cloudformation.yaml&stackName=dayotter)
+
+Launches a single EC2 instance that boots the full compose stack - web + worker +
+Postgres + Redis + a Caddy reverse proxy with automatic HTTPS - from
+[`deploy/aws/cloudformation.yaml`](../deploy/aws/cloudformation.yaml). Set the optional
+**Domain** parameter for automatic HTTPS, or start on plain HTTP at the instance's public
+IP. Full walkthrough - adding a domain later, cost, upgrades - is in
+[`deploy/README.md`](../deploy/README.md#option-a---one-click-on-aws-recommended).
+
 ## Coolify / CapRover / any Docker host
 
 Use the production compose in [`deploy/`](../deploy/README.md) - it brings up Postgres,
@@ -115,7 +126,7 @@ Redis, migrations, web, worker, and a Caddy reverse proxy with automatic HTTPS:
 
 ```bash
 git clone https://github.com/Dayotter/dayotter && cd dayotter/deploy
-cp .env.example .env        # fill ENCRYPTION_KEY, AUTH_SECRET, DAYOTTER_DOMAIN, ...
+cp .env.prod.example .env   # fill ENCRYPTION_KEY, AUTH_SECRET, DAYOTTER_SITE_ADDRESS, ...
 ./deploy.sh                 # builds, migrates, and starts everything
 ```
 

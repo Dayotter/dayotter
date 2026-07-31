@@ -12,7 +12,7 @@ skill under [`.claude/skills/`](../.claude/skills/) for the area you're touching
   A small `apps/web/lib/ee/` layer holds cloud-only infrastructure, inert unless
   `DAYOTTER_CLOUD=1`. Never move a core feature behind that flag.
 - **API-first** - all domain logic lives in `packages/*`, never only in `apps/web`.
-  Web and (upcoming) mobile are peer clients of a stable REST/OpenAPI surface.
+  Web and mobile are peer clients of a stable REST/OpenAPI surface.
 
 ## Layout
 
@@ -32,8 +32,8 @@ packages/notifications | emails | auth | plugin-host | plugin-sdk | plugins
 
 ```bash
 pnpm turbo typecheck                 # all packages (15 projects)
-pnpm --filter @dayotter/core test    # 30 tests incl. DST correctness
-pnpm --filter @dayotter/web test     # ~85 tests (vitest)
+pnpm --filter @dayotter/core test    # 39 tests incl. DST correctness
+pnpm --filter @dayotter/web test     # ~165 tests (vitest)
 npx biome check --write <files>      # format + lint (biome, not prettier/eslint)
 ```
 

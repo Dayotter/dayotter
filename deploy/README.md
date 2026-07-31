@@ -1,7 +1,7 @@
 # Deploying dayotter
 
 Self-host the whole platform - web app, background worker, Postgres, Redis, and
-automatic HTTPS - on one server. Three ways in, easiest first.
+automatic HTTPS - on one server. Four ways in, easiest first.
 
 > These links point at `Dayotter/dayotter`. If you're deploying from a fork,
 > swap in your own `OWNER/REPO` first.
@@ -175,7 +175,7 @@ Compose network.
 cd deploy
 docker compose -f docker-compose.prod.yml logs -f            # tail logs
 docker compose -f docker-compose.prod.yml ps                 # status
-git -C .. pull && bash install.sh                            # update to latest
+./upgrade.sh                                                 # safe upgrade (backup → migrate → health-check)
 docker compose -f docker-compose.prod.yml exec postgres \
   pg_dump -U dayotter dayotter > backup-$(date +%F).sql        # back up the DB
 ```
@@ -183,7 +183,9 @@ docker compose -f docker-compose.prod.yml exec postgres \
 ## Turning on integrations
 
 Everything except the calendar core is optional and off until you add its keys
-to `deploy/.env`, then `docker compose -f docker-compose.prod.yml up -d`:
+to `deploy/.env`, then `docker compose -f docker-compose.prod.yml up -d`.
+Step-by-step setup for each provider (redirect URIs, webhooks, which keys need a
+rebuild) is in [`INTEGRATIONS.md`](./INTEGRATIONS.md):
 
 - **Google / Microsoft calendar + Google sign-in** - OAuth client id/secret
   (register `${APP_URL}/api/auth/callback/google` as a redirect URI).

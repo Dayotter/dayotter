@@ -31,15 +31,14 @@ longest focus streak, external-vs-internal)
 per booking, kept in sync on reschedule/cancel
 
 **Platform** - ✅ multi-channel reminders (email/Slack/WhatsApp/SMS/push) ·
-✅ automations & workflows (unified) · ✅ daily morning briefing · ✅ API keys &
-webhooks · ✅ mobile app (Expo, iOS + Android)
+✅ automations & workflows (unified) · ✅ daily morning briefing · ✅ shared team
+briefings · ✅ API keys & webhooks · ✅ mobile app (Expo - Android live on Google Play, iOS in progress)
 
 ## Now (in progress / next up)
 
 - 🟡 **Native CRM (beta → GA)** - harden Salesforce / HubSpot sync, add field
   mapping and CRM-side routing
 - 🟡 **Real Scribe** - Zoom/Meet transcription → summary + action items
-- ⬜ **Team briefings** - a shared daily digest, not just personal
 - 🟡 **Deeper time analytics** - shipped back-to-back share, focus streaks,
   external-vs-internal; next: reclaimed time, recurring load
 

@@ -111,8 +111,9 @@ to download the signed **.aab** - upload that in Play Console → Production →
 Create release. Bump `versionCode` (or rely on `autoIncrement`) for each
 subsequent upload.
 
-To push straight to Play from CI later: `eas submit -p android` (needs a Play
-service-account JSON configured under `submit.production`).
+To push straight to Play from CI later: `eas submit -p android` - `submit.production`
+in [`../eas.json`](../eas.json) targets the internal track as a draft and authorizes
+via the Play service account linked to the EAS project (no local key path).
 
 ## EAS build (Expo cloud) - iOS (.ipa)
 
