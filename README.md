@@ -5,7 +5,7 @@
 **Make all your calendars work as one.**
 The open-source calendar & scheduling app for people juggling **multiple calendars** - connect every calendar (personal + work + clients), never get double-booked, protect your focus, and share **one booking link that respects them all**. With an AI assistant, Otter, built into the core.
 
-**[▶ Try the hosted version](https://dayotter.com)** &nbsp;·&nbsp; [🐳 Self-host with Docker](#self-hosting-production) &nbsp;·&nbsp; [How we compare](./docs/COMPARISON.md)
+**[▶ Try the hosted version](https://dayotter.com)** &nbsp;·&nbsp; [🚀 One-click deploy to Render](https://render.com/deploy?repo=https://github.com/Dayotter/dayotter) &nbsp;·&nbsp; [🐳 Self-host with Docker](#self-hosting-production) &nbsp;·&nbsp; [How we compare](./docs/COMPARISON.md)
 
 <br>
 
