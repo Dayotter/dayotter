@@ -31,8 +31,9 @@ services:
     dockerContext: .
     plan: starter
     healthCheckPath: /api/me # returns fast (401 when unauthenticated) = alive
-    # Run DB migrations before each deploy goes live.
-    preDeployCommand: pnpm --filter @dayotter/db migrate
+    # NB: DB migrations run from the *worker* service's preDeployCommand, not here.
+    # The web image is a slim Next.js standalone bundle with no pnpm or drizzle-kit,
+    # so it cannot run migrations; the worker image carries the full workspace.
     envVars:
       - key: NODE_ENV
         value: production
@@ -64,6 +65,10 @@ services:
     dockerfilePath: ./apps/worker/Dockerfile
     dockerContext: .
     plan: starter
+    # Migrations run here (not on web): the worker image has pnpm + drizzle-kit +
+    # the committed migration files, so it can apply pending schema changes before
+    # either service goes live. Render runs preDeployCommand once per deploy.
+    preDeployCommand: pnpm --filter @dayotter/db migrate
     envVars:
       - key: NODE_ENV
         value: production
