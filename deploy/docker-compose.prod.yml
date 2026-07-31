@@ -13,6 +13,9 @@ x-app-env: &app-env
   # set DATABASE_URL and/or REDIS_URL in deploy/.env and they take precedence.
   DATABASE_URL: ${DATABASE_URL:-postgresql://dayotter:${POSTGRES_PASSWORD}@postgres:5432/dayotter}
   REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+  # Running build id, surfaced at /api/health. deploy.sh / upgrade.sh export the
+  # git short SHA before `up`; defaults to "dev" when run by hand.
+  APP_VERSION: ${APP_VERSION:-dev}
 
 services:
   postgres:

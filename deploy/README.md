@@ -109,18 +109,34 @@ sudo certbot renew --dry-run
 
 Open **https://dayotter.com**.
 
-### Redeploying / updating
+### Upgrading to a new DayOtter version
+
+Run the upgrade script - it does the safe thing in order: **backs up the
+database**, pulls the new code, rebuilds, runs pending **migrations**, restarts,
+waits for `/api/health` to go green, and prints how to roll back if anything
+fails:
+
+```bash
+./deploy/upgrade.sh            # upgrade to the latest on your branch
+./deploy/upgrade.sh --check    # just tell me if there's an update (no changes)
+./deploy/upgrade.sh --ref v0.3.0   # pin to a specific release tag
+```
+
+Backups land in `deploy/backups/` (gitignored). Check what you're running at any
+time with `curl -s https://<your-domain>/api/health` - the `version` field is the
+git build id.
+
+### Redeploying (same version, e.g. after an `.env` change)
 
 Do **not** just re-run `up -d --build`: `docker compose up -d` reuses the already
 completed one-shot `migrate` container instead of re-running it, so new app code
 can boot against an un-migrated database (missing columns → 500s everywhere).
 
-Use the script, which always builds, then runs a **fresh** migration one-shot,
-then (re)starts the stack - in that order:
+Use the deploy script, which always builds, then runs a **fresh** migration
+one-shot, then (re)starts the stack - in that order:
 
 ```bash
-git -C .. pull
-./deploy.sh          # build → run --rm migrate → up -d
+./deploy/deploy.sh          # build → run --rm migrate → up -d
 ```
 
 Or run the equivalent by hand from `deploy/` (add `-f docker-compose.nginx.yml`

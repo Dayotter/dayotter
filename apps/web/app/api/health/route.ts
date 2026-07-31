@@ -31,6 +31,9 @@ export async function GET() {
     {
       status: ready ? "ok" : "degraded",
       service: "dayotter-web",
+      // Running build id (git short SHA), stamped by deploy.sh / upgrade.sh so
+      // self-hosters can see which version they're on. "dev" when unset.
+      version: process.env.APP_VERSION ?? "dev",
       db,
       redis,
       worker,

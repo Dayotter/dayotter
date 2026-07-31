@@ -15,6 +15,10 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# Stamp the running build id (git short SHA) so /api/health reports the version.
+# Harmless if this isn't a git checkout (falls back to "unknown").
+export APP_VERSION="${APP_VERSION:-$(git rev-parse --short HEAD 2>/dev/null || echo unknown)}"
+
 if [ ! -f .env ]; then
   echo "error: deploy/.env not found. Copy .env.example and fill it in." >&2
   exit 1
