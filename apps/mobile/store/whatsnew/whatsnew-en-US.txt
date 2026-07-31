@@ -1,0 +1,6 @@
+New in 0.3.0
+
+• Ask Otter about your schedule — "how busy am I this week?", "when's my next meeting?", "am I free Friday?" — and get real answers, right from the Ask bar.
+• Holding focus time now blocks your calendar as a proper focus block.
+• Bookings map to the right event type, so their location, reminders, and workflows apply.
+• Reliability and polish across bookings, availability, and sign-in.
