@@ -1,5 +1,7 @@
+import { eq, getDb, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 import { runSchedulingAgent } from "./agent";
+import { answerCalendarQuestion, classifyRequest } from "./answer";
 import { type BookingContext, type CommandDraft, parseCommand } from "./command-parse";
 import { recallFreshMemory, summarizeMemory } from "./memory";
 import { retrieveCalendarContext } from "./retrieval";
@@ -25,6 +27,35 @@ export interface OtterInterpretation {
   target: OtterTarget | null;
   /** For create: the matched event type, when the request named one. */
   matchedEventType: { title: string; slug: string; durationMinutes: number } | null;
+  /** A plain-text reply for a question / out-of-scope request (no draft to confirm). */
+  answer: string | null;
+}
+
+/** A benign "nothing to confirm" draft, returned alongside a text `answer`. */
+function noneDraft(message: string): CommandDraft {
+  return {
+    reasoning: "",
+    understood: false,
+    intent: "none",
+    kind: "meeting",
+    title: "",
+    startISO: "",
+    durationMinutes: 30,
+    attendees: [],
+    notes: "",
+    eventTypeSlug: "",
+    bookingRef: 0,
+    newStartISO: "",
+    message,
+  };
+}
+
+async function userTimezone(userId: string): Promise<string> {
+  const u = await getDb().query.users.findFirst({
+    where: eq(schema.users.id, userId),
+    columns: { timezone: true },
+  });
+  return u?.timezone ?? "UTC";
 }
 
 /**
@@ -42,6 +73,22 @@ export async function interpretOtterCommand(
   userId: string,
   text: string,
 ): Promise<OtterInterpretation> {
+  // First decide what kind of request this is. Questions and out-of-scope asks
+  // get a text answer (these surfaces have no chat, so historically they could
+  // only ever return "I help with scheduling"); only actions go on to drafting.
+  const cls = await classifyRequest(text);
+  if (cls !== "action") {
+    const [answer, tz] = await Promise.all([
+      cls === "question"
+        ? answerCalendarQuestion(userId, text)
+        : Promise.resolve(
+            "I can only help with your calendar and scheduling - ask me about your schedule, or tell me what to book, move, or cancel.",
+          ),
+      userTimezone(userId),
+    ]);
+    return { draft: noneDraft(answer), timezone: tz, target: null, matchedEventType: null, answer };
+  }
+
   // RAG-lite: retrieve only the bookings relevant to this request. This
   // retrieved list is the source of truth for the model's booking refs. In
   // parallel, recall (and self-refresh) Otter's memory of this user.
@@ -82,5 +129,5 @@ export async function interpretOtterCommand(
     if (b) target = { uid: b.uid, title: b.title, startISO: b.startsAt.toISOString() };
   }
 
-  return { draft, timezone: tz, target, matchedEventType };
+  return { draft, timezone: tz, target, matchedEventType, answer: null };
 }

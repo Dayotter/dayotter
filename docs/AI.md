@@ -62,9 +62,14 @@ its own client**, which is what makes the model layer swappable.
 
 ### The interpret core - `lib/ai/interpret.ts`
 `interpretOtterCommand(userId, text)` is the shared brain for every non-chat
-surface. It recalls memory + retrieves relevant bookings in parallel, then routes:
-availability-dependent requests go through the agentic loop; everything else
-through the fast single-shot parser. Returns a confirm-first draft. Never writes.
+surface (command bar, mobile Ask bar, inbound SMS/WhatsApp). It first classifies
+the request (`lib/ai/answer.ts` `classifyRequest`): an **action** goes to the
+drafter (availability-dependent requests through the agentic loop, everything
+else through the fast single-shot parser) and returns a confirm-first draft; a
+**question** goes to `answerCalendarQuestion` - a read-only agentic loop over the
+same read tools the chat assistant uses - and comes back as a plain-text `answer`
+(so these surfaces can finally reply to "how busy am I?" / "when's my next
+meeting?" instead of only "I help with scheduling"). Never writes.
 
 ### The tool registry - `lib/ai/tools/`
 A declarative catalog where each tool is tagged `read` / `write` / `destructive`

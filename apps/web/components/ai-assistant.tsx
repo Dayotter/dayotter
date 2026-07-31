@@ -233,6 +233,8 @@ export function AiAssistant({
         // Carry the matched event type so the booking maps to the real type (its
         // location, workflows and reminders apply) instead of the Personal type.
         eventTypeSlug: action.matchedEventType?.slug,
+        // "focus" is held as a personal focus block, not a meeting.
+        kind: action.draft.kind,
       }),
     });
     setBusy(false);

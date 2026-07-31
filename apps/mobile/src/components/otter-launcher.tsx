@@ -207,9 +207,15 @@ function OtterSheet({ onClose }: { onClose: () => void }) {
     setDone(null);
     resetDraft();
     try {
-      const data = await api.post<{ draft: Draft; target: Target | null }>("/api/ai/command", {
-        text: input,
-      });
+      const data = await api.post<{ answer?: string; draft: Draft; target: Target | null }>(
+        "/api/ai/command",
+        { text: input },
+      );
+      // A question / out-of-scope ask → a spoken text answer, nothing to confirm.
+      if (data.answer) {
+        finish(data.answer);
+        return;
+      }
       const d = data.draft;
       if (!d.understood || d.intent === "none") {
         setError(d.message || "I can only help with scheduling.");
@@ -248,6 +254,8 @@ function OtterSheet({ onClose }: { onClose: () => void }) {
           // Map to the real event type when one was matched, so its location,
           // workflows and reminders apply (not the hidden Personal type).
           eventTypeSlug: draft.eventTypeSlug || undefined,
+          // "focus" is held as a personal focus block, not a meeting.
+          kind: draft.kind,
         });
         finish("Added to your calendar.");
       } else if (draft.intent === "reschedule" && target) {

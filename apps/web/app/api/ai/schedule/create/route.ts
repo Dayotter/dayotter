@@ -1,5 +1,6 @@
 import { aiEnabled } from "@/lib/ai/schedule-parse";
 import { createHostBooking } from "@/lib/booking/host-booking";
+import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
 import { jsonError, withUser } from "@/lib/server/http";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { logger } from "@dayotter/core";
@@ -20,6 +21,8 @@ const body = z.object({
     .default([]),
   /** Optional: a real event type the create maps to (so its workflows apply). */
   eventTypeSlug: z.string().max(200).optional(),
+  /** "focus" is held as a personal focus block (not a meeting/booking). */
+  kind: z.enum(["meeting", "focus", "reminder"]).optional(),
 });
 
 /**
@@ -56,13 +59,47 @@ export const POST = withUser(async (u, request) => {
     .filter((a) => a.email.includes("@"))
     .map((a) => ({ email: a.email, name: a.name || undefined }));
 
+  const timezone = user?.timezone ?? "UTC";
+
+  // A "focus" draft is a personal hold, not a meeting: write it as a focus
+  // time_block (blocks bookable availability, no attendees/reminders/invite) and
+  // best-effort mirror it to the calendar - the same shape as protect_focus_time.
+  if (d.kind === "focus") {
+    try {
+      await getDb().insert(schema.timeBlocks).values({
+        userId: u.id,
+        title: d.title,
+        kind: "focus",
+        startsAt: start,
+        endsAt: end,
+        seriesId: null,
+      });
+      await writeBookingToCalendar(u.id, {
+        title: d.title,
+        start,
+        end,
+        timezone,
+        attendees: [],
+      }).catch(() => null);
+      logger.info("ai focus block created", { event: "ai_focus_block_created", userId: u.id });
+      return NextResponse.json({ ok: true });
+    } catch (err) {
+      logger.error("ai focus block create failed", {
+        event: "ai_focus_block_failed",
+        userId: u.id,
+        err,
+      });
+      return jsonError("Couldn't hold that focus time. Please try again.", 502);
+    }
+  }
+
   try {
     const result = await createHostBooking({
       userId: u.id,
       title: d.title,
       start,
       end,
-      timezone: user?.timezone ?? "UTC",
+      timezone,
       notes: d.notes,
       attendees,
       eventTypeSlug: d.eventTypeSlug,
