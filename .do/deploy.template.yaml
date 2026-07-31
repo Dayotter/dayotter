@@ -1,0 +1,93 @@
+# DigitalOcean App Platform - one-click DayOtter (web + worker + Postgres + Redis).
+#
+# Deploy: https://cloud.digitalocean.com/apps/new?repo=https://github.com/Dayotter/dayotter/tree/main
+# (the "Deploy to DO" button in the README points here). App Platform reads this
+# file, provisions the components below, and prompts for the SECRET envs.
+#
+# ⚠️ Values you must set during the create flow (App Platform can't generate them):
+#   ENCRYPTION_KEY  - 64 hex chars:  openssl rand -hex 32   (identical on all 3 components)
+#   AUTH_SECRET     - 32+ random chars:  openssl rand -hex 32
+#   APP_URL / NEXT_PUBLIC_APP_URL / BETTER_AUTH_URL - your assigned
+#                     https://<app-name>.ondigitalocean.app  (set after first deploy, then redeploy;
+#                     NEXT_PUBLIC_APP_URL is baked into the web build, so it needs a rebuild).
+#
+# 💸 Cost note: the Postgres below is a free *dev database*. DigitalOcean has no free
+# Redis - `engine: REDIS` provisions a paid managed Valkey cluster. If your account
+# rejects `REDIS`, rename it to `VALKEY` (DO's newer name for the same engine).
+spec:
+  name: dayotter
+  region: nyc
+
+  services:
+    - name: web
+      dockerfile_path: apps/web/Dockerfile
+      source_dir: /
+      http_port: 3000
+      instance_size_slug: apps-s-1vcpu-1gb
+      instance_count: 1
+      health_check:
+        http_path: /api/me # fast 401 when unauthenticated = alive
+      envs:
+        - key: NODE_ENV
+          value: production
+        - key: DATABASE_URL
+          scope: RUN_AND_BUILD_TIME
+          value: ${db.DATABASE_URL}
+        - key: REDIS_URL
+          value: ${redis.DATABASE_URL}
+        - key: AUTH_SECRET
+          scope: RUN_TIME
+          type: SECRET
+        - key: ENCRYPTION_KEY
+          scope: RUN_TIME
+          type: SECRET
+        - key: APP_URL
+          scope: RUN_TIME
+        - key: BETTER_AUTH_URL
+          scope: RUN_TIME
+        # Baked into the client bundle at build time -> BUILD_TIME scope + rebuild on change.
+        - key: NEXT_PUBLIC_APP_URL
+          scope: BUILD_TIME
+        - key: AI_PROVIDER # optional: "anthropic" or "openai" (unset = no AI)
+          scope: RUN_TIME
+
+    - name: worker
+      dockerfile_path: apps/worker/Dockerfile
+      source_dir: /
+      instance_size_slug: apps-s-1vcpu-1gb
+      instance_count: 1
+      envs:
+        - key: NODE_ENV
+          value: production
+        - key: DATABASE_URL
+          value: ${db.DATABASE_URL}
+        - key: REDIS_URL
+          value: ${redis.DATABASE_URL}
+        - key: ENCRYPTION_KEY
+          scope: RUN_TIME
+          type: SECRET
+        - key: APP_URL
+          scope: RUN_TIME
+
+  # Runs once before each deploy goes live. Uses the worker image (has pnpm +
+  # drizzle-kit + the committed migrations) - the web image is a slim standalone
+  # bundle and cannot run migrations.
+  jobs:
+    - name: migrate
+      kind: PRE_DEPLOY
+      dockerfile_path: apps/worker/Dockerfile
+      source_dir: /
+      instance_size_slug: apps-s-1vcpu-0.5gb
+      run_command: pnpm --filter @dayotter/db migrate
+      envs:
+        - key: DATABASE_URL
+          value: ${db.DATABASE_URL}
+
+  databases:
+    - name: db
+      engine: PG
+      version: "16"
+      production: false # free dev database; set true for a managed cluster
+    - name: redis
+      engine: REDIS # paid managed Valkey; rename to VALKEY if your account requires it
+      production: true

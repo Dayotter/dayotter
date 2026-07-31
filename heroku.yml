@@ -1,0 +1,26 @@
+# Heroku container deploy for DayOtter (web + worker).
+#
+# Heroku builds each Dockerfile with the repo root as context, runs migrations in the
+# release phase (using the worker image, which has pnpm + drizzle-kit), then starts
+# the web and worker dynos. Provision Postgres + Redis with:
+#
+#   heroku addons:create heroku-postgresql        # sets DATABASE_URL
+#   heroku addons:create heroku-redis             # sets REDIS_URL
+#
+# See app.json for the one-click "Deploy to Heroku" button and required config vars.
+build:
+  docker:
+    web: apps/web/Dockerfile
+    worker: apps/worker/Dockerfile
+
+# Runs once per release, before the new dynos receive traffic. The web image can't
+# run migrations (slim standalone, no pnpm), so run them in the worker image.
+release:
+  image: worker
+  command:
+    - pnpm --filter @dayotter/db migrate
+
+run:
+  # Heroku injects $PORT at runtime; the Next.js standalone server binds to it.
+  web: node apps/web/server.js
+  worker: pnpm --filter @dayotter/worker start

@@ -1,0 +1,45 @@
+{
+  "name": "DayOtter",
+  "description": "Open-source, AI-native scheduling. Connect every calendar, never get double-booked, share one booking link that respects them all.",
+  "repository": "https://github.com/Dayotter/dayotter",
+  "logo": "https://raw.githubusercontent.com/Dayotter/dayotter/main/.github/assets/logo.png",
+  "keywords": ["calendar", "scheduling", "booking", "nextjs", "self-hosted", "ai"],
+  "stack": "container",
+  "addons": [
+    { "plan": "heroku-postgresql" },
+    { "plan": "heroku-redis" }
+  ],
+  "formation": {
+    "web": { "quantity": 1, "size": "basic" },
+    "worker": { "quantity": 1, "size": "basic" }
+  },
+  "env": {
+    "NODE_ENV": {
+      "value": "production"
+    },
+    "AUTH_SECRET": {
+      "description": "Session signing secret (32+ random chars). Auto-generated.",
+      "generator": "secret"
+    },
+    "ENCRYPTION_KEY": {
+      "description": "MUST be 64 hex chars for encrypting calendar tokens at rest. Generate with: openssl rand -hex 32",
+      "required": true
+    },
+    "APP_URL": {
+      "description": "Your app's public URL, e.g. https://your-app.herokuapp.com",
+      "required": true
+    },
+    "BETTER_AUTH_URL": {
+      "description": "Same as APP_URL.",
+      "required": true
+    },
+    "NEXT_PUBLIC_APP_URL": {
+      "description": "Same as APP_URL. NOTE: baked into the web bundle at build time - set it, then trigger a rebuild (git push / redeploy) for client-side links to pick it up.",
+      "required": false
+    },
+    "AI_PROVIDER": {
+      "description": "Optional: \"anthropic\" or \"openai\". Leave blank to run with no AI (DayOtter is a full scheduler without it).",
+      "required": false
+    }
+  }
+}

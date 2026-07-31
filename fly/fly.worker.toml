@@ -1,0 +1,37 @@
+# Fly.io - DayOtter worker (BullMQ: reminders, calendar sync, webhooks) + migrations.
+# Deploy from the repo root so the Docker build context is the whole monorepo:
+#
+#   fly deploy --config fly/fly.worker.toml
+#
+# This app owns the migration step: `release_command` runs in the worker image
+# (which has pnpm + drizzle-kit + the committed migrations) before the release goes
+# live. Deploy the worker BEFORE the web app so the schema is current.
+#
+# Attach the same Postgres + Redis you created for the web app, and mirror the secrets:
+#
+#   fly postgres attach dayotter-db --app dayotter-worker    # sets DATABASE_URL
+#   fly secrets set --app dayotter-worker \
+#     REDIS_URL=redis://... \
+#     ENCRYPTION_KEY=<same 64-hex key as the web app> \
+#     APP_URL=https://dayotter-web.fly.dev
+
+app = "dayotter-worker"
+primary_region = "iad"
+
+[build]
+  dockerfile = "apps/worker/Dockerfile"
+
+[deploy]
+  release_command = "pnpm --filter @dayotter/db migrate"
+
+[env]
+  NODE_ENV = "production"
+
+# Background worker - no public HTTP service/ports. One always-on machine.
+[processes]
+  worker = "pnpm --filter @dayotter/worker start"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
+  processes = ["worker"]

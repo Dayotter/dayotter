@@ -38,26 +38,75 @@ run migrations before each deploy. After the first deploy:
 > Render renamed "Redis" to "Key Value". If your account only offers `type: keyvalue`,
 > change that one line in `render.yaml`.
 
+## One-click: DigitalOcean App Platform
+
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/Dayotter/dayotter/tree/main)
+
+Uses [`.do/deploy.template.yaml`](../.do/deploy.template.yaml) to provision web +
+worker + Postgres + a **PRE_DEPLOY** migration job. During the create flow, set
+`ENCRYPTION_KEY` and `AUTH_SECRET` (`openssl rand -hex 32` each) and, after the first
+deploy, `APP_URL` / `NEXT_PUBLIC_APP_URL` / `BETTER_AUTH_URL` to your assigned
+`https://<name>.ondigitalocean.app` (then redeploy so `NEXT_PUBLIC_APP_URL` bakes in).
+
+> 💸 DigitalOcean has **no free Redis** - the template's `engine: REDIS` line
+> provisions a paid managed **Valkey** cluster. If your account rejects `REDIS`, rename
+> it to `VALKEY`. Postgres uses the free dev database (`production: false`).
+
+## Fly.io
+
+DayOtter runs as **two Fly apps** (web + worker ship different images). Configs live in
+[`fly/`](../fly/); deploy from the repo root so the Docker build context is the whole
+monorepo. Migrations run from the worker app's `release_command`, so **deploy the
+worker first**:
+
+```bash
+fly postgres create --name dayotter-db          # managed Postgres
+fly redis create                                # Upstash Redis - copy the redis:// URL
+
+# worker (also runs migrations via release_command)
+fly apps create dayotter-worker
+fly postgres attach dayotter-db --app dayotter-worker
+fly secrets set --app dayotter-worker REDIS_URL=redis://... \
+  ENCRYPTION_KEY=$(openssl rand -hex 32) APP_URL=https://dayotter-web.fly.dev
+fly deploy --config fly/fly.worker.toml
+
+# web
+fly apps create dayotter-web
+fly postgres attach dayotter-db --app dayotter-web
+fly secrets set --app dayotter-web REDIS_URL=redis://... \
+  AUTH_SECRET=$(openssl rand -hex 32) ENCRYPTION_KEY=<same key as worker> \
+  APP_URL=https://dayotter-web.fly.dev BETTER_AUTH_URL=https://dayotter-web.fly.dev
+fly deploy --config fly/fly.web.toml
+```
+
+Use the **same** `ENCRYPTION_KEY` on both apps.
+
+## One-click: Heroku
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Dayotter/dayotter)
+
+Uses [`app.json`](../app.json) + [`heroku.yml`](../heroku.yml) (container stack) to add
+Postgres + Redis, run migrations in the **release phase** (worker image), and start the
+web + worker dynos. `AUTH_SECRET` is auto-generated; set `ENCRYPTION_KEY` and the URL
+vars when prompted.
+
+> If the button errors on the container stack, deploy from the CLI instead:
+> `heroku create → heroku stack:set container → git push heroku main`, then
+> `heroku addons:create heroku-postgresql` and `heroku-redis`. `NEXT_PUBLIC_APP_URL`
+> is baked at build time - set it and push again for client-side links to use it.
+
 ## Railway
 
-Railway builds each service straight from its Dockerfile. There's no committed template
-(a Railway template is published from the Railway dashboard, not the repo), so:
+Config-as-code lives in [`railway.web.json`](../railway.web.json) and
+[`railway.worker.json`](../railway.worker.json) (a one-click Railway *button* must be
+published from your own dashboard, so it can't ship in the repo):
 
-1. New Project → Deploy from repo → add **two services** pointing at
-   `apps/web/Dockerfile` and `apps/worker/Dockerfile`.
+1. New Project → Deploy from repo → add **two services**. In each service's settings set
+   **Config-as-code Path** to `railway.web.json` (web) and `railway.worker.json`
+   (worker). The worker config already runs migrations as its pre-deploy command.
 2. Add the **Postgres** and **Redis** plugins; Railway injects `DATABASE_URL` /
-   `REDIS_URL` - reference them on both services.
+   `REDIS_URL` - reference both on each service.
 3. Set the three values above; expose the web service and use its domain as `APP_URL`.
-
-*(Want a one-click Railway button? Publish a template from your deployed project and
-drop the `https://railway.com/new/template?...` URL into this file.)*
-
-## DigitalOcean App Platform
-
-Create an App from this repo with two **Dockerfile** components (web + worker), a
-**Dev/Managed Postgres** and a **Managed Redis (Valkey)**; bind `DATABASE_URL` /
-`REDIS_URL` and set the three values above. Run `pnpm --filter @dayotter/db migrate`
-as a pre-deploy job.
 
 ## Coolify / CapRover / any Docker host
 

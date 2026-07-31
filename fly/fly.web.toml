@@ -1,0 +1,48 @@
+# Fly.io - DayOtter web (Next.js). Deploy from the repo root so the Docker build
+# context is the whole monorepo:
+#
+#   fly deploy --config fly/fly.web.toml
+#
+# DayOtter is two Fly apps because it ships two images (this slim web bundle has no
+# pnpm; the worker image does). Create Postgres + Redis once and attach to BOTH apps:
+#
+#   fly postgres create --name dayotter-db
+#   fly postgres attach dayotter-db --app dayotter-web      # sets DATABASE_URL
+#   fly redis create                                        # Upstash; copy the redis:// URL
+#   fly secrets set --app dayotter-web \
+#     REDIS_URL=redis://... \
+#     AUTH_SECRET=$(openssl rand -hex 32) \
+#     ENCRYPTION_KEY=$(openssl rand -hex 32) \
+#     APP_URL=https://dayotter-web.fly.dev \
+#     BETTER_AUTH_URL=https://dayotter-web.fly.dev
+#
+# Migrations run from the WORKER app's release_command (see fly.worker.toml) - deploy
+# it first so the schema is current before web goes live.
+
+app = "dayotter-web"
+primary_region = "iad"
+
+[build]
+  dockerfile = "apps/web/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/api/me" # fast 401 = alive
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
