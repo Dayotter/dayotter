@@ -207,9 +207,15 @@ function OtterSheet({ onClose }: { onClose: () => void }) {
     setDone(null);
     resetDraft();
     try {
-      const data = await api.post<{ draft: Draft; target: Target | null }>("/api/ai/command", {
-        text: input,
-      });
+      const data = await api.post<{ answer?: string; draft: Draft; target: Target | null }>(
+        "/api/ai/command",
+        { text: input },
+      );
+      // A question / out-of-scope ask → a spoken text answer, nothing to confirm.
+      if (data.answer) {
+        finish(data.answer);
+        return;
+      }
       const d = data.draft;
       if (!d.understood || d.intent === "none") {
         setError(d.message || "I can only help with scheduling.");
