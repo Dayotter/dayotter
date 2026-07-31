@@ -2,7 +2,9 @@ import { interpretOtterCommand } from "@/lib/ai/interpret";
 import { cancelBooking } from "@/lib/booking/cancel-booking";
 import { createHostBooking } from "@/lib/booking/host-booking";
 import { rescheduleBooking } from "@/lib/booking/reschedule-booking";
+import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
 import { logger } from "@dayotter/core";
+import { getDb, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 
 /**
@@ -20,6 +22,8 @@ export type PendingAction =
       attendees: { name: string; email: string }[];
       timezone: string;
       eventTypeSlug?: string;
+      /** "focus" is held as a personal focus block, not a meeting. */
+      kind?: "meeting" | "focus" | "reminder";
     }
   | { intent: "reschedule"; uid: string; newStartISO: string; title: string; timezone: string }
   | { intent: "cancel"; uid: string; title: string };
@@ -68,6 +72,7 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
         attendees: draft.attendees,
         timezone: tz,
         eventTypeSlug: draft.eventTypeSlug || undefined,
+        kind: draft.kind,
       },
     };
   }
@@ -103,6 +108,27 @@ export async function executePending(userId: string, pending: PendingAction): Pr
     if (pending.intent === "create") {
       const start = new Date(pending.startISO);
       const end = new Date(start.getTime() + pending.durationMinutes * 60_000);
+
+      // A "focus" hold is a personal focus block, not a meeting/booking.
+      if (pending.kind === "focus") {
+        await getDb().insert(schema.timeBlocks).values({
+          userId,
+          title: pending.title,
+          kind: "focus",
+          startsAt: start,
+          endsAt: end,
+          seriesId: null,
+        });
+        await writeBookingToCalendar(userId, {
+          title: pending.title,
+          start,
+          end,
+          timezone: pending.timezone,
+          attendees: [],
+        }).catch(() => null);
+        return `Done ✓ Focus time "${pending.title}" is held for ${whenLabel(pending.startISO, pending.timezone)}.`;
+      }
+
       const attendees = pending.attendees
         .filter((a) => a.email.includes("@"))
         .map((a) => ({ email: a.email, name: a.name || undefined }));
