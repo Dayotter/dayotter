@@ -149,7 +149,9 @@ Run the mobile app against your local server with `pnpm --filter @dayotter/mobil
 
 **Requirements:** Docker + Docker Compose, a Postgres database, and a Redis instance (both come up in the compose stack). AI is **optional** - DayOtter is a full scheduler with no model configured; add a key or a local model to turn Otter on. **Typical first-boot: ~10 minutes** to `docker compose up` and connect a calendar; OAuth for Google/Microsoft needs client IDs (see the integrations guide).
 
-Docker Compose brings up Postgres, Redis, migrations, web, worker, and a reverse proxy. See [`deploy/README.md`](./deploy/README.md) and [`docs/SELF_HOSTING.md`](./docs/SELF_HOSTING.md). Redeploys always run migrations via [`deploy/deploy.sh`](./deploy/deploy.sh).
+**One-click:** [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Dayotter/dayotter) &nbsp; (Railway / DigitalOcean / Coolify / CapRover / any Docker host: **[docs/DEPLOY.md](./docs/DEPLOY.md)**).
+
+Or **Docker Compose** brings up Postgres, Redis, migrations, web, worker, and a reverse proxy. See [`deploy/README.md`](./deploy/README.md) and [`docs/SELF_HOSTING.md`](./docs/SELF_HOSTING.md). Redeploys always run migrations via [`deploy/deploy.sh`](./deploy/deploy.sh).
 
 **Connecting integrations** (Google, Microsoft, Apple, Salesforce, HubSpot, Zoom, Stripe, Twilio, Resend) - where to get each client ID / API key and which redirect URI & webhook to register: [`docs/INTEGRATIONS.md`](./docs/INTEGRATIONS.md), mirrored on the site at `/docs/integration-setup`.
 
