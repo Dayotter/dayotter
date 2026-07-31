@@ -5,7 +5,7 @@
 **Make all your calendars work as one.**
 The open-source calendar & scheduling app for people juggling **multiple calendars** - connect every calendar (personal + work + clients), never get double-booked, protect your focus, and share **one booking link that respects them all**. With an AI assistant, Otter, built into the core.
 
-**[▶ Try the hosted version](https://dayotter.com)** &nbsp;·&nbsp; [🚀 One-click deploy to Render](https://render.com/deploy?repo=https://github.com/Dayotter/dayotter) &nbsp;·&nbsp; [🐳 Self-host with Docker](#self-hosting-production) &nbsp;·&nbsp; [How we compare](./docs/COMPARISON.md)
+**[▶ Try the hosted version](https://dayotter.com)** &nbsp;·&nbsp; [🚀 Self-host it](#self-hosting-production) &nbsp;·&nbsp; [How we compare](./docs/COMPARISON.md)
 
 <br>
 
@@ -13,7 +13,7 @@ The open-source calendar & scheduling app for people juggling **multiple calenda
 
 <br>
 
-[Website](https://dayotter.com) · [Docs](./docs) · [Discord](https://discord.gg/cxwETDsY85) · [Roadmap](./docs/ROADMAP.md) · [Discussions](https://github.com/Dayotter/dayotter/discussions) · [Good first tasks](./docs/TASKS.md) · [Contributing](./CONTRIBUTING.md)
+[Docs](./docs) · [Discord](https://discord.gg/cxwETDsY85) · [Roadmap](./docs/ROADMAP.md) · [Discussions](https://github.com/Dayotter/dayotter/discussions) · [Good first tasks](./docs/TASKS.md) · [Contributing](./CONTRIBUTING.md)
 
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
 ![Self-hostable](https://img.shields.io/badge/self--hostable-yes-brightgreen)
@@ -147,15 +147,24 @@ Run the mobile app against your local server with `pnpm --filter @dayotter/mobil
 
 ## Self-hosting (production)
 
-**Requirements:** Docker + Docker Compose, a Postgres database, and a Redis instance (both come up in the compose stack). AI is **optional** - DayOtter is a full scheduler with no model configured; add a key or a local model to turn Otter on. **Typical first-boot: ~10 minutes** to `docker compose up` and connect a calendar; OAuth for Google/Microsoft needs client IDs (see the integrations guide).
+Run the whole product - **web, worker, Postgres, Redis** - on your own infrastructure under AGPLv3. AI is **optional**: DayOtter is a full scheduler with no model configured; add a key or a local model to turn Otter on. Every path below runs database migrations for you.
 
-**One-click:** [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Dayotter/dayotter) &nbsp; [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/Dayotter/dayotter/tree/main) &nbsp; [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Dayotter/dayotter)
+**1. One-click** - the host provisions everything:
 
-Fly.io, Railway, Coolify / CapRover, or any Docker host: **[docs/DEPLOY.md](./docs/DEPLOY.md)**.
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Dayotter/dayotter) &nbsp; [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/Dayotter/dayotter/tree/main) &nbsp; [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Dayotter/dayotter)
 
-Or **Docker Compose** brings up Postgres, Redis, migrations, web, worker, and a reverse proxy. See [`deploy/README.md`](./deploy/README.md) and [`docs/SELF_HOSTING.md`](./docs/SELF_HOSTING.md). Redeploys always run migrations via [`deploy/deploy.sh`](./deploy/deploy.sh).
+Fly.io, Railway, AWS, and per-platform notes are in the **[deploy guide →](./docs/DEPLOY.md)**.
 
-**Connecting integrations** (Google, Microsoft, Apple, Salesforce, HubSpot, Zoom, Stripe, Twilio, Resend) - where to get each client ID / API key and which redirect URI & webhook to register: [`docs/INTEGRATIONS.md`](./docs/INTEGRATIONS.md), mirrored on the site at `/docs/integration-setup`.
+**2. Your own server, one command** - installs Docker, generates secrets, starts everything (Postgres, Redis, web, worker, and a Caddy reverse proxy with automatic HTTPS):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Dayotter/dayotter/main/deploy/install.sh \
+  | sudo DAYOTTER_DOMAIN=cal.example.com bash
+```
+
+Prefer to drive Docker Compose yourself? See [`deploy/README.md`](./deploy/README.md). Upgrade a running instance safely (back up → migrate → health-check → roll back on failure) with [`deploy/upgrade.sh`](./deploy/upgrade.sh).
+
+**Then: connect integrations** (Google, Microsoft, Apple, Stripe, Twilio, …) - where to get each client ID / key and which redirect URI & webhook to register: [`docs/INTEGRATIONS.md`](./docs/INTEGRATIONS.md).
 
 ## Community
 
