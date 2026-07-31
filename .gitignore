@@ -50,3 +50,6 @@ SECURITY-AUDIT.md
 
 # Internal launch strategy (not for publication)
 LAUNCH-POSITIONING.md
+
+# self-host DB backups from deploy/upgrade.sh
+deploy/backups/
