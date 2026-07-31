@@ -6,10 +6,14 @@ this monorepo, shares code with the web via `@dayotter/core`, and talks to the
 
 ## Status
 
-Foundation + core screens: **auth (sign in / sign up), dashboard, event types,
-teams, bookings**, all wired to the live REST API and typechecked. Next parity
-milestones (added alongside their web counterparts): availability editor,
-event-type create/edit, team management, calendar connect, booking manage, settings.
+Shipping: **live on Google Play** (`com.dayotter.app`, 0.3.0 / versionCode 12);
+iOS shares the same codebase and is in progress (not yet submitted). Screens now
+track their web counterparts - auth (sign in / sign up), dashboard, event types,
+availability editor, teams and team detail, calendars, bookings with
+cancel/reschedule reason capture, plus payouts, packages/credits, group polls,
+routing forms, CRM connections, billing/edition, out-of-office, automations,
+workflows, insights, analytics, and inbox - all wired to the live REST API and
+typechecked.
 
 Type-checks in the monorepo (`pnpm --filter @dayotter/mobile typecheck`). Running
 on a simulator additionally requires the Expo/RN native toolchain (below).

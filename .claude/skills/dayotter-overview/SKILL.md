@@ -44,8 +44,8 @@ Two **single sources of truth** everything else reads from:
 
 ```bash
 pnpm turbo typecheck
-pnpm --filter @dayotter/core test   # 30, incl. DST
-pnpm --filter @dayotter/web test    # ~85
+pnpm --filter @dayotter/core test   # 39, incl. DST
+pnpm --filter @dayotter/web test    # ~165
 npx biome check --write <files>     # biome - NOT prettier/eslint
 ```
 

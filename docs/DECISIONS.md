@@ -24,6 +24,10 @@ Rules:
 
 ## 2. API-first - web and mobile are peer clients
 
+> **Status (2026-07):** shipped - the Android app is live on Google Play and
+> `apps/mobile` (Expo / React Native) exists; iOS ships from the same codebase and
+> is in progress. The original decision below stands and guided the build.
+
 Android and iOS apps are coming. So:
 - **All domain logic lives in `packages/*`, never in `apps/web`.** The Next.js app
   is one client; it must not be the only place a rule exists.

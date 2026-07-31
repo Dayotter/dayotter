@@ -16,7 +16,7 @@ alternative). Turborepo + pnpm monorepo. TypeScript everywhere, strict mode.
 - `packages/core` - pure logic: the availability engine, round-robin, crypto, SSRF guards. No I/O.
 - `packages/db` - Drizzle schema + migrations (`drizzle/`).
 - `packages/calendar` - provider adapters (Google, Microsoft, Apple/CalDAV, ICS).
-- `packages/integrations` - CRM (Salesforce, HubSpot), Zoom.
+- `packages/integrations` - CRM (Salesforce, HubSpot).
 - `packages/{jobs,notifications,emails,auth,plugin-host,plugin-sdk,plugins}` - supporting libs.
 
 ## Commands (run from the repo root)
@@ -28,7 +28,7 @@ pnpm build          # turbo run build
 pnpm typecheck      # tsc --noEmit across all packages
 pnpm test           # vitest across packages
 pnpm check          # biome check --write (format + lint + import order)
-pnpm --filter web typecheck   # scope to one package
+pnpm --filter @dayotter/web typecheck   # scope to one package
 pnpm db:generate    # drizzle-kit generate after a schema change
 ```
 
