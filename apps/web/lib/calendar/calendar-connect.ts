@@ -92,10 +92,20 @@ export async function connectCalendarAccount(params: {
   const externalCalendars = await adapter.listCalendars();
   const primary = externalCalendars.find((c) => c.primary) ?? externalCalendars[0];
 
+  // Prefer the account's real email as the connection label + stable id. The
+  // primary calendar's id is the email for Google but an opaque id for Microsoft,
+  // so ask the provider directly; fall back to the primary id if the lookup fails.
+  let accountEmail: string | undefined;
+  try {
+    accountEmail = await adapter.getAccountEmail?.();
+  } catch {
+    accountEmail = undefined;
+  }
+
   return persistConnection({
     userId: params.userId,
     provider: params.provider,
-    externalAccountId: primary?.externalId ?? `${params.provider}:${params.userId}`,
+    externalAccountId: accountEmail ?? primary?.externalId ?? `${params.provider}:${params.userId}`,
     encryptedCredentials: encryptJson(params.credentials),
     externalCalendars,
   });
