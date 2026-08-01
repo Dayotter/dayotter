@@ -90,6 +90,15 @@ export class MicrosoftCalendarAdapter implements CalendarAdapter {
     };
   }
 
+  async getAccountEmail(): Promise<string | undefined> {
+    const me = (await this.client.api("/me").select("mail,userPrincipalName").get()) as {
+      mail?: string | null;
+      userPrincipalName?: string | null;
+    };
+    // Personal/consumer accounts often have a null `mail`; fall back to the UPN.
+    return me.mail ?? me.userPrincipalName ?? undefined;
+  }
+
   async listCalendars(): Promise<ExternalCalendar[]> {
     const res = (await this.client.api("/me/calendars").get()) as {
       value: Array<{ id: string; name: string; isDefaultCalendar?: boolean; hexColor?: string }>;

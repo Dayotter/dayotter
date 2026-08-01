@@ -130,6 +130,13 @@ export interface WatchResult {
 export interface CalendarAdapter {
   readonly provider: Provider;
   listCalendars(): Promise<ExternalCalendar[]>;
+  /**
+   * The email/login this account authenticated as - used as the connection's
+   * display label and stable account id. Optional: when absent the caller falls
+   * back to the primary calendar's id, which is the email for Google but an
+   * opaque calendar id for Microsoft (hence this override for Graph).
+   */
+  getAccountEmail?(): Promise<string | undefined>;
   /** Busy intervals across the given calendars within [timeMin, timeMax]. */
   getBusy(calendarExternalIds: string[], timeMin: Date, timeMax: Date): Promise<BusyInterval[]>;
   createEvent(calendarExternalId: string, event: NewCalendarEvent): Promise<CreatedEvent>;
