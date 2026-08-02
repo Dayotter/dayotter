@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <MarketingHeader
         eyebrow="Legal"
         title="Privacy Policy"
-        subtitle="Last updated July 14, 2026"
+        subtitle="Last updated August 2, 2026"
       />
       <Prose>
         <p>
@@ -64,6 +64,22 @@ export default function PrivacyPage() {
           not use your data to train its models, and we don't use Otter conversations for
           advertising. AI features are optional - if you never use Otter, none of your data is sent
           to an AI provider.
+        </p>
+
+        <h2>Google Workspace APIs &amp; Limited Use</h2>
+        <p>
+          {BRAND.name}'s use of information received from Google Workspace APIs (including Google
+          Calendar) adheres to the{" "}
+          <a href="https://developers.google.com/terms/api-services-user-data-policy">
+            Google API Services User Data Policy
+          </a>
+          , including the Limited Use requirements. Google user data is used solely to provide and
+          improve the user-facing scheduling features you request. We do <strong>not</strong> use,
+          transfer, or sell Google Workspace user data - raw, aggregated, or derived - to develop,
+          improve, or train generalized or foundational machine-learning or artificial-intelligence
+          models, and we do not transfer it to any third party for that purpose. When you use Otter,
+          the relevant data is sent to our AI provider only to generate the response you requested,
+          and that provider does not use it to train its models.
         </p>
 
         <h2>How we share it</h2>
