@@ -1,0 +1,31 @@
+name: DAST (OWASP ZAP baseline)
+
+# Dynamic application security test: a passive, non-intrusive OWASP ZAP baseline
+# scan against the running site (headers, TLS, cookies, common misconfigurations).
+# It does not attack or fuzz. Runs weekly and on demand; override the target via
+# the workflow input when running manually (e.g. a staging URL).
+on:
+  schedule:
+    - cron: "0 7 * * 1" # Mondays 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "URL to scan"
+        required: true
+        default: "https://dayotter.com"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  zap-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: ${{ github.event.inputs.target || 'https://dayotter.com' }}
+          # -I: don't fail the job on warnings (baseline is informational).
+          cmd_options: "-I"

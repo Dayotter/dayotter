@@ -1,0 +1,79 @@
+name: Security scans
+
+# Three complementary open-source scans:
+#   • Semgrep     — pattern-based SAST (OWASP Top 10, TS/React/Next.js rules)
+#   • Gitleaks    — secret scanning (no committed credentials)
+#   • pnpm audit  — software composition analysis (vulnerable dependencies)
+# Runs on pushes to main, PRs, and weekly.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "30 6 * * 1" # Mondays 06:30 UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    name: Semgrep (SAST)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan
+        run: >-
+          semgrep scan
+          --sarif --output semgrep.sarif
+          --config p/security-audit
+          --config p/secrets
+          --config p/typescript
+          --config p/react
+          --config p/nextjs
+      - name: Upload results to code scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  secrets:
+    name: Gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    # Use the gitleaks CLI image directly: the gitleaks GitHub Action requires a
+    # paid licence for organisation repos, the CLI does not.
+    container:
+      image: ghcr.io/gitleaks/gitleaks:latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan git history for secrets
+        run: gitleaks detect --source . --redact --exit-code 1
+
+  dependencies:
+    name: pnpm audit (SCA)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Reports high/critical advisories. Non-blocking for now so a newly
+      # disclosed transitive CVE doesn't wedge every PR; tighten to blocking
+      # (drop continue-on-error) once the baseline is clean.
+      - name: Audit dependencies
+        continue-on-error: true
+        run: pnpm audit --audit-level=high
