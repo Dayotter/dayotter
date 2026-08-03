@@ -27,7 +27,7 @@ jobs:
     container:
       image: semgrep/semgrep
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Scan
         run: >-
           semgrep scan
@@ -52,7 +52,7 @@ jobs:
     container:
       image: ghcr.io/gitleaks/gitleaks:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Scan git history for secrets
@@ -62,7 +62,7 @@ jobs:
     name: pnpm audit (SCA)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           version: 10.24.0
