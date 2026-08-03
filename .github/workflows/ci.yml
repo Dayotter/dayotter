@@ -1,0 +1,45 @@
+name: CI
+
+# Lint, type-check, and test on every push to main and every PR. The full
+# production build is exercised by the Docker images in the deploy pipeline.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Non-blocking until the pre-existing Biome debt is cleared (issue #166);
+      # drop continue-on-error to make it a hard gate once the tree is clean.
+      - name: Lint + format (Biome, read-only)
+        continue-on-error: true
+        run: pnpm exec biome ci .
+
+      - name: Type-check
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
