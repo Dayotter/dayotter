@@ -189,6 +189,68 @@ export const GUIDES: DocGuide[] = [
 
   // ─── Scheduling ───────────────────────────────────────────────────────────
   {
+    slug: "connect-zoom",
+    title: "Connect Zoom",
+    summary:
+      "Link your Zoom account so every Zoom booking gets its own meeting and join link, created automatically.",
+    category: "Scheduling",
+    readMinutes: 3,
+    related: ["create-a-booking-type", "connect-a-calendar", "manage-bookings"],
+    body: [
+      {
+        paragraphs: [
+          "Connect Zoom once and you never create or paste a meeting link by hand again. Whenever someone books a meeting on a booking type whose location is set to Zoom, DayOtter creates a scheduled Zoom meeting on your account and drops the join link into the confirmation email and the calendar invite - for you and for the person booking.",
+          "Zoom is optional and per-booking-type: connect it if you host on Zoom, leave it off if you don't. Nothing else about DayOtter depends on it.",
+        ],
+      },
+      {
+        heading: "Connect Zoom",
+        steps: [
+          "Go to Settings → Calendars.",
+          "Find the Zoom card (“Connect Zoom to auto-create a meeting for every Zoom booking”) and click Connect.",
+          "You're sent to Zoom's authorization screen. Review the access it asks for and click Allow.",
+          "You land back in DayOtter with Zoom shown as connected.",
+        ],
+      },
+      {
+        heading: "Use it on a booking type",
+        steps: [
+          "Open a booking type under Booking Types, or create one.",
+          "Set its Location to Zoom and save.",
+          "That's it - the next time someone books that type, DayOtter creates the Zoom meeting and adds the join link to the confirmation, the reminders, and the calendar event.",
+        ],
+      },
+      {
+        tip: {
+          kind: "note",
+          text: "Rescheduling a Zoom booking keeps the same meeting and just updates its time; cancelling the booking cancels the Zoom meeting too. You never have to open Zoom yourself.",
+        },
+      },
+      {
+        heading: "What DayOtter can access",
+        paragraphs: [
+          "DayOtter requests only what the integration needs: it reads your basic Zoom profile to identify the connected account, and it creates meetings on your behalf. It does not read your existing meetings, recordings, or contacts.",
+          "Your Zoom tokens are encrypted at rest (AES-256-GCM), and the data is used solely to provide this scheduling feature - never for advertising, and never to train AI models.",
+        ],
+      },
+      {
+        heading: "Disconnect or remove Zoom",
+        steps: [
+          "In DayOtter: go to Settings → Calendars, find the Zoom card, and click Disconnect. DayOtter stops creating Zoom meetings immediately and deletes its stored token for your account.",
+          "In Zoom, to fully revoke access: sign in to the Zoom App Marketplace, open Manage → Added Apps, find DayOtter, and click Remove.",
+        ],
+      },
+      {
+        heading: "If a Zoom link doesn't appear",
+        bullets: [
+          "The booking type's location isn't set to Zoom → open the booking type, set it, and test with a fresh booking.",
+          "Zoom shows as disconnected under Settings → Calendars → click Connect and re-authorize.",
+          "You changed your Zoom password or removed the app in Zoom → reconnect from Settings → Calendars.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "create-a-booking-type",
     title: "Create a booking type",
     summary: "One template per kind of meeting - shaped exactly how you work.",
