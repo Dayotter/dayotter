@@ -25,7 +25,7 @@
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.10.2",
     "@types/nodemailer": "^6.4.17",
-    "tsx": "^4.19.2",
+    "tsx": "^4.23.1",
     "typescript": "^5.7.2"
   }
 }
