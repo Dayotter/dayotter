@@ -29,7 +29,7 @@ export const POST = withUser(async (u) => {
 
   const appUrl = process.env.APP_URL ?? "http://localhost:3000";
   try {
-    const { url } = await createSubscriptionCheckout({
+    const { url, customerReset } = await createSubscriptionCheckout({
       organizationId: org.id,
       quantity: await seatCount(org.id),
       customerId: org.stripeCustomerId,
@@ -37,6 +37,15 @@ export const POST = withUser(async (u) => {
       successUrl: `${appUrl}/settings/billing?upgraded=1&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${appUrl}/settings/billing`,
     });
+    // The stored customer was stale (Stripe key/account changed). Drop it so the
+    // portal and future checkouts don't reuse the dead id; the completion webhook
+    // writes the fresh customer id back.
+    if (customerReset) {
+      await getDb()
+        .update(schema.organizations)
+        .set({ stripeCustomerId: null })
+        .where(eq(schema.organizations.id, org.id));
+    }
     return NextResponse.json({ url });
   } catch (err) {
     // Almost always a Stripe config issue (invalid STRIPE_PRICE_PRO, a non-recurring
