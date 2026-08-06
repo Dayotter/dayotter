@@ -115,21 +115,54 @@ export async function createSubscriptionCheckout(params: {
   customerEmail?: string;
   successUrl: string;
   cancelUrl: string;
-}): Promise<{ url: string }> {
-  const session = await stripe().checkout.sessions.create({
+}): Promise<{ url: string; customerReset?: boolean }> {
+  const base = {
     mode: "subscription",
     line_items: [{ price: proPriceId, quantity: Math.max(1, params.quantity) }],
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
-    ...(params.customerId
-      ? { customer: params.customerId }
-      : { customer_email: params.customerEmail }),
     client_reference_id: params.organizationId,
     subscription_data: { metadata: { organizationId: params.organizationId } },
     metadata: { organizationId: params.organizationId },
     allow_promotion_codes: true,
-  });
-  return { url: session.url ?? "" };
+  } satisfies Stripe.Checkout.SessionCreateParams;
+
+  try {
+    const session = await stripe().checkout.sessions.create({
+      ...base,
+      ...(params.customerId
+        ? { customer: params.customerId }
+        : { customer_email: params.customerEmail }),
+    });
+    return { url: session.url ?? "" };
+  } catch (err) {
+    // The stored customer belongs to a different Stripe account/mode (e.g. the
+    // STRIPE_SECRET_KEY changed between deploys, or the customer was deleted).
+    // Don't wedge checkout on a stale id - mint a fresh customer and signal the
+    // caller to clear the bad id. The completion webhook restores the new id.
+    if (params.customerId && isMissingCustomer(err, params.customerId)) {
+      logger.warn("stripe: stored customer missing, retrying with a fresh one", {
+        event: "billing_customer_reset",
+        organizationId: params.organizationId,
+        customerId: params.customerId,
+      });
+      const session = await stripe().checkout.sessions.create({
+        ...base,
+        ...(params.customerEmail ? { customer_email: params.customerEmail } : {}),
+      });
+      return { url: session.url ?? "", customerReset: true };
+    }
+    throw err;
+  }
+}
+
+/** True when a Stripe error is "No such customer" for the id we passed. */
+function isMissingCustomer(err: unknown, customerId: string): boolean {
+  return (
+    err instanceof Stripe.errors.StripeInvalidRequestError &&
+    err.code === "resource_missing" &&
+    (err.param === "customer" || (err.message ?? "").includes(customerId))
+  );
 }
 
 /** Billing-portal session so a customer can update seats, card, or cancel. */
