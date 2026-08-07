@@ -33,6 +33,7 @@
     "node-ical": "^0.20.1",
     "openai": "^6.48.0",
     "react": "^19.0.0",
+    "react-day-picker": "^10.0.1",
     "react-dom": "^19.0.0",
     "stripe": "^17.5.0",
     "zod": "^3.24.1"

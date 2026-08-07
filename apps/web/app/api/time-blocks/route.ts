@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
+import { timeBlockInput } from "@/lib/booking/time-block";
 import { jsonError, withUser } from "@/lib/server/http";
 import { and, asc, eq, getDb, gte, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
@@ -26,21 +26,10 @@ export const GET = withUser(async (u) => {
   });
 });
 
-const body = z.object({
-  title: z.string().min(1).max(120),
-  kind: z.enum(["focus", "personal", "travel", "other"]).default("focus"),
-  startsAt: z.string().datetime(),
-  endsAt: z.string().datetime(),
-  /** Repeat weekly for this many additional weeks (0 = one-off, max 25). */
-  repeatWeeks: z.number().int().min(0).max(25).default(0),
-  /** Booker/creator timezone so weekly occurrences keep the same local time (DST-safe). */
-  timezone: z.string().min(1).default("UTC"),
-});
-
 /** Create a personal / focus block (optionally recurring weekly) that blocks the
  *  user's bookable availability. */
 export const POST = withUser(async (u, request) => {
-  const parsed = body.safeParse(await request.json().catch(() => null));
+  const parsed = timeBlockInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Invalid block", 400);
   const d = parsed.data;
   const start = new Date(d.startsAt);

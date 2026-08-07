@@ -1,4 +1,5 @@
 import { type ChatEvent, type ChatTurn, streamAssistant } from "@/lib/ai/chat";
+import { recordGuardrailHit } from "@/lib/ai/guardrail-events";
 import { SCOPE_REFUSAL, latestUserText, screenUserInput } from "@/lib/ai/guardrails";
 import { aiEnabled, supportsAgentTools } from "@/lib/ai/llm";
 import { requireFeature } from "@/lib/billing/require-feature";
@@ -64,7 +65,16 @@ export const POST = withUser(async (u, request) => {
       };
       try {
         // Guardrail: block blatant injection/jailbreak before spending a model call.
-        if (screenUserInput(latestUserText(turns), { userId: u.id }).blocked) {
+        const latest = latestUserText(turns);
+        if (screenUserInput(latest, { userId: u.id }).blocked) {
+          // Record + enqueue a throttled owner alert (best-effort, never blocks
+          // the refusal). Awaited so the row lands before the stream closes.
+          await recordGuardrailHit({
+            userId: u.id,
+            source: "chat",
+            reason: "injection",
+            sample: latest,
+          });
           send({ type: "token", text: SCOPE_REFUSAL });
           send({ type: "done", text: SCOPE_REFUSAL });
         } else {

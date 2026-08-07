@@ -76,6 +76,50 @@ export function bookingConfirmation(d: BookingEmailData): Rendered {
   };
 }
 
+export interface GuardrailAlertData {
+  /** First name of the workspace owner being alerted. */
+  ownerName?: string;
+  /** Human label for where it happened, e.g. "the assistant chat". */
+  sourceLabel: string;
+  /** The offending input (already trimmed), shown so the owner can judge it. */
+  sample: string;
+  /** Formatted time of the most recent hit. */
+  when: string;
+  /** How many guardrail hits in the throttle window this email covers. */
+  count: number;
+  /** Link to the dashboard security log. */
+  reviewUrl: string;
+}
+
+/**
+ * Security alert to a workspace owner: the AI assistant blocked a suspicious
+ * (injection / jailbreak) request. Informational - no action is required, since
+ * the guardrail already refused; it exists so owners have visibility.
+ */
+export function guardrailAlert(d: GuardrailAlertData): Rendered {
+  const hello = d.ownerName ? `Hi ${d.ownerName}, ` : "";
+  const summary =
+    d.count > 1
+      ? `${hello}the DayOtter assistant blocked ${d.count} suspicious requests in ${d.sourceLabel}. The most recent was at ${d.when}.`
+      : `${hello}the DayOtter assistant blocked a suspicious request in ${d.sourceLabel} at ${d.when}.`;
+  return {
+    subject:
+      d.count > 1
+        ? `DayOtter security: ${d.count} requests blocked by the assistant`
+        : "DayOtter security: the assistant blocked a suspicious request",
+    text: `${summary}\n\nThe assistant refused automatically - nothing was changed on your calendar and no action is needed. This note is just so you have visibility.\n\nMost recent input:\n"${d.sample}"\n\nReview the security log: ${d.reviewUrl}`,
+    html: shell(
+      "The assistant blocked a suspicious request",
+      [
+        summary,
+        "The assistant refused automatically, so nothing was changed on your calendar and no action is needed. This note is just so you have visibility.",
+        `<span style="color:#6b7280">Most recent input:</span><br><em>${esc(d.sample)}</em>`,
+      ],
+      { label: "Review security log", url: d.reviewUrl },
+    ),
+  };
+}
+
 export function bookingReminder(d: BookingEmailData & { leadLabel: string }): Rendered {
   const when = fmt(d.start, d.timezone);
   return {

@@ -15,10 +15,12 @@ export {
   dailyBriefing,
   teamBriefing,
   meetingRecap,
+  guardrailAlert,
   applyTemplateVars,
   WORKFLOW_VARIABLES,
   type BookingEmailData,
   type DailyBriefingData,
   type TeamBriefingData,
   type MeetingRecapData,
+  type GuardrailAlertData,
 } from "./templates";
