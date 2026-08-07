@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DateTimeField } from "@/components/ui/datetime-field";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { PROMPT_CATEGORIES, promptsByCategory } from "@/lib/ai/catalogue";
@@ -457,12 +458,7 @@ export function AiAssistant({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="otter-start">{tOtter(locale, "fieldStarts")}</Label>
-                <Input
-                  id="otter-start"
-                  type="datetime-local"
-                  value={startLocal}
-                  onChange={(e) => setStartLocal(e.target.value)}
-                />
+                <DateTimeField id="otter-start" value={startLocal} onChange={setStartLocal} />
               </div>
               <div>
                 <Label htmlFor="otter-dur">{tOtter(locale, "fieldDuration")}</Label>
@@ -505,10 +501,10 @@ export function AiAssistant({
                 when: fmtWhen(action.target.startISO, locale),
               })}
             </p>
-            <Input
-              type="datetime-local"
+            <DateTimeField
+              aria-label={tOtter(locale, "reschedule")}
               value={newStartLocal}
-              onChange={(e) => setNewStartLocal(e.target.value)}
+              onChange={setNewStartLocal}
             />
             <div className="flex gap-2">
               <Button size="sm" onClick={confirmReschedule} disabled={busy}>

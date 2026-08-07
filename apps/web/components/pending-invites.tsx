@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FormError } from "@/components/ui/form";
+import { DateTimeField } from "@/components/ui/datetime-field";
 import { Input } from "@/components/ui/input";
 import { track } from "@/lib/analytics";
 import { AlertTriangle, Sparkles } from "lucide-react";
@@ -275,11 +276,10 @@ export function PendingInvites({ aiEnabled }: { aiEnabled: boolean }) {
                       >
                         Propose a new time
                       </label>
-                      <Input
+                      <DateTimeField
                         id={`propose-${inv.externalEventId}`}
-                        type="datetime-local"
                         value={proposeTime}
-                        onChange={(e) => setProposeTime(e.target.value)}
+                        onChange={setProposeTime}
                         className="max-w-xs"
                       />
                     </>

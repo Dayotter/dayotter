@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/ui/form";
+import { DateTimeField } from "@/components/ui/datetime-field";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
@@ -123,11 +124,11 @@ export function PollCreateForm() {
           {times.map((t, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: rows are positional and reorder-free
             <div key={i} className="flex items-center gap-2">
-              <input
-                type="datetime-local"
+              <DateTimeField
                 value={t}
-                onChange={(e) => setTime(i, e.target.value)}
-                className="h-10 flex-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 text-sm text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+                onChange={(v) => setTime(i, v)}
+                className="flex-1"
+                aria-label={`Proposed time ${i + 1}`}
               />
               <button
                 type="button"

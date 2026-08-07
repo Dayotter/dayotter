@@ -1,21 +1,15 @@
+import { focusBlockInput } from "@/lib/booking/time-block";
 import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
 import { jsonError, withUser } from "@/lib/server/http";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-const body = z.object({
-  startISO: z.string().datetime(),
-  durationMinutes: z.number().int().min(15).max(480),
-  title: z.string().min(1).max(120).default("Deep work"),
-});
-
 /** Protect a suggested block by writing a focus event to the user's calendar. */
 export const POST = withUser(async (u, request) => {
-  const parsed = body.safeParse(await request.json().catch(() => null));
+  const parsed = focusBlockInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Invalid block", 400);
   const d = parsed.data;
 

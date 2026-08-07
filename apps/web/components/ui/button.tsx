@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "danger-soft";
 type Size = "sm" | "md" | "lg";
 
 const base =
@@ -16,6 +16,11 @@ const variants: Record<Variant, string> = {
   ghost:
     "text-[var(--color-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-2)]",
   danger: "bg-[var(--color-danger)] text-white hover:opacity-90",
+  // A quieter destructive action (e.g. a "Cancel booking" link that leads to a
+  // confirm step). Solid-tinted so it keeps real contrast in dark mode, where a
+  // ghost/muted treatment washes out against the near-black background.
+  "danger-soft":
+    "border border-[var(--color-danger)]/30 bg-[var(--color-danger-soft)] text-[var(--color-danger)] hover:bg-[var(--color-danger)] hover:text-white",
 };
 
 const sizes: Record<Size, string> = {

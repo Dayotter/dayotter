@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { DateTimeRangeField } from "@/components/ui/datetime-range-field";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -184,27 +185,17 @@ export function TimeBlocks() {
               </Select>
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="tb-start">Starts</Label>
-              <Input
-                id="tb-start"
-                type="datetime-local"
-                value={start}
-                onChange={(e) => setStart(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="tb-end">Ends</Label>
-              <Input
-                id="tb-end"
-                type="datetime-local"
-                value={end}
-                onChange={(e) => setEnd(e.target.value)}
-                required
-              />
-            </div>
+          <div>
+            <Label htmlFor="tb-when">When</Label>
+            <DateTimeRangeField
+              aria-label="When"
+              startValue={start}
+              endValue={end}
+              onChange={(s, e) => {
+                setStart(s);
+                setEnd(e);
+              }}
+            />
           </div>
           <div className="flex items-center gap-2">
             <Label htmlFor="tb-repeat">Repeat weekly</Label>

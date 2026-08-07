@@ -182,7 +182,7 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
               ) : null}
               <Link
                 href={`/booking/${uid}/cancel`}
-                className={buttonVariants({ variant: "ghost", size: "sm" })}
+                className={buttonVariants({ variant: "danger-soft", size: "sm" })}
               >
                 {pending ? "Cancel request" : "Cancel booking"}
               </Link>
