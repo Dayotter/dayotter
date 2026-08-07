@@ -386,6 +386,13 @@
       "when": 1785090298346,
       "tag": "0054_superb_ultragirl",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1786074371276,
+      "tag": "0055_public_valkyrie",
+      "breakpoints": true
     }
   ]
 }

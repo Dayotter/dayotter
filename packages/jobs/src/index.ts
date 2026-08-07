@@ -16,6 +16,7 @@ export const QUEUE_NAMES = {
   maintenance: "calendar-maintenance",
   webhooks: "webhooks",
   crmSync: "crm-sync",
+  guardrailAlerts: "guardrail-alerts",
 } as const;
 
 /** Liveness key the worker refreshes so the web /health can confirm it's alive. */
@@ -62,11 +63,18 @@ export interface CrmSyncJob {
   action: "created" | "rescheduled" | "cancelled";
 }
 
+export interface GuardrailAlertJob {
+  eventId: string;
+}
+
 export const remindersQueue = new Queue<ReminderJob>(QUEUE_NAMES.reminders, { connection });
 export const syncQueue = new Queue<SyncJob>(QUEUE_NAMES.sync, { connection });
 export const maintenanceQueue = new Queue(QUEUE_NAMES.maintenance, { connection });
 export const webhooksQueue = new Queue<WebhookJob>(QUEUE_NAMES.webhooks, { connection });
 export const crmSyncQueue = new Queue<CrmSyncJob>(QUEUE_NAMES.crmSync, { connection });
+export const guardrailAlertsQueue = new Queue<GuardrailAlertJob>(QUEUE_NAMES.guardrailAlerts, {
+  connection,
+});
 
 /**
  * Enqueue delivery of a persisted webhook delivery row. Retries with backoff so
@@ -99,6 +107,25 @@ export async function enqueueCrmSync(job: CrmSyncJob): Promise<void> {
     removeOnComplete: true,
     removeOnFail: 200,
   });
+}
+
+/**
+ * Enqueue an owner alert for a persisted guardrail event. Keyed per event id so
+ * a re-enqueue coalesces. Retries with backoff so a transient email-provider
+ * hiccup recovers; the worker itself rate-limits the actual sends per org.
+ */
+export async function enqueueGuardrailAlert(eventId: string): Promise<void> {
+  await guardrailAlertsQueue.add(
+    "alert",
+    { eventId },
+    {
+      jobId: `guardrail-${eventId}`,
+      attempts: 3,
+      backoff: { type: "exponential", delay: 30_000 },
+      removeOnComplete: true,
+      removeOnFail: 200,
+    },
+  );
 }
 
 /**
