@@ -14,7 +14,7 @@
     "nodemailer": "^6.9.16"
   },
   "devDependencies": {
-    "@types/luxon": "^3.4.2",
+    "@types/luxon": "^3.7.3",
     "@types/node": "^22.10.2",
     "@types/nodemailer": "^6.4.17",
     "typescript": "^5.7.2"
