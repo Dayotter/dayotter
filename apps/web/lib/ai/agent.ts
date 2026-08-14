@@ -121,15 +121,17 @@ You also have a read-only tool, find_free_slots, that returns times the host is 
     if (reads.length === 0) break; // no tool call and no proposal → give up to the fallback
 
     history.push({ role: "assistant_raw", raw: res.assistant });
-    const results: AgentToolResult[] = [];
-    for (const call of reads) {
-      const text = await findFreeSlots(
-        params.userId,
-        call.input as { durationMinutes: number; fromISO: string; toISO: string },
-        params.timezone,
-      ).catch(() => "Could not look up availability.");
-      results.push({ id: call.id, content: text });
-    }
+    // Independent availability reads; run concurrently (order preserved).
+    const results: AgentToolResult[] = await Promise.all(
+      reads.map(async (call) => {
+        const text = await findFreeSlots(
+          params.userId,
+          call.input as { durationMinutes: number; fromISO: string; toISO: string },
+          params.timezone,
+        ).catch(() => "Could not look up availability.");
+        return { id: call.id, content: text };
+      }),
+    );
     history.push({ role: "tool_results", results });
   }
 

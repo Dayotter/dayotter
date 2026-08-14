@@ -261,25 +261,29 @@ export async function streamAssistant(params: {
     if (reads.length === 0) break; // plain conversational answer-done
 
     history.push({ role: "assistant_raw", raw: res.assistant });
-    const results: AgentToolResult[] = [];
-    for (const call of reads) {
-      const input = call.input;
-      let content: string;
-      if (call.name === "find_free_slots") {
-        content = await findFreeSlots(
-          userId,
-          call.input as { durationMinutes: number; fromISO: string; toISO: string },
-          tz,
-        ).catch(() => "Could not look up availability.");
-      } else if (getTool(call.name)?.kind === "read") {
-        content = await executeReadTool(userId, call.name, input).catch(
-          () => "Could not read that.",
-        );
-      } else {
-        content = await runPluginTool(call.name, userId, input).catch(() => "Could not run that.");
-      }
-      results.push({ id: call.id, content });
-    }
+    // Reads are independent; run them concurrently. Promise.all preserves order.
+    const results: AgentToolResult[] = await Promise.all(
+      reads.map(async (call) => {
+        const input = call.input;
+        let content: string;
+        if (call.name === "find_free_slots") {
+          content = await findFreeSlots(
+            userId,
+            call.input as { durationMinutes: number; fromISO: string; toISO: string },
+            tz,
+          ).catch(() => "Could not look up availability.");
+        } else if (getTool(call.name)?.kind === "read") {
+          content = await executeReadTool(userId, call.name, input).catch(
+            () => "Could not read that.",
+          );
+        } else {
+          content = await runPluginTool(call.name, userId, input).catch(
+            () => "Could not run that.",
+          );
+        }
+        return { id: call.id, content };
+      }),
+    );
     history.push({ role: "tool_results", results });
   }
 
