@@ -54,7 +54,19 @@ async function sendViaResend(email: OutboundEmail, from: string, apiKey: string)
  */
 let warnedExampleFrom = false;
 
-export async function sendEmail(email: OutboundEmail): Promise<void> {
+/** Strip CR/LF from a single-line header value so an interpolated name/address can't
+ *  inject extra headers (defense in depth: Resend sends JSON and nodemailer rejects
+ *  newlines, but sanitize at the boundary regardless). */
+function oneLine(v: string): string {
+  return v.replace(/[\r\n]+/g, " ").trim();
+}
+
+export async function sendEmail(input: OutboundEmail): Promise<void> {
+  const email: OutboundEmail = {
+    ...input,
+    subject: oneLine(input.subject),
+    replyTo: input.replyTo ? oneLine(input.replyTo) : undefined,
+  };
   const from = process.env.EMAIL_FROM ?? "DayOtter <no-reply@example.com>";
 
   // The placeholder example.com sender is unverified everywhere, so EVERY email
