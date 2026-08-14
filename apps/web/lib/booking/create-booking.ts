@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { consumeCredit } from "@/lib/packages/credits";
-import { logger, roundRobinPick, safeEqual, sha256hex } from "@dayotter/core";
+import { logger, roundRobinPick, verifyAccessCode } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
 import { bookingRequested, newBookingRequest, sendEmail } from "@dayotter/emails";
 import { DateTime } from "luxon";
@@ -152,7 +152,7 @@ export async function createBooking(
   // Password-protected event type: require a matching access code before booking.
   if (eventType.accessCodeHash) {
     const supplied = input.accessCode?.trim();
-    if (!supplied || !safeEqual(sha256hex(supplied), eventType.accessCodeHash)) {
+    if (!supplied || !verifyAccessCode(supplied, eventType.accessCodeHash)) {
       throw new BookingError("Enter the correct access code to book.", 403);
     }
   }
