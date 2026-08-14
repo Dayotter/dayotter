@@ -1,5 +1,6 @@
 import { declineBooking } from "@/lib/booking/confirm-booking";
 import { jsonError, withUser } from "@/lib/server/http";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -9,6 +10,14 @@ const body = z.object({ reason: z.string().max(500).optional() });
 
 /** Host declines a pending (opt-in) booking, rejecting the request. Host-only. */
 export const POST = withUser(async (u, request, ctx: { params: Promise<{ uid: string }> }) => {
+  const limited = await enforceRateLimit(request, {
+    name: "booking-decline",
+    limit: 20,
+    windowSec: 60,
+    key: u.id,
+  });
+  if (limited) return limited;
+
   const { uid } = await ctx.params;
   const parsed = body.safeParse(await request.json().catch(() => ({})));
   const reason = parsed.success ? parsed.data.reason?.trim() || undefined : undefined;

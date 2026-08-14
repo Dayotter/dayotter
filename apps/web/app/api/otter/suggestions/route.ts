@@ -1,6 +1,7 @@
 import { getProactiveSuggestions } from "@/lib/ai/proactive";
 import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
 import { jsonError, withUser } from "@/lib/server/http";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
@@ -27,6 +28,15 @@ const actSchema = z.discriminatedUnion("type", [
 
 /** Act on a suggestion (confirm-first - always from an explicit user tap). */
 export const POST = withUser(async (u, request) => {
+  // Writes a time-block + mirrors to the calendar; cap per-user.
+  const limited = await enforceRateLimit(request, {
+    name: "otter-suggestions",
+    limit: 20,
+    windowSec: 60,
+    key: u.id,
+  });
+  if (limited) return limited;
+
   const parsed = actSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Unknown suggestion", 400);
   const d = parsed.data;
