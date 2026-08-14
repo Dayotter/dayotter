@@ -7,7 +7,7 @@ export function Card({ children, style }: { children: React.ReactNode; style?: V
 
 export function Badge({ label, color }: { label: string; color: string }) {
   return (
-    <View style={[styles.badge, { backgroundColor: color + "22" }]}>
+    <View style={[styles.badge, { backgroundColor: `${color}22` }]}>
       <Text style={[styles.badgeText, { color }]}>{label}</Text>
     </View>
   );

@@ -102,7 +102,9 @@ export default async function SecuritySettingsPage() {
                       </span>
                     </div>
                     {e.sample ? (
-                      <p className="mt-1 truncate text-xs text-[var(--color-faint)]">"{e.sample}"</p>
+                      <p className="mt-1 truncate text-xs text-[var(--color-faint)]">
+                        "{e.sample}"
+                      </p>
                     ) : null}
                   </li>
                 ))}

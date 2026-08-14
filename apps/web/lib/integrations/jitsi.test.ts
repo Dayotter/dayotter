@@ -3,12 +3,14 @@ import { jitsiRoomUrl } from "./jitsi";
 
 const original = process.env.JITSI_BASE_URL;
 afterEach(() => {
+  // biome-ignore lint/performance/noDelete: delete is required for process.env (assignment stringifies)
   if (original === undefined) delete process.env.JITSI_BASE_URL;
   else process.env.JITSI_BASE_URL = original;
 });
 
 describe("jitsiRoomUrl", () => {
   it("defaults to public meet.jit.si with a per-booking room", () => {
+    // biome-ignore lint/performance/noDelete: delete is required for process.env (assignment stringifies)
     delete process.env.JITSI_BASE_URL;
     expect(jitsiRoomUrl("abc-123")).toBe("https://meet.jit.si/DayOtter-abc-123");
   });

@@ -173,11 +173,11 @@ export function DateTimeRangeField({
   const endDt = parse(endValue);
   const minDt = parse(min);
 
-  const [startDate, setStartDate] = useState<Date>(
-    () => (startDt ?? minDt ?? DateTime.now()).startOf("day").toJSDate(),
+  const [startDate, setStartDate] = useState<Date>(() =>
+    (startDt ?? minDt ?? DateTime.now()).startOf("day").toJSDate(),
   );
-  const [endDate, setEndDate] = useState<Date>(
-    () => (endDt ?? startDt ?? minDt ?? DateTime.now()).startOf("day").toJSDate(),
+  const [endDate, setEndDate] = useState<Date>(() =>
+    (endDt ?? startDt ?? minDt ?? DateTime.now()).startOf("day").toJSDate(),
   );
   const [startTime, setStartTime] = useState(() => startDt?.toFormat("HH:mm") ?? "09:00");
   const [endTime, setEndTime] = useState(() => endDt?.toFormat("HH:mm") ?? "10:00");
@@ -189,13 +189,13 @@ export function DateTimeRangeField({
   }
 
   // Pre-fill a sensible default so a new form isn't empty.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // biome-ignore lint/correctness/useExhaustiveDependencies: deps intentionally narrowed to avoid re-sync loops
   useEffect(() => {
     if (!startValue && !endValue) emitFrom(startDate, startTime, endDate, endTime);
   }, []);
 
   // Re-sync from external value changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // biome-ignore lint/correctness/useExhaustiveDependencies: deps intentionally narrowed to avoid re-sync loops
   useEffect(() => {
     if (startDt) {
       setStartDate(startDt.startOf("day").toJSDate());
@@ -253,7 +253,11 @@ export function DateTimeRangeField({
         onSelect={changeStartDate}
       />
       <div className="w-[7rem]">
-        <Select aria-label="Start time" value={startTime} onChange={(e) => changeStartTime(e.target.value)}>
+        <Select
+          aria-label="Start time"
+          value={startTime}
+          onChange={(e) => changeStartTime(e.target.value)}
+        >
           {timeSlots.map((t) => (
             <option key={t} value={t}>
               {fmt12(t)}

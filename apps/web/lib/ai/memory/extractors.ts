@@ -28,7 +28,12 @@ function mode<T>(items: T[]): { value: T; share: number } | null {
   for (const i of items) counts.set(i, (counts.get(i) ?? 0) + 1);
   let best: T | null = null;
   let bestN = 0;
-  for (const [k, n] of counts) if (n > bestN) (best = k), (bestN = n);
+  for (const [k, n] of counts) {
+    if (n > bestN) {
+      best = k;
+      bestN = n;
+    }
+  }
   return best === null ? null : { value: best, share: bestN / items.length };
 }
 

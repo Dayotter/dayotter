@@ -228,7 +228,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     short:
       "An assistant you ask in plain language to book, reschedule and protect time, which reads your real calendar to act.",
     body: [
-      "An AI scheduling assistant turns natural language - typed or spoken - into calendar actions. Instead of clicking through forms, you say \"find 30 minutes with Priya next week\" or \"hold two hours tomorrow morning for the deck,\" and it drafts the change against your real availability.",
+      'An AI scheduling assistant turns natural language - typed or spoken - into calendar actions. Instead of clicking through forms, you say "find 30 minutes with Priya next week" or "hold two hours tomorrow morning for the deck," and it drafts the change against your real availability.',
       "The trustworthy ones are confirm-first: they propose an editable action and wait for your approval rather than silently rearranging your day.",
     ],
     inDayOtter:
@@ -288,8 +288,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     slug: "prepaid-package",
     term: "Prepaid session package",
     category: "Payments",
-    short:
-      "A bundle of sessions a client buys up front, then draws down one credit per booking.",
+    short: "A bundle of sessions a client buys up front, then draws down one credit per booking.",
     body: [
       "A prepaid package (or session pack) sells several appointments at once - say ten lessons or a block of coaching hours. The client pays once, receives a balance of credits, and each booking consumes one. It smooths cash flow, rewards commitment, and removes per-session payment friction.",
       "Packages pair naturally with recurring bookings and paid consultations for anyone selling their time.",
@@ -318,8 +317,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     slug: "intake-form",
     term: "Intake form",
     category: "Scheduling",
-    short:
-      "Questions asked at booking time so you show up to the meeting already prepared.",
+    short: "Questions asked at booking time so you show up to the meeting already prepared.",
     body: [
       "An intake form collects context before the meeting - what the person wants to discuss, an account number, a link to review. Answers arrive with the booking, so you walk in prepared instead of spending the first ten minutes getting oriented.",
       "For qualification, the same questions can also drive routing - sending the booking to the right person based on the answers.",

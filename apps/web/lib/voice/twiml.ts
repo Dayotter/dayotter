@@ -26,14 +26,10 @@ function doc(inner: string): Response {
  * lets the caller barge in over the prompt so it feels like a real conversation.
  */
 export function sayAndGather(say: string, actionPath: string): Response {
+  // A <Gather> that speaks the prompt, listens for speech, and (if the caller says
+  // nothing) re-prompts once by re-hitting the same action via <Redirect>.
   return doc(
-    `<Gather input="speech" speechTimeout="auto" speechModel="phone_call" enhanced="true"` +
-      ` language="en-US" bargeIn="true" hints="${esc(SPEECH_HINTS)}"` +
-      ` action="${esc(actionPath)}" method="POST">` +
-      `<Say ${VOICE}>${esc(say)}</Say>` +
-      `</Gather>` +
-      // If they say nothing, re-prompt once by re-hitting the same action.
-      `<Redirect method="POST">${esc(actionPath)}</Redirect>`,
+    `<Gather input="speech" speechTimeout="auto" speechModel="phone_call" enhanced="true" language="en-US" bargeIn="true" hints="${esc(SPEECH_HINTS)}" action="${esc(actionPath)}" method="POST"><Say ${VOICE}>${esc(say)}</Say></Gather><Redirect method="POST">${esc(actionPath)}</Redirect>`,
   );
 }
 

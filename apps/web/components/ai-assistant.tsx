@@ -107,7 +107,6 @@ export function AiAssistant({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, action]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: speak is stable enough; re-creating send per voice change is unnecessary
   const send = useCallback(
     async (raw: string) => {
       const content = raw.trim();

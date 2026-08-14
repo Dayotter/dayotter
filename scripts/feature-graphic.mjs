@@ -32,7 +32,9 @@ const svg = `
   <g fill="#ffffff" opacity="0.05">
     ${Array.from({ length: 6 })
       .flatMap((_, r) =>
-        Array.from({ length: 9 }).map((__, c) => `<circle cx="${70 + c * 60}" cy="${70 + r * 70}" r="2"/>`),
+        Array.from({ length: 9 }).map(
+          (__, c) => `<circle cx="${70 + c * 60}" cy="${70 + r * 70}" r="2"/>`,
+        ),
       )
       .join("")}
   </g>
@@ -64,4 +66,6 @@ await sharp(Buffer.from(svg))
   .toFile(out);
 
 const meta = await sharp(out).metadata();
-console.log(`wrote ${out} - ${meta.width}x${meta.height}, channels=${meta.channels}, alpha=${meta.hasAlpha}`);
+console.log(
+  `wrote ${out} - ${meta.width}x${meta.height}, channels=${meta.channels}, alpha=${meta.hasAlpha}`,
+);
