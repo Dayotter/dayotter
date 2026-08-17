@@ -22,10 +22,10 @@
     "nodemailer": "^6.9.16"
   },
   "devDependencies": {
-    "@types/luxon": "^3.4.2",
+    "@types/luxon": "^3.7.4",
     "@types/node": "^22.10.2",
     "@types/nodemailer": "^6.4.17",
-    "tsx": "^4.19.2",
+    "tsx": "^4.23.12",
     "typescript": "^5.7.2"
   }
 }
