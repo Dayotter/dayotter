@@ -122,6 +122,83 @@ export function AddMemberForm({ teamId }: { teamId: string }) {
   );
 }
 
+/**
+ * Remove a member from a team, or leave it yourself. Admins/owners see this on
+ * every non-owner member; a regular member sees it only on their own row (as
+ * "Leave"). Two-click confirm so a single tap can't drop someone by accident.
+ */
+export function RemoveMember({
+  teamId,
+  memberId,
+  memberName,
+  isSelf,
+}: {
+  teamId: string;
+  memberId: string;
+  memberName: string;
+  isSelf: boolean;
+}) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function remove() {
+    setLoading(true);
+    const res = await fetch(`/api/teams/${teamId}/members/${memberId}`, { method: "DELETE" });
+    const data = await res.json().catch(() => ({}));
+    setLoading(false);
+    if (res.ok) {
+      toast({
+        title: isSelf ? "You left the team" : `${memberName} removed from the team`,
+        variant: "success",
+      });
+      // Leaving revokes access to this page - go back to the teams list.
+      if (isSelf) router.push("/teams");
+      else router.refresh();
+      return;
+    }
+    setConfirming(false);
+    toast({
+      title: isSelf ? "Couldn't leave the team" : "Couldn't remove member",
+      description: typeof data.error === "string" ? data.error : undefined,
+      variant: "error",
+    });
+  }
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="text-xs text-[var(--color-muted)] transition-colors hover:text-[var(--color-danger)]"
+      >
+        {isSelf ? "Leave" : "Remove"}
+      </button>
+    );
+  }
+  return (
+    <span className="flex items-center gap-2 text-xs">
+      <button
+        type="button"
+        onClick={remove}
+        disabled={loading}
+        className="font-medium text-[var(--color-danger)] hover:underline disabled:opacity-50"
+      >
+        {loading ? "Removing…" : isSelf ? "Confirm leave" : "Confirm remove"}
+      </button>
+      <button
+        type="button"
+        onClick={() => setConfirming(false)}
+        disabled={loading}
+        className="text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+      >
+        Cancel
+      </button>
+    </span>
+  );
+}
+
 const DURATIONS = [15, 30, 45, 60];
 
 export function CreateTeamEventForm({ teamId }: { teamId: string }) {
