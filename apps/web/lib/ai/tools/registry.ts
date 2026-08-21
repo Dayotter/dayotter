@@ -543,6 +543,24 @@ export const TOOLS: AiToolDef[] = [
           description: "Optional description shown on the booking page.",
         },
         location: { type: "string", enum: LOCATIONS as unknown as string[] },
+        locations: {
+          type: "array",
+          description:
+            "Optional menu of locations the booker chooses from (overrides the single location). Up to 6; each { type, detail? }.",
+          maxItems: 6,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              type: { type: "string", enum: LOCATIONS as unknown as string[] },
+              detail: {
+                type: "string",
+                description: "URL, phone number, or address for custom/phone/in_person.",
+              },
+            },
+            required: ["type"],
+          },
+        },
         color: { type: "string", enum: COLORS as unknown as string[] },
       },
       required: ["title", "slug", "durationMinutes"],
@@ -557,6 +575,10 @@ export const TOOLS: AiToolDef[] = [
       durationMinutes: z.number().int().min(5).max(480),
       description: z.string().max(2000).optional(),
       location: z.enum(LOCATIONS).optional(),
+      locations: z
+        .array(z.object({ type: z.enum(LOCATIONS), detail: z.string().max(500).nullish() }))
+        .max(6)
+        .optional(),
       color: z.enum(COLORS).optional(),
     }),
     title: "Create booking type",
@@ -565,7 +587,7 @@ export const TOOLS: AiToolDef[] = [
   {
     name: "update_booking_type",
     description:
-      "Update fields on an existing booking type by id. Only the fields you pass change; the rest are preserved. Get the id and current values from get_booking_type / list_booking_types first. You can change its title, description, duration, colour, location, buffers before/after, minimum notice, how far ahead people can book (bookingWindowDays), daily/weekly booking limits, group capacity (maxAttendees), whether it requires confirmation, and whether it's private (link-only).",
+      "Update fields on an existing booking type by id. Only the fields you pass change; the rest are preserved. Get the id and current values from get_booking_type / list_booking_types first. You can change its title, description, duration, colour, location (a single location, or a menu of locations via `locations`), buffers before/after, minimum notice, how far ahead people can book (bookingWindowDays), daily/weekly booking limits, group capacity (maxAttendees), whether it requires confirmation, and whether it's private (link-only).",
     kind: "write",
     confirmLevel: "confirm",
     schema: {
@@ -578,6 +600,24 @@ export const TOOLS: AiToolDef[] = [
         durationMinutes: { type: "integer", description: "5–480." },
         color: { type: "string", enum: COLORS as unknown as string[] },
         location: { type: "string", enum: LOCATIONS as unknown as string[] },
+        locations: {
+          type: "array",
+          description:
+            "Optional menu of locations the booker chooses from (overrides the single location). Pass an empty array to clear the menu back to a single location. Up to 6; each { type, detail? }.",
+          maxItems: 6,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              type: { type: "string", enum: LOCATIONS as unknown as string[] },
+              detail: {
+                type: "string",
+                description: "URL, phone number, or address for custom/phone/in_person.",
+              },
+            },
+            required: ["type"],
+          },
+        },
         bufferBeforeMinutes: { type: "integer", description: "Gap held before, 0–120." },
         bufferAfterMinutes: { type: "integer", description: "Gap held after, 0–120." },
         minimumNoticeMinutes: {
@@ -606,6 +646,10 @@ export const TOOLS: AiToolDef[] = [
       durationMinutes: z.number().int().min(5).max(480).optional(),
       color: z.enum(COLORS).optional(),
       location: z.enum(LOCATIONS).optional(),
+      locations: z
+        .array(z.object({ type: z.enum(LOCATIONS), detail: z.string().max(500).nullish() }))
+        .max(6)
+        .optional(),
       bufferBeforeMinutes: z.number().int().min(0).max(120).optional(),
       bufferAfterMinutes: z.number().int().min(0).max(120).optional(),
       minimumNoticeMinutes: z.number().int().min(0).max(20_160).optional(),
