@@ -40,12 +40,19 @@ function esc(value: string): string {
   return value.replace(/[&<>"']/g, (c) => ESC[c] ?? c);
 }
 
+/** Only ever render http(s) URLs in an href. A `javascript:`/`data:` URL (even though
+ *  these are host-generated) would otherwise reach the anchor; mirror the client-side
+ *  `^https?://` guard in slot-picker.tsx. Falls back to a harmless "#". */
+function safeUrl(url: string): string {
+  return /^https?:\/\//i.test(url) ? url : "#";
+}
+
 function shell(heading: string, lines: string[], cta?: { label: string; url: string }): string {
   const body = lines
     .map((l) => `<p style="margin:0 0 10px;color:#3a3f4b;font-size:14px;line-height:1.6">${l}</p>`)
     .join("");
   const button = cta
-    ? `<a href="${esc(cta.url)}" style="display:inline-block;margin-top:12px;background:#4f46e5;color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:500">${esc(cta.label)}</a>`
+    ? `<a href="${esc(safeUrl(cta.url))}" style="display:inline-block;margin-top:12px;background:#4f46e5;color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:500">${esc(cta.label)}</a>`
     : "";
   return `<div style="max-width:520px;margin:0 auto;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif">
     <h2 style="font-size:18px;color:#0c0e14;margin:0 0 14px">${heading}</h2>
