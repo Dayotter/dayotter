@@ -1,8 +1,40 @@
 import { randomBytes } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
-import { decrypt, decryptJson, encrypt, encryptJson } from "./crypto";
+import {
+  decrypt,
+  decryptJson,
+  encrypt,
+  encryptJson,
+  hashAccessCode,
+  sha256hex,
+  verifyAccessCode,
+} from "./crypto";
 
 const key = randomBytes(32);
+
+describe("access codes (scrypt KDF)", () => {
+  it("verifies the right code and rejects a wrong one", () => {
+    const stored = hashAccessCode("open-sesame");
+    expect(verifyAccessCode("open-sesame", stored)).toBe(true);
+    expect(verifyAccessCode("wrong", stored)).toBe(false);
+  });
+
+  it("is salted: the same code hashes differently each time", () => {
+    expect(hashAccessCode("1234")).not.toBe(hashAccessCode("1234"));
+    expect(hashAccessCode("1234").startsWith("scrypt$")).toBe(true);
+  });
+
+  it("still verifies a legacy unsalted SHA-256 hash (upgrade-on-next-set)", () => {
+    const legacy = sha256hex("legacy-code");
+    expect(verifyAccessCode("legacy-code", legacy)).toBe(true);
+    expect(verifyAccessCode("nope", legacy)).toBe(false);
+  });
+
+  it("rejects a malformed scrypt value", () => {
+    expect(verifyAccessCode("x", "scrypt$")).toBe(false);
+    expect(verifyAccessCode("x", "scrypt$deadbeef")).toBe(false);
+  });
+});
 
 describe("crypto", () => {
   it("round-trips a string", () => {

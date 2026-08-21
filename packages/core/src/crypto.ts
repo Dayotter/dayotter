@@ -4,6 +4,7 @@ import {
   createHash,
   createHmac,
   randomBytes,
+  scryptSync,
   timingSafeEqual,
 } from "node:crypto";
 
@@ -30,6 +31,37 @@ export function hmacSha256hex(secret: string, body: string): string {
 /** Cryptographically-random URL-safe token (default 32 bytes → 43 chars). */
 export function randomToken(bytes = 32): string {
   return randomBytes(bytes).toString("base64url");
+}
+
+const SCRYPT_KEYLEN = 32;
+
+/**
+ * Hash a low-entropy secret (e.g. a human-typed event access code) with a slow,
+ * salted KDF (scrypt). Unlike an unsalted SHA-256, a leaked DB can't be reversed
+ * by rainbow tables or cheap offline brute force. Returns a self-describing
+ * `scrypt$<saltHex>$<hashHex>` string, so the salt lives in the value itself and
+ * no extra column is needed. Verify with {@link verifyAccessCode}.
+ */
+export function hashAccessCode(code: string): string {
+  const salt = randomBytes(16);
+  const hash = scryptSync(code, salt, SCRYPT_KEYLEN);
+  return `scrypt$${salt.toString("hex")}$${hash.toString("hex")}`;
+}
+
+/**
+ * Verify a code against a stored hash, constant-time. New codes are scrypt
+ * (`scrypt$…`); a legacy bare SHA-256 hex hash still verifies, so existing codes
+ * keep working and upgrade to scrypt the next time they're set.
+ */
+export function verifyAccessCode(code: string, stored: string): boolean {
+  if (stored.startsWith("scrypt$")) {
+    const [, saltHex, hashHex] = stored.split("$");
+    if (!saltHex || !hashHex) return false;
+    const expected = Buffer.from(hashHex, "hex");
+    const actual = scryptSync(code, Buffer.from(saltHex, "hex"), expected.length);
+    return actual.length === expected.length && timingSafeEqual(actual, expected);
+  }
+  return safeEqual(sha256hex(code), stored); // legacy unsalted SHA-256
 }
 
 /**

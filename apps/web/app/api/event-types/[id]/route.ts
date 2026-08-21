@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth/session";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
 import { resolveScheduleId } from "@/lib/booking/schedule";
-import { sha256hex } from "@dayotter/core";
+import { hashAccessCode } from "@dayotter/core";
 import { and, eq, getDb, schema, sql } from "@dayotter/db";
 import { NextResponse } from "next/server";
 
@@ -208,7 +208,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         // Access code: undefined = unchanged, null = remove, string = set.
         ...(d.accessCode === undefined
           ? {}
-          : { accessCodeHash: d.accessCode ? sha256hex(d.accessCode) : null }),
+          : { accessCodeHash: d.accessCode ? hashAccessCode(d.accessCode) : null }),
       })
       .where(eq(schema.eventTypes.id, id));
     return NextResponse.json({ ok: true });

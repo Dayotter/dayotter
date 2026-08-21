@@ -10,6 +10,8 @@ export {
   sha256hex,
   hmacSha256hex,
   randomToken,
+  hashAccessCode,
+  verifyAccessCode,
 } from "./crypto";
 export { roundRobinPick } from "./round-robin";
 export { DEFAULT_REMINDER_OFFSETS } from "./constants";
