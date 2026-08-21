@@ -33,6 +33,60 @@ export interface Occurrence {
  * start is at or before `from` (already past) are skipped, and the total is
  * capped at `maxOccurrences` so a broad request can't create a runaway series.
  */
+/** How an Otter create repeats. See seriesOccurrences. */
+export type RecurrenceFreq = "none" | "daily" | "weekdays" | "weekly" | "consecutive";
+
+/**
+ * Materialize the concrete occurrences for an Otter recurring create, given the
+ * first instant and a repetition descriptor. "consecutive" places back-to-back
+ * same-day slots (three interviews at 2:00 / 2:15 / 2:30); the across-day
+ * frequencies reuse the timezone-correct weekly grid so a 9am standup stays at
+ * local 9am across DST. The first occurrence is always `start`. Total is clamped
+ * to [1, 60]. Pure - no I/O.
+ */
+export function seriesOccurrences(params: {
+  start: Date;
+  durationMinutes: number;
+  freq: RecurrenceFreq;
+  daysOfWeek: number[];
+  count: number;
+  timezone: string;
+}): Occurrence[] {
+  const { start, durationMinutes, freq, count, timezone } = params;
+  const total = Math.max(1, Math.min(Math.trunc(count) || 1, 60));
+  const single: Occurrence = {
+    startsAt: start,
+    endsAt: new Date(start.getTime() + durationMinutes * 60_000),
+  };
+  if (freq === "none" || total === 1) return [single];
+
+  if (freq === "consecutive") {
+    const out: Occurrence[] = [];
+    for (let i = 0; i < total; i++) {
+      const s = new Date(start.getTime() + i * durationMinutes * 60_000);
+      out.push({ startsAt: s, endsAt: new Date(s.getTime() + durationMinutes * 60_000) });
+    }
+    return out;
+  }
+
+  const startDt = DateTime.fromJSDate(start, { zone: timezone });
+  const hhmm = startDt.toFormat("HH:mm");
+  const days =
+    freq === "daily"
+      ? [0, 1, 2, 3, 4, 5, 6]
+      : freq === "weekdays"
+        ? [1, 2, 3, 4, 5]
+        : params.daysOfWeek.length > 0
+          ? params.daysOfWeek
+          : [startDt.weekday % 7]; // weekly with no explicit day → the start's weekday
+  // Look from just before `start` so the first occurrence (== start) is kept.
+  return recurringBlockOccurrences(
+    { daysOfWeek: days, start: hhmm, durationMinutes, weeks: 52, timezone },
+    new Date(start.getTime() - 1000),
+    total,
+  );
+}
+
 export function recurringBlockOccurrences(
   spec: RecurrenceSpec,
   from: Date,

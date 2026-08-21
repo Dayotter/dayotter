@@ -58,6 +58,9 @@ export interface HostBookingInput {
    * provider link; the rest carry `locationDetail` (a URL / number / address). */
   location?: LocationTypeValue;
   locationDetail?: string;
+  /** Shared across a recurring series so the whole set can be cancelled/moved
+   * together (cancel_bookings scope "series"). Null/undefined = a single booking. */
+  recurrenceUid?: string;
 }
 
 export interface HostBookingResult {
@@ -110,6 +113,7 @@ export async function createHostBooking(
       status: "confirmed",
       locationType: input.location ?? null,
       location: input.locationDetail ?? null,
+      recurrenceUid: input.recurrenceUid ?? null,
       uid,
     })
     .returning();
