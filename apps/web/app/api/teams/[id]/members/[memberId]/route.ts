@@ -66,7 +66,11 @@ export async function PATCH(
   return NextResponse.json({ ok: true });
 }
 
-/** Remove a member from the team. Admins/owners only; owners can't be removed. */
+/**
+ * Remove a member from the team. Admins/owners can remove anyone; any member can
+ * remove (leave) themselves. The owner can't leave or be removed - they must
+ * transfer ownership or delete the team first.
+ */
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string; memberId: string }> },
@@ -82,16 +86,28 @@ export async function DELETE(
       eq(schema.teamMembers.userId, session.user.id),
     ),
   });
-  if (!caller || (caller.role !== "owner" && caller.role !== "admin")) {
-    return NextResponse.json({ error: "Only team admins can remove members" }, { status: 403 });
+  if (!caller) {
+    return NextResponse.json({ error: "You're not a member of this team" }, { status: 403 });
   }
 
   const member = await db.query.teamMembers.findFirst({
     where: and(eq(schema.teamMembers.id, memberId), eq(schema.teamMembers.teamId, teamId)),
   });
   if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
+
+  // Admins/owners can remove anyone; a member may always remove themselves.
+  const isSelf = member.userId === session.user.id;
+  const isAdmin = caller.role === "owner" || caller.role === "admin";
+  if (!isAdmin && !isSelf) {
+    return NextResponse.json({ error: "Only team admins can remove members" }, { status: 403 });
+  }
   if (member.role === "owner") {
-    return NextResponse.json({ error: "The team owner can't be removed" }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: "The team owner can't leave or be removed - transfer ownership or delete the team.",
+      },
+      { status: 400 },
+    );
   }
 
   await db.delete(schema.teamMembers).where(eq(schema.teamMembers.id, memberId));

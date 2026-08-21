@@ -1,7 +1,7 @@
 import { MemberWeight } from "@/components/member-weight";
 import { PageHeader } from "@/components/page-header";
 import { TeamBriefingSettings } from "@/components/team-briefing-settings";
-import { AddMemberForm, CreateTeamEventForm } from "@/components/team-forms";
+import { AddMemberForm, CreateTeamEventForm, RemoveMember } from "@/components/team-forms";
 import { TeamRules } from "@/components/team-rules";
 import { TeamScheduleView } from "@/components/team-schedule-view";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -105,6 +105,14 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                     initial={m.priority}
                     editable={canManage}
                   />
+                  {m.role !== "owner" && (canManage || m.userId === session!.user.id) ? (
+                    <RemoveMember
+                      teamId={team.id}
+                      memberId={m.id}
+                      memberName={m.user?.name ?? m.user?.email ?? "This member"}
+                      isSelf={m.userId === session!.user.id}
+                    />
+                  ) : null}
                 </li>
               ))}
             </ul>
