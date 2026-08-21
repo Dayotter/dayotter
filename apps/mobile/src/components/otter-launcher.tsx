@@ -43,6 +43,10 @@ interface Draft {
   /** Ad-hoc meeting location the request named, when there's no matched type. */
   location?: string;
   locationDetail?: string;
+  /** Recurrence for a create; the server expands the series on confirm. */
+  recurrenceFreq?: "none" | "daily" | "weekdays" | "weekly" | "consecutive";
+  recurrenceDays?: number[];
+  recurrenceCount?: number;
   newStartISO: string;
   message: string;
 }
@@ -262,6 +266,10 @@ function OtterSheet({ onClose }: { onClose: () => void }) {
           // Ad-hoc location ("on Zoom / Meet / phone") when there's no matched type.
           location: draft.location || undefined,
           locationDetail: draft.locationDetail || undefined,
+          // Recurrence: the server expands the series on confirm.
+          recurrenceFreq: draft.recurrenceFreq,
+          recurrenceDays: draft.recurrenceDays,
+          recurrenceCount: draft.recurrenceCount,
         });
         finish("Added to your calendar.");
       } else if (draft.intent === "reschedule" && target) {

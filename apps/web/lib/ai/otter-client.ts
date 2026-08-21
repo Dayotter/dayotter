@@ -122,6 +122,13 @@ export async function runCreateEvent(input: {
   durationMinutes: number;
   notes?: string;
   attendees?: { name?: string; email: string }[];
+  eventTypeSlug?: string;
+  kind?: "meeting" | "focus" | "reminder";
+  location?: string;
+  locationDetail?: string;
+  recurrenceFreq?: "none" | "daily" | "weekdays" | "weekly" | "consecutive";
+  recurrenceDays?: number[];
+  recurrenceCount?: number;
 }): Promise<ActionResult> {
   const res = await postJson("/api/ai/schedule/create", input);
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;

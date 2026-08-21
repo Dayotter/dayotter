@@ -1,11 +1,10 @@
 import { interpretOtterCommand } from "@/lib/ai/interpret";
 import { cancelBooking } from "@/lib/booking/cancel-booking";
 import { LOCATION_TYPES, type LocationTypeValue } from "@/lib/booking/event-type-input";
-import { createHostBooking } from "@/lib/booking/host-booking";
+import { createOtterEvent } from "@/lib/booking/otter-create";
 import { rescheduleBooking } from "@/lib/booking/reschedule-booking";
-import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
+import type { RecurrenceFreq } from "@/lib/calendar/recurrence";
 import { logger } from "@dayotter/core";
-import { getDb, schema } from "@dayotter/db";
 import { DateTime } from "luxon";
 
 /**
@@ -28,6 +27,10 @@ export type PendingAction =
       /** Ad-hoc meeting location, when the request named one and there's no event type. */
       location?: LocationTypeValue;
       locationDetail?: string;
+      /** Recurrence: the whole series is expanded on confirm. */
+      recurrenceFreq?: RecurrenceFreq;
+      recurrenceDays?: number[];
+      recurrenceCount?: number;
     }
   | { intent: "reschedule"; uid: string; newStartISO: string; title: string; timezone: string }
   | { intent: "cancel"; uid: string; title: string };
@@ -83,6 +86,9 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
         kind: draft.kind,
         location,
         locationDetail: draft.locationDetail || undefined,
+        recurrenceFreq: draft.recurrenceFreq,
+        recurrenceDays: draft.recurrenceDays,
+        recurrenceCount: draft.recurrenceCount,
       },
     };
   }
@@ -116,48 +122,35 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
 export async function executePending(userId: string, pending: PendingAction): Promise<string> {
   try {
     if (pending.intent === "create") {
-      const start = new Date(pending.startISO);
-      const end = new Date(start.getTime() + pending.durationMinutes * 60_000);
-
-      // A "focus" or "reminder" hold is a personal time block, not a meeting/booking.
-      if (pending.kind === "focus" || pending.kind === "reminder") {
-        const blockKind = pending.kind === "reminder" ? "personal" : "focus";
-        await getDb().insert(schema.timeBlocks).values({
-          userId,
-          title: pending.title,
-          kind: blockKind,
-          startsAt: start,
-          endsAt: end,
-          seriesId: null,
-        });
-        await writeBookingToCalendar(userId, {
-          title: pending.title,
-          start,
-          end,
-          timezone: pending.timezone,
-          attendees: [],
-        }).catch(() => null);
-        const label = pending.kind === "reminder" ? "Reminder" : "Focus time";
-        return `Done ✓ ${label} "${pending.title}" is held for ${whenLabel(pending.startISO, pending.timezone)}.`;
-      }
-
       const attendees = pending.attendees
         .filter((a) => a.email.includes("@"))
         .map((a) => ({ email: a.email, name: a.name || undefined }));
-      const result = await createHostBooking({
+      const result = await createOtterEvent({
         userId,
         title: pending.title,
-        start,
-        end,
+        start: new Date(pending.startISO),
+        durationMinutes: pending.durationMinutes,
         timezone: pending.timezone,
         notes: pending.notes || undefined,
         attendees,
         eventTypeSlug: pending.eventTypeSlug,
         location: pending.location,
         locationDetail: pending.locationDetail,
+        kind: pending.kind,
+        recurrenceFreq: pending.recurrenceFreq,
+        recurrenceDays: pending.recurrenceDays,
+        recurrenceCount: pending.recurrenceCount,
       });
-      if (!result) return "I couldn't add that right now - please try again, or use the app.";
-      return `Done ✓ "${pending.title}" is on your calendar for ${whenLabel(pending.startISO, pending.timezone)}.`;
+      if (result.count === 0) {
+        return "I couldn't add that right now - please try again, or use the app.";
+      }
+      const when = whenLabel(pending.startISO, pending.timezone);
+      const times = result.count > 1 ? ` (${result.count}×, starting ${when})` : ` for ${when}`;
+      if (pending.kind === "focus" || pending.kind === "reminder") {
+        const label = pending.kind === "reminder" ? "Reminder" : "Focus time";
+        return `Done ✓ ${label} "${pending.title}" is held${times}.`;
+      }
+      return `Done ✓ "${pending.title}" is on your calendar${times}.`;
     }
 
     if (pending.intent === "reschedule") {

@@ -45,6 +45,15 @@ export const commandDraftSchema = z.object({
   location: z.string(),
   /** Its detail: a URL, phone number, or address, when the request gives one. */
   locationDetail: z.string(),
+  /**
+   * Repetition for a create. "none" = a single event at startISO. "daily" = every
+   * day, "weekdays" = Mon-Fri, "weekly" = the days in recurrenceDays, "consecutive"
+   * = back-to-back same-day slots (interviews). recurrenceCount is the TOTAL number
+   * of events to create (1 for none). The create route materializes the series.
+   */
+  recurrenceFreq: z.enum(["none", "daily", "weekdays", "weekly", "consecutive"]),
+  recurrenceDays: z.array(z.number().int().min(0).max(6)),
+  recurrenceCount: z.number().int().min(1).max(60),
   // reschedule / cancel fields
   bookingRef: z.number().int().min(0),
   newStartISO: z.string(),
@@ -70,6 +79,7 @@ Rules:
 - For create: kind, a short title, startISO, durationMinutes, attendees (name + email if given, else empty email), notes.
 - Attendees are only INVITED if you have their email address - an attendee with an empty email is dropped and gets no invite. If the user clearly wants to invite a named person but gives no email (e.g. "book a call with Dana"), don't invent one: either ask for their email (intent "none", put the question in message), or, if they just want the time held, proceed and make clear in message that that person won't be emailed. Never silently imply someone was invited when they weren't.
 - Event types: you are given the user's event types (title + default duration). If a create request clearly matches one (e.g. "book a sync" → the "Sync" type), set eventTypeSlug to its slug and use that type's default duration. Otherwise eventTypeSlug = "" and default durationMinutes to 30 (meeting) / 60 (focus).
+- Recurrence (create only): if the request repeats, set recurrenceFreq and recurrenceCount (the TOTAL number of events). "every weekday"/"each weekday"→weekdays; "every day"/"daily"→daily; "every Monday"/"Mondays and Thursdays"→weekly with recurrenceDays (0=Sun…6=Sat); "back-to-back"/"three interviews at 2, 2:15, 2:30"→consecutive. startISO is the FIRST occurrence. If a horizon is given ("for 2 weeks", "this month") set recurrenceCount to match; if open-ended ("every Monday standup"), use recurrenceCount 12. For a one-off, recurrenceFreq "none", recurrenceCount 1, recurrenceDays []. Weekly with no explicit day repeats on startISO's weekday.
 - Location (create with NO matching event type only): if the request names where the meeting happens, set location to the type - "on Zoom"→zoom, "on Meet/Google Meet"→google_meet, "on Teams"→ms_teams, "over the phone/call me"→phone, "in person/at the office/at <place>"→in_person, anything else specific→custom. Put a given link/number/address in locationDetail. If no location is mentioned, or a matching event type was found (it carries its own location), leave both "". Location does not apply to focus or reminder holds.
 - For reschedule/cancel: set bookingRef to the exact ref of the intended booking. If several bookings could match and you can't tell, use intent "none" and ask which one in message.
 - bookingRef must be 0 for create/none.
@@ -115,6 +125,22 @@ export const commandInputSchema = {
       description:
         "The location's detail (Zoom/meet link, phone number, or address) if given, else empty string.",
     },
+    recurrenceFreq: {
+      type: "string",
+      enum: ["none", "daily", "weekdays", "weekly", "consecutive"],
+      description:
+        "How the create repeats: none = single; daily = every day; weekdays = Mon-Fri; weekly = the days in recurrenceDays; consecutive = back-to-back same-day slots (e.g. three interviews at 2:00, 2:15, 2:30). Default none.",
+    },
+    recurrenceDays: {
+      type: "array",
+      items: { type: "integer", minimum: 0, maximum: 6 },
+      description: "Only for weekly: weekdays to repeat on, 0=Sun … 6=Sat (e.g. [1] for Mondays).",
+    },
+    recurrenceCount: {
+      type: "integer",
+      description:
+        "TOTAL number of events to create (1 for none). E.g. 'standup every weekday for 2 weeks' → weekdays, 10; 'three interviews back-to-back' → consecutive, 3. Pick a sensible finite number (default 12 for open-ended weekly/daily).",
+    },
     bookingRef: { type: "integer", description: "1-based ref of the target booking, or 0" },
     newStartISO: { type: "string", description: "ISO-8601 instant for a reschedule, else empty" },
     message: { type: "string" },
@@ -132,6 +158,9 @@ export const commandInputSchema = {
     "eventTypeSlug",
     "location",
     "locationDetail",
+    "recurrenceFreq",
+    "recurrenceDays",
+    "recurrenceCount",
     "bookingRef",
     "newStartISO",
     "message",

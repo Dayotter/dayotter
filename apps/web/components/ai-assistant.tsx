@@ -36,6 +36,34 @@ function kindLabel(locale: Locale, kind: string): string {
   return tOtter(locale, "kindMeeting");
 }
 
+const WEEKDAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+/** One-line summary of a recurring/back-to-back create for the confirm card. */
+function recurrenceSummary(d: {
+  recurrenceFreq: string;
+  recurrenceDays: number[];
+  recurrenceCount: number;
+}): string | null {
+  const n = d.recurrenceCount;
+  if (!n || n < 2) return null;
+  switch (d.recurrenceFreq) {
+    case "daily":
+      return `Repeats daily · ${n} times`;
+    case "weekdays":
+      return `Repeats every weekday · ${n} times`;
+    case "weekly": {
+      const days = d.recurrenceDays
+        .map((x) => WEEKDAY_ABBR[x])
+        .filter(Boolean)
+        .join(", ");
+      return `Repeats ${days || "weekly"} · ${n} times`;
+    }
+    case "consecutive":
+      return `${n} back-to-back slots`;
+    default:
+      return null;
+  }
+}
+
 function toLocalInput(iso: string): string {
   const dt = DateTime.fromISO(iso);
   return (dt.isValid ? dt : DateTime.now()).toFormat("yyyy-MM-dd'T'HH:mm");
@@ -239,6 +267,10 @@ export function AiAssistant({
         // Ad-hoc location ("on Zoom / Meet / phone") when there's no matched type.
         location: action.draft.location || undefined,
         locationDetail: action.draft.locationDetail || undefined,
+        // Recurrence: the route expands the series (shared id) on confirm.
+        recurrenceFreq: action.draft.recurrenceFreq,
+        recurrenceDays: action.draft.recurrenceDays,
+        recurrenceCount: action.draft.recurrenceCount,
       }),
     });
     setBusy(false);
@@ -480,6 +512,11 @@ export function AiAssistant({
                 {tOtter(locale, "withAttendees", {
                   names: action.draft.attendees.map((a) => a.name || a.email).join(", "),
                 })}
+              </p>
+            ) : null}
+            {recurrenceSummary(action.draft) ? (
+              <p className="text-xs font-medium text-[var(--color-accent)]">
+                {recurrenceSummary(action.draft)}
               </p>
             ) : null}
             <div className="flex gap-2">

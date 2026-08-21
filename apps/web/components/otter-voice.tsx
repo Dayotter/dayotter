@@ -267,6 +267,15 @@ export function OtterVoice({
             durationMinutes: a.matchedEventType?.durationMinutes ?? d.durationMinutes,
             notes: d.notes || undefined,
             attendees: d.attendees,
+            // Carry the matched type, hold kind, ad-hoc location, and recurrence so
+            // voice creates the same thing the chat card would.
+            eventTypeSlug: a.matchedEventType?.slug,
+            kind: d.kind,
+            location: d.location || undefined,
+            locationDetail: d.locationDetail || undefined,
+            recurrenceFreq: d.recurrenceFreq,
+            recurrenceDays: d.recurrenceDays,
+            recurrenceCount: d.recurrenceCount,
           });
           ok = r.ok;
           summary = r.ok
