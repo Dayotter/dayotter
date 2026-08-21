@@ -467,6 +467,8 @@ export async function executeActionTool(
           durationMinutes: input.durationMinutes,
           description: input.description,
           location: input.location,
+          locationDetail: input.locationDetail,
+          locations: input.locations,
           color: input.color,
         });
         if (!et.success) return { ok: false, message: "Those booking-type details aren't valid." };
@@ -483,8 +485,13 @@ export async function executeActionTool(
             slug: d.slug,
             durationMinutes: d.durationMinutes,
             description: d.description,
-            location: d.location,
-            locationDetail: d.locationDetail,
+            // A non-empty `locations` menu drives everything: its first entry
+            // mirrors into the single location columns so older readers still work.
+            location: d.locations?.length ? d.locations[0]!.type : d.location,
+            locationDetail: d.locations?.length
+              ? (d.locations[0]!.detail ?? null)
+              : d.locationDetail,
+            locations: d.locations?.length ? d.locations : null,
             bufferBeforeMinutes: d.bufferBeforeMinutes,
             bufferAfterMinutes: d.bufferAfterMinutes,
             minimumNoticeMinutes: d.minimumNoticeMinutes,
@@ -1016,6 +1023,19 @@ export async function executeActionTool(
           "isPrivate",
         ] as const) {
           if (input[k] !== undefined) set[k] = input[k];
+        }
+        // A non-empty `locations` menu drives the location columns (first entry
+        // mirrors into the single columns); an empty array clears the menu back
+        // to the single `location`; omitting it leaves the stored menu untouched.
+        if (input.locations !== undefined) {
+          const locs = input.locations as { type: string; detail?: string | null }[];
+          if (locs.length > 0) {
+            set.location = locs[0]!.type;
+            set.locationDetail = locs[0]!.detail ?? null;
+            set.locations = locs;
+          } else {
+            set.locations = null;
+          }
         }
         if (Object.keys(set).length === 0) {
           return { ok: false, message: "Tell me what to change on that booking type." };
