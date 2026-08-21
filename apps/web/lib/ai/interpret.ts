@@ -44,6 +44,8 @@ function noneDraft(message: string): CommandDraft {
     attendees: [],
     notes: "",
     eventTypeSlug: "",
+    location: "",
+    locationDetail: "",
     bookingRef: 0,
     newStartISO: "",
     message,

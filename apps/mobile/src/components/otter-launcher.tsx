@@ -40,6 +40,9 @@ interface Draft {
   notes: string;
   /** Slug of a matched event type, so the booking maps to the real type. */
   eventTypeSlug?: string;
+  /** Ad-hoc meeting location the request named, when there's no matched type. */
+  location?: string;
+  locationDetail?: string;
   newStartISO: string;
   message: string;
 }
@@ -256,6 +259,9 @@ function OtterSheet({ onClose }: { onClose: () => void }) {
           eventTypeSlug: draft.eventTypeSlug || undefined,
           // "focus" is held as a personal focus block, not a meeting.
           kind: draft.kind,
+          // Ad-hoc location ("on Zoom / Meet / phone") when there's no matched type.
+          location: draft.location || undefined,
+          locationDetail: draft.locationDetail || undefined,
         });
         finish("Added to your calendar.");
       } else if (draft.intent === "reschedule" && target) {

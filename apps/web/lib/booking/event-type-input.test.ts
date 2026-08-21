@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eventTypeInputSchema } from "./event-type-input";
+import { calendarLocationFields, eventTypeInputSchema } from "./event-type-input";
 
 const valid = {
   title: "Intro Call",
@@ -58,5 +58,29 @@ describe("eventTypeInputSchema", () => {
       questions: [{ id: "q1", label: "x", type: "nope", required: true }],
     };
     expect(eventTypeInputSchema.safeParse(badType).success).toBe(false);
+  });
+});
+
+describe("calendarLocationFields", () => {
+  it("requests a provider conference for auto-conference types", () => {
+    expect(calendarLocationFields("google_meet")).toEqual({ createConference: true });
+    expect(calendarLocationFields("ms_teams", "ignored")).toEqual({ createConference: true });
+  });
+
+  it("carries the detail as location text for the rest", () => {
+    expect(calendarLocationFields("zoom", "https://zoom.us/j/1")).toEqual({
+      location: "https://zoom.us/j/1",
+    });
+    expect(calendarLocationFields("in_person", "123 Main St")).toEqual({ location: "123 Main St" });
+  });
+
+  it("falls back to a human label when no detail is given", () => {
+    expect(calendarLocationFields("phone")).toEqual({ location: "Phone call" });
+    expect(calendarLocationFields("zoom", "  ")).toEqual({ location: "Zoom" });
+  });
+
+  it("returns nothing when there's no location", () => {
+    expect(calendarLocationFields(null)).toEqual({});
+    expect(calendarLocationFields(undefined, "x")).toEqual({});
   });
 });

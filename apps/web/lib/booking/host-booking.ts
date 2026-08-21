@@ -3,6 +3,8 @@ import { primaryOrg } from "@/lib/billing/entitlements";
 import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
 import { logger } from "@dayotter/core";
 import { and, eq, getDb, schema } from "@dayotter/db";
+import { calendarLocationFields } from "./event-type-input";
+import type { LocationTypeValue } from "./event-type-input";
 import { PERSONAL_EVENT_TYPE_SLUG } from "./personal-event-type";
 import {
   hostWantsOverflowNotice,
@@ -51,6 +53,11 @@ export interface HostBookingInput {
   /** Slug of a real event type this maps to (so its workflows apply); else the
    * hidden Personal type. */
   eventTypeSlug?: string;
+  /** Ad-hoc meeting location the host asked for ("on Zoom / Meet / phone"), when
+   * this isn't tied to an event type's own location. Auto-conference types get a
+   * provider link; the rest carry `locationDetail` (a URL / number / address). */
+  location?: LocationTypeValue;
+  locationDetail?: string;
 }
 
 export interface HostBookingResult {
@@ -101,6 +108,8 @@ export async function createHostBooking(
       endsAt: input.end,
       timezone: input.timezone,
       status: "confirmed",
+      locationType: input.location ?? null,
+      location: input.locationDetail ?? null,
       uid,
     })
     .returning();
@@ -128,6 +137,7 @@ export async function createHostBooking(
       end: input.end,
       timezone: input.timezone,
       attendees: attendees.map((a) => ({ email: a.email, name: a.name })),
+      ...calendarLocationFields(input.location, input.locationDetail),
     });
     if (written) {
       meetingUrl = written.meetingUrl;

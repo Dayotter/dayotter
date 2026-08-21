@@ -236,6 +236,9 @@ export function AiAssistant({
         eventTypeSlug: action.matchedEventType?.slug,
         // "focus" is held as a personal focus block, not a meeting.
         kind: action.draft.kind,
+        // Ad-hoc location ("on Zoom / Meet / phone") when there's no matched type.
+        location: action.draft.location || undefined,
+        locationDetail: action.draft.locationDetail || undefined,
       }),
     });
     setBusy(false);
