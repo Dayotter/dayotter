@@ -1,5 +1,6 @@
 import { interpretOtterCommand } from "@/lib/ai/interpret";
 import { cancelBooking } from "@/lib/booking/cancel-booking";
+import { LOCATION_TYPES, type LocationTypeValue } from "@/lib/booking/event-type-input";
 import { createHostBooking } from "@/lib/booking/host-booking";
 import { rescheduleBooking } from "@/lib/booking/reschedule-booking";
 import { writeBookingToCalendar } from "@/lib/calendar/host-calendar";
@@ -24,6 +25,9 @@ export type PendingAction =
       eventTypeSlug?: string;
       /** "focus" is held as a personal focus block, not a meeting. */
       kind?: "meeting" | "focus" | "reminder";
+      /** Ad-hoc meeting location, when the request named one and there's no event type. */
+      location?: LocationTypeValue;
+      locationDetail?: string;
     }
   | { intent: "reschedule"; uid: string; newStartISO: string; title: string; timezone: string }
   | { intent: "cancel"; uid: string; title: string };
@@ -61,6 +65,10 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
 
   if (draft.intent === "create") {
     const when = whenLabel(draft.startISO, tz);
+    // Keep only a valid location type (the draft field is a lenient string).
+    const location = LOCATION_TYPES.includes(draft.location as LocationTypeValue)
+      ? (draft.location as LocationTypeValue)
+      : undefined;
     return {
       reply: `I'll add "${draft.title}" on ${when} (${draft.durationMinutes} min). Reply YES to confirm, or NO to cancel.`,
       pending: {
@@ -73,6 +81,8 @@ export async function interpretForSms(userId: string, text: string): Promise<Int
         timezone: tz,
         eventTypeSlug: draft.eventTypeSlug || undefined,
         kind: draft.kind,
+        location,
+        locationDetail: draft.locationDetail || undefined,
       },
     };
   }
@@ -109,12 +119,13 @@ export async function executePending(userId: string, pending: PendingAction): Pr
       const start = new Date(pending.startISO);
       const end = new Date(start.getTime() + pending.durationMinutes * 60_000);
 
-      // A "focus" hold is a personal focus block, not a meeting/booking.
-      if (pending.kind === "focus") {
+      // A "focus" or "reminder" hold is a personal time block, not a meeting/booking.
+      if (pending.kind === "focus" || pending.kind === "reminder") {
+        const blockKind = pending.kind === "reminder" ? "personal" : "focus";
         await getDb().insert(schema.timeBlocks).values({
           userId,
           title: pending.title,
-          kind: "focus",
+          kind: blockKind,
           startsAt: start,
           endsAt: end,
           seriesId: null,
@@ -126,7 +137,8 @@ export async function executePending(userId: string, pending: PendingAction): Pr
           timezone: pending.timezone,
           attendees: [],
         }).catch(() => null);
-        return `Done ✓ Focus time "${pending.title}" is held for ${whenLabel(pending.startISO, pending.timezone)}.`;
+        const label = pending.kind === "reminder" ? "Reminder" : "Focus time";
+        return `Done ✓ ${label} "${pending.title}" is held for ${whenLabel(pending.startISO, pending.timezone)}.`;
       }
 
       const attendees = pending.attendees
@@ -141,6 +153,8 @@ export async function executePending(userId: string, pending: PendingAction): Pr
         notes: pending.notes || undefined,
         attendees,
         eventTypeSlug: pending.eventTypeSlug,
+        location: pending.location,
+        locationDetail: pending.locationDetail,
       });
       if (!result) return "I couldn't add that right now - please try again, or use the app.";
       return `Done ✓ "${pending.title}" is on your calendar for ${whenLabel(pending.startISO, pending.timezone)}.`;

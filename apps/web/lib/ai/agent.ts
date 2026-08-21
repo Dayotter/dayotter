@@ -148,6 +148,8 @@ You also have a read-only tool, find_free_slots, that returns times the host is 
     attendees: [],
     notes: "",
     eventTypeSlug: "",
+    location: "",
+    locationDetail: "",
     bookingRef: 0,
     newStartISO: "",
     message: "I couldn't work that out. Try naming a specific time, or manage it manually.",

@@ -1,3 +1,4 @@
+import { LOCATION_TYPES } from "@/lib/booking/event-type-input";
 import { z } from "zod";
 import { GUARDRAIL_PREAMBLE } from "./guardrails";
 import { extract } from "./llm";
@@ -39,6 +40,11 @@ export const commandDraftSchema = z.object({
   notes: z.string(),
   /** Slug of the matching event type when the request clearly names one, else "". */
   eventTypeSlug: z.string(),
+  /** Ad-hoc meeting location type the request names ("on Zoom / Meet / phone"),
+   * else "". Lenient here (the create route validates against the enum). */
+  location: z.string(),
+  /** Its detail: a URL, phone number, or address, when the request gives one. */
+  locationDetail: z.string(),
   // reschedule / cancel fields
   bookingRef: z.number().int().min(0),
   newStartISO: z.string(),
@@ -64,6 +70,7 @@ Rules:
 - For create: kind, a short title, startISO, durationMinutes, attendees (name + email if given, else empty email), notes.
 - Attendees are only INVITED if you have their email address - an attendee with an empty email is dropped and gets no invite. If the user clearly wants to invite a named person but gives no email (e.g. "book a call with Dana"), don't invent one: either ask for their email (intent "none", put the question in message), or, if they just want the time held, proceed and make clear in message that that person won't be emailed. Never silently imply someone was invited when they weren't.
 - Event types: you are given the user's event types (title + default duration). If a create request clearly matches one (e.g. "book a sync" → the "Sync" type), set eventTypeSlug to its slug and use that type's default duration. Otherwise eventTypeSlug = "" and default durationMinutes to 30 (meeting) / 60 (focus).
+- Location (create with NO matching event type only): if the request names where the meeting happens, set location to the type - "on Zoom"→zoom, "on Meet/Google Meet"→google_meet, "on Teams"→ms_teams, "over the phone/call me"→phone, "in person/at the office/at <place>"→in_person, anything else specific→custom. Put a given link/number/address in locationDetail. If no location is mentioned, or a matching event type was found (it carries its own location), leave both "". Location does not apply to focus or reminder holds.
 - For reschedule/cancel: set bookingRef to the exact ref of the intended booking. If several bookings could match and you can't tell, use intent "none" and ask which one in message.
 - bookingRef must be 0 for create/none.
 - message: for "none", one short sentence - either that you only help with scheduling, or a clarifying question naming the ambiguous options. Otherwise empty.`;
@@ -97,6 +104,17 @@ export const commandInputSchema = {
       type: "string",
       description: "Slug of the matching event type for a create request, or empty string.",
     },
+    location: {
+      type: "string",
+      enum: ["", ...LOCATION_TYPES],
+      description:
+        "Meeting location type when the request names one ('on Zoom' → zoom, 'over the phone' → phone, 'at the office' → in_person), else empty string. Only for a create with no matching event type.",
+    },
+    locationDetail: {
+      type: "string",
+      description:
+        "The location's detail (Zoom/meet link, phone number, or address) if given, else empty string.",
+    },
     bookingRef: { type: "integer", description: "1-based ref of the target booking, or 0" },
     newStartISO: { type: "string", description: "ISO-8601 instant for a reschedule, else empty" },
     message: { type: "string" },
@@ -112,6 +130,8 @@ export const commandInputSchema = {
     "attendees",
     "notes",
     "eventTypeSlug",
+    "location",
+    "locationDetail",
     "bookingRef",
     "newStartISO",
     "message",

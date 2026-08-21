@@ -83,6 +83,22 @@ export function resolveChosenLocation(
   return offered.find((o) => o.type === chosen) ?? null;
 }
 
+/**
+ * Map a chosen location to the fields a calendar write understands. Auto-conference
+ * types (Meet / Teams) request a provider-generated link; everything else carries its
+ * detail (or a human label) as the event's location text. Best-effort - the richer
+ * Zoom/Jitsi link minting only runs on the public booking path (see finalize-booking).
+ */
+export function calendarLocationFields(
+  type?: LocationTypeValue | null,
+  detail?: string | null,
+): { location?: string; createConference?: boolean } {
+  if (!type) return {};
+  if (AUTO_CONFERENCE.includes(type)) return { createConference: true };
+  const text = detail?.trim();
+  return { location: text && text.length > 0 ? text : LOCATION_LABELS[type] };
+}
+
 export const LOCATION_DETAIL_PLACEHOLDER: Record<LocationTypeValue, string> = {
   google_meet: "",
   ms_teams: "",
