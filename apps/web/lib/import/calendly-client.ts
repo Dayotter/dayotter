@@ -102,16 +102,20 @@ export async function fetchCalendlyExport(token: string): Promise<RawCalendlyExp
   const userUri = me.resource.uri;
   const userParam = encodeURIComponent(userUri);
 
-  const eventTypes = await collectAll<CalendlyEventType>(
-    token,
-    `${CALENDLY_API}/event_types?user=${userParam}&count=100`,
-    MAX_EVENT_TYPES,
-  );
-  const schedules = await collectAll<CalendlyAvailabilitySchedule>(
-    token,
-    `${CALENDLY_API}/user_availability_schedules?user=${userParam}`,
-    MAX_SCHEDULES,
-  );
+  // Event types and availability schedules are independent once we have userUri;
+  // pull them concurrently rather than one after the other.
+  const [eventTypes, schedules] = await Promise.all([
+    collectAll<CalendlyEventType>(
+      token,
+      `${CALENDLY_API}/event_types?user=${userParam}&count=100`,
+      MAX_EVENT_TYPES,
+    ),
+    collectAll<CalendlyAvailabilitySchedule>(
+      token,
+      `${CALENDLY_API}/user_availability_schedules?user=${userParam}`,
+      MAX_SCHEDULES,
+    ),
+  ]);
 
   return { user: { name: me.resource.name ?? "", uri: userUri }, eventTypes, schedules };
 }
