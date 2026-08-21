@@ -13,6 +13,7 @@ export function useAsync<T>(loader: () => Promise<T>, deps: unknown[] = []): Asy
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: loader is stable for the hook's lifetime
   const run = useCallback(() => {
     let active = true;
     setLoading(true);

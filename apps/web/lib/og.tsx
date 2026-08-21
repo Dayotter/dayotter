@@ -118,9 +118,7 @@ export function ogImage({
         >
           dayotter.com
         </div>
-        <div style={{ fontSize: 22, color: MUTED }}>
-          AI-native, open-source scheduling
-        </div>
+        <div style={{ fontSize: 22, color: MUTED }}>AI-native, open-source scheduling</div>
       </div>
     </div>,
     OG_SIZE,

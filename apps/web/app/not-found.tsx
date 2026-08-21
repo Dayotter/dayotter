@@ -4,7 +4,6 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--color-bg)] px-6 text-center">
-      {/* biome-ignore lint/a11y/useAltText: decorative illustration */}
       <img
         src="/brand/illustrations/otter-relax.png"
         alt=""

@@ -38,7 +38,8 @@
       "a11y": {
         "noSvgWithoutTitle": "off",
         "useButtonType": "off",
-        "useKeyWithClickEvents": "off"
+        "useKeyWithClickEvents": "off",
+        "useSemanticElements": "off"
       }
     }
   },

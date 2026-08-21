@@ -66,11 +66,13 @@ describe("crypto", () => {
 describe("getKey (via ENCRYPTION_KEY env)", () => {
   const saved = process.env.ENCRYPTION_KEY;
   afterEach(() => {
+    // biome-ignore lint/performance/noDelete: delete is required for process.env (assignment stringifies)
     if (saved === undefined) delete process.env.ENCRYPTION_KEY;
     else process.env.ENCRYPTION_KEY = saved;
   });
 
   it("throws when ENCRYPTION_KEY is unset", () => {
+    // biome-ignore lint/performance/noDelete: delete is required for process.env (assignment stringifies)
     delete process.env.ENCRYPTION_KEY;
     expect(() => encrypt("x")).toThrow(/not set/i);
   });

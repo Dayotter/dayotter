@@ -5,10 +5,7 @@
   "logo": "https://raw.githubusercontent.com/Dayotter/dayotter/main/.github/assets/logo.png",
   "keywords": ["calendar", "scheduling", "booking", "nextjs", "self-hosted", "ai"],
   "stack": "container",
-  "addons": [
-    { "plan": "heroku-postgresql" },
-    { "plan": "heroku-redis" }
-  ],
+  "addons": [{ "plan": "heroku-postgresql" }, { "plan": "heroku-redis" }],
   "formation": {
     "web": { "quantity": 1, "size": "basic" },
     "worker": { "quantity": 1, "size": "basic" }

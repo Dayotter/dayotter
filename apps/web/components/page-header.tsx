@@ -47,7 +47,6 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-[var(--color-border-strong)] px-6 py-14 text-center">
-      {/* biome-ignore lint/a11y/useAltText: decorative illustration */}
       <img src={illustration} alt="" className="mb-5 h-28 w-28 object-contain" />
       <p className="font-display text-xl tracking-tight">{title}</p>
       {description ? (

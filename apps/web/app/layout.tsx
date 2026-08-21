@@ -72,6 +72,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       suppressHydrationWarning
     >
       <head>
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: inline theme script (static string, no user input) to prevent FOUC */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>

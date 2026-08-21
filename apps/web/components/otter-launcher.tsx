@@ -45,7 +45,6 @@ export function OtterLauncher() {
           className="group fixed bottom-24 right-4 z-40 flex items-center gap-2.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] py-1.5 pl-1.5 pr-2.5 shadow-[var(--shadow-raise)] transition-transform hover:-translate-y-0.5 lg:bottom-6 lg:right-6"
         >
           <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-[var(--color-accent)]">
-            {/* biome-ignore lint/a11y/useAltText: decorative otter avatar */}
             <img
               src="/brand/illustrations/otter-focus.png"
               alt=""

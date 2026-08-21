@@ -32,10 +32,9 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Non-blocking until the pre-existing Biome debt is cleared (issue #166);
-      # drop continue-on-error to make it a hard gate once the tree is clean.
+      # Hard gate: the tree is clean (issue #166 cleared). Fails the build on any
+      # Biome error; the few "warn"-level rules stay non-blocking.
       - name: Lint + format (Biome, read-only)
-        continue-on-error: true
         run: pnpm exec biome ci .
 
       - name: Type-check

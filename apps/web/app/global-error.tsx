@@ -20,7 +20,6 @@ export default function GlobalError({ reset }: { error: Error; reset: () => void
           padding: 24,
         }}
       >
-        {/* biome-ignore lint/a11y/useAltText: decorative illustration */}
         <img
           src="/brand/illustrations/otter-focus.png"
           alt=""

@@ -77,15 +77,15 @@ export function DateTimeField({
   const minDt = parse(min);
 
   // The day the calendar is focused on; a tapped time attaches to it.
-  const [draftDay, setDraftDay] = useState<Date>(
-    () => (selected ?? minDt ?? DateTime.now()).startOf("day").toJSDate(),
+  const [draftDay, setDraftDay] = useState<Date>(() =>
+    (selected ?? minDt ?? DateTime.now()).startOf("day").toJSDate(),
   );
 
   // Re-sync from an external value change while closed.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional; re-sync keyed on value/open only
   useEffect(() => {
     if (open) return;
     setDraftDay((selected ?? minDt ?? DateTime.now()).startOf("day").toJSDate());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, open]);
 
   // Close on outside click / Escape.
@@ -113,6 +113,7 @@ export function DateTimeField({
   }, [open]);
 
   const draft = DateTime.fromJSDate(draftDay);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on draftDay, not the derived `draft`
   const times = useMemo(() => {
     const out: DateTime[] = [];
     let t = draft.startOf("day");
@@ -122,7 +123,6 @@ export function DateTimeField({
       t = t.plus({ minutes: stepMinutes });
     }
     return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftDay, stepMinutes]);
 
   function commitTime(time: DateTime) {
@@ -216,7 +216,8 @@ export function DateTimeField({
                       isSel
                         ? "bg-[var(--color-accent)] font-medium text-[var(--color-accent-fg)]"
                         : "text-[var(--color-text)] hover:bg-[var(--color-accent-soft)] hover:text-[var(--color-accent)]",
-                      disabled && "cursor-not-allowed opacity-30 hover:bg-transparent hover:text-[var(--color-text)]",
+                      disabled &&
+                        "cursor-not-allowed opacity-30 hover:bg-transparent hover:text-[var(--color-text)]",
                     )}
                   >
                     {t.toFormat("h:mm a")}

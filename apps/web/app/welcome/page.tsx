@@ -37,7 +37,6 @@ export default function WelcomePage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--color-bg)] px-6 py-10">
       <div className="flex w-full max-w-md flex-1 flex-col items-center justify-center text-center">
-        {/* biome-ignore lint/a11y/useAltText: decorative illustration */}
         <img src={slide.img} alt="" className="mb-9 h-60 w-60 object-contain sm:h-64 sm:w-64" />
         <h1 className="font-display text-3xl tracking-tight sm:text-4xl">{slide.title}</h1>
         <p className="mt-3 max-w-sm leading-relaxed text-[var(--color-muted)]">{slide.body}</p>

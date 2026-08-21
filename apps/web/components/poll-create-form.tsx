@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FormError } from "@/components/ui/form";
 import { DateTimeField } from "@/components/ui/datetime-field";
+import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
@@ -122,7 +122,6 @@ export function PollCreateForm() {
         </p>
         <div className="space-y-2">
           {times.map((t, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: rows are positional and reorder-free
             <div key={i} className="flex items-center gap-2">
               <DateTimeField
                 value={t}

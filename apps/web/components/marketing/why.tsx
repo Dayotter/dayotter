@@ -20,7 +20,6 @@ export function WhyOtter() {
       <div className="mt-14 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
         {BADGES.map((b) => (
           <div key={b.label} className="flex flex-col items-center text-center">
-            {/* biome-ignore lint/a11y/useAltText: decorative badge */}
             <img src={b.img} alt="" className="h-24 w-24 sm:h-28 sm:w-28" />
             <span className="mt-3 text-sm font-medium">{b.label}</span>
           </div>

@@ -18,9 +18,13 @@ fs.mkdirSync(webOut, { recursive: true });
 fs.mkdirSync(mobOut, { recursive: true });
 
 const roundedMask = (w, h, r) =>
-  Buffer.from(`<svg width="${w}" height="${h}"><rect width="${w}" height="${h}" rx="${r}" ry="${r}"/></svg>`);
+  Buffer.from(
+    `<svg width="${w}" height="${h}"><rect width="${w}" height="${h}" rx="${r}" ry="${r}"/></svg>`,
+  );
 const circleMask = (d, r = d / 2) =>
-  Buffer.from(`<svg width="${d}" height="${d}"><circle cx="${d / 2}" cy="${d / 2}" r="${r}"/></svg>`);
+  Buffer.from(
+    `<svg width="${d}" height="${d}"><circle cx="${d / 2}" cy="${d / 2}" r="${r}"/></svg>`,
+  );
 
 // --- 1. Onboarding scenes (1254² grid) ---
 const SCENES = {
@@ -67,7 +71,9 @@ await sharp(BANNERS)
 console.log("banner");
 
 // --- 4. OpenGraph image (1200×630) from the banner + scrim + wordmark ---
-const ogCrop = await sharp(BANNERS).extract({ left: 180, top: 16, width: 900, height: 474 }).toBuffer();
+const ogCrop = await sharp(BANNERS)
+  .extract({ left: 180, top: 16, width: 900, height: 474 })
+  .toBuffer();
 const scrim = Buffer.from(
   `<svg width="1200" height="630"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">` +
     `<stop offset="0.4" stop-color="#0b1f47" stop-opacity="0"/><stop offset="1" stop-color="#0b1f47" stop-opacity="0.94"/>` +
