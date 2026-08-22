@@ -3,12 +3,20 @@ import { aiEnabled, extract } from "@/lib/ai/llm";
 import { getEventTypeAvailability } from "@/lib/booking/availability";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { eq, getDb, schema } from "@dayotter/db";
+import { rateLimit } from "@dayotter/jobs";
 import { DateTime } from "luxon";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+// Daily LLM-call ceilings, on top of the per-IP rate limit. Bounds the model
+// spend a public booking page can run up: one budget per host (a single busy or
+// abused page can't drain the bill) and one global backstop for the deployment.
+// A rolling 24h window; over budget falls back to showing the soonest slots.
+const HOST_DAILY_LIMIT = Number(process.env.BOOKING_ASSISTANT_HOST_DAILY) || 200;
+const GLOBAL_DAILY_LIMIT = Number(process.env.BOOKING_ASSISTANT_GLOBAL_DAILY) || 2000;
 
 const body = z.object({
   eventTypeId: z.string().uuid(),
@@ -83,6 +91,24 @@ export async function POST(request: Request) {
 
   // Cap the list fed to the model; label each in the visitor's timezone.
   const capped = slots.slice(0, 60);
+
+  // Daily cost ceilings (per host + global). Only requests that would actually
+  // call the model reach here (guardrail / no-slots / disabled all return above),
+  // so this counts model-bound requests. Over budget: still help the visitor with
+  // the soonest open times, just without the model ranking them.
+  const [hostBudget, globalBudget] = await Promise.all([
+    rateLimit(`ba-host:${et.ownerId}`, HOST_DAILY_LIMIT, 86_400),
+    rateLimit("ba-global", GLOBAL_DAILY_LIMIT, 86_400),
+  ]);
+  if (!hostBudget.ok || !globalBudget.ok) {
+    return NextResponse.json({
+      message: "Here are the soonest open times - pick whichever works for you.",
+      slots: capped
+        .slice(0, 5)
+        .map((s) => ({ start: s.start.toISOString(), end: s.end.toISOString() })),
+    });
+  }
+
   const zone = DateTime.now().setZone(tz).isValid ? tz : "UTC";
   const numbered = capped
     .map(
