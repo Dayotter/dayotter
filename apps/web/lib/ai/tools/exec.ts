@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { searchKnowledge } from "@/lib/ai/catalogue";
+import { rememberUserFact } from "@/lib/ai/memory";
 import { computeAnalytics } from "@/lib/booking/analytics";
 import { cancelBooking, cancelBookingSeries } from "@/lib/booking/cancel-booking";
 import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
@@ -1136,6 +1137,24 @@ export async function executeActionTool(
             .where(and(eq(schema.schedules.userId, userId), eq(schema.schedules.isDefault, true)));
         });
         return { ok: true, message: `Your timezone is now ${tz}.` };
+      }
+
+      case "remember_fact": {
+        const label = (input.fact as string).trim();
+        if (!label) return { ok: false, message: "Tell me what to remember." };
+        // A stable key lets a later "remember ..." update the same fact instead of
+        // piling up near-duplicates. Derive one from the text when none is given.
+        const key =
+          (input.key as string | undefined)?.trim() ||
+          `user:${slugify(label).slice(0, 48) || randomUUID().slice(0, 8)}`;
+        await rememberUserFact(userId, {
+          kind: "fact",
+          key,
+          value: { text: label },
+          label,
+          confidence: 1,
+        });
+        return { ok: true, message: "Got it - I'll remember that." };
       }
 
       case "toggle_channel_reminders": {
