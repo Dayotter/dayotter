@@ -34,6 +34,21 @@ export default async function TeamBookingPage({
   });
   if (!eventType) notFound();
 
+  // Collective events let the booker pick which members to meet. Offer only the
+  // publicly-bookable hosts of this event; a picker needs at least two of them.
+  const eventHostRows =
+    eventType.schedulingType === "collective"
+      ? await db.query.eventTypeHosts.findMany({
+          where: eq(schema.eventTypeHosts.eventTypeId, eventType.id),
+          columns: { userId: true },
+        })
+      : [];
+  const eventHostIds = new Set(eventHostRows.map((h) => h.userId));
+  const teamHosts = team.members
+    .filter((m) => m.publicBookable && m.user && eventHostIds.has(m.userId))
+    .map((m) => ({ id: m.userId, name: m.user?.name ?? m.user?.email ?? "Team member" }));
+  const selectableHosts = teamHosts.length >= 2 ? teamHosts : [];
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <Card>
@@ -81,6 +96,7 @@ export default async function TeamBookingPage({
               eventTypeId={eventType.id}
               defaultDuration={eventType.durationMinutes}
               durationOptions={eventType.durationOptions ?? []}
+              teamHosts={selectableHosts}
             />
           </CardBody>
         </div>

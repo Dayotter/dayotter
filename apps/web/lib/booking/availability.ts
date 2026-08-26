@@ -505,7 +505,10 @@ export async function troubleshootHostDay(
   return explainDay(input);
 }
 
-export async function eventTypeHostIds(eventType: EventTypeRow): Promise<string[]> {
+export async function eventTypeHostIds(
+  eventType: EventTypeRow,
+  selectedHostIds?: string[],
+): Promise<string[]> {
   if (eventType.ownerId) return [eventType.ownerId];
   const db = getDb();
   const hosts = await db.query.eventTypeHosts.findMany({
@@ -525,7 +528,14 @@ export async function eventTypeHostIds(eventType: EventTypeRow): Promise<string[
     columns: { userId: true },
   });
   const excluded = new Set(off.map((m) => m.userId));
-  const filtered = ids.filter((id) => !excluded.has(id));
+  let filtered = ids.filter((id) => !excluded.has(id));
+  // Collective member-selection: the booker chose a subset of the team to meet.
+  // Intersect with the offered hosts; ignore an empty/invalid selection.
+  if (selectedHostIds && selectedHostIds.length > 0) {
+    const chosen = new Set(selectedHostIds);
+    const narrowed = filtered.filter((id) => chosen.has(id));
+    if (narrowed.length > 0) filtered = narrowed;
+  }
   return filtered.length > 0 ? filtered : ids;
 }
 
@@ -539,6 +549,7 @@ export async function eventTypeHostSlots(
   rangeStart: Date,
   rangeEnd: Date,
   durationOverride?: number,
+  selectedHostIds?: string[],
 ): Promise<{ hostIds: string[]; perHost: Slot[][] }> {
   const base = eventConstraints(eventType);
   // Multiple durations: recompute slots for the booker's chosen (allowed) length.
@@ -568,7 +579,7 @@ export async function eventTypeHostSlots(
     return { hostIds: [eventType.ownerId], perHost: [slots] };
   }
 
-  const hostIds = await eventTypeHostIds(eventType);
+  const hostIds = await eventTypeHostIds(eventType, selectedHostIds);
   const perHost = await Promise.all(
     hostIds.map((id) => hostSlots(id, null, event, rangeStart, rangeEnd, gap)),
   );
@@ -592,6 +603,7 @@ export async function getEventTypeAvailability(
   rangeStart: Date,
   rangeEnd: Date,
   durationOverride?: number,
+  selectedHostIds?: string[],
 ): Promise<Slot[] | null> {
   const eventType = await getDb().query.eventTypes.findFirst({
     where: eq(schema.eventTypes.id, eventTypeId),
@@ -603,7 +615,15 @@ export async function getEventTypeAvailability(
     durationOverride && isAllowedDuration(eventType, durationOverride)
       ? durationOverride
       : undefined;
-  const { perHost } = await eventTypeHostSlots(eventType, rangeStart, rangeEnd, duration);
+  // Member selection only narrows a collective team event; ignore it otherwise.
+  const selection = eventType.schedulingType === "collective" ? selectedHostIds : undefined;
+  const { perHost } = await eventTypeHostSlots(
+    eventType,
+    rangeStart,
+    rangeEnd,
+    duration,
+    selection,
+  );
   return combineHostSlots(perHost, eventType.schedulingType);
 }
 

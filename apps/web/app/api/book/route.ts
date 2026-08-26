@@ -20,6 +20,8 @@ const schema = z.object({
     timezone: z.string().min(1),
   }),
   guests: z.array(z.string().email()).max(10).optional(),
+  /** Collective member-selection: chosen team host user ids (server re-validates). */
+  selectedHostIds: z.array(z.string().uuid()).max(50).optional(),
   notes: z.string().max(2000).optional(),
   // Intake answers, keyed by question id. Bounded so an unauthenticated caller
   // can't persist a multi-MB blob into bookings.responses: at most 50 answers,
@@ -73,6 +75,7 @@ export async function POST(request: Request) {
     start: parsed.data.start,
     attendee: parsed.data.attendee,
     guests: parsed.data.guests,
+    selectedHostIds: parsed.data.selectedHostIds,
     notes: parsed.data.notes,
     responses: parsed.data.responses,
     durationMinutes: parsed.data.durationMinutes,

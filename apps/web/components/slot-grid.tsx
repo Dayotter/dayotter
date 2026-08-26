@@ -27,11 +27,14 @@ export function SlotGrid({
   eventTypeId,
   onSelect,
   duration,
+  selectedHostIds,
 }: {
   eventTypeId: string;
   onSelect: (slot: Slot) => void;
   /** Chosen duration for multi-duration event types (refetches when it changes). */
   duration?: number;
+  /** Collective member-selection: only these hosts' shared availability (refetches). */
+  selectedHostIds?: string[];
 }) {
   const zone = useLocalZone();
   const locale = useBookingLocale();
@@ -48,13 +51,17 @@ export function SlotGrid({
   const [overlayError, setOverlayError] = useState<string | null>(null);
   const [busy, setBusy] = useState<{ s: number; e: number }[]>([]);
 
+  // Stable string key so the effect only refetches when the selection changes.
+  const hostsKey = selectedHostIds && selectedHostIds.length > 0 ? selectedHostIds.join(",") : "";
+
   useEffect(() => {
     setLoading(true);
     const from = new Date().toISOString();
     const to = new Date(Date.now() + 14 * 86_400_000).toISOString();
     const durationParam = duration ? `&duration=${duration}` : "";
+    const hostsParam = hostsKey ? `&hosts=${hostsKey}` : "";
     let active = true;
-    fetch(`/api/availability/${eventTypeId}?from=${from}&to=${to}${durationParam}`)
+    fetch(`/api/availability/${eventTypeId}?from=${from}&to=${to}${durationParam}${hostsParam}`)
       .then((r) => r.json())
       .then((data) => {
         if (!active) return;
@@ -70,7 +77,7 @@ export function SlotGrid({
     return () => {
       active = false;
     };
-  }, [eventTypeId, duration]);
+  }, [eventTypeId, duration, hostsKey]);
 
   async function applyOverlay() {
     if (!overlayUrl.trim()) return;

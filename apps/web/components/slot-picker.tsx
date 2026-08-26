@@ -11,7 +11,7 @@ import { track } from "@/lib/analytics";
 import type { BookingQuestionInput } from "@/lib/booking/event-type-input";
 import { type Locale, t } from "@/lib/i18n/booking";
 import { useBookingLocale } from "@/lib/i18n/use-locale";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft, Check, Lock, Users } from "lucide-react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -27,6 +27,7 @@ export function SlotPicker({
   assistantEnabled = false,
   locations = [],
   embed = false,
+  teamHosts = [],
 }: {
   eventTypeId: string;
   questions?: BookingQuestionInput[];
@@ -43,6 +44,8 @@ export function SlotPicker({
   assistantEnabled?: boolean;
   /** Rendered inside an embed iframe: relay booking success to the parent page. */
   embed?: boolean;
+  /** Collective team event: hosts the booker may pick from. Empty = no picker. */
+  teamHosts?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const zone = useLocalZone();
@@ -61,6 +64,22 @@ export function SlotPicker({
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Collective member-selection: everyone selected by default. Never empties
+  // below one (unselecting the last host is a no-op).
+  const [selectedHostIds, setSelectedHostIds] = useState<string[]>(() =>
+    teamHosts.map((h) => h.id),
+  );
+  const wholeTeam =
+    teamHosts.length > 0 &&
+    selectedHostIds.length === teamHosts.length &&
+    teamHosts.every((h) => selectedHostIds.includes(h.id));
+
+  function toggleHost(id: string) {
+    setSelectedHostIds((cur) => {
+      if (!cur.includes(id)) return [...cur, id];
+      return cur.length === 1 ? cur : cur.filter((x) => x !== id);
+    });
+  }
 
   function setAnswer(id: string, value: string | boolean) {
     setAnswers((a) => ({ ...a, [id]: value }));
@@ -99,6 +118,7 @@ export function SlotPicker({
         start: selected.start,
         attendee: { name, email, timezone: zone },
         guests: guests.length ? guests : undefined,
+        selectedHostIds: teamHosts.length ? selectedHostIds : undefined,
         notes: notes || undefined,
         responses: questions.length ? answers : undefined,
         durationMinutes: hasDurations ? duration : undefined,
@@ -168,10 +188,60 @@ export function SlotPicker({
     return (
       <div>
         {durationSelector}
+        {teamHosts.length > 0 ? (
+          <div className="mb-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)]/60 p-3">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div>
+                <p className="flex items-center gap-1.5 text-sm font-semibold">
+                  <Users size={15} /> Who would you like to meet?
+                </p>
+                <p className="mt-0.5 text-xs text-[var(--color-faint)]">
+                  The times below are when everyone selected is free.
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-pressed={wholeTeam}
+                onClick={() =>
+                  setSelectedHostIds(wholeTeam ? [teamHosts[0]!.id] : teamHosts.map((h) => h.id))
+                }
+                className={
+                  wholeTeam
+                    ? "shrink-0 rounded-full bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-white"
+                    : "shrink-0 rounded-full border border-[var(--color-border-strong)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                }
+              >
+                {wholeTeam ? "Just one" : `Whole team (${teamHosts.length})`}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {teamHosts.map((host) => {
+                const active = selectedHostIds.includes(host.id);
+                return (
+                  <button
+                    key={host.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => toggleHost(host.id)}
+                    className={
+                      active
+                        ? "inline-flex items-center gap-1.5 rounded-full border border-[var(--color-accent)] bg-[var(--color-accent-soft)] px-3 py-1.5 text-xs font-medium text-[var(--color-accent)]"
+                        : "inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border-strong)] px-3 py-1.5 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                    }
+                  >
+                    {active ? <Check size={13} /> : null}
+                    {host.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
         <SlotGrid
           eventTypeId={eventTypeId}
           onSelect={setSelected}
           duration={hasDurations ? duration : undefined}
+          selectedHostIds={teamHosts.length ? selectedHostIds : undefined}
         />
         {assistantEnabled ? (
           <BookingAssistant
