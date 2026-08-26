@@ -8,6 +8,10 @@ import IORedis from "ioredis";
 
 export const connection = new IORedis(process.env.REDIS_URL ?? "redis://localhost:6379", {
   maxRetriesPerRequest: null,
+  // Connect on first command, not at module load. This module is imported during
+  // `next build` (via producers), which would otherwise eagerly dial Redis and log
+  // ECONNREFUSED when none is running. Queues/heartbeat connect on first real use.
+  lazyConnect: true,
 });
 
 export const QUEUE_NAMES = {
@@ -67,14 +71,23 @@ export interface GuardrailAlertJob {
   eventId: string;
 }
 
-export const remindersQueue = new Queue<ReminderJob>(QUEUE_NAMES.reminders, { connection });
-export const syncQueue = new Queue<SyncJob>(QUEUE_NAMES.sync, { connection });
-export const maintenanceQueue = new Queue(QUEUE_NAMES.maintenance, { connection });
-export const webhooksQueue = new Queue<WebhookJob>(QUEUE_NAMES.webhooks, { connection });
-export const crmSyncQueue = new Queue<CrmSyncJob>(QUEUE_NAMES.crmSync, { connection });
-export const guardrailAlertsQueue = new Queue<GuardrailAlertJob>(QUEUE_NAMES.guardrailAlerts, {
-  connection,
-});
+/**
+ * Queues are built lazily on first use, not at module load. Constructing a BullMQ
+ * Queue version-checks Redis over the shared connection, so eager construction
+ * would dial Redis just from importing this module - which `next build` does (via
+ * the producers the route handlers import), logging ECONNREFUSED when no Redis is
+ * running. Deferring construction to the first enqueue keeps the connect at
+ * runtime, when Redis is actually up. Memoized so each queue is a singleton.
+ */
+const queues = new Map<string, Queue>();
+function queue<T = unknown>(name: string): Queue<T> {
+  let q = queues.get(name);
+  if (!q) {
+    q = new Queue(name, { connection });
+    queues.set(name, q);
+  }
+  return q as unknown as Queue<T>;
+}
 
 /**
  * Enqueue delivery of a persisted webhook delivery row. Retries with backoff so
@@ -82,7 +95,7 @@ export const guardrailAlertsQueue = new Queue<GuardrailAlertJob>(QUEUE_NAMES.gua
  * records the terminal status either way.
  */
 export async function enqueueWebhook(deliveryId: string): Promise<void> {
-  await webhooksQueue.add(
+  await queue<WebhookJob>(QUEUE_NAMES.webhooks).add(
     "deliver",
     { deliveryId },
     {
@@ -100,7 +113,7 @@ export async function enqueueWebhook(deliveryId: string): Promise<void> {
  * error recovers. Best-effort - never blocks the booking flow.
  */
 export async function enqueueCrmSync(job: CrmSyncJob): Promise<void> {
-  await crmSyncQueue.add(job.action, job, {
+  await queue<CrmSyncJob>(QUEUE_NAMES.crmSync).add(job.action, job, {
     jobId: `crm-${job.bookingId}-${job.action}`,
     attempts: 5,
     backoff: { type: "exponential", delay: 15_000 },
@@ -115,7 +128,7 @@ export async function enqueueCrmSync(job: CrmSyncJob): Promise<void> {
  * hiccup recovers; the worker itself rate-limits the actual sends per org.
  */
 export async function enqueueGuardrailAlert(eventId: string): Promise<void> {
-  await guardrailAlertsQueue.add(
+  await queue<GuardrailAlertJob>(QUEUE_NAMES.guardrailAlerts).add(
     "alert",
     { eventId },
     {
@@ -134,7 +147,7 @@ export async function enqueueGuardrailAlert(eventId: string): Promise<void> {
  * missed webhook left stale. Idempotent (fixed jobId).
  */
 export async function scheduleMaintenance(everyMs = 15 * 60_000): Promise<void> {
-  await maintenanceQueue.add(
+  await queue(QUEUE_NAMES.maintenance).add(
     "tick",
     {},
     {
@@ -154,8 +167,10 @@ export async function scheduleReminder(job: ReminderJob, fireAt: Date): Promise<
   const delay = Math.max(0, fireAt.getTime() - Date.now());
   // BullMQ custom job ids may not contain ":".
   const jobId = `reminder-${job.reminderId}`;
-  await remindersQueue.remove(jobId).catch(() => {});
-  await remindersQueue.add("send", job, {
+  await queue<ReminderJob>(QUEUE_NAMES.reminders)
+    .remove(jobId)
+    .catch(() => {});
+  await queue<ReminderJob>(QUEUE_NAMES.reminders).add("send", job, {
     jobId,
     delay,
     removeOnComplete: true,
@@ -165,7 +180,9 @@ export async function scheduleReminder(job: ReminderJob, fireAt: Date): Promise<
 }
 
 export async function cancelReminder(reminderId: string): Promise<void> {
-  await remindersQueue.remove(`reminder-${reminderId}`).catch(() => {});
+  await queue<ReminderJob>(QUEUE_NAMES.reminders)
+    .remove(`reminder-${reminderId}`)
+    .catch(() => {});
 }
 
 /**
@@ -218,7 +235,7 @@ export async function rateLimit(
  */
 export async function enqueueSync(job: SyncJob): Promise<void> {
   const jobId = `sync-${job.calendarId ?? job.connectionId}`;
-  await syncQueue.add(job.reason, job, {
+  await queue<SyncJob>(QUEUE_NAMES.sync).add(job.reason, job, {
     jobId,
     removeOnComplete: true,
     removeOnFail: 100,
