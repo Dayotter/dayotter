@@ -507,6 +507,32 @@ export const TOOLS: AiToolDef[] = [
     summarize: (i) => `Set your timezone to ${i.timezone}`,
   },
   {
+    name: "remember_fact",
+    description:
+      "Persist something the host explicitly asks you to remember about them or how they like to work - 'remember that I prefer afternoon meetings', 'remember my assistant is sam@acme.com', 'keep in mind I don't take calls on Fridays'. The fact is saved to Otter's long-term memory and recalled in future chats. Use ONLY when the host directly asks you to remember/note something; don't quietly store things. Pass a short first-person one-liner as `fact`.",
+    kind: "write",
+    confirmLevel: "confirm",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        fact: {
+          type: "string",
+          description: "The one-line thing to remember, e.g. 'Prefers afternoon meetings'.",
+        },
+        key: {
+          type: "string",
+          description:
+            "Optional stable key to update an existing fact instead of adding one (e.g. 'assistant_email'). Omit to store a new fact.",
+        },
+      },
+      required: ["fact"],
+    },
+    zod: z.object({ fact: z.string().min(1).max(280), key: z.string().min(1).max(64).optional() }),
+    title: "Remember this",
+    summarize: (i) => `Remember: “${i.fact}”`,
+  },
+  {
     name: "toggle_channel_reminders",
     description:
       "Turn reminders on or off for one of the host's notification channels (by id, from list_notification_channels).",
