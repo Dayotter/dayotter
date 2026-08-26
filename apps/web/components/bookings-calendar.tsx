@@ -21,13 +21,30 @@ interface CalBooking {
   attendees: string[];
 }
 
+type BlockCategory = "busy" | "focus" | "personal" | "travel" | "unavailable";
+
 interface CalEvent {
   title: string;
   startsAt: string;
   endsAt: string;
+  /** What kind of non-booking block this is (drives its colour + label). */
+  category?: BlockCategory;
 }
 
-/** A calendar cell item: a DayOtter booking, or a synced "busy" calendar event. */
+/** Colour + wording for each non-booking block category. */
+const BLOCK_META: Record<BlockCategory, { label: string; border: string; text: string }> = {
+  busy: {
+    label: "Busy · from your calendar",
+    border: "var(--color-border-strong)",
+    text: "var(--color-muted)",
+  },
+  focus: { label: "Deep work", border: "var(--color-mint)", text: "var(--color-mint)" },
+  personal: { label: "Personal", border: "var(--color-amber)", text: "var(--color-amber)" },
+  travel: { label: "Travel", border: "var(--color-amber)", text: "var(--color-amber)" },
+  unavailable: { label: "Blocked", border: "var(--color-amber)", text: "var(--color-amber)" },
+};
+
+/** A calendar cell item: a DayOtter booking, or a non-booking "busy" block. */
 type CalItem =
   | ({ kind: "booking"; id: string } & CalBooking)
   | ({ kind: "busy"; id: string } & CalEvent);
@@ -201,18 +218,40 @@ export function BookingsCalendar({ tz }: { tz: string }) {
       ) : (
         <Agenda rangeStart={rangeStart} rangeEnd={rangeEnd} byDay={byDay} tz={tz} />
       )}
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-[var(--color-muted)]">
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            className="h-2.5 w-2.5 rounded-[3px]"
+            style={{ backgroundColor: "var(--color-accent)" }}
+          />
+          Booked
+        </span>
+        {(["focus", "busy", "personal"] as const).map((c) => (
+          <span key={c} className="inline-flex items-center gap-1.5">
+            <span
+              className="h-2.5 w-2.5 rounded-[3px]"
+              style={{ backgroundColor: BLOCK_META[c].border }}
+            />
+            {c === "busy" ? "External busy" : BLOCK_META[c].label}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
 
 function EventChip({ item, tz }: { item: CalItem; tz: string }) {
   const time = DateTime.fromISO(item.startsAt).setZone(tz).toFormat("h:mm a");
-  // Synced calendar event: greyed, non-clickable "busy" block for context.
+  // Non-booking block (synced busy / focus / personal / travel): non-clickable,
+  // colour-coded by category for context.
   if (item.kind === "busy") {
+    const meta = BLOCK_META[item.category ?? "busy"];
     return (
       <div
-        title="From a connected calendar"
-        className="flex items-center gap-1.5 rounded-sm border-l-[3px] border-[var(--color-border-strong)] bg-[var(--color-surface-2)]/60 px-1.5 py-0.5 text-xs text-[var(--color-muted)]"
+        title={meta.label}
+        className="flex items-center gap-1.5 rounded-sm border-l-[3px] bg-[var(--color-surface-2)]/60 px-1.5 py-0.5 text-xs text-[var(--color-muted)]"
+        style={{ borderLeftColor: meta.border }}
       >
         <span className="shrink-0 text-[var(--color-faint)]">{time}</span>
         <span className="truncate">{item.title}</span>
@@ -234,18 +273,20 @@ function EventChip({ item, tz }: { item: CalItem; tz: string }) {
 function AgendaRow({ item, tz }: { item: CalItem; tz: string }) {
   const time = DateTime.fromISO(item.startsAt).setZone(tz).toFormat("h:mm a");
   if (item.kind === "busy") {
+    const meta = BLOCK_META[item.category ?? "busy"];
     return (
       <div
-        title="From a connected calendar"
+        title={meta.label}
         className="flex items-center gap-3 rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-surface-2)]/50 px-3 py-2"
       >
         <span
           aria-hidden
-          className="h-8 w-1 shrink-0 rounded-full bg-[var(--color-border-strong)]"
+          className="h-8 w-1 shrink-0 rounded-full"
+          style={{ backgroundColor: meta.border }}
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-[var(--color-muted)]">{item.title}</p>
-          <p className="truncate text-xs text-[var(--color-faint)]">Busy · from your calendar</p>
+          <p className="truncate text-xs text-[var(--color-faint)]">{meta.label}</p>
         </div>
         <p className="shrink-0 text-xs text-[var(--color-muted)]">{time}</p>
       </div>
