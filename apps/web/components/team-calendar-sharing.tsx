@@ -25,9 +25,13 @@ export function TeamCalendarSharing({
   const [origin, setOrigin] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
 
   useEffect(() => setOrigin(window.location.origin), []);
   const url = token ? `${origin}/team/${teamSlug}/calendar/${token}` : "";
+  const embedCode = token
+    ? `<iframe src="${origin}/embed/team/${teamSlug}/calendar/${token}" style="width:100%;border:0;min-height:520px" loading="lazy" title="Team availability"></iframe>`
+    : "";
 
   async function generate() {
     setBusy(true);
@@ -55,6 +59,13 @@ export function TeamCalendarSharing({
     }
     setToken(null);
     toast({ title: "Sharing turned off", variant: "success" });
+  }
+
+  async function copyEmbed() {
+    if (!embedCode) return;
+    await navigator.clipboard.writeText(embedCode).catch(() => {});
+    setCopiedEmbed(true);
+    setTimeout(() => setCopiedEmbed(false), 1500);
   }
 
   async function copy() {
@@ -86,6 +97,22 @@ export function TeamCalendarSharing({
           {copied ? <Check size={15} /> : <Copy size={15} />}
           {copied ? "Copied" : "Copy"}
         </Button>
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-[var(--color-muted)]">Embed on your site</span>
+          <button
+            type="button"
+            onClick={copyEmbed}
+            className="inline-flex items-center gap-1 text-xs text-[var(--color-accent)] hover:underline"
+          >
+            {copiedEmbed ? <Check size={13} /> : <Copy size={13} />}
+            {copiedEmbed ? "Copied" : "Copy code"}
+          </button>
+        </div>
+        <pre className="overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] p-2 text-[11px] text-[var(--color-muted)]">
+          <code>{embedCode}</code>
+        </pre>
       </div>
       <div className="flex gap-2">
         <Button size="sm" variant="ghost" onClick={generate} disabled={busy}>
