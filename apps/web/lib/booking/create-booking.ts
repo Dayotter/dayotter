@@ -64,11 +64,15 @@ async function resolveHost(
   }
 
   if (eventType.schedulingType === "collective") {
-    const primary = bookable[0];
+    // Use the resolved host set (which already applied publicBookable + the
+    // booker's member selection) as the source of truth, in its order.
+    const byId = new Map(bookable.map((h) => [h.userId, h]));
+    const ordered = hostIds.map((id) => byId.get(id)).filter((h) => Boolean(h?.user));
+    const primary = ordered[0];
     if (!primary?.user) throw new BookingError("Host not found", 404);
-    const coHostEmails = bookable
+    const coHostEmails = ordered
       .slice(1)
-      .map((h) => h.user?.email)
+      .map((h) => h?.user?.email)
       .filter((e): e is string => Boolean(e));
     return { host: primary.user, coHostEmails };
   }
@@ -120,6 +124,9 @@ export interface CreateBookingInput {
   start: string; // ISO instant of the chosen slot
   attendee: { name: string; email: string; timezone: string };
   guests?: string[];
+  /** Collective member-selection: the subset of team hosts the booker chose to
+   * meet. Only valid for collective team events; ignored elsewhere. */
+  selectedHostIds?: string[];
   notes?: string;
   responses?: Record<string, unknown>;
   /** The booker's chosen duration for multi-duration event types (minutes). */
@@ -198,6 +205,16 @@ export async function createBooking(
     ? (resolveChosenLocation(eventType, null) ?? chosenLocation)
     : chosenLocation;
 
+  // Collective member-selection: honour the booker's chosen subset of hosts, but
+  // only for collective team events (it makes no sense for round-robin/individual).
+  const selectedHostIds =
+    eventType.schedulingType === "collective" && input.selectedHostIds?.length
+      ? input.selectedHostIds
+      : undefined;
+  if (input.selectedHostIds?.length && eventType.schedulingType !== "collective") {
+    throw new BookingError("Choosing team members isn't available for this event type", 400);
+  }
+
   // Re-validate server-side (the picker may be stale / manipulated). Compute the
   // per-host slots once (for the chosen duration) and reuse them for the check
   // and host resolution.
@@ -206,6 +223,7 @@ export async function createBooking(
     new Date(start.getTime() - SLOT_REVALIDATION_WINDOW_MS),
     new Date(start.getTime() + SLOT_REVALIDATION_WINDOW_MS),
     duration,
+    selectedHostIds,
   );
   const combined = combineHostSlots(perHost, eventType.schedulingType);
   if (!combined.some((s) => s.start.getTime() === start.getTime())) {

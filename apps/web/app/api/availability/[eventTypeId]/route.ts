@@ -9,7 +9,11 @@ const querySchema = z.object({
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
   duration: z.coerce.number().int().min(5).max(1440).optional(),
+  /** Comma-separated host user ids for collective member-selection. */
+  hosts: z.string().max(1000).optional(),
 });
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(
   request: Request,
@@ -28,6 +32,7 @@ export async function GET(
     from: url.searchParams.get("from") ?? undefined,
     to: url.searchParams.get("to") ?? undefined,
     duration: url.searchParams.get("duration") ?? undefined,
+    hosts: url.searchParams.get("hosts") ?? undefined,
   });
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
@@ -45,7 +50,18 @@ export async function GET(
   }
   const to = new Date(Math.min(requestedTo.getTime(), from.getTime() + MAX_WINDOW_MS));
 
-  const slots = await getEventTypeAvailability(eventTypeId, from, to, parsed.data.duration);
+  const selectedHostIds = parsed.data.hosts
+    ?.split(",")
+    .map((s) => s.trim())
+    .filter((s) => UUID_RE.test(s))
+    .slice(0, 50);
+  const slots = await getEventTypeAvailability(
+    eventTypeId,
+    from,
+    to,
+    parsed.data.duration,
+    selectedHostIds && selectedHostIds.length > 0 ? selectedHostIds : undefined,
+  );
   if (slots === null) {
     return NextResponse.json({ error: "Event type not found" }, { status: 404 });
   }
