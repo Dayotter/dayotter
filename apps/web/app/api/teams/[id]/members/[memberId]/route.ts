@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 const body = z.union([
   z.object({ priority: z.number().int().min(0).max(10) }),
   z.object({ role: z.literal("owner") }),
+  z.object({ publicBookable: z.boolean() }),
 ]);
 
 /**
@@ -66,9 +67,18 @@ export async function PATCH(
     return NextResponse.json({ ok: true });
   }
 
-  // Weight change: admins/owners only.
+  // Weight / eligibility change: admins/owners only.
   if (caller.role !== "owner" && caller.role !== "admin") {
-    return NextResponse.json({ error: "Only team admins can change weights" }, { status: 403 });
+    return NextResponse.json({ error: "Only team admins can update members" }, { status: 403 });
+  }
+
+  // Toggle whether the member is offered on the team's public booking links.
+  if ("publicBookable" in parsed.data) {
+    await db
+      .update(schema.teamMembers)
+      .set({ publicBookable: parsed.data.publicBookable })
+      .where(eq(schema.teamMembers.id, memberId));
+    return NextResponse.json({ ok: true });
   }
 
   await db

@@ -1,0 +1,1 @@
+ALTER TABLE "team_members" ADD COLUMN "public_bookable" boolean DEFAULT true NOT NULL;

@@ -507,10 +507,26 @@ export async function troubleshootHostDay(
 
 export async function eventTypeHostIds(eventType: EventTypeRow): Promise<string[]> {
   if (eventType.ownerId) return [eventType.ownerId];
-  const hosts = await getDb().query.eventTypeHosts.findMany({
+  const db = getDb();
+  const hosts = await db.query.eventTypeHosts.findMany({
     where: eq(schema.eventTypeHosts.eventTypeId, eventType.id),
+    columns: { userId: true },
   });
-  return hosts.map((h) => h.userId);
+  const ids = hosts.map((h) => h.userId);
+  if (!eventType.teamId || ids.length === 0) return ids;
+  // Honour the team's per-member "offer on public links" toggle: a member marked
+  // not publicly bookable is dropped from public collective/round-robin hosting.
+  // Never leave zero hosts, though - fall back to the full set if all are off.
+  const off = await db.query.teamMembers.findMany({
+    where: and(
+      eq(schema.teamMembers.teamId, eventType.teamId),
+      eq(schema.teamMembers.publicBookable, false),
+    ),
+    columns: { userId: true },
+  });
+  const excluded = new Set(off.map((m) => m.userId));
+  const filtered = ids.filter((id) => !excluded.has(id));
+  return filtered.length > 0 ? filtered : ids;
 }
 
 /**

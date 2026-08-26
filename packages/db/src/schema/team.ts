@@ -44,6 +44,11 @@ export const teamMembers = pgTable(
     role: membershipRole("role").notNull().default("member"),
     /** Round-robin weighting; higher = assigned more often. */
     priority: integer("priority").notNull().default(1),
+    /** Whether this member may be offered as a host on the team's PUBLIC booking
+     * links. False keeps them on the team (their availability still shows in the
+     * shared calendar) but excludes them from public collective/round-robin
+     * assignment. A team never drops to zero hosts - the last one still counts. */
+    publicBookable: boolean("public_bookable").notNull().default(true),
     ...timestamps,
   },
   (t) => [
