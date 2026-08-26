@@ -23,27 +23,65 @@ export const GET = withUser(async (u, request) => {
     return jsonError("Range too large", 400);
   }
 
-  const rows = await getDb().query.bookings.findMany({
-    where: and(
-      eq(schema.bookings.hostId, u.id),
-      ne(schema.bookings.status, "cancelled"),
-      gte(schema.bookings.startsAt, start),
-      lt(schema.bookings.startsAt, end),
-    ),
-    orderBy: asc(schema.bookings.startsAt),
-    with: {
-      attendees: { columns: { name: true, email: true } },
-      eventType: { columns: { color: true } },
-    },
-  });
+  const db = getDb();
+  const [rows, synced, blocks] = await Promise.all([
+    db.query.bookings.findMany({
+      where: and(
+        eq(schema.bookings.hostId, u.id),
+        ne(schema.bookings.status, "cancelled"),
+        gte(schema.bookings.startsAt, start),
+        lt(schema.bookings.startsAt, end),
+      ),
+      orderBy: asc(schema.bookings.startsAt),
+      with: {
+        attendees: { columns: { name: true, email: true } },
+        eventType: { columns: { color: true } },
+      },
+    }),
+    syncedExternalEvents(u.id, start, end),
+    // Held focus / personal / travel blocks, so the calendar shows the host's
+    // whole schedule - not just meetings.
+    db.query.timeBlocks.findMany({
+      where: and(
+        eq(schema.timeBlocks.userId, u.id),
+        gte(schema.timeBlocks.endsAt, start),
+        lt(schema.timeBlocks.startsAt, end),
+      ),
+      columns: { id: true, title: true, kind: true, startsAt: true, endsAt: true },
+      orderBy: asc(schema.timeBlocks.startsAt),
+    }),
+  ]);
 
-  // Also surface the host's real (synced) calendar events, so the calendar shows
-  // their whole schedule - not just DayOtter bookings. Shared with the AI agenda.
-  const events = (await syncedExternalEvents(u.id, start, end)).map((e) => ({
+  // Non-booking items the calendar shows for context: synced external "busy"
+  // events + the host's own held blocks, each tagged with a category for colour.
+  const events: {
+    id?: string;
+    title: string;
+    startsAt: string;
+    endsAt: string;
+    category: "busy" | "focus" | "personal" | "travel" | "unavailable";
+  }[] = synced.map((e) => ({
     title: e.title,
     startsAt: e.startsAt.toISOString(),
     endsAt: e.endsAt.toISOString(),
+    category: "busy" as const,
   }));
+  for (const b of blocks) {
+    events.push({
+      id: `time-block:${b.id}`,
+      title: b.title,
+      startsAt: b.startsAt.toISOString(),
+      endsAt: b.endsAt.toISOString(),
+      category:
+        b.kind === "focus"
+          ? "focus"
+          : b.kind === "personal"
+            ? "personal"
+            : b.kind === "travel"
+              ? "travel"
+              : "unavailable",
+    });
+  }
 
   return NextResponse.json({
     bookings: rows.map((b) => ({
