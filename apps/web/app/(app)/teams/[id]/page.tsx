@@ -4,6 +4,7 @@ import { TeamBriefingSettings } from "@/components/team-briefing-settings";
 import { AddMemberForm, CreateTeamEventForm, RemoveMember } from "@/components/team-forms";
 import { TeamRules } from "@/components/team-rules";
 import { TeamScheduleView } from "@/components/team-schedule-view";
+import { TransferTeamOwnership } from "@/components/transfer-team-ownership";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { teamSchedule } from "@/lib/booking/team-schedule";
@@ -96,7 +97,14 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                     {(m.user?.name ?? m.user?.email ?? "?").charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium">{m.user?.name ?? "Member"}</p>
+                    <p className="flex items-center gap-2 text-sm font-medium">
+                      {m.user?.name ?? "Member"}
+                      {m.role !== "member" ? (
+                        <span className="rounded-full bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--color-muted)]">
+                          {m.role}
+                        </span>
+                      ) : null}
+                    </p>
                     <p className="truncate text-xs text-[var(--color-muted)]">{m.user?.email}</p>
                   </div>
                   <MemberWeight
@@ -105,6 +113,13 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                     initial={m.priority}
                     editable={canManage}
                   />
+                  {myRole === "owner" && m.role !== "owner" ? (
+                    <TransferTeamOwnership
+                      teamId={team.id}
+                      memberId={m.id}
+                      name={m.user?.name ?? m.user?.email ?? "this member"}
+                    />
+                  ) : null}
                   {m.role !== "owner" && (canManage || m.userId === session!.user.id) ? (
                     <RemoveMember
                       teamId={team.id}
