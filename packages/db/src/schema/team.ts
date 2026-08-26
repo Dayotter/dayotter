@@ -55,6 +55,9 @@ export const teamMembers = pgTable(
      * shared calendar) but excludes them from public collective/round-robin
      * assignment. A team never drops to zero hosts - the last one still counts. */
     publicBookable: boolean("public_bookable").notNull().default(true),
+    /** Whether a teammate may include this member when scheduling an INTERNAL
+     * team meeting (the organiser-initiated, override-capable flow). */
+    internalBookable: boolean("internal_bookable").notNull().default(true),
     ...timestamps,
   },
   (t) => [

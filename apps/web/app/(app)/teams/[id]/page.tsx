@@ -1,3 +1,4 @@
+import { InternalTeamBookingForm } from "@/components/internal-team-booking-form";
 import { MemberWeight } from "@/components/member-weight";
 import { PageHeader } from "@/components/page-header";
 import { TeamBriefingSettings } from "@/components/team-briefing-settings";
@@ -141,6 +142,25 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
               ))}
             </ul>
             <AddMemberForm teamId={team.id} />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Book a team meeting"
+            description="Schedule a meeting across the team. It goes on everyone's calendar - and can book over anyone who's busy, so use it when the meeting has to happen."
+          />
+          <CardBody>
+            <InternalTeamBookingForm
+              teamId={team.id}
+              members={team.members
+                .filter((m) => m.user && (m.internalBookable || m.userId === session!.user.id))
+                .map((m) => ({
+                  id: m.userId,
+                  name: m.user?.name ?? m.user?.email ?? "Member",
+                  isSelf: m.userId === session!.user.id,
+                }))}
+            />
           </CardBody>
         </Card>
 

@@ -63,6 +63,10 @@ export const bookings = pgTable(
      * slot, so they're EXEMPT from the per-host single-slot / no-overlap guards
      * below; capacity is instead enforced transactionally in createBooking. */
     isGroup: boolean("is_group").notNull().default(false),
+    /** Set only by an INTERNAL team booking whose organizer knowingly scheduled
+     * through a host's existing commitment. Exempts the row from the per-host
+     * no-overlap guards below. Public bookings never set this. */
+    allowOverlap: boolean("allow_overlap").notNull().default(false),
 
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
     cancelReason: text("cancel_reason"),
@@ -100,7 +104,9 @@ export const bookings = pgTable(
     // OVERLAPS - it can't be expressed in the drizzle DSL, so it lives in raw SQL.
     uniqueIndex("bookings_host_slot_active_idx")
       .on(t.hostId, t.startsAt)
-      .where(sql`${t.status} IN ('confirmed', 'pending') AND ${t.isGroup} = false`),
+      .where(
+        sql`${t.status} IN ('confirmed', 'pending') AND ${t.isGroup} = false AND ${t.allowOverlap} = false`,
+      ),
   ],
 );
 
