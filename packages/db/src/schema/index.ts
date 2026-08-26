@@ -17,3 +17,4 @@ export * from "./memory";
 export * from "./crm";
 export * from "./plugins";
 export * from "./security";
+export * from "./support";
