@@ -245,6 +245,15 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
   // occurrence that collides with an existing booking is skipped). Attendees get
   // one confirmation for the first meeting above - the rest land on the calendar.
   if (isRecurring) {
+    // Copy the collective booking's hosts onto every occurrence so the whole
+    // series records the same co-hosts as the first meeting.
+    const collectiveHosts =
+      eventType.schedulingType === "collective"
+        ? await db.query.bookingHosts.findMany({
+            where: eq(schema.bookingHosts.bookingId, booking.id),
+            columns: { userId: true },
+          })
+        : [];
     const zone = attendee.timezone || host.timezone || "UTC";
     const base = DateTime.fromJSDate(start).setZone(zone);
     const attendeeList = [
@@ -291,6 +300,11 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
           },
           ...guests.map((email) => ({ bookingId: occ.id, email })),
         ]);
+        if (collectiveHosts.length > 0) {
+          await db
+            .insert(schema.bookingHosts)
+            .values(collectiveHosts.map(({ userId }) => ({ bookingId: occ.id, userId })));
+        }
         await scheduleBookingReminders(occ.id, occStart, reminderOffsets);
         const written = await writeBookingToCalendar(host.id, {
           title: eventType.title,

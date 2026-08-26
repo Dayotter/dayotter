@@ -121,6 +121,30 @@ export const bookingAttendees = pgTable(
 );
 
 /**
+ * Every internal host on a collective/team booking. The primary host stays on
+ * bookings.host_id (unchanged); this table makes the co-hosts' commitments
+ * first-class instead of only living as attendee rows - so we can look up "who is
+ * hosting this" and, later, keep every host's calendar in sync.
+ */
+export const bookingHosts = pgTable(
+  "booking_hosts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("booking_hosts_booking_user_idx").on(t.bookingId, t.userId),
+    index("booking_hosts_user_idx").on(t.userId),
+  ],
+);
+
+/**
  * Links a booking to the event we created on a provider's calendar, so we can
  * update/delete it on reschedule/cancel and reconcile two-way changes.
  */
@@ -152,11 +176,17 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   eventType: one(eventTypes, { fields: [bookings.eventTypeId], references: [eventTypes.id] }),
   host: one(users, { fields: [bookings.hostId], references: [users.id] }),
   attendees: many(bookingAttendees),
+  hosts: many(bookingHosts),
   references: many(bookingReferences),
 }));
 
 export const bookingAttendeesRelations = relations(bookingAttendees, ({ one }) => ({
   booking: one(bookings, { fields: [bookingAttendees.bookingId], references: [bookings.id] }),
+}));
+
+export const bookingHostsRelations = relations(bookingHosts, ({ one }) => ({
+  booking: one(bookings, { fields: [bookingHosts.bookingId], references: [bookings.id] }),
+  user: one(users, { fields: [bookingHosts.userId], references: [users.id] }),
 }));
 
 export const bookingReferencesRelations = relations(bookingReferences, ({ one }) => ({
