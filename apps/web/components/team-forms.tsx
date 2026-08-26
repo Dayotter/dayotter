@@ -199,6 +199,57 @@ export function RemoveMember({
   );
 }
 
+/**
+ * Toggle whether a member is offered as a host on the team's PUBLIC booking
+ * links. Off keeps them on the team (their availability still shows in the shared
+ * calendar) but excludes them from public collective / round-robin assignment.
+ * Admins/owners only.
+ */
+export function MemberBookable({
+  teamId,
+  memberId,
+  initial,
+}: {
+  teamId: string;
+  memberId: string;
+  initial: boolean;
+}) {
+  const { toast } = useToast();
+  const [on, setOn] = useState(initial);
+  const [saving, setSaving] = useState(false);
+
+  async function save(next: boolean) {
+    setOn(next);
+    setSaving(true);
+    const res = await fetch(`/api/teams/${teamId}/members/${memberId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ publicBookable: next }),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      setOn(!next);
+      toast({ title: "Couldn't update booking eligibility", variant: "error" });
+    }
+  }
+
+  return (
+    <label
+      className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-[var(--color-faint)]"
+      title="Offer this member on public team booking links"
+    >
+      <input
+        type="checkbox"
+        checked={on}
+        disabled={saving}
+        onChange={(e) => save(e.target.checked)}
+        className="h-3.5 w-3.5 rounded border-[var(--color-border-strong)] text-[var(--color-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] disabled:opacity-50"
+      />
+      Bookable
+    </label>
+  );
+}
+
 const DURATIONS = [15, 30, 45, 60];
 
 export function CreateTeamEventForm({ teamId }: { teamId: string }) {

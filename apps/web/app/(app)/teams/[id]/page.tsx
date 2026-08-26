@@ -1,7 +1,12 @@
 import { MemberWeight } from "@/components/member-weight";
 import { PageHeader } from "@/components/page-header";
 import { TeamBriefingSettings } from "@/components/team-briefing-settings";
-import { AddMemberForm, CreateTeamEventForm, RemoveMember } from "@/components/team-forms";
+import {
+  AddMemberForm,
+  CreateTeamEventForm,
+  MemberBookable,
+  RemoveMember,
+} from "@/components/team-forms";
 import { TeamRules } from "@/components/team-rules";
 import { TeamScheduleView } from "@/components/team-schedule-view";
 import { TransferTeamOwnership } from "@/components/transfer-team-ownership";
@@ -87,7 +92,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
         <Card>
           <CardHeader
             title="Members"
-            description="Everyone whose availability counts for this team. Weight tunes round-robin - higher gets booked more often; 0 pauses them."
+            description="Everyone whose availability counts for this team. Weight tunes round-robin - higher gets booked more often; 0 pauses them. Untick Bookable to keep someone off public booking links while still counting their time."
           />
           <CardBody className="space-y-4">
             <ul className="space-y-2">
@@ -113,6 +118,9 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                     initial={m.priority}
                     editable={canManage}
                   />
+                  {canManage ? (
+                    <MemberBookable teamId={team.id} memberId={m.id} initial={m.publicBookable} />
+                  ) : null}
                   {myRole === "owner" && m.role !== "owner" ? (
                     <TransferTeamOwnership
                       teamId={team.id}

@@ -47,10 +47,26 @@ async function resolveHost(
   });
   if (hosts.length === 0) throw new BookingError("No hosts configured", 400);
 
+  // Drop members the team excluded from public booking links (mirrors
+  // eventTypeHostIds in availability). Keep at least one host as a safety net.
+  let bookable = hosts;
+  if (eventType.teamId) {
+    const off = await db.query.teamMembers.findMany({
+      where: and(
+        eq(schema.teamMembers.teamId, eventType.teamId),
+        eq(schema.teamMembers.publicBookable, false),
+      ),
+      columns: { userId: true },
+    });
+    const excluded = new Set(off.map((m) => m.userId));
+    const filtered = hosts.filter((h) => !excluded.has(h.userId));
+    if (filtered.length > 0) bookable = filtered;
+  }
+
   if (eventType.schedulingType === "collective") {
-    const primary = hosts[0];
+    const primary = bookable[0];
     if (!primary?.user) throw new BookingError("Host not found", 404);
-    const coHostEmails = hosts
+    const coHostEmails = bookable
       .slice(1)
       .map((h) => h.user?.email)
       .filter((e): e is string => Boolean(e));
@@ -60,7 +76,7 @@ async function resolveHost(
   // round-robin - only among hosts genuinely free at the chosen time (reusing
   // the slots we already computed above).
   const slotsByHost = new Map(hostIds.map((id, i) => [id, perHost[i] ?? []]));
-  const free = hosts.filter((h) =>
+  const free = bookable.filter((h) =>
     (slotsByHost.get(h.userId) ?? []).some((s) => s.start.getTime() === start.getTime()),
   );
   if (free.length === 0) throw new BookingError("No host available at that time", 409);
