@@ -414,6 +414,13 @@
       "when": 1787742831447,
       "tag": "0058_motionless_red_skull",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1787751758023,
+      "tag": "0059_volatile_xavin",
+      "breakpoints": true
     }
   ]
 }

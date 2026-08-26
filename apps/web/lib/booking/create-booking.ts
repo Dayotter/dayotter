@@ -487,6 +487,14 @@ export async function createBooking(
         },
         ...guests.map((email) => ({ bookingId: row.id, email })),
       ]);
+      // Record every host of a collective booking explicitly (primary + co-hosts),
+      // so "who's hosting this" is first-class rather than inferred from attendees.
+      if (eventType.schedulingType === "collective" && hostIds.length > 0) {
+        await tx
+          .insert(schema.bookingHosts)
+          .values(hostIds.map((userId) => ({ bookingId: row.id, userId })))
+          .onConflictDoNothing();
+      }
       return row;
     });
   } catch (err) {
