@@ -24,9 +24,15 @@ export const teams = pgTable(
       .references(() => organizations.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
+    /** Unguessable capability token for the optional public availability calendar.
+     * Null = the shared calendar is off; regenerating it revokes any old links. */
+    publicScheduleToken: text("public_schedule_token"),
     ...timestamps,
   },
-  (t) => [uniqueIndex("teams_org_slug_idx").on(t.organizationId, t.slug)],
+  (t) => [
+    uniqueIndex("teams_org_slug_idx").on(t.organizationId, t.slug),
+    uniqueIndex("teams_public_schedule_token_idx").on(t.publicScheduleToken),
+  ],
 );
 
 export const teamMembers = pgTable(
