@@ -1,0 +1,1 @@
+ALTER TABLE "team_members" ADD COLUMN "internal_bookable" boolean DEFAULT true NOT NULL;

@@ -421,6 +421,20 @@
       "when": 1787751758023,
       "tag": "0059_volatile_xavin",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1787763018178,
+      "tag": "0060_vengeful_mongu",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1787763112092,
+      "tag": "0061_complex_killer_shrike",
+      "breakpoints": true
     }
   ]
 }

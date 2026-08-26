@@ -17,7 +17,7 @@ import {
 
 const PERSONAL_SLUG = PERSONAL_EVENT_TYPE_SLUG;
 
-async function getOrCreatePersonalEventType(
+export async function getOrCreatePersonalEventType(
   userId: string,
   organizationId: string,
 ): Promise<string> {
