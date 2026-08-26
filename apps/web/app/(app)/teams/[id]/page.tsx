@@ -1,6 +1,7 @@
 import { MemberWeight } from "@/components/member-weight";
 import { PageHeader } from "@/components/page-header";
 import { TeamBriefingSettings } from "@/components/team-briefing-settings";
+import { TeamCalendarSharing } from "@/components/team-calendar-sharing";
 import {
   AddMemberForm,
   CreateTeamEventForm,
@@ -142,6 +143,22 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
             <AddMemberForm teamId={team.id} />
           </CardBody>
         </Card>
+
+        {canManage ? (
+          <Card>
+            <CardHeader
+              title="Share the team calendar"
+              description="A public, read-only link showing when the team is busy - send it to clients so they can see availability at a glance."
+            />
+            <CardBody>
+              <TeamCalendarSharing
+                teamId={team.id}
+                teamSlug={team.slug}
+                initialToken={team.publicScheduleToken ?? null}
+              />
+            </CardBody>
+          </Card>
+        ) : null}
 
         <Card>
           <CardHeader
