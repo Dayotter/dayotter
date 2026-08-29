@@ -32,6 +32,9 @@ ENV NEXT_PUBLIC_GOOGLE_AUTH=$NEXT_PUBLIC_GOOGLE_AUTH \
     NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY \
     NEXT_PUBLIC_MIXPANEL_TOKEN=$NEXT_PUBLIC_MIXPANEL_TOKEN \
     NEXT_PUBLIC_GA_ID=$NEXT_PUBLIC_GA_ID
+# `next build` on this monorepo peaks above Node's default ~2 GB heap cap and
+# dies with an OOM mark-compact loop. Raise the ceiling for the build only.
+ENV NODE_OPTIONS=--max-old-space-size=4096
 RUN pnpm --filter @dayotter/web build
 
 # --- Minimal runtime image ---
