@@ -11,6 +11,7 @@
   "overlaySummaryMany": "{n} impegni sovrapposti - gli orari oscurati sono in conflitto con il tuo calendario.",
   "loading": "Caricamento disponibilità…",
   "noTimes": "Nessun orario disponibile nelle prossime due settimane.",
+  "slotsAvailable": "{n} orari disponibili",
   "busyTooltip": "Hai già un impegno sul tuo calendario a quell'ora",
   "duration": "Durata",
   "durationMin": "{n} min",

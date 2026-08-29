@@ -11,6 +11,7 @@
   "overlaySummaryMany": "Se superpusieron {n} compromisos - las horas atenuadas chocan con tu calendario.",
   "loading": "Cargando disponibilidad…",
   "noTimes": "No hay horas disponibles en las próximas dos semanas.",
+  "slotsAvailable": "{n} horarios disponibles",
   "busyTooltip": "Tienes algo en tu calendario a esa hora",
   "duration": "Duración",
   "durationMin": "{n} min",

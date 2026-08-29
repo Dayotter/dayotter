@@ -11,6 +11,7 @@
   "overlaySummaryMany": "{n} Termine eingeblendet - ausgegraute Zeiten kollidieren mit deinem Kalender.",
   "loading": "Verfügbarkeit wird geladen…",
   "noTimes": "In den nächsten zwei Wochen sind keine Zeiten verfügbar.",
+  "slotsAvailable": "{n} Zeiten verfügbar",
   "busyTooltip": "Du hast zu dieser Zeit bereits etwas im Kalender",
   "duration": "Dauer",
   "durationMin": "{n} Min.",

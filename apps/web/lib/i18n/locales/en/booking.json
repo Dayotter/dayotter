@@ -11,6 +11,7 @@
   "overlaySummaryMany": "Overlaid {n} commitments - greyed times clash with your calendar.",
   "loading": "Loading availability…",
   "noTimes": "No times available in the next two weeks.",
+  "slotsAvailable": "{n} times available",
   "busyTooltip": "You have something on your calendar then",
   "duration": "Duration",
   "durationMin": "{n} min",

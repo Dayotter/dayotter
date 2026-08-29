@@ -11,6 +11,7 @@
   "overlaySummaryMany": "{n} bezette periodes gemarkeerd - grijze tijden botsen met je agenda.",
   "loading": "Beschikbaarheid laden…",
   "noTimes": "Geen tijden beschikbaar in de komende twee weken.",
+  "slotsAvailable": "{n} tijden beschikbaar",
   "busyTooltip": "Je hebt dan iets in je agenda staan",
   "duration": "Duur",
   "durationMin": "{n} min",

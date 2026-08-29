@@ -11,6 +11,7 @@
   "overlaySummaryMany": "{n} compromissos sobrepostos - horários esmaecidos conflitam com seu calendário.",
   "loading": "Carregando disponibilidade…",
   "noTimes": "Nenhum horário disponível nas próximas duas semanas.",
+  "slotsAvailable": "{n} horários disponíveis",
   "busyTooltip": "Você já tem algo no calendário nesse horário",
   "duration": "Duração",
   "durationMin": "{n} min",
