@@ -43,6 +43,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
+# Docker sets HOSTNAME to the container id, and Next's standalone server uses it
+# as the bind address - so it listens on one network interface only. Behind a
+# reverse proxy on a second network (Dokploy/Traefik) that is a 502. Bind to all.
+ENV HOSTNAME=0.0.0.0
 # Standalone output bundles a tiny server + only the traced node_modules.
 COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
