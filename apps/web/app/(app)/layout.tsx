@@ -23,7 +23,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <LocaleProvider locale={locale}>
       <ToastProvider>
         <TimezoneSync />
-        <div className="grain relative flex h-[100dvh] overflow-hidden">
+        {/* This is a calendar: almost every figure on an app screen is a time, a
+        date, a duration or a count, and stacked in a list they have to line up.
+        Tabular figures are the default for the whole shell. */}
+        <div className="grain relative flex h-[100dvh] overflow-hidden tabular-nums">
           <AppNav user={{ name: session.user.name, email: session.user.email }} />
           <MobileNav />
           <main className="relative flex-1 overflow-y-auto">

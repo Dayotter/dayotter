@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardBody } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { AnalyticsData } from "@/lib/booking/analytics";
 import { formatMoney } from "@/lib/booking/money";
 import { Download } from "lucide-react";
@@ -126,11 +127,13 @@ export function AnalyticsDashboard() {
               </thead>
               <tbody>
                 {loading && !data ? (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-[var(--color-muted)]">
-                      Loading…
-                    </td>
-                  </tr>
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={i} aria-hidden>
+                      <td colSpan={8} className="px-4 py-2.5">
+                        <Skeleton className="h-4 w-full" />
+                      </td>
+                    </tr>
+                  ))
                 ) : !data || data.byEventType.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-4 py-8 text-center text-[var(--color-muted)]">
