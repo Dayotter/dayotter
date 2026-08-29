@@ -36,4 +36,13 @@ describe("t", () => {
     // @ts-expect-error - exercising the runtime fallback path
     expect(t("zz", "selectTime")).toBe("Select a time");
   });
+
+  it("falls back to the key rather than throwing when no catalogue has it", () => {
+    // A key present in no catalogue used to reach interpolate() as undefined,
+    // where `.replace` threw and the error boundary blanked the booking page.
+    // @ts-expect-error - exercising the runtime fallback path
+    expect(() => t("en", "notARealKey")).not.toThrow();
+    // @ts-expect-error - exercising the runtime fallback path
+    expect(t("en", "notARealKey", { n: 3 })).toBe("notARealKey");
+  });
 });
