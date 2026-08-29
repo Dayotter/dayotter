@@ -6,11 +6,21 @@ import { useEffect, useState } from "react";
 
 type Theme = "light" | "dark" | "system";
 
+/** Duration of the cross-fade in globals.css `html.theme-transition`. */
+const THEME_FADE_MS = 220;
+let fadeTimer: ReturnType<typeof setTimeout> | undefined;
+
 function apply(theme: Theme) {
   const dark =
     theme === "dark" ||
     (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.classList.toggle("dark", dark);
+  const root = document.documentElement;
+  // Colour transitions are opt-in for exactly this moment, so switching themes
+  // cross-fades without every hover on the site inheriting a 180ms lag.
+  root.classList.add("theme-transition");
+  clearTimeout(fadeTimer);
+  fadeTimer = setTimeout(() => root.classList.remove("theme-transition"), THEME_FADE_MS);
+  root.classList.toggle("dark", dark);
 }
 
 const OPTIONS: { value: Theme; icon: typeof Sun; label: string }[] = [
