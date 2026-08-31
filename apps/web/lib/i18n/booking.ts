@@ -37,6 +37,10 @@ const MESSAGES: Record<Locale, Record<BookingKey, string>> = {
 
 /** Translate a booking-surface key, interpolating `{name}` placeholders. */
 export function t(locale: Locale, key: BookingKey, vars?: Record<string, string | number>): string {
-  const s = (MESSAGES[locale] ?? MESSAGES.en)[key] ?? MESSAGES.en[key];
+  // Falling back to the key itself matters more than it looks: without it a key
+  // that is missing from every catalogue reaches interpolate() as undefined,
+  // `.replace` throws, and the error boundary takes down the whole booking page.
+  // A visible key is a bad string; a blank page is a lost booking.
+  const s = (MESSAGES[locale] ?? MESSAGES.en)[key] ?? MESSAGES.en[key] ?? key;
   return interpolate(s, vars);
 }
