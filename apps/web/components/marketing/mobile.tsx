@@ -121,8 +121,15 @@ function PhoneMock() {
                 <div
                   key={e.title}
                   className="flex items-center gap-3 rounded-[12px] px-3 py-2.5"
-                  style={{ background: soft(e.hue), borderLeft: `3px solid ${HUES[e.hue]}` }}
+                  style={{ background: soft(e.hue) }}
                 >
+                  {/* The rounded colour bar the real agenda uses, not a stripe
+                      down the side - so the mock depicts the shipped pattern. */}
+                  <span
+                    aria-hidden
+                    className="h-8 w-1 shrink-0 rounded-full"
+                    style={{ backgroundColor: HUES[e.hue] }}
+                  />
                   <div className="w-9 shrink-0 text-[11px] font-medium text-[var(--color-muted)]">
                     {e.time}
                   </div>

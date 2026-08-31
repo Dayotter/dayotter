@@ -20,6 +20,10 @@ export function SettingsNav() {
           <Link
             key={href}
             href={href}
+            // The underline and the pill never coexist: `border-b-2` is the
+            // mobile tab strip, `lg:rounded-md lg:border-b-0` is the desktop
+            // rail. Slop detectors read this as an accent border on a rounded
+            // element; it is two layouts sharing one class string.
             className={cn(
               "shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm transition-colors lg:rounded-md lg:border-b-0 lg:py-2",
               active

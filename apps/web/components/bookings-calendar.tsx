@@ -250,9 +250,16 @@ function EventChip({ item, tz }: { item: CalItem; tz: string }) {
     return (
       <div
         title={meta.label}
-        className="flex items-center gap-1.5 rounded-sm border-l-[3px] bg-[var(--color-surface-2)]/60 px-1.5 py-0.5 text-xs text-[var(--color-muted)]"
-        style={{ borderLeftColor: meta.border }}
+        className="flex items-center gap-1.5 rounded-sm bg-[var(--color-surface-2)]/60 px-1.5 py-0.5 text-xs text-[var(--color-muted)]"
       >
+        {/* Colour bar as a child, matching AgendaRow below - a 3px border-left
+            on a rounded chip fights its own corners and is the one accent
+            pattern this design system bans outright. */}
+        <span
+          aria-hidden
+          className="h-3 w-[3px] shrink-0 rounded-full"
+          style={{ backgroundColor: meta.border }}
+        />
         <span className="shrink-0 text-[var(--color-faint)]">{time}</span>
         <span className="truncate">{item.title}</span>
       </div>
@@ -262,8 +269,12 @@ function EventChip({ item, tz }: { item: CalItem; tz: string }) {
     <Link
       href={`/booking/${item.uid}`}
       className="flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-xs hover:bg-[var(--color-surface-2)]"
-      style={{ borderLeft: `3px solid ${eventColorVar(item.color)}` }}
     >
+      <span
+        aria-hidden
+        className="h-3 w-[3px] shrink-0 rounded-full"
+        style={{ backgroundColor: eventColorVar(item.color) }}
+      />
       <span className="shrink-0 text-[var(--color-faint)]">{time}</span>
       <span className={cn("truncate", item.status === "pending" && "italic")}>{item.title}</span>
     </Link>

@@ -5,6 +5,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { SkeletonRows } from "@/components/ui/skeleton";
 import { useCallback, useEffect, useState } from "react";
 
 interface EventTypeOpt {
@@ -214,7 +215,7 @@ export function PackagesManager({ eventTypes }: { eventTypes: EventTypeOpt[] }) 
         <CardBody className="p-6">
           <h2 className="text-lg font-semibold">Your packages</h2>
           {loading ? (
-            <p className="mt-3 text-sm text-[var(--color-muted)]">Loading…</p>
+            <SkeletonRows rows={3} className="mt-4" />
           ) : packages.length === 0 ? (
             <p className="mt-3 text-sm text-[var(--color-muted)]">No packages yet.</p>
           ) : (
