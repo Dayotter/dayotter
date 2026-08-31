@@ -11,6 +11,7 @@
   "overlaySummaryMany": "{n} engagements superposés - les horaires grisés entrent en conflit avec votre agenda.",
   "loading": "Chargement des disponibilités…",
   "noTimes": "Aucun horaire disponible dans les deux prochaines semaines.",
+  "slotsAvailable": "{n} horaires disponibles",
   "busyTooltip": "Vous avez déjà quelque chose à cet horaire",
   "duration": "Durée",
   "durationMin": "{n} min",

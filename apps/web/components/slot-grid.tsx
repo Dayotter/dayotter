@@ -1,12 +1,13 @@
 "use client";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/booking";
 import { useBookingLocale } from "@/lib/i18n/use-locale";
 import { Layers } from "lucide-react";
 import { Sparkles } from "lucide-react";
 import { DateTime } from "luxon";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export interface Slot {
   start: string;
@@ -16,6 +17,75 @@ export interface Slot {
 /** The visitor's local IANA timezone. */
 export function useLocalZone() {
   return useMemo(() => DateTime.local().zoneName, []);
+}
+
+/**
+ * Fades the trailing edge of a scroll area while there is more to scroll, so a
+ * half-visible row reads as "keep going" instead of as a hard crop at the card
+ * edge. Direction is inferred, which covers the day rail being horizontal on
+ * phones and vertical from `sm` up.
+ */
+function useScrollFade<T extends HTMLElement>(contentKey: string | number) {
+  const ref = useRef<T>(null);
+  const [fade, setFade] = useState<"none" | "x" | "y">("none");
+
+  // The container is a fixed max-height, so swapping the rows inside it never
+  // resizes it and never fires the ResizeObserver - hence the explicit key.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure on content change
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => {
+      const vertical = el.scrollHeight > el.clientHeight;
+      const remaining = vertical
+        ? el.scrollHeight - el.clientHeight - el.scrollTop
+        : el.scrollWidth - el.clientWidth - el.scrollLeft;
+      setFade(remaining > 1 ? (vertical ? "y" : "x") : "none");
+    };
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => {
+      el.removeEventListener("scroll", check);
+      observer.disconnect();
+    };
+  }, [contentKey]);
+
+  const gradient =
+    fade === "none"
+      ? undefined
+      : `linear-gradient(to ${fade === "y" ? "bottom" : "right"}, #000 calc(100% - 28px), transparent)`;
+
+  return {
+    ref,
+    /** Spread onto the scroll container. */
+    fadeStyle: gradient ? { maskImage: gradient, WebkitMaskImage: gradient } : undefined,
+  };
+}
+
+/**
+ * Holds the same footprint the loaded grid will occupy. The old loading state
+ * was a single line of text, so the card grew by ~300px the moment slots
+ * arrived and pushed the page around under the booker's cursor.
+ */
+function SlotGridSkeleton() {
+  return (
+    <div className="grid gap-5 sm:grid-cols-[176px_1fr] sm:gap-6" aria-hidden>
+      {/* The real rail scrolls sideways on a phone; a placeholder must clip
+          instead, or six chips push the whole page wider than the viewport. */}
+      <div className="flex gap-1.5 overflow-hidden sm:flex-col">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-[38px] w-32 shrink-0 sm:w-full" />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <Skeleton key={i} className="h-[42px]" />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -148,8 +218,16 @@ export function SlotGrid({
   const days = useMemo(() => [...byDay.keys()].sort(), [byDay]);
   const currentDay = activeDay ?? days[0] ?? null;
   const daySlots = currentDay ? (byDay.get(currentDay) ?? []) : [];
+  const dayRail = useScrollFade<HTMLDivElement>(days.length);
+  const timeGrid = useScrollFade<HTMLDivElement>(`${currentDay}:${daySlots.length}`);
 
-  if (loading) return <p className="text-sm text-[var(--color-muted)]">{t(locale, "loading")}</p>;
+  if (loading) {
+    return (
+      <output aria-busy="true" aria-label={t(locale, "loading")} className="block">
+        <SlotGridSkeleton />
+      </output>
+    );
+  }
   if (days.length === 0) {
     return <p className="text-sm text-[var(--color-muted)]">{t(locale, "noTimes")}</p>;
   }
@@ -167,7 +245,7 @@ export function SlotGrid({
                 key={s.start}
                 type="button"
                 onClick={() => onSelect(s)}
-                className="rounded-md border border-[var(--color-accent)]/40 bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
+                className="rounded-md border border-[var(--color-accent)]/40 bg-[var(--color-surface)] px-3 py-1.5 text-sm tabular-nums text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
               >
                 {DateTime.fromISO(s.start)
                   .setZone(zone)
@@ -179,7 +257,7 @@ export function SlotGrid({
         </div>
       ) : null}
 
-      <div className="mb-3 flex items-center justify-between gap-2">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <p className="text-xs text-[var(--color-faint)]">{t(locale, "timesIn", { zone })}</p>
         {!overlayShown ? (
           <button
@@ -235,7 +313,11 @@ export function SlotGrid({
       ) : null}
 
       <div className="grid gap-5 sm:grid-cols-[176px_1fr] sm:gap-6">
-        <div className="flex gap-1.5 overflow-x-auto pb-1 sm:max-h-80 sm:flex-col sm:overflow-x-visible sm:overflow-y-auto sm:pb-0 sm:pr-1">
+        <div
+          ref={dayRail.ref}
+          style={dayRail.fadeStyle}
+          className="flex gap-1.5 overflow-x-auto pb-1 sm:max-h-80 sm:flex-col sm:overflow-x-visible sm:overflow-y-auto sm:pb-0 sm:pr-1"
+        >
           {days.map((d) => {
             const dt = DateTime.fromISO(d);
             const isActive = d === currentDay;
@@ -245,7 +327,7 @@ export function SlotGrid({
                 type="button"
                 onClick={() => setActiveDay(d)}
                 className={cn(
-                  "flex shrink-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm transition-colors sm:shrink",
+                  "flex shrink-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm tabular-nums transition-colors sm:shrink",
                   isActive
                     ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
                     : "border-[var(--color-border)] hover:border-[var(--color-border-strong)]",
@@ -255,7 +337,10 @@ export function SlotGrid({
                   {dt.setLocale(locale).toFormat("ccc, LLL d")}
                 </span>
                 <span className="text-xs text-[var(--color-muted)]">
-                  {(byDay.get(d) ?? []).length}
+                  <span aria-hidden>{(byDay.get(d) ?? []).length}</span>
+                  <span className="sr-only">
+                    {t(locale, "slotsAvailable", { n: (byDay.get(d) ?? []).length })}
+                  </span>
                 </span>
               </button>
             );
@@ -263,7 +348,11 @@ export function SlotGrid({
         </div>
 
         <div className="@container">
-          <div className="grid max-h-80 grid-cols-2 gap-2 overflow-y-auto pr-1 @[300px]:grid-cols-3 @[460px]:grid-cols-4">
+          <div
+            ref={timeGrid.ref}
+            style={timeGrid.fadeStyle}
+            className="grid max-h-80 grid-cols-2 gap-2 overflow-y-auto pr-1 @[300px]:grid-cols-3 @[460px]:grid-cols-4"
+          >
             {daySlots.map((s) => {
               const isRecommended = recommendedSet.has(s.start);
               const conflict = hasConflict(s);
