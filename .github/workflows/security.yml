@@ -38,7 +38,7 @@ jobs:
           --config p/react
           --config p/nextjs
       - name: Upload results to code scanning
-        uses: github/codeql-action/upload-sarif@v4.37.4
+        uses: github/codeql-action/upload-sarif@v4.37.9
         if: always()
         with:
           sarif_file: semgrep.sarif
