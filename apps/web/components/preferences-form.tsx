@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { ProLock } from "@/components/upgrade-prompt";
 import { cn } from "@/lib/cn";
 import { type Locale, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
@@ -283,42 +284,44 @@ export function PreferencesForm({
             Time protection
           </p>
           <div className="pt-1">
-            <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
-              <input
-                type="checkbox"
-                checked={adaptive}
-                onChange={(e) => {
-                  setAdaptive(e.target.checked);
-                  setSaved(false);
-                }}
-                className="mt-0.5 accent-[var(--color-accent)]"
-              />
-              <span>
-                Focus protection (adaptive availability)
-                <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
-                  On heavy days, stop offering slots once you hit your meeting cap - and
-                  hard-decline any booking that would push a day over it - so a full day doesn't get
-                  fuller and your focus time is protected.
-                </span>
-              </span>
-            </label>
-            {adaptive ? (
-              <div className="mt-3 flex items-center gap-2">
-                <Label htmlFor="max-per-day">Max meetings/day</Label>
-                <Input
-                  id="max-per-day"
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={maxPerDay}
+            <ProLock feature="adaptive">
+              <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+                <input
+                  type="checkbox"
+                  checked={adaptive}
                   onChange={(e) => {
-                    setMaxPerDay(Number(e.target.value) || 1);
+                    setAdaptive(e.target.checked);
                     setSaved(false);
                   }}
-                  className="w-20"
+                  className="mt-0.5 accent-[var(--color-accent)]"
                 />
-              </div>
-            ) : null}
+                <span>
+                  Focus protection (adaptive availability)
+                  <span className="mt-0.5 block text-xs text-[var(--color-faint)]">
+                    On heavy days, stop offering slots once you hit your meeting cap - and
+                    hard-decline any booking that would push a day over it - so a full day doesn't
+                    get fuller and your focus time is protected.
+                  </span>
+                </span>
+              </label>
+              {adaptive ? (
+                <div className="mt-3 flex items-center gap-2">
+                  <Label htmlFor="max-per-day">Max meetings/day</Label>
+                  <Input
+                    id="max-per-day"
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={maxPerDay}
+                    onChange={(e) => {
+                      setMaxPerDay(Number(e.target.value) || 1);
+                      setSaved(false);
+                    }}
+                    className="w-20"
+                  />
+                </div>
+              ) : null}
+            </ProLock>
           </div>
 
           <div className="border-t border-[var(--color-border)] pt-4">
@@ -343,27 +346,29 @@ export function PreferencesForm({
           </div>
 
           <div className="border-t border-[var(--color-border)] pt-4">
-            <Label htmlFor="travel-buffer">Travel time for in-person meetings</Label>
-            <p className="mb-2 -mt-1 text-xs text-[var(--color-faint)]">
-              Reserve this much travel time before and after every in-person booking, so you're
-              never offered back-to-back slots with no room to get there. 0 = off.
-            </p>
-            <div className="flex items-center gap-2">
-              <Input
-                id="travel-buffer"
-                type="number"
-                min={0}
-                max={240}
-                step={5}
-                value={travelBuffer}
-                onChange={(e) => {
-                  setTravelBuffer(Math.max(0, Number(e.target.value) || 0));
-                  setSaved(false);
-                }}
-                className="w-24"
-              />
-              <span className="text-sm text-[var(--color-muted)]">minutes each way</span>
-            </div>
+            <ProLock feature="travel">
+              <Label htmlFor="travel-buffer">Travel time for in-person meetings</Label>
+              <p className="mb-2 -mt-1 text-xs text-[var(--color-faint)]">
+                Reserve this much travel time before and after every in-person booking, so you're
+                never offered back-to-back slots with no room to get there. 0 = off.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="travel-buffer"
+                  type="number"
+                  min={0}
+                  max={240}
+                  step={5}
+                  value={travelBuffer}
+                  onChange={(e) => {
+                    setTravelBuffer(Math.max(0, Number(e.target.value) || 0));
+                    setSaved(false);
+                  }}
+                  className="w-24"
+                />
+                <span className="text-sm text-[var(--color-muted)]">minutes each way</span>
+              </div>
+            </ProLock>
           </div>
 
           <div className="border-t border-[var(--color-border)] pt-4">
