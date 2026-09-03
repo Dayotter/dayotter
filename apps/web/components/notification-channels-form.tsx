@@ -7,6 +7,7 @@ import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
+import { useFeature } from "@/components/upgrade-prompt";
 import { track } from "@/lib/analytics";
 import { CHANNEL_LABELS } from "@/lib/notifications/channel-input";
 import {
@@ -71,6 +72,10 @@ export function NotificationChannelsForm({
   const [phone, setPhone] = useState("");
   const [pushToken, setPushToken] = useState("");
   const [adding, setAdding] = useState(false);
+  // SMS carries a real carrier cost, so it's the one Pro reminder channel (Slack
+  // + WhatsApp are free). Fails open, so self-host is never blocked.
+  const { allowed: smsAllowed } = useFeature("sms_reminders");
+  const smsLocked = type === "sms" && !smsAllowed;
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Channel | null>(null);
@@ -324,6 +329,18 @@ export function NotificationChannelsForm({
               <p className="mt-1 text-xs text-[var(--color-faint)]">
                 International format, including country code.
               </p>
+              {smsLocked ? (
+                <p className="mt-2 text-xs text-[var(--color-muted)]">
+                  SMS reminders are a Pro feature (Slack and WhatsApp are free).{" "}
+                  <a
+                    href="/settings/billing"
+                    className="font-medium text-[var(--color-accent)] hover:underline"
+                  >
+                    Upgrade to Pro
+                  </a>{" "}
+                  to send them.
+                </p>
+              ) : null}
             </div>
           ) : null}
 
@@ -344,7 +361,7 @@ export function NotificationChannelsForm({
 
           <FormError>{error}</FormError>
 
-          <Button type="submit" disabled={adding}>
+          <Button type="submit" disabled={adding || smsLocked}>
             {adding ? (
               "Sending test…"
             ) : (

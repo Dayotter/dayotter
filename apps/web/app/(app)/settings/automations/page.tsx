@@ -12,25 +12,29 @@ export const dynamic = "force-dynamic";
  */
 export default function AutomationsSettingsPage() {
   return (
-    <ProGate feature="automation">
-      <div className="flex flex-col gap-10">
-        <section>
-          <h2 className="text-lg font-semibold">Scheduling rules</h2>
-          <p className="mb-4 mt-1 text-sm text-[var(--color-muted)]">
-            Reserve prep time and buffers around your bookings, and hold recurring focus blocks.
-          </p>
+    <div className="flex flex-col gap-10">
+      <section>
+        <h2 className="text-lg font-semibold">Scheduling rules</h2>
+        <p className="mb-4 mt-1 text-sm text-[var(--color-muted)]">
+          Reserve prep time and buffers around your bookings, and hold recurring focus blocks.
+        </p>
+        {/* Gated as `automation` - the same key the save route enforces. */}
+        <ProGate feature="automation">
           <AutomationsForm />
-        </section>
+        </ProGate>
+      </section>
 
-        <section id="messages">
-          <h2 className="text-lg font-semibold">Attendee messages</h2>
-          <p className="mb-4 mt-1 text-sm text-[var(--color-muted)]">
-            Send automated emails before and after a meeting - reminders and follow-ups, on your own
-            templates.
-          </p>
+      <section id="messages">
+        <h2 className="text-lg font-semibold">Attendee messages</h2>
+        <p className="mb-4 mt-1 text-sm text-[var(--color-muted)]">
+          Send automated emails before and after a meeting - reminders and follow-ups, on your own
+          templates.
+        </p>
+        {/* Gated as `workflows` - matches /api/workflows, not `automation`. */}
+        <ProGate feature="workflows">
           <WorkflowsForm />
-        </section>
-      </div>
-    </ProGate>
+        </ProGate>
+      </section>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import { ConfirmDialog } from "@/components/ui/dialog";
 import { FormError } from "@/components/ui/form";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { ProLock } from "@/components/upgrade-prompt";
 import { track } from "@/lib/analytics";
 import {
   type BookingQuestionInput,
@@ -975,87 +976,92 @@ export function EventTypeForm({
                 ) : null}
 
                 {paymentsEnabled ? (
-                  <div className="mt-4 rounded-md border border-[var(--color-border)] p-3">
-                    <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
-                      <input
-                        type="checkbox"
-                        checked={priceOn}
-                        onChange={(e) => setPriceOn(e.target.checked)}
-                        className="accent-[var(--color-accent)]"
-                      />
-                      Require payment to book
-                    </label>
-                    {priceOn ? (
-                      <div className="mt-3 space-y-3">
-                        <div className="flex items-end gap-2">
-                          <div className="flex-1">
-                            <Label htmlFor="price">Price</Label>
+                  <ProLock
+                    feature="accept_payments"
+                    note="Charging attendees for a booking is a Pro feature."
+                  >
+                    <div className="mt-4 rounded-md border border-[var(--color-border)] p-3">
+                      <label className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+                        <input
+                          type="checkbox"
+                          checked={priceOn}
+                          onChange={(e) => setPriceOn(e.target.checked)}
+                          className="accent-[var(--color-accent)]"
+                        />
+                        Require payment to book
+                      </label>
+                      {priceOn ? (
+                        <div className="mt-3 space-y-3">
+                          <div className="flex items-end gap-2">
+                            <div className="flex-1">
+                              <Label htmlFor="price">Price</Label>
+                              <div className="flex items-center gap-1">
+                                <span className="text-sm text-[var(--color-muted)]">
+                                  {CURRENCY_SYMBOL[currency as keyof typeof CURRENCY_SYMBOL]}
+                                </span>
+                                <Input
+                                  id="price"
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={priceMajor}
+                                  onChange={(e) => setPriceMajor(e.target.value)}
+                                  placeholder="25.00"
+                                />
+                              </div>
+                            </div>
+                            <div className="w-28">
+                              <Label htmlFor="currency">Currency</Label>
+                              <Select
+                                id="currency"
+                                value={currency}
+                                onChange={(e) => setCurrency(e.target.value)}
+                              >
+                                {CURRENCIES.map((c) => (
+                                  <option key={c} value={c}>
+                                    {c.toUpperCase()}
+                                  </option>
+                                ))}
+                              </Select>
+                            </div>
+                          </div>
+                          <label className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                            <input
+                              type="checkbox"
+                              checked={depositOn}
+                              onChange={(e) => setDepositOn(e.target.checked)}
+                              className="accent-[var(--color-accent)]"
+                            />
+                            Take a deposit instead of the full price
+                          </label>
+                          {depositOn ? (
                             <div className="flex items-center gap-1">
                               <span className="text-sm text-[var(--color-muted)]">
                                 {CURRENCY_SYMBOL[currency as keyof typeof CURRENCY_SYMBOL]}
                               </span>
                               <Input
-                                id="price"
+                                aria-label="Deposit amount"
                                 type="number"
                                 min={0}
                                 step="0.01"
-                                value={priceMajor}
-                                onChange={(e) => setPriceMajor(e.target.value)}
-                                placeholder="25.00"
+                                value={depositMajor}
+                                onChange={(e) => setDepositMajor(e.target.value)}
+                                placeholder="10.00"
+                                className="w-32"
                               />
+                              <span className="text-xs text-[var(--color-faint)]">
+                                charged to book
+                              </span>
                             </div>
-                          </div>
-                          <div className="w-28">
-                            <Label htmlFor="currency">Currency</Label>
-                            <Select
-                              id="currency"
-                              value={currency}
-                              onChange={(e) => setCurrency(e.target.value)}
-                            >
-                              {CURRENCIES.map((c) => (
-                                <option key={c} value={c}>
-                                  {c.toUpperCase()}
-                                </option>
-                              ))}
-                            </Select>
-                          </div>
+                          ) : null}
                         </div>
-                        <label className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
-                          <input
-                            type="checkbox"
-                            checked={depositOn}
-                            onChange={(e) => setDepositOn(e.target.checked)}
-                            className="accent-[var(--color-accent)]"
-                          />
-                          Take a deposit instead of the full price
-                        </label>
-                        {depositOn ? (
-                          <div className="flex items-center gap-1">
-                            <span className="text-sm text-[var(--color-muted)]">
-                              {CURRENCY_SYMBOL[currency as keyof typeof CURRENCY_SYMBOL]}
-                            </span>
-                            <Input
-                              aria-label="Deposit amount"
-                              type="number"
-                              min={0}
-                              step="0.01"
-                              value={depositMajor}
-                              onChange={(e) => setDepositMajor(e.target.value)}
-                              placeholder="10.00"
-                              className="w-32"
-                            />
-                            <span className="text-xs text-[var(--color-faint)]">
-                              charged to book
-                            </span>
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-xs text-[var(--color-faint)]">
-                        Collect payment via Stripe before the booking is confirmed.
-                      </p>
-                    )}
-                  </div>
+                      ) : (
+                        <p className="mt-1 text-xs text-[var(--color-faint)]">
+                          Collect payment via Stripe before the booking is confirmed.
+                        </p>
+                      )}
+                    </div>
+                  </ProLock>
                 ) : null}
               </div>
 

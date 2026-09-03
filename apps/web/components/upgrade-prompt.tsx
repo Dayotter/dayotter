@@ -112,3 +112,43 @@ export function ProGate({
     </div>
   );
 }
+
+/**
+ * Inline soft-gate for a single control that lives INSIDE a larger form (a
+ * toggle, a field, a small block) - where a full blurred-preview card would be
+ * too heavy. Entitled (incl. every self-host account): renders the control
+ * normally. Not entitled: shows it dimmed and non-interactive with a one-line
+ * "this is Pro, upgrade" note beneath, so a cloud free plan sees the option
+ * exists instead of it silently 402-ing (or saving nothing) on submit.
+ */
+export function ProLock({
+  feature,
+  children,
+  note,
+}: {
+  feature: Feature;
+  children: React.ReactNode;
+  note?: string;
+}) {
+  const { loading, allowed } = useFeature(feature);
+  if (loading || allowed) return <>{children}</>;
+  return (
+    <div>
+      <div aria-hidden className="pointer-events-none select-none opacity-55">
+        {children}
+      </div>
+      <p className="mt-2 flex items-center gap-1.5 text-xs text-[var(--color-muted)]">
+        <Sparkles size={13} className="shrink-0 text-[var(--color-accent)]" />
+        <span>
+          {note ?? `${FEATURE_LABEL[feature]} is a Pro feature.`}{" "}
+          <Link
+            href="/settings/billing"
+            className="font-medium text-[var(--color-accent)] hover:underline"
+          >
+            Upgrade to Pro
+          </Link>
+        </span>
+      </p>
+    </div>
+  );
+}
