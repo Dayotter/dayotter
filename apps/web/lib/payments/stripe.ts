@@ -1,3 +1,4 @@
+import { withdrawMinimum } from "@/lib/booking/money";
 import { logger } from "@dayotter/core";
 import Stripe from "stripe";
 
@@ -194,8 +195,10 @@ export const platformFeePercent = Math.max(
   Math.min(100, Number(process.env.STRIPE_PLATFORM_FEE_PERCENT ?? "0") || 0),
 );
 
-/** Minimum balance (minor units) a host can withdraw - $100. */
-export const WITHDRAW_MINIMUM = 10_000;
+/** The USD withdrawal minimum ($100), for surfaces that show a single figure
+ *  (the status route / mobile). The withdraw gate itself is per-currency - see
+ *  `withdrawMinimum()` in lib/booking/money. */
+export const WITHDRAW_MINIMUM = withdrawMinimum("usd");
 
 /** The platform fee (minor units) for a charge of `amount`. */
 export function platformFee(amount: number): number {

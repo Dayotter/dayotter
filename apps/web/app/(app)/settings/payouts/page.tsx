@@ -4,7 +4,6 @@ import { Card, CardBody } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import {
   type CurrencyBalance,
-  WITHDRAW_MINIMUM,
   connectedBalances,
   paymentsEnabled,
   platformFeePercent,
@@ -76,7 +75,6 @@ export default async function PayoutsSettingsPage() {
         payoutsEnabled={payouts}
         detailsSubmitted={submitted}
         balances={balances}
-        minimum={WITHDRAW_MINIMUM}
         feePercent={platformFeePercent}
       />
     </div>
