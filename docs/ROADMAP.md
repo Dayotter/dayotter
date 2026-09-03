@@ -65,6 +65,28 @@ briefings · ✅ API keys & webhooks · ✅ mobile app (Expo - Android live on G
 
 See [`AI.md`](./AI.md) for the detailed AI roadmap and how to contribute to it.
 
+## Considering (backlog)
+
+Bigger asks we've heard but haven't scheduled. Not commitments, and kept here
+rather than as open issues so the tracker stays focused on actionable work. 👍 in
+a [Discussion](../../discussions) or send a PR to pull one forward.
+
+- **Booking** - booker email/phone verification before a booking sticks · instant
+  "meet now" meetings · dynamic group booking (combine several people's links)
+- **Teams** - managed event types (org templates pushed to members)
+- **Integrations** - more calendars (Exchange on-prem, Lark, Zoho) · more CRM
+  (Pipedrive, Close, Attio, Zoho) · more payments (PayPal, BTCPay) · automation
+  apps (Zapier, Make, n8n)
+- **Video** - more providers (Whereby, …) · native video (recording,
+  transcription, AI summaries)
+- **Routing** - attribute / CRM-ownership routing
+- **Platform & API** - public REST API v2 · platform OAuth clients + managed users
+- **Security & compliance** - audit logs · RBAC / custom roles · SCIM directory
+  sync · domain-wide delegation · booking-page abuse prevention
+  (watchlist/blocklist/bot detection) · compliance posture (SOC 2 / HIPAA / ISO
+  27001)
+- **Branding & i18n** - custom CSS booking-page branding · more locales (dozens)
+
 ---
 
 ## How we prioritize
