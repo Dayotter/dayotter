@@ -3,8 +3,11 @@
 export const BRAND = {
   name: "DayOtter",
   tagline: "The calm home for your time.",
-  /** Canonical site origin - drives metadataBase, sitemap, canonical URLs, JSON-LD. */
-  url: process.env.NEXT_PUBLIC_APP_URL ?? "https://dayotter.com",
+  /** Canonical site origin - drives metadataBase, sitemap, canonical URLs, JSON-LD.
+   * Use `||`, not `??`: the Docker build sets NEXT_PUBLIC_APP_URL to an EMPTY
+   * string when it isn't provided, and `"" ?? default` keeps the empty string,
+   * which makes `new URL(BRAND.url)` in the root layout throw at build time. */
+  url: process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://dayotter.com",
   email: "hello@dayotter.com",
   github: "https://github.com/Dayotter/dayotter",
   githubLicense: "https://github.com/Dayotter/dayotter/blob/main/LICENSE",
