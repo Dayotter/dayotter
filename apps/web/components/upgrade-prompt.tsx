@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { FEATURE_LABEL, type Feature } from "@/lib/billing/features";
-import { Lock } from "lucide-react";
+import { Lock, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -34,7 +34,7 @@ export function useFeature(feature: Feature): FeatureState {
   return state;
 }
 
-/** A friendly paywall card shown in place of a Pro feature on the free plan. */
+/** A friendly standalone paywall card (used where there's nothing to preview). */
 export function UpgradePrompt({ feature }: { feature: Feature }) {
   return (
     <Card className="mx-auto max-w-md">
@@ -55,14 +55,60 @@ export function UpgradePrompt({ feature }: { feature: Feature }) {
   );
 }
 
+/** Compact upgrade card overlaid on a blurred feature preview. */
+function UpgradeOverlay({ feature }: { feature: Feature }) {
+  const label = FEATURE_LABEL[feature];
+  return (
+    <Card className="max-w-sm shadow-[var(--shadow-card)]">
+      <CardBody className="flex flex-col items-center gap-2.5 p-6 text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-accent)]/10">
+          <Sparkles size={17} className="text-[var(--color-accent)]" />
+        </div>
+        <h2 className="text-base font-semibold">This is what {label} looks like</h2>
+        <p className="text-sm text-[var(--color-muted)]">
+          It's a Pro feature. Upgrade ($9/seat/mo) to turn on {label.toLowerCase()} and every other
+          DayOtter differentiator.
+        </p>
+        <Link href="/settings/billing" className="mt-1">
+          <Button size="sm">Upgrade to Pro</Button>
+        </Link>
+      </CardBody>
+    </Card>
+  );
+}
+
 /**
- * Gate a client subtree behind an entitlement: renders the paywall when the
- * account isn't entitled, the children otherwise. On self-host everything is
- * entitled, so this is transparent.
+ * Gate a client subtree behind an entitlement. Entitled (incl. every self-host
+ * account): render the children normally. Not entitled: show the real feature as
+ * a **blurred, non-interactive preview** with an inviting upgrade card on top -
+ * so the free plan sees what it's missing instead of a bare "locked" wall. Pass
+ * `plain` for the standalone card where a preview would be empty or misleading.
  */
-export function ProGate({ feature, children }: { feature: Feature; children: React.ReactNode }) {
+export function ProGate({
+  feature,
+  children,
+  plain = false,
+}: {
+  feature: Feature;
+  children: React.ReactNode;
+  plain?: boolean;
+}) {
   const { loading, allowed } = useFeature(feature);
   if (loading) return null;
-  if (!allowed) return <UpgradePrompt feature={feature} />;
-  return <>{children}</>;
+  if (allowed) return <>{children}</>;
+  if (plain) return <UpgradePrompt feature={feature} />;
+  return (
+    <div className="relative isolate overflow-hidden rounded-lg">
+      {/* The real feature, rendered as a dead preview behind the upgrade card. */}
+      <div
+        aria-hidden
+        className="pointer-events-none max-h-[560px] select-none overflow-hidden opacity-50 blur-[2px]"
+      >
+        {children}
+      </div>
+      <div className="absolute inset-0 flex items-start justify-center bg-gradient-to-b from-transparent via-[var(--color-bg)]/70 to-[var(--color-bg)] px-6 pt-16">
+        <UpgradeOverlay feature={feature} />
+      </div>
+    </div>
+  );
 }
