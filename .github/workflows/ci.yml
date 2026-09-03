@@ -42,3 +42,28 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  # Exercise the real production build on every PR. Previously the Next.js build
+  # ran only inside the Docker deploy pipeline, so a build-only break (e.g. an
+  # empty NEXT_PUBLIC_APP_URL making `new URL("")` throw, #261) slipped past CI
+  # and failed at deploy time. This catches it on the PR instead. Runs with no
+  # app secrets - a clean build must not depend on any, exactly as Docker builds.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
