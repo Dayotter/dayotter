@@ -8,6 +8,7 @@ import { ProactiveOtter } from "@/components/proactive-otter";
 import { RunningLateButton } from "@/components/running-late-button";
 import { SectionHeading } from "@/components/section-heading";
 import { SetupChecklist } from "@/components/setup-checklist";
+import { StarNudge } from "@/components/star-nudge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { aiEnabled } from "@/lib/ai/llm";
@@ -338,6 +339,10 @@ export default async function DashboardPage() {
           ))}
         </div>
       )}
+
+      <div className="mt-8">
+        <StarNudge />
+      </div>
     </>
   );
 }
