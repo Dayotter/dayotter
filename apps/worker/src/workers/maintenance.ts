@@ -3,6 +3,7 @@ import { and, eq, getDb, lt, schema } from "@dayotter/db";
 import { QUEUE_NAMES, connection, enqueueSync } from "@dayotter/jobs";
 import { Worker } from "bullmq";
 import { materializeWeeklyBlocks } from "./automation-weekly";
+import { sendActivationNudges } from "./lifecycle-emails";
 import { sendDueBriefings } from "./morning-briefing";
 import { sendDueTeamBriefings } from "./team-briefing";
 
@@ -56,6 +57,10 @@ export function startMaintenanceWorker(): Worker {
       });
       await sendDueTeamBriefings().catch((err) => {
         logger.error("team briefing tick failed", { event: "team_briefing_tick_failed", err });
+      });
+      // Activation nudges (off unless LIFECYCLE_EMAILS=1). Idempotent per user+kind.
+      await sendActivationNudges().catch((err) => {
+        logger.error("lifecycle email tick failed", { event: "lifecycle_tick_failed", err });
       });
     },
     { connection, concurrency: 1 },

@@ -47,17 +47,26 @@ function safeUrl(url: string): string {
   return /^https?:\/\//i.test(url) ? url : "#";
 }
 
-function shell(heading: string, lines: string[], cta?: { label: string; url: string }): string {
+function shell(
+  heading: string,
+  lines: string[],
+  cta?: { label: string; url: string },
+  /** Lifecycle/marketing emails only: renders an Unsubscribe link in the footer. */
+  unsubscribeUrl?: string,
+): string {
   const body = lines
     .map((l) => `<p style="margin:0 0 10px;color:#3a3f4b;font-size:14px;line-height:1.6">${l}</p>`)
     .join("");
   const button = cta
     ? `<a href="${esc(safeUrl(cta.url))}" style="display:inline-block;margin-top:12px;background:#4f46e5;color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:500">${esc(cta.label)}</a>`
     : "";
+  const footer = unsubscribeUrl
+    ? `<p style="margin:24px 0 0;color:#98a0ae;font-size:12px">Sent by DayOtter · <a href="${esc(safeUrl(unsubscribeUrl))}" style="color:#98a0ae;text-decoration:underline">Unsubscribe from tips</a></p>`
+    : `<p style="margin:24px 0 0;color:#98a0ae;font-size:12px">Sent by DayOtter</p>`;
   return `<div style="max-width:520px;margin:0 auto;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif">
     <h2 style="font-size:18px;color:#0c0e14;margin:0 0 14px">${heading}</h2>
     ${body}${button}
-    <p style="margin:24px 0 0;color:#98a0ae;font-size:12px">Sent by DayOtter</p>
+    ${footer}
   </div>`;
 }
 
@@ -479,5 +488,65 @@ export function meetingRecap(d: MeetingRecapData): Rendered {
     subject: `Recap: ${d.eventTitle}`,
     text: `Your meeting "${d.eventTitle}" just wrapped.\n${when} · with ${d.attendees.join(", ") || "your guest"}.\n\nBook a follow-up: ${d.bookAgainUrl}\nSend a recap: ${d.messageUrl}\nView: ${d.manageUrl}`,
     html: shell(`How did it go${d.hostName ? `, ${esc(d.hostName)}` : ""}?`, lines),
+  };
+}
+
+// ---- Lifecycle / activation nudges (gated by the productEmails preference) ----
+
+export interface ActivationEmailData {
+  /** Recipient's first name (may be empty). */
+  name: string;
+  /** The host's own public booking link, e.g. https://app/ada. */
+  bookingUrl: string;
+  /** Dashboard URL. */
+  manageUrl: string;
+  /** One-click unsubscribe (flips off productEmails). */
+  unsubscribeUrl: string;
+}
+
+/**
+ * Sent to a host who set up DayOtter but hasn't been booked yet - the sharpest
+ * activation leak. Founder voice, one job: get them to share their link.
+ */
+export function activationShareLink(d: ActivationEmailData): Rendered {
+  const hi = d.name ? `Hi ${esc(d.name)},` : "Hi,";
+  const lines = [
+    `${hi} you set DayOtter up but haven't shared your booking link yet, and that link is really the whole point.`,
+    "Send it once and anyone can grab a time that works for both of you, with none of the back and forth.",
+    `Here's yours: <a href="${esc(safeUrl(d.bookingUrl))}">${esc(d.bookingUrl)}</a>`,
+    "Drop it in your email signature or a reply and the first booking usually lands within a day.",
+  ];
+  return {
+    subject: "Your booking link is ready to share",
+    text: `${d.name ? `Hi ${d.name},` : "Hi,"} you set DayOtter up but haven't shared your booking link yet.\n\nHere's yours: ${d.bookingUrl}\n\nDrop it in your email signature or a reply, and the first booking usually lands within a day.\n\nOpen your page: ${d.manageUrl}\n\nUnsubscribe from tips: ${d.unsubscribeUrl}`,
+    html: shell(
+      "Share your link and let people book you",
+      lines,
+      { label: "Open your booking page", url: d.bookingUrl },
+      d.unsubscribeUrl,
+    ),
+  };
+}
+
+/**
+ * Sent to a host who signed up but never connected a calendar - the top-of-funnel
+ * leak. Nudges the one setup step that makes availability real.
+ */
+export function activationConnectCalendar(d: ActivationEmailData): Rendered {
+  const hi = d.name ? `Hi ${esc(d.name)},` : "Hi,";
+  const lines = [
+    `${hi} welcome to DayOtter. You're one step from being bookable.`,
+    "Connect your Google, Outlook or Apple calendar and DayOtter only ever offers times when you're actually free, then writes each booking straight back onto it.",
+    "It takes about a minute, and nothing double-books after that.",
+  ];
+  return {
+    subject: "Connect your calendar so you never double-book",
+    text: `${d.name ? `Hi ${d.name},` : "Hi,"} welcome to DayOtter. Connect your Google, Outlook or Apple calendar and you'll only ever be offered times you're actually free.\n\nConnect it: ${d.manageUrl}\n\nUnsubscribe from tips: ${d.unsubscribeUrl}`,
+    html: shell(
+      "One step to being bookable",
+      lines,
+      { label: "Connect your calendar", url: d.manageUrl },
+      d.unsubscribeUrl,
+    ),
   };
 }
