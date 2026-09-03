@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FormError } from "@/components/ui/form";
 import { track } from "@/lib/analytics";
+import { minorPerUnit, withdrawMinimum } from "@/lib/booking/money";
 import { cn } from "@/lib/cn";
 import { Banknote, CheckCircle2, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -13,7 +14,9 @@ function money(minor: number, currency: string): string {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: currency.toUpperCase(),
-  }).format(minor / 100);
+    // Intl already picks the right decimals per currency; divide by the currency's
+    // own smallest-unit factor so zero-decimal balances (¥) aren't shown 100x low.
+  }).format(minor / minorPerUnit(currency));
 }
 
 interface CurrencyBalance {
@@ -28,7 +31,6 @@ export function PayoutsPanel({
   payoutsEnabled,
   detailsSubmitted,
   balances,
-  minimum,
   feePercent,
 }: {
   connected: boolean;
@@ -36,7 +38,6 @@ export function PayoutsPanel({
   payoutsEnabled: boolean;
   detailsSubmitted: boolean;
   balances: CurrencyBalance[];
-  minimum: number;
   feePercent: number;
 }) {
   const router = useRouter();
@@ -45,8 +46,8 @@ export function PayoutsPanel({
   const [done, setDone] = useState<string | null>(null);
 
   const ready = connected && chargesEnabled && payoutsEnabled;
-  // Withdraw is enabled if ANY currency bucket clears the minimum.
-  const canWithdraw = ready && balances.some((b) => b.available >= minimum);
+  // Withdraw is enabled if ANY currency bucket clears ITS OWN minimum.
+  const canWithdraw = ready && balances.some((b) => b.available >= withdrawMinimum(b.currency));
   // A stable primary currency for framing the minimum copy.
   const primary = balances[0]?.currency ?? "usd";
 
@@ -134,7 +135,7 @@ export function PayoutsPanel({
             </div>
           )}
           <p className="mt-2 text-xs text-[var(--color-faint)]">
-            Minimum withdrawal {money(minimum, primary)} per currency.
+            Minimum withdrawal {money(withdrawMinimum(primary), primary)} per currency.
           </p>
         </div>
 
@@ -149,7 +150,8 @@ export function PayoutsPanel({
             </Button>
             {!canWithdraw ? (
               <span className="text-sm text-[var(--color-muted)]">
-                You can withdraw once your balance reaches {money(minimum, primary)}.
+                You can withdraw once your balance reaches{" "}
+                {money(withdrawMinimum(primary), primary)}.
               </span>
             ) : null}
           </div>
