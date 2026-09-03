@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { aiEnabled } from "@/lib/ai/llm";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
+import { ensureUserWorkspace } from "@/lib/bootstrap";
 import { and, asc, eq, getDb, gt, gte, lte, schema } from "@dayotter/db";
 import {
   BarChart3,
@@ -33,6 +34,10 @@ export default async function DashboardPage() {
   const session = await getSession();
   const userId = session!.user.id;
   const tz = (session!.user as { timezone?: string }).timezone ?? "UTC";
+
+  // First login lands here: make sure the user has a workspace, a handle, a
+  // schedule and a starter event type, so their booking link works immediately.
+  await ensureUserWorkspace(userId);
 
   const db = getDb();
   const now = new Date();

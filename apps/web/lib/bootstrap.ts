@@ -80,6 +80,26 @@ export async function ensureUserWorkspace(userId: string): Promise<{
         endTime: "17:00:00",
       })),
     );
+
+    // 4. A starter event type, created once with the workspace, so a brand-new
+    // user has a working, shareable booking link straight away - before (or
+    // without) connecting a calendar. Tied to first bootstrap, so deleting all
+    // event types later never resurrects one. Guarded in case one already exists.
+    const hasEventType = await db.query.eventTypes.findFirst({
+      where: eq(schema.eventTypes.ownerId, userId),
+      columns: { id: true },
+    });
+    if (!hasEventType) {
+      await db.insert(schema.eventTypes).values({
+        organizationId: membership!.organizationId,
+        ownerId: userId,
+        scheduleId: schedule!.id,
+        slug: "30min",
+        title: "30 Minute Meeting",
+        description: "A quick 30-minute call.",
+        durationMinutes: 30,
+      });
+    }
   }
 
   return { organizationId: membership!.organizationId, scheduleId: schedule!.id, handle };
