@@ -49,6 +49,10 @@ export const userPreferences = pgTable(
     /** Post-meeting recap ("Scribe"): after a meeting ends, send the host a
      * recap + next-step nudges. */
     scribeEnabled: boolean("scribe_enabled").notNull().default(false),
+    /** Product & activation emails (share-your-link nudge, weekly digest, ...).
+     * Opted in by default; the unsubscribe link flips this off. Transactional
+     * booking emails always send regardless - this only gates lifecycle nudges. */
+    productEmails: boolean("product_emails").notNull().default(true),
 
     /** Show the AI "find me a time" helper on this host's public booking page. */
     bookingPageAssistant: boolean("booking_page_assistant").notNull().default(true),
@@ -83,6 +87,26 @@ export const userPreferences = pgTable(
     ...timestamps,
   },
   (t) => [uniqueIndex("user_preferences_user_idx").on(t.userId)],
+);
+
+/**
+ * Ledger of lifecycle / activation emails sent to a user, so a given nudge fires
+ * at most once. The unique (user, kind) index doubles as the send-lock: insert
+ * with onConflictDoNothing, and a zero-row result means it already went out.
+ * `created_at` is the send time.
+ */
+export const lifecycleEmails = pgTable(
+  "lifecycle_emails",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Which nudge: "share_link" | "connect_calendar" | ... */
+    kind: text("kind").notNull(),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("lifecycle_emails_user_kind_idx").on(t.userId, t.kind)],
 );
 
 /**

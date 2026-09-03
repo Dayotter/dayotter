@@ -16,6 +16,8 @@ export {
   teamBriefing,
   meetingRecap,
   guardrailAlert,
+  activationShareLink,
+  activationConnectCalendar,
   applyTemplateVars,
   WORKFLOW_VARIABLES,
   type BookingEmailData,
@@ -23,4 +25,5 @@ export {
   type TeamBriefingData,
   type MeetingRecapData,
   type GuardrailAlertData,
+  type ActivationEmailData,
 } from "./templates";

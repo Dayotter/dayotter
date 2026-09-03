@@ -435,6 +435,13 @@
       "when": 1787763112092,
       "tag": "0061_complex_killer_shrike",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1788433718026,
+      "tag": "0062_fresh_psynapse",
+      "breakpoints": true
     }
   ]
 }
