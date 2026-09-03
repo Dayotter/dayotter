@@ -18,6 +18,8 @@ export {
   guardrailAlert,
   activationShareLink,
   activationConnectCalendar,
+  weeklyDigest,
+  firstBookingCelebration,
   applyTemplateVars,
   WORKFLOW_VARIABLES,
   type BookingEmailData,
@@ -26,4 +28,5 @@ export {
   type MeetingRecapData,
   type GuardrailAlertData,
   type ActivationEmailData,
+  type WeeklyDigestData,
 } from "./templates";

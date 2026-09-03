@@ -550,3 +550,76 @@ export function activationConnectCalendar(d: ActivationEmailData): Rendered {
     ),
   };
 }
+
+export interface WeeklyDigestData {
+  name: string;
+  /** Meetings hosted in the week just gone. */
+  meetings: number;
+  /** Hours in those meetings (rounded to 0.1). */
+  hours: number;
+  /** Hours of focus/held time protected in the week (rounded to 0.1). */
+  focusHours: number;
+  /** Meetings already on the books for the week ahead. */
+  upcoming: number;
+  manageUrl: string;
+  unsubscribeUrl: string;
+}
+
+/**
+ * Weekly retention digest: a calm "here's your week" recap sent Monday morning.
+ * Reinforces the value (time booked + focus protected) and pulls the host back in.
+ */
+export function weeklyDigest(d: WeeklyDigestData): Rendered {
+  const hi = d.name ? `Hi ${esc(d.name)},` : "Hi,";
+  const quiet = d.meetings === 0 && d.focusHours === 0;
+  const lines = quiet
+    ? [
+        `${hi} last week was quiet on DayOtter, no meetings booked.`,
+        "If your link isn't out there yet, this is a good week to share it. One link, and people can grab a time that works for both of you.",
+      ]
+    : [
+        `${hi} here's your week just gone:`,
+        `<strong>${d.meetings}</strong> meeting${d.meetings === 1 ? "" : "s"} hosted, about <strong>${d.hours}</strong> hour${d.hours === 1 ? "" : "s"} of your time.`,
+        d.focusHours > 0
+          ? `<strong>${d.focusHours}</strong> hour${d.focusHours === 1 ? "" : "s"} of focus time protected.`
+          : "",
+        d.upcoming > 0
+          ? `${d.upcoming} already on the books for the week ahead.`
+          : "Nothing booked yet for the week ahead.",
+      ].filter(Boolean);
+  return {
+    subject: quiet
+      ? "Your week on DayOtter"
+      : `Your week on DayOtter: ${d.meetings} meeting${d.meetings === 1 ? "" : "s"}`,
+    text: `${d.name ? `Hi ${d.name},` : "Hi,"}\n\nLast week: ${d.meetings} meetings (${d.hours}h), ${d.focusHours}h focus protected. ${d.upcoming} coming up.\n\nOpen DayOtter: ${d.manageUrl}\n\nUnsubscribe from tips: ${d.unsubscribeUrl}`,
+    html: shell(
+      "Your week on DayOtter",
+      lines,
+      { label: "Open DayOtter", url: d.manageUrl },
+      d.unsubscribeUrl,
+    ),
+  };
+}
+
+/**
+ * Celebrates a host's first booking - the activation "aha". Warm, and nudges the
+ * repeat behaviour (share more, connect a calendar if they haven't).
+ */
+export function firstBookingCelebration(d: ActivationEmailData): Rendered {
+  const hi = d.name ? `${esc(d.name)}, ` : "";
+  const lines = [
+    `${hi}you just got your first booking on DayOtter. That's the whole thing working: someone picked a time, and it's on your calendar.`,
+    "Keep the link handy and it'll keep happening. The people who share it in their signature or bio get booked the most.",
+    `Your link: <a href="${esc(safeUrl(d.bookingUrl))}">${esc(d.bookingUrl)}</a>`,
+  ];
+  return {
+    subject: "🎉 Your first booking is in",
+    text: `${d.name ? `${d.name}, ` : ""}you just got your first booking on DayOtter.\n\nKeep sharing your link: ${d.bookingUrl}\n\nOpen DayOtter: ${d.manageUrl}\n\nUnsubscribe from tips: ${d.unsubscribeUrl}`,
+    html: shell(
+      "Your first booking is in 🎉",
+      lines,
+      { label: "See it on your dashboard", url: d.manageUrl },
+      d.unsubscribeUrl,
+    ),
+  };
+}
