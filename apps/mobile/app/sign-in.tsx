@@ -1,5 +1,5 @@
 import { TWO_FACTOR_REQUIRED, useAuth } from "@/auth";
-import { googleAuthEnabled } from "@/auth-client";
+import { googleAuthEnabled, phoneAuthEnabled } from "@/auth-client";
 import { BrandMark } from "@/components/brand-mark";
 import { hasOnboarded } from "@/onboarding-state";
 import { serverHost } from "@/server";
@@ -21,8 +21,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, signUp, signInWithGoogle, twoFactorPending, verifyTwoFactor, cancelTwoFactor } =
-    useAuth();
+  const {
+    signIn,
+    signUp,
+    signInWithGoogle,
+    twoFactorPending,
+    verifyTwoFactor,
+    cancelTwoFactor,
+    sendPhoneOtp,
+    verifyPhoneOtp,
+  } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -35,6 +43,12 @@ export default function SignInScreen() {
   const [code, setCode] = useState("");
   const [useBackup, setUseBackup] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  // Phone / SMS OTP flow (only rendered when the operator enables it).
+  const [phoneMode, setPhoneMode] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [phoneBusy, setPhoneBusy] = useState(false);
 
   // First launch → show onboarding before the sign-in form.
   useEffect(() => {
@@ -82,7 +96,108 @@ export default function SignInScreen() {
     else router.replace("/");
   }
 
+  function startPhone() {
+    setPhoneMode(true);
+    setError(null);
+  }
+
+  function backFromPhone() {
+    setPhoneMode(false);
+    setPhone("");
+    setOtp("");
+    setOtpSent(false);
+    setError(null);
+  }
+
+  async function sendOtp() {
+    setPhoneBusy(true);
+    setError(null);
+    const err = await sendPhoneOtp(phone.trim());
+    setPhoneBusy(false);
+    if (err) setError(err);
+    else setOtpSent(true);
+  }
+
+  async function verifyOtp() {
+    setPhoneBusy(true);
+    setError(null);
+    const err = await verifyPhoneOtp(phone.trim(), otp.trim());
+    setPhoneBusy(false);
+    if (err) setError(err);
+    else router.replace("/");
+  }
+
   if (!ready) return <View style={styles.safe} />;
+
+  // Phone / SMS OTP: enter number → receive a code → verify. Flag-gated.
+  if (phoneMode) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.flex}
+        >
+          <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+            <View style={styles.logoRow}>
+              <BrandMark size={48} />
+            </View>
+            <Text style={styles.heading}>Sign in with phone</Text>
+            <Text style={styles.sub}>
+              {otpSent ? "Enter the code we just texted you." : "We'll text you a one-time code."}
+            </Text>
+            <View style={styles.form}>
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+              <Field
+                label="Phone number"
+                value={phone}
+                onChange={setPhone}
+                placeholder="+14155551234"
+                keyboardType="phone-pad"
+                textContentType="telephoneNumber"
+                autoComplete="tel"
+              />
+              {otpSent ? (
+                <Field
+                  label="Code"
+                  value={otp}
+                  onChange={setOtp}
+                  placeholder="123456"
+                  keyboardType="number-pad"
+                  textContentType="oneTimeCode"
+                  autoComplete="sms-otp"
+                />
+              ) : null}
+              <Pressable
+                style={styles.button}
+                onPress={otpSent ? verifyOtp : sendOtp}
+                disabled={
+                  phoneBusy || (otpSent ? otp.trim().length === 0 : phone.trim().length === 0)
+                }
+              >
+                <Text style={styles.buttonText}>
+                  {phoneBusy ? "Please wait…" : otpSent ? "Verify & sign in" : "Send code"}
+                </Text>
+              </Pressable>
+              {otpSent ? (
+                <Pressable
+                  onPress={() => {
+                    setOtpSent(false);
+                    setOtp("");
+                    setError(null);
+                  }}
+                >
+                  <Text style={styles.toggle}>Use a different number</Text>
+                </Pressable>
+              ) : null}
+              <Pressable onPress={backFromPhone}>
+                <Text style={styles.serverLink}>Back to sign in</Text>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
 
   // 2FA account mid-sign-in: collect the authenticator (or backup) code.
   if (twoFactorPending) {
@@ -146,6 +261,8 @@ export default function SignInScreen() {
   }
 
   const showGoogle = googleAuthEnabled && Platform.OS !== "ios";
+  // Phone/email aren't third-party social logins, so no Apple 4.8 concern - phone can show on iOS.
+  const showSocial = showGoogle || phoneAuthEnabled;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -175,7 +292,17 @@ export default function SignInScreen() {
               </Pressable>
             ) : null}
 
-            {showGoogle ? (
+            {phoneAuthEnabled ? (
+              <Pressable
+                style={[styles.googleBtn, showGoogle ? { marginTop: 12 } : null]}
+                onPress={startPhone}
+              >
+                <Ionicons name="call-outline" size={18} color={colors.text} />
+                <Text style={styles.googleText}>Continue with phone</Text>
+              </Pressable>
+            ) : null}
+
+            {showSocial ? (
               <View style={styles.divider}>
                 <View style={styles.line} />
                 <Text style={styles.dividerText}>or continue with email</Text>
