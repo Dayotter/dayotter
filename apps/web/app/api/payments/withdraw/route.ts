@@ -1,4 +1,4 @@
-import { WITHDRAW_MINIMUM, connectedBalances, createConnectedPayout, getWithdrawMinimum } from "@/lib/payments/stripe";
+import {  connectedBalances, createConnectedPayout, getWithdrawMinimum } from "@/lib/payments/stripe";
 import { jsonError, withUser } from "@/lib/server/http";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";

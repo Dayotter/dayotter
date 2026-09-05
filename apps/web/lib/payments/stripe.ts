@@ -195,7 +195,8 @@ export const platformFeePercent = Math.max(
 );
 
 /** Minimum balance (minor units) a host can withdraw - $100. */
-export const WITHDRAW_MINIMUM = 10_000;const WITHDRAW_MINIMUM_MAJOR = 100;
+export const WITHDRAW_MINIMUM = 10_000;
+const WITHDRAW_MINIMUM_MAJOR = 100;
 
 const ZERO_DECIMAL_CURRENCIES = new Set([
   "bif",
