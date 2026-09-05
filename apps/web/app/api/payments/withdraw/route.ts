@@ -1,4 +1,4 @@
-import { WITHDRAW_MINIMUM, connectedBalances, createConnectedPayout } from "@/lib/payments/stripe";
+import { WITHDRAW_MINIMUM, connectedBalances, createConnectedPayout, getWithdrawMinimum } from "@/lib/payments/stripe";
 import { jsonError, withUser } from "@/lib/server/http";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
@@ -27,7 +27,7 @@ export const POST = withUser(async (u) => {
 
   try {
     const balances = await connectedBalances(user.stripeAccountId);
-    const withdrawable = balances.filter((b) => b.available >= WITHDRAW_MINIMUM);
+    const withdrawable = balances.filter((b) => b.available >= getWithdrawMinimum(b.currency));
     if (withdrawable.length === 0) {
       return jsonError("You need at least the minimum available to withdraw.", 400);
     }
