@@ -9,7 +9,7 @@ export default function NewPollPage() {
       <PageHeader
         eyebrow="Group poll"
         title="Find a time"
-        description="Propose a few times, share the link, and let everyone vote. You pick the winner."
+        description="Propose a few times, then use a public link or email personal voting links. You pick the winner."
       />
       <PollCreateForm />
     </>
