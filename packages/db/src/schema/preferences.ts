@@ -40,6 +40,11 @@ export const userPreferences = pgTable(
     /** Auto-notify the next meeting's attendees when a meeting overruns. */
     overflowNotifyEnabled: boolean("overflow_notify_enabled").notNull().default(false),
 
+    /** Default meeting-details message for group polls: pre-filled when the host
+     * finalizes a poll so recurring details (a Zoom link, address, ...) are set
+     * once instead of pasted into every poll. May contain the {details} placeholder. */
+    pollMeetingDetailsTemplate: text("poll_meeting_details_template"),
+
     /** Daily morning briefing: send a "here's your day" summary each morning. */
     briefingEnabled: boolean("briefing_enabled").notNull().default(false),
     /** Local hour (0–23) at which to send the morning briefing. */
