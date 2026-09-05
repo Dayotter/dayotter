@@ -17,9 +17,13 @@ const CHOICES: { value: Response; label: string; icon: typeof Check }[] = [
 export function PollVoteForm({
   token,
   options,
+  inviteToken,
+  invitedEmail,
 }: {
   token: string;
   options: { id: string; startISO: string }[];
+  inviteToken?: string;
+  invitedEmail?: string;
 }) {
   const zone = useMemo(() => DateTime.local().zoneName, []);
   const rows = useMemo(
@@ -31,7 +35,7 @@ export function PollVoteForm({
     [options, zone],
   );
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(invitedEmail ?? "");
   const [responses, setResponses] = useState<Record<string, Response>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +59,12 @@ export function PollVoteForm({
     const res = await fetch(`/api/poll/${token}/vote`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), email: email.trim(), responses: chosen }),
+      body: JSON.stringify({
+        name: name.trim(),
+        email: email.trim(),
+        inviteToken,
+        responses: chosen,
+      }),
     });
     setSubmitting(false);
     if (!res.ok) {
@@ -93,8 +102,15 @@ export function PollVoteForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@company.com"
+            readOnly={Boolean(invitedEmail)}
+            className={invitedEmail ? "bg-[var(--color-surface-2)] text-[var(--color-muted)]" : ""}
             required
           />
+          {invitedEmail ? (
+            <p className="mt-1 text-xs text-[var(--color-faint)]">
+              This vote is linked to your invitation.
+            </p>
+          ) : null}
         </div>
       </div>
 
