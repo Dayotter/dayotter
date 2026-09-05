@@ -196,6 +196,33 @@ export const platformFeePercent = Math.max(
 
 /** Minimum balance (minor units) a host can withdraw - $100. */
 export const WITHDRAW_MINIMUM = 10_000;
+const WITHDRAW_MINIMUM_MAJOR = 100;
+
+const ZERO_DECIMAL_CURRENCIES = new Set([
+  "bif",
+  "clp",
+  "djf",
+  "gnf",
+  "jpy",
+  "kmf",
+  "krw",
+  "mga",
+  "pyg",
+  "rwf",
+  "ugx",
+  "vnd",
+  "vuv",
+  "xaf",
+  "xof",
+  "xpf",
+]);
+
+/** Return the minimum withdrawal amount in Stripe minor units. */
+export function getWithdrawMinimum(currency: string): number {
+  return ZERO_DECIMAL_CURRENCIES.has(currency.toLowerCase())
+    ? WITHDRAW_MINIMUM_MAJOR
+    : WITHDRAW_MINIMUM_MAJOR * 100;
+}
 
 /** The platform fee (minor units) for a charge of `amount`. */
 export function platformFee(amount: number): number {
@@ -295,3 +322,4 @@ export async function createConnectedPayout(
   );
   return { id: payout.id };
 }
+
