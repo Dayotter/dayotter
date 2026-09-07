@@ -10,12 +10,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@better-auth/expo": "1.6.23",
+    "@better-auth/expo": "1.7.2",
     "@dayotter/core": "workspace:*",
     "@expo/metro-runtime": "~5.0.5",
     "@expo/vector-icons": "~14.1.0",
     "@react-native-community/datetimepicker": "8.4.1",
-    "better-auth": "1.6.23",
+    "better-auth": "1.7.2",
     "expo": "~53.0.27",
     "expo-build-properties": "~0.14.8",
     "expo-constants": "~17.1.8",
@@ -30,15 +30,15 @@
     "expo-speech-recognition": "1.1.1",
     "expo-status-bar": "~2.2.3",
     "expo-web-browser": "~14.2.0",
-    "react": "19.0.0",
-    "react-native": "0.79.6",
-    "react-native-edge-to-edge": "1.6.0",
-    "react-native-safe-area-context": "5.4.0",
-    "react-native-screens": "~4.11.1",
-    "react-native-svg": "15.11.2"
+    "react": "19.2.8",
+    "react-native": "0.87.1",
+    "react-native-edge-to-edge": "1.8.1",
+    "react-native-safe-area-context": "5.9.1",
+    "react-native-screens": "~4.27.0",
+    "react-native-svg": "15.15.5"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0",
+    "@types/react": "~19.2.18",
     "react-native-svg-transformer": "^1.5.3",
     "typescript": "^5.8.3"
   }
