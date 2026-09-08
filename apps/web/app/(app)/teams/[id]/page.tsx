@@ -222,7 +222,7 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                           >
                             Edit
                           </Link>
-                          <DeleteTeamEvent teamId={team.id} eventId={e.id} title={e.title} />
+                          <DeleteTeamEvent eventId={e.id} title={e.title} />
                         </div>
                       ) : null}
                     </div>

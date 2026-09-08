@@ -255,11 +255,9 @@ const DURATIONS = [15, 30, 45, 60];
 
 /** Delete a team event type (after a two-click confirm). Only shown to admins. */
 export function DeleteTeamEvent({
-  teamId,
   eventId,
   title,
 }: {
-  teamId: string;
   eventId: string;
   title: string;
 }) {
