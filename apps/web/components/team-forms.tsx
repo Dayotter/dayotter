@@ -4,6 +4,7 @@ import { FormError } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
+import { track } from "@/lib/analytics";
 import { Plus, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -271,7 +272,11 @@ export function DeleteTeamEvent({
     setLoading(true);
     const res = await fetch(`/api/event-types/${eventId}`, { method: "DELETE" });
     if (res.ok) {
-      toast({ title: `"${title}" deleted`, variant: "success" });
+      const data = (await res.json().catch(() => ({}))) as { archived?: boolean };
+      // Bookings exist → the route hides the event instead of deleting it.
+      const verb = data.archived ? "hidden (bookings kept)" : "deleted";
+      toast({ title: `"${title}" ${verb}`, variant: "success" });
+      track("Event Type Deleted", { archived: Boolean(data.archived) });
       router.refresh();
       return;
     }
