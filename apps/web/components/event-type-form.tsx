@@ -91,10 +91,13 @@ export function EventTypeForm({
   mode,
   initial,
   paymentsEnabled = false,
+  redirectTo = "/event-types",
 }: {
   mode: "create" | "edit";
   initial?: EventTypeInitial;
   paymentsEnabled?: boolean;
+  /** Where to send the user after save/delete; team events return to the team page. */
+  redirectTo?: string;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -310,7 +313,7 @@ export function EventTypeForm({
       locationCount: cleanLocations.length,
       questionCount: questions.length,
     });
-    router.push("/event-types");
+    router.push(redirectTo);
     router.refresh();
   }
 
@@ -325,7 +328,7 @@ export function EventTypeForm({
       return;
     }
     track("Event Type Deleted");
-    router.push("/event-types");
+    router.push(redirectTo);
     router.refresh();
   }
 

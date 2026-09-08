@@ -9,6 +9,7 @@ import {
   MemberBookable,
   RemoveMember,
 } from "@/components/team-forms";
+import { DeleteTeamEvent } from "@/components/team-forms";
 import { TeamRules } from "@/components/team-rules";
 import { TeamScheduleView } from "@/components/team-schedule-view";
 import { TransferTeamOwnership } from "@/components/transfer-team-ownership";
@@ -205,6 +206,17 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                     >
                       /team/{team.slug}/{e.slug} <ExternalLink size={13} />
                     </Link>
+                    {canManage ? (
+                      <div className="flex items-center gap-3">
+                        <Link
+                          href={`/teams/${team.id}/events/${e.id}/edit`}
+                          className="text-xs text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+                        >
+                          Edit
+                        </Link>
+                        <DeleteTeamEvent teamId={team.id} eventId={e.id} title={e.title} />
+                      </div>
+                    ) : null}
                   </li>
                 ))}
               </ul>

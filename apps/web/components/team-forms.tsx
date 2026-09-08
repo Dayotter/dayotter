@@ -252,6 +252,67 @@ export function MemberBookable({
 
 const DURATIONS = [15, 30, 45, 60];
 
+/** Delete a team event type (after a two-click confirm). Only shown to admins. */
+export function DeleteTeamEvent({
+  teamId,
+  eventId,
+  title,
+}: {
+  teamId: string;
+  eventId: string;
+  title: string;
+}) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function remove() {
+    setLoading(true);
+    const res = await fetch(`/api/event-types/${eventId}`, { method: "DELETE" });
+    if (res.ok) {
+      toast({ title: `"${title}" deleted`, variant: "success" });
+      router.refresh();
+      return;
+    }
+    setLoading(false);
+    setConfirming(false);
+    toast({ title: "Couldn't delete event", variant: "error" });
+  }
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="text-xs text-[var(--color-muted)] transition-colors hover:text-[var(--color-danger)]"
+      >
+        Delete
+      </button>
+    );
+  }
+  return (
+    <span className="flex items-center gap-2 text-xs">
+      <button
+        type="button"
+        onClick={remove}
+        disabled={loading}
+        className="font-medium text-[var(--color-danger)] hover:underline disabled:opacity-50"
+      >
+        {loading ? "Deleting…" : "Confirm delete"}
+      </button>
+      <button
+        type="button"
+        onClick={() => setConfirming(false)}
+        disabled={loading}
+        className="text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+      >
+        Cancel
+      </button>
+    </span>
+  );
+}
+
 export function CreateTeamEventForm({ teamId }: { teamId: string }) {
   const router = useRouter();
   const { toast } = useToast();
