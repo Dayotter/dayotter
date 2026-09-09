@@ -6,6 +6,7 @@ import { TeamCalendarSharing } from "@/components/team-calendar-sharing";
 import {
   AddMemberForm,
   CreateTeamEventForm,
+  DeleteTeamEvent,
   MemberBookable,
   RemoveMember,
 } from "@/components/team-forms";
@@ -191,20 +192,40 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                 {events.map((e) => (
                   <li
                     key={e.id}
-                    className="flex items-center justify-between rounded-md border border-[var(--color-border)] px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-md border border-[var(--color-border)] px-4 py-3"
                   >
                     <div>
-                      <p className="text-sm font-medium">{e.title}</p>
+                      <p className="flex items-center gap-2 text-sm font-medium">
+                        {e.title}
+                        {!e.isActive ? (
+                          <span className="rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[11px] font-normal text-[var(--color-muted)]">
+                            hidden
+                          </span>
+                        ) : null}
+                      </p>
                       <p className="text-xs text-[var(--color-muted)]">
                         {e.durationMinutes}m · {TYPE_LABEL[e.schedulingType] ?? e.schedulingType}
                       </p>
                     </div>
-                    <Link
-                      href={`/team/${team.slug}/${e.slug}`}
-                      className="inline-flex items-center gap-1.5 text-sm text-[var(--color-accent)] hover:underline"
-                    >
-                      /team/{team.slug}/{e.slug} <ExternalLink size={13} />
-                    </Link>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <Link
+                        href={`/team/${team.slug}/${e.slug}`}
+                        className="inline-flex items-center gap-1.5 text-sm text-[var(--color-accent)] hover:underline"
+                      >
+                        /team/{team.slug}/{e.slug} <ExternalLink size={13} />
+                      </Link>
+                      {canManage ? (
+                        <div className="flex items-center gap-3">
+                          <Link
+                            href={`/teams/${team.id}/events/${e.id}/edit`}
+                            className="text-xs text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+                          >
+                            Edit
+                          </Link>
+                          <DeleteTeamEvent eventId={e.id} title={e.title} />
+                        </div>
+                      ) : null}
+                    </div>
                   </li>
                 ))}
               </ul>
