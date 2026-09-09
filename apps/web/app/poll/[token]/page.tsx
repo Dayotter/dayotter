@@ -17,9 +17,17 @@ export async function generateMetadata({
   return { title: poll ? `Vote: ${poll.title} - DayOtter` : "Poll - DayOtter" };
 }
 
-export default async function PublicPollPage({ params }: { params: Promise<{ token: string }> }) {
+export default async function PublicPollPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { token } = await params;
-  const poll = await getPollByToken(token);
+  const query = await searchParams;
+  const inviteToken = typeof query.invite === "string" ? query.invite : undefined;
+  const poll = await getPollByToken(token, inviteToken);
   if (!poll) notFound();
 
   const finalized = poll.status === "finalized";
@@ -34,6 +42,12 @@ export default async function PublicPollPage({ params }: { params: Promise<{ tok
           <p className="mt-2 flex items-center gap-1.5 text-sm text-[var(--color-muted)]">
             <Clock size={15} /> {poll.durationMinutes} minutes
           </p>
+
+          {poll.inviteMessage ? (
+            <p className="mt-4 whitespace-pre-line rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-3 text-sm text-[var(--color-muted)]">
+              {poll.inviteMessage}
+            </p>
+          ) : null}
 
           <div className="mt-6">
             {finalized ? (
@@ -56,6 +70,8 @@ export default async function PublicPollPage({ params }: { params: Promise<{ tok
                   id: o.id,
                   startISO: o.startsAt.toISOString(),
                 }))}
+                inviteToken={inviteToken}
+                invitedEmail={poll.currentInvite?.email}
               />
             )}
           </div>

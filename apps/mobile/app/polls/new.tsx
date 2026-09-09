@@ -24,6 +24,7 @@ export default function NewPollScreen() {
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState(30);
   const [location, setLocation] = useState("google_meet");
+  const [message, setMessage] = useState("");
   const [times, setTimes] = useState<Date[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -81,6 +82,7 @@ export default function NewPollScreen() {
         title: title.trim(),
         durationMinutes: duration,
         location,
+        message: message.trim() || undefined,
         times: iso,
       });
       // Replace so Back returns to the list, not the empty create form.
@@ -132,6 +134,16 @@ export default function NewPollScreen() {
             </Pressable>
           ))}
         </View>
+
+        <Text style={styles.label}>Message to invitees (optional)</Text>
+        <TextInput
+          style={[styles.input, styles.messageInput]}
+          value={message}
+          onChangeText={setMessage}
+          placeholder="e.g. Here's the agenda for our call."
+          placeholderTextColor={colors.faint}
+          multiline
+        />
 
         <Text style={styles.label}>Propose some times</Text>
         <Text style={styles.hint}>
@@ -191,6 +203,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     marginBottom: 18,
   },
+  messageInput: { minHeight: 88, textAlignVertical: "top" },
   pills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
   pill: {
     borderWidth: 1,

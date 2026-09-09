@@ -1,4 +1,5 @@
 import { AnalyticsPreferences } from "@/components/analytics-preferences";
+import { PollMessageTemplates } from "@/components/poll-message-templates";
 import { PreferencesForm } from "@/components/preferences-form";
 import { getSession } from "@/lib/auth/session";
 import { isSupportedLocale } from "@/lib/i18n/server";
@@ -35,6 +36,7 @@ export default async function PreferencesSettingsPage() {
           bookingPageAssistant: prefs?.bookingPageAssistant ?? true,
         }}
       />
+      <PollMessageTemplates />
       <AnalyticsPreferences />
     </>
   );
