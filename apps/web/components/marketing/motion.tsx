@@ -1,9 +1,16 @@
 "use client";
 
-import { type Variants, motion } from "framer-motion";
+import { type Variants, motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
 
 const ease = [0.22, 1, 0.36, 1] as const;
+
+/*
+ * Every helper here bails out to a plain, already-visible <div> under
+ * `prefers-reduced-motion: reduce`. Reveal/Stagger start at opacity 0, and Float
+ * loops forever - without this the whole marketing site animates at a reader who
+ * asked it not to, and the looping one never settles.
+ */
 
 /** Fade + rise into view on scroll. */
 export function Reveal({
@@ -17,6 +24,8 @@ export function Reveal({
   y?: number;
   className?: string;
 }) {
+  const reduce = useReducedMotion();
+  if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div
       className={className}
@@ -41,6 +50,8 @@ const item: Variants = {
 
 /** Staggered entrance for a group of children (use with <Stagger.Item>). */
 export function Stagger({ children, className }: { children: ReactNode; className?: string }) {
+  const reduce = useReducedMotion();
+  if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div
       className={className}
@@ -61,6 +72,8 @@ Stagger.Item = function StaggerItem({
   children: ReactNode;
   className?: string;
 }) {
+  const reduce = useReducedMotion();
+  if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div className={className} variants={item}>
       {children}
@@ -78,6 +91,8 @@ export function FadeUp({
   delay?: number;
   className?: string;
 }) {
+  const reduce = useReducedMotion();
+  if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div
       className={className}
@@ -92,6 +107,8 @@ export function FadeUp({
 
 /** Gentle continuous float for hero visuals. */
 export function Float({ children, className }: { children: ReactNode; className?: string }) {
+  const reduce = useReducedMotion();
+  if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div
       className={className}

@@ -118,9 +118,43 @@
   ::selection {
     background: color-mix(in srgb, var(--color-accent) 22%, transparent);
   }
-  body,
-  body * {
+  /* Theme changes cross-fade the whole page. This is scoped to the ~220ms the
+     toggle keeps `.theme-transition` on <html> - as a permanent rule on every
+     element it also delayed hover, focus and selection feedback by 120-180ms,
+     which made ordinary interaction feel soft. */
+  html.theme-transition,
+  html.theme-transition * {
     transition: background-color 0.18s ease, border-color 0.18s ease, color 0.12s ease;
+  }
+
+  /* Keyboard focus. Without this the browser default ring is the only thing
+     marking focus outside the handful of components that style it themselves,
+     and it is close to invisible on the warm surfaces. */
+  :focus-visible {
+    /* Longhands, not the `outline` shorthand: through the shorthand the accent
+       is dropped and the ring falls back to currentColor, which on muted text is
+       the low-contrast ring this rule exists to replace. */
+    outline-style: solid;
+    outline-width: 2px;
+    outline-color: var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  /* Pointer interaction never draws the ring, only keyboard/AT focus does. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Browser chrome that ships with no design: the caret and link underlines. */
+  input,
+  textarea,
+  select,
+  [contenteditable] {
+    caret-color: var(--color-accent);
+  }
+  a {
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: from-font;
   }
 }
 
