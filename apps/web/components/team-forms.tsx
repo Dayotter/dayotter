@@ -4,6 +4,7 @@ import { FormError } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
+import { track } from "@/lib/analytics";
 import { Plus, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -251,6 +252,69 @@ export function MemberBookable({
 }
 
 const DURATIONS = [15, 30, 45, 60];
+
+/** Delete a team event type (after a two-click confirm). Only shown to admins. */
+export function DeleteTeamEvent({
+  eventId,
+  title,
+}: {
+  eventId: string;
+  title: string;
+}) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function remove() {
+    setLoading(true);
+    const res = await fetch(`/api/event-types/${eventId}`, { method: "DELETE" });
+    if (res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { archived?: boolean };
+      // Bookings exist → the route hides the event instead of deleting it.
+      const verb = data.archived ? "hidden (bookings kept)" : "deleted";
+      toast({ title: `"${title}" ${verb}`, variant: "success" });
+      track("Event Type Deleted", { archived: Boolean(data.archived) });
+      router.refresh();
+      return;
+    }
+    setLoading(false);
+    setConfirming(false);
+    toast({ title: "Couldn't delete event", variant: "error" });
+  }
+
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="text-xs text-[var(--color-muted)] transition-colors hover:text-[var(--color-danger)]"
+      >
+        Delete
+      </button>
+    );
+  }
+  return (
+    <span className="flex items-center gap-2 text-xs">
+      <button
+        type="button"
+        onClick={remove}
+        disabled={loading}
+        className="font-medium text-[var(--color-danger)] hover:underline disabled:opacity-50"
+      >
+        {loading ? "Deleting…" : "Confirm delete"}
+      </button>
+      <button
+        type="button"
+        onClick={() => setConfirming(false)}
+        disabled={loading}
+        className="text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+      >
+        Cancel
+      </button>
+    </span>
+  );
+}
 
 export function CreateTeamEventForm({ teamId }: { teamId: string }) {
   const router = useRouter();

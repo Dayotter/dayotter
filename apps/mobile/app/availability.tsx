@@ -3,6 +3,7 @@ import { ErrorText, Loading } from "@/components/ui";
 import type { Schedule } from "@/models";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
@@ -11,6 +12,24 @@ const ORDER = [1, 2, 3, 4, 5, 6, 0];
 const LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 type Range = { start: string; end: string };
 
+/** "HH:MM" -> a Date today at that time (for the native time picker). */
+function parseHM(hm: string): Date {
+  const [h, m] = hm.split(":").map((n) => Number.parseInt(n, 10));
+  const d = new Date();
+  d.setHours(Number.isFinite(h) ? h : 9, Number.isFinite(m) ? m : 0, 0, 0);
+  return d;
+}
+/** Date -> "HH:MM" (24h, the format the schedule API stores). */
+function toHM(d: Date): string {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+/** "HH:MM" -> a friendly localized label for the button (respects the device clock). */
+function fmtTime(hm: string): string {
+  return parseHM(hm).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+type Editing = { dow: number; idx: number; field: "start" | "end" };
+
 export default function AvailabilityScreen() {
   const router = useRouter();
   const [timezone, setTimezone] = useState("UTC");
@@ -18,6 +37,25 @@ export default function AvailabilityScreen() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  // A single screen-level time picker (which field it edits), mirroring polls/new.
+  const [editing, setEditing] = useState<Editing | null>(null);
+
+  function onPickTime(event: { type: string }, date?: Date) {
+    const ed = editing;
+    setEditing(null);
+    if (event.type === "dismissed" || !date || !ed) return;
+    const hm = toHM(date);
+    setDays((prev) =>
+      prev
+        ? prev.map((ranges, i) =>
+            i === ed.dow
+              ? ranges.map((x, j) => (j === ed.idx ? { ...x, [ed.field]: hm } : x))
+              : ranges,
+          )
+        : prev,
+    );
+    setSaved(false);
+  }
 
   useEffect(() => {
     api
@@ -70,7 +108,7 @@ export default function AvailabilityScreen() {
       });
       setSaved(true);
     } catch {
-      setError("Could not save. Check your times (HH:MM).");
+      setError("Could not save your availability. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -95,6 +133,19 @@ export default function AvailabilityScreen() {
           placeholder="e.g. America/New_York"
           placeholderTextColor={colors.faint}
         />
+        <Pressable
+          style={styles.tzDetect}
+          onPress={() => {
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (tz) {
+              setTimezone(tz);
+              setSaved(false);
+            }
+          }}
+        >
+          <Ionicons name="locate-outline" size={15} color={colors.accent} />
+          <Text style={styles.tzDetectText}>Use device timezone</Text>
+        </Pressable>
 
         <View style={styles.presets}>
           {(
@@ -127,25 +178,19 @@ export default function AvailabilityScreen() {
                 <View style={styles.ranges}>
                   {ranges.map((r, i) => (
                     <View key={i} style={styles.rangeRow}>
-                      <TimeInput
-                        value={r.start}
-                        onChange={(v) =>
-                          update(
-                            dow,
-                            ranges.map((x, j) => (j === i ? { ...x, start: v } : x)),
-                          )
-                        }
-                      />
+                      <Pressable
+                        style={styles.timeInput}
+                        onPress={() => setEditing({ dow, idx: i, field: "start" })}
+                      >
+                        <Text style={styles.timeText}>{fmtTime(r.start)}</Text>
+                      </Pressable>
                       <Text style={styles.dash}>–</Text>
-                      <TimeInput
-                        value={r.end}
-                        onChange={(v) =>
-                          update(
-                            dow,
-                            ranges.map((x, j) => (j === i ? { ...x, end: v } : x)),
-                          )
-                        }
-                      />
+                      <Pressable
+                        style={styles.timeInput}
+                        onPress={() => setEditing({ dow, idx: i, field: "end" })}
+                      >
+                        <Text style={styles.timeText}>{fmtTime(r.end)}</Text>
+                      </Pressable>
                       <Pressable
                         onPress={() =>
                           update(
@@ -177,6 +222,14 @@ export default function AvailabilityScreen() {
           );
         })}
 
+        {editing ? (
+          <DateTimePicker
+            value={parseHM(days[editing.dow]?.[editing.idx]?.[editing.field] ?? "09:00")}
+            mode="time"
+            onChange={onPickTime}
+          />
+        ) : null}
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Pressable style={styles.save} onPress={save} disabled={saving}>
           <Text style={styles.saveText}>{saving ? "Saving…" : "Save availability"}</Text>
@@ -203,20 +256,6 @@ export default function AvailabilityScreen() {
   );
 }
 
-function TimeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <TextInput
-      style={styles.timeInput}
-      value={value}
-      onChangeText={onChange}
-      placeholder="09:00"
-      placeholderTextColor={colors.faint}
-      maxLength={5}
-      autoCapitalize="none"
-    />
-  );
-}
-
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 20, paddingBottom: 40 },
@@ -230,25 +269,27 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
     backgroundColor: colors.surface,
-    marginBottom: 20,
+    marginBottom: 10,
   },
+  tzDetect: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 20 },
+  tzDetectText: { color: colors.accent, fontSize: 13, fontWeight: "500" },
   day: { borderTopWidth: 1, borderTopColor: colors.border, paddingVertical: 14 },
   dayHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
   dayName: { fontWeight: "500", color: colors.text },
   ranges: { marginTop: 10, marginLeft: 4, gap: 8 },
   rangeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   timeInput: {
-    width: 74,
+    width: 92,
     height: 40,
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: colors.borderStrong,
     borderRadius: radius.sm,
-    paddingHorizontal: 10,
-    fontSize: 14,
-    color: colors.text,
+    paddingHorizontal: 8,
     backgroundColor: colors.surface,
-    textAlign: "center",
   },
+  timeText: { fontSize: 14, color: colors.text },
   dash: { color: colors.muted },
   presets: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 4 },
   presetChip: {

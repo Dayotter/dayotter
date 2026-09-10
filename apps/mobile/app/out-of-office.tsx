@@ -3,6 +3,7 @@ import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
@@ -20,10 +21,21 @@ interface Period {
   delegate: Teammate | null;
 }
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
 function delegateName(t: Teammate) {
   return t.name ?? (t.handle ? `@${t.handle}` : "Teammate");
+}
+
+/** YYYY-MM-DD from a Date's LOCAL parts (toISOString would shift by the UTC offset). */
+function toISODate(d: Date): string {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+function fmtDate(d: Date | null): string {
+  return d
+    ? d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    : "Select a date";
 }
 
 /** First-class out-of-office (#102): block a date range and optionally redirect
@@ -36,29 +48,43 @@ export default function OutOfOfficeScreen() {
     return api.get<{ periods: Period[]; teammates: Teammate[] }>("/api/out-of-office");
   }, []);
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [picker, setPicker] = useState<"start" | "end" | null>(null);
   const [reason, setReason] = useState("");
   const [delegateId, setDelegateId] = useState("");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  function onPickDate(event: { type: string }, date?: Date) {
+    const which = picker;
+    setPicker(null);
+    if (event.type === "dismissed" || !date) return;
+    if (which === "start") {
+      setStartDate(date);
+      // Keep the end on or after the new start.
+      setEndDate((e) => (e && e < date ? date : e));
+    } else {
+      setEndDate(date);
+    }
+  }
+
   async function add() {
     setFormError(null);
-    if (!ISO_DATE.test(startDate) || !ISO_DATE.test(endDate) || endDate < startDate) {
-      setFormError("Enter From and To as YYYY-MM-DD, with To on or after From.");
+    if (!startDate || !endDate || endDate < startDate) {
+      setFormError("Pick a From and To date, with To on or after From.");
       return;
     }
     setSaving(true);
     try {
       await api.post("/api/out-of-office", {
-        startDate,
-        endDate,
+        startDate: toISODate(startDate),
+        endDate: toISODate(endDate),
         reason: reason.trim() || undefined,
         delegateUserId: delegateId || null,
       });
-      setStartDate("");
-      setEndDate("");
+      setStartDate(null);
+      setEndDate(null);
       setReason("");
       setDelegateId("");
       reload();
@@ -133,29 +159,29 @@ export default function OutOfOfficeScreen() {
           <View style={styles.dateRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>From</Text>
-              <TextInput
-                style={styles.input}
-                value={startDate}
-                onChangeText={setStartDate}
-                placeholder="2026-08-01"
-                placeholderTextColor={colors.faint}
-                autoCapitalize="none"
-                maxLength={10}
-              />
+              <Pressable style={styles.input} onPress={() => setPicker("start")}>
+                <Text style={startDate ? styles.inputText : styles.inputPlaceholder}>
+                  {fmtDate(startDate)}
+                </Text>
+              </Pressable>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>To</Text>
-              <TextInput
-                style={styles.input}
-                value={endDate}
-                onChangeText={setEndDate}
-                placeholder="2026-08-05"
-                placeholderTextColor={colors.faint}
-                autoCapitalize="none"
-                maxLength={10}
-              />
+              <Pressable style={styles.input} onPress={() => setPicker("end")}>
+                <Text style={endDate ? styles.inputText : styles.inputPlaceholder}>
+                  {fmtDate(endDate)}
+                </Text>
+              </Pressable>
             </View>
           </View>
+          {picker ? (
+            <DateTimePicker
+              value={(picker === "start" ? startDate : endDate) ?? startDate ?? new Date()}
+              mode="date"
+              minimumDate={picker === "end" ? (startDate ?? undefined) : undefined}
+              onChange={onPickDate}
+            />
+          ) : null}
           <Text style={styles.label}>Reason (optional)</Text>
           <TextInput
             style={styles.input}
@@ -225,6 +251,7 @@ const styles = StyleSheet.create({
   label: { fontWeight: "500", fontSize: 14, marginBottom: 6, marginTop: 12, color: colors.text },
   input: {
     height: 46,
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.borderStrong,
     borderRadius: radius.md,
@@ -233,6 +260,8 @@ const styles = StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.surface,
   },
+  inputText: { fontSize: 15, color: colors.text },
+  inputPlaceholder: { fontSize: 15, color: colors.faint },
   pills: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     borderWidth: 1,

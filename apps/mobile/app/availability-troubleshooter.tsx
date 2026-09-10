@@ -3,9 +3,10 @@ import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 interface EventTypeLite {
   id: string;
@@ -24,10 +25,20 @@ interface DayDiagnosis {
   reasons: string[];
 }
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+/** YYYY-MM-DD from a Date's LOCAL parts (toISOString would shift by the UTC offset). */
+function toISODate(d: Date): string {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+function fmtDate(d: Date): string {
+  return d.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 /** Availability troubleshooter (#131): explain why a booking type does (or does
@@ -39,7 +50,8 @@ export default function TroubleshooterScreen() {
   }, []);
 
   const [eventTypeId, setEventTypeId] = useState("");
-  const [date, setDate] = useState(todayISO());
+  const [date, setDate] = useState<Date>(new Date());
+  const [showPicker, setShowPicker] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DayDiagnosis | null>(null);
@@ -51,16 +63,12 @@ export default function TroubleshooterScreen() {
 
   async function run() {
     if (!eventTypeId) return;
-    if (!ISO_DATE.test(date)) {
-      setError("Enter the day as YYYY-MM-DD.");
-      return;
-    }
     setRunning(true);
     setError(null);
     setResult(null);
     try {
       const res = await api.get<{ diagnosis: DayDiagnosis }>(
-        `/api/availability/troubleshoot?eventTypeId=${eventTypeId}&date=${date}`,
+        `/api/availability/troubleshoot?eventTypeId=${eventTypeId}&date=${toISODate(date)}`,
       );
       setResult(res.diagnosis);
     } catch (e) {
@@ -100,15 +108,19 @@ export default function TroubleshooterScreen() {
           ) : null}
 
           <Text style={styles.label}>Day</Text>
-          <TextInput
-            style={styles.input}
-            value={date}
-            onChangeText={setDate}
-            placeholder="2026-08-01"
-            placeholderTextColor={colors.faint}
-            autoCapitalize="none"
-            maxLength={10}
-          />
+          <Pressable style={styles.input} onPress={() => setShowPicker(true)}>
+            <Text style={styles.inputText}>{fmtDate(date)}</Text>
+          </Pressable>
+          {showPicker ? (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              onChange={(event, picked) => {
+                setShowPicker(false);
+                if (event.type !== "dismissed" && picked) setDate(picked);
+              }}
+            />
+          ) : null}
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Pressable style={styles.save} onPress={run} disabled={running || !eventTypeId}>
@@ -182,14 +194,14 @@ const styles = StyleSheet.create({
   chipTextOn: { color: colors.white, fontWeight: "600" },
   input: {
     height: 46,
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.borderStrong,
     borderRadius: radius.md,
     paddingHorizontal: 14,
-    fontSize: 15,
-    color: colors.text,
     backgroundColor: colors.surface,
   },
+  inputText: { fontSize: 15, color: colors.text },
   error: { color: colors.danger, marginTop: 14 },
   save: {
     marginTop: 18,
