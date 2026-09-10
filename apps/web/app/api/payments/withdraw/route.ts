@@ -28,9 +28,10 @@ export const POST = withUser(async (u) => {
 
   try {
     const balances = await connectedBalances(user.stripeAccountId);
-    // Each currency clears its OWN minimum (a zero-decimal ¥ balance is measured
-    // in whole yen, not cents, so a flat threshold would be 100x off).
-    const withdrawable = balances.filter((b) => b.available >= withdrawMinimum(b.currency));
+    // Each currency clears its OWN minimum.
+    const withdrawable = balances.filter(
+      (b) => b.available >= withdrawMinimum(b.currency)
+    );
     if (withdrawable.length === 0) {
       return jsonError("You need at least the minimum available to withdraw.", 400);
     }
