@@ -15,8 +15,8 @@
     "google-auth-library": "^9.15.0",
     "googleapis": "^144.0.0",
     "ical-generator": "^8.0.1",
-    "node-ical": "^0.20.1",
-    "tsdav": "^2.1.2"
+    "node-ical": "^0.27.1",
+    "tsdav": "^2.3.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
