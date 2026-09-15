@@ -7,14 +7,15 @@ export const dynamic = "force-dynamic";
 
 const body = z.union([
   z.object({ priority: z.number().int().min(0).max(10) }),
-  z.object({ role: z.literal("owner") }),
+  z.object({ role: z.enum(["owner", "admin"]) }),
   z.object({ publicBookable: z.boolean() }),
 ]);
 
 /**
- * Update a team member: change their round-robin weight (admins/owners), or - via
- * `{ role: "owner" }` - transfer ownership to them (owner only). A weight change
- * propagates to the member's host rows on the team's existing event types.
+ * Update a team member: change their round-robin weight (admins/owners), promote
+ * to admin, or - via `{ role: "owner" }` - transfer ownership to them (owner only).
+ * A weight change propagates to the member's host rows on the team's existing
+ * event types.
  */
 export async function PATCH(
   request: Request,
@@ -43,27 +44,34 @@ export async function PATCH(
   });
   if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
-  // Transfer ownership: only the current owner can, and it demotes them to admin
-  // (so they can then leave the team) while promoting the target to owner. Done
-  // in one transaction so a team always has exactly one owner.
+  // Role change: owner-only.
   if ("role" in parsed.data) {
     if (caller.role !== "owner") {
-      return NextResponse.json(
-        { error: "Only the team owner can transfer ownership" },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Only the team owner can change roles" }, { status: 403 });
     }
     if (member.id === caller.id) return NextResponse.json({ ok: true });
-    await db.transaction(async (tx) => {
-      await tx
-        .update(schema.teamMembers)
-        .set({ role: "admin" })
-        .where(eq(schema.teamMembers.id, caller.id));
-      await tx
-        .update(schema.teamMembers)
-        .set({ role: "owner" })
-        .where(eq(schema.teamMembers.id, member.id));
-    });
+
+    // Transfer ownership: demote the current owner to admin while promoting
+    // the target. Done in one transaction so a team always has exactly one owner.
+    if (parsed.data.role === "owner") {
+      await db.transaction(async (tx) => {
+        await tx
+          .update(schema.teamMembers)
+          .set({ role: "admin" })
+          .where(eq(schema.teamMembers.id, caller.id));
+        await tx
+          .update(schema.teamMembers)
+          .set({ role: "owner" })
+          .where(eq(schema.teamMembers.id, member.id));
+      });
+      return NextResponse.json({ ok: true });
+    }
+
+    // Promote to admin.
+    await db
+      .update(schema.teamMembers)
+      .set({ role: "admin" })
+      .where(eq(schema.teamMembers.id, member.id));
     return NextResponse.json({ ok: true });
   }
 

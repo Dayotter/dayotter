@@ -1,6 +1,7 @@
 import { InternalTeamBookingForm } from "@/components/internal-team-booking-form";
 import { MemberWeight } from "@/components/member-weight";
 import { PageHeader } from "@/components/page-header";
+import { PromoteToAdmin } from "@/components/promote-to-admin";
 import { TeamBriefingSettings } from "@/components/team-briefing-settings";
 import { TeamCalendarSharing } from "@/components/team-calendar-sharing";
 import {
@@ -125,6 +126,13 @@ export default async function TeamDetailPage({ params }: { params: Promise<{ id:
                   ) : null}
                   {myRole === "owner" && m.role !== "owner" ? (
                     <TransferTeamOwnership
+                      teamId={team.id}
+                      memberId={m.id}
+                      name={m.user?.name ?? m.user?.email ?? "this member"}
+                    />
+                  ) : null}
+                  {myRole === "owner" && m.role === "member" ? (
+                    <PromoteToAdmin
                       teamId={team.id}
                       memberId={m.id}
                       name={m.user?.name ?? m.user?.email ?? "this member"}
