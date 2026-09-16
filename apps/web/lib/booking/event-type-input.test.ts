@@ -26,15 +26,22 @@ describe("eventTypeInputSchema", () => {
     expect(eventTypeInputSchema.safeParse({ ...valid, slug: "intro-call-2" }).success).toBe(true);
   });
 
-  it("requires locationDetail for zoom/phone/in_person/custom", () => {
-    expect(eventTypeInputSchema.safeParse({ ...valid, location: "zoom" }).success).toBe(false);
+  it("does not require locationDetail for zoom (auto-created via OAuth)", () => {
+    // Zoom without detail should now be valid (meeting auto-created when connected)
+    expect(eventTypeInputSchema.safeParse({ ...valid, location: "zoom" }).success).toBe(true);
     expect(
       eventTypeInputSchema.safeParse({ ...valid, location: "zoom", locationDetail: "   " }).success,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       eventTypeInputSchema.safeParse({ ...valid, location: "zoom", locationDetail: "https://z" })
         .success,
     ).toBe(true);
+  });
+
+  it("still requires locationDetail for phone/in_person/custom", () => {
+    expect(eventTypeInputSchema.safeParse({ ...valid, location: "phone" }).success).toBe(false);
+    expect(eventTypeInputSchema.safeParse({ ...valid, location: "in_person" }).success).toBe(false);
+    expect(eventTypeInputSchema.safeParse({ ...valid, location: "custom" }).success).toBe(false);
   });
 
   it("does not require detail for auto-conference locations", () => {
