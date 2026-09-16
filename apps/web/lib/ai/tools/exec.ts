@@ -19,6 +19,7 @@ import {
   maskChannel,
 } from "@/lib/notifications/channel-input";
 import { listOutOfOffice, listTeammates } from "@/lib/out-of-office";
+import { env } from "@/lib/server/env";
 import { slugify, uniqueSlug } from "@/lib/slug";
 import {
   DEFAULT_REMINDER_OFFSETS,
@@ -1080,7 +1081,7 @@ export async function executeActionTool(
           return { ok: false, message: `${type} isn't enabled on this server.` };
         }
         const config = configFromInput(parsed.data);
-        const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+        const appUrl = env.APP_URL;
         const test = await dispatchToChannel(type, config, {
           title: "DayOtter connected",
           body: "This channel will now receive your meeting reminders.",

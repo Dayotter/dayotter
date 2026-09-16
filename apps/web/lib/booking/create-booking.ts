@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { consumeCredit } from "@/lib/packages/credits";
+import { env } from "@/lib/server/env";
 import { logger, roundRobinPick, verifyAccessCode } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
 import { bookingRequested, newBookingRequest, sendEmail } from "@dayotter/emails";
@@ -240,7 +241,7 @@ export async function createBooking(
   });
 
   const uid = randomUUID();
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
   const guests = [
     ...new Set([...(input.guests ?? []).filter((e) => e.includes("@")), ...coHostEmails]),
   ];

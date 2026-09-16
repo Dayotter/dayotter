@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { RoutingBuilder } from "@/components/routing-builder";
 import { getSession } from "@/lib/auth/session";
 import { getFormForHost, hostEventTypes } from "@/lib/routing/routing";
+import { env } from "@/lib/server/env";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -16,7 +17,7 @@ export default async function RoutingBuilderPage({ params }: { params: Promise<{
   ]);
   if (!form) notFound();
 
-  const appHost = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const appHost = env.APP_URL;
 
   return (
     <>

@@ -9,7 +9,14 @@ import { z } from "zod";
  */
 const schema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  APP_URL: z.string().url().default("http://localhost:3000"),
+  // Coerce empty/whitespace (e.g. `APP_URL=` in a Docker env file) to the default,
+  // and strip any trailing slash, so `env.APP_URL` is always a valid, canonical
+  // base URL. Plain `process.env.APP_URL ?? default` passes an empty string
+  // through, which yields broken relative links in emails, Stripe redirects, etc.
+  APP_URL: z.preprocess(
+    (v) => (typeof v === "string" && v.trim().replace(/\/+$/, "")) || undefined,
+    z.string().url().default("http://localhost:3000"),
+  ),
 
   DATABASE_URL: z.string().optional(),
   REDIS_URL: z.string().default("redis://localhost:6379"),

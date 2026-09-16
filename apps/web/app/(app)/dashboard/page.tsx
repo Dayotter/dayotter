@@ -15,6 +15,7 @@ import { aiEnabled } from "@/lib/ai/llm";
 import { getSession } from "@/lib/auth/session";
 import { eventColorVar } from "@/lib/booking/event-type-input";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
+import { env } from "@/lib/server/env";
 import { and, asc, eq, getDb, gt, gte, lte, schema } from "@dayotter/db";
 import {
   BarChart3,
@@ -135,7 +136,7 @@ export default async function DashboardPage() {
   ];
 
   const handle = user?.handle ?? null;
-  const appHost = (process.env.APP_URL ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const appHost = env.APP_URL.replace(/^https?:\/\//, "");
   const linkDisplay = handle ? (appHost ? `${appHost}/${handle}` : `/${handle}`) : null;
   const next = upcoming[0];
   // Show the overflow nudge only when a back-to-back meeting follows the one in

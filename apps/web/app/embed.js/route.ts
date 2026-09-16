@@ -1,3 +1,4 @@
+import { env } from "@/lib/server/env";
 export const dynamic = "force-dynamic";
 
 /**
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
  * route (not a static file) lets the origin follow APP_URL per deployment.
  */
 export function GET(): Response {
-  const base = process.env.APP_URL ?? "http://localhost:3000";
+  const base = env.APP_URL;
 
   const script = `(function(){
   "use strict";

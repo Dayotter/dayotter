@@ -1,5 +1,6 @@
 import { BookingError, type CreateBookingInput, createBooking } from "@/lib/booking/create-booking";
 import { withApiKey } from "@/lib/server/api-key";
+import { env } from "@/lib/server/env";
 import { and, desc, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -104,7 +105,7 @@ export const POST = withApiKey(async (caller, request) => {
 
   try {
     const { uid } = await createBooking(input);
-    const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+    const appUrl = env.APP_URL;
     return NextResponse.json({ uid, url: `${appUrl}/booking/${uid}` }, { status: 201 });
   } catch (err) {
     if (err instanceof BookingError) {
