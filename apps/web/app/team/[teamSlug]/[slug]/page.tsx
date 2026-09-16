@@ -1,7 +1,10 @@
 import { SlotPicker } from "@/components/slot-picker";
 import { Card, CardBody } from "@/components/ui/card";
+import { LOCATION_LABELS, offeredLocations } from "@/lib/booking/event-type-input";
+import { chargeFor, formatMoney } from "@/lib/booking/money";
+import { paymentsEnabled } from "@/lib/payments/stripe";
 import { and, eq, getDb, schema } from "@dayotter/db";
-import { Clock, Users, Video } from "lucide-react";
+import { Clock, CreditCard, Users, Video } from "lucide-react";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +52,22 @@ export default async function TeamBookingPage({
     .map((m) => ({ id: m.userId, name: m.user?.name ?? m.user?.email ?? "Team member" }));
   const selectableHosts = teamHosts.length >= 2 ? teamHosts : [];
 
+  // Locations the booker may choose from (falls back to the single location).
+  const offered = offeredLocations(eventType);
+  const locationChoices =
+    offered.length > 1 && (eventType.maxAttendees ?? 1) <= 1
+      ? offered.map((o) => ({ type: o.type, label: LOCATION_LABELS[o.type] ?? o.type }))
+      : [];
+
+  const chargeAmount = paymentsEnabled ? chargeFor(eventType.price, eventType.depositAmount) : 0;
+  const priceLabel =
+    chargeAmount > 0 ? formatMoney(chargeAmount, eventType.currency ?? "usd") : null;
+  const isDeposit =
+    priceLabel !== null &&
+    eventType.depositAmount != null &&
+    eventType.price != null &&
+    eventType.depositAmount < eventType.price;
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <Card>
@@ -88,8 +107,19 @@ export default async function TeamBookingPage({
                 <Clock size={15} /> {eventType.durationMinutes} minutes
               </p>
               <p className="flex items-center gap-2">
-                <Video size={15} /> Google Meet
+                <Video size={15} />{" "}
+                {locationChoices.length > 1
+                  ? locationChoices.map((l) => l.label).join(" · ")
+                  : (LOCATION_LABELS[eventType.location] ?? eventType.location)}
               </p>
+              {priceLabel ? (
+                <p className="flex items-center gap-2 font-medium text-[var(--color-text)]">
+                  <CreditCard size={15} /> {priceLabel}
+                  {isDeposit ? (
+                    <span className="text-xs font-normal text-[var(--color-faint)]">deposit</span>
+                  ) : null}
+                </p>
+              ) : null}
             </div>
           </div>
 
@@ -97,9 +127,13 @@ export default async function TeamBookingPage({
             <h2 className="mb-4 text-sm font-semibold">Select a time</h2>
             <SlotPicker
               eventTypeId={eventType.id}
+              questions={eventType.questions}
+              priceLabel={priceLabel}
               defaultDuration={eventType.durationMinutes}
               durationOptions={eventType.durationOptions ?? []}
+              requiresCode={eventType.accessCodeHash != null}
               teamHosts={selectableHosts}
+              locations={locationChoices}
             />
           </CardBody>
         </div>
