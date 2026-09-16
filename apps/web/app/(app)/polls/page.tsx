@@ -4,7 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getSession } from "@/lib/auth/session";
 import { listPolls } from "@/lib/polls/polls";
-import { CheckCircle2, Plus, Users } from "lucide-react";
+import { CheckCircle2, Globe2, Mail, Plus, Users } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export default async function PollsPage() {
       <PageHeader
         eyebrow="Group polls"
         title="Find a time"
-        description="Propose times, collect votes, and lock in what works for everyone."
+        description="Propose times, collect public or invited votes, and lock in what works for everyone."
         action={
           <Link href="/polls/new" className={buttonVariants()}>
             <Plus size={16} /> New poll
@@ -42,7 +42,16 @@ export default async function PollsPage() {
                     <p className="mt-0.5 flex items-center gap-3 text-xs text-[var(--color-muted)]">
                       <span>{p.options.length} time options</span>
                       <span className="inline-flex items-center gap-1">
-                        <Users size={12} /> {p.votes.length} votes
+                        <Users size={12} />
+                        {new Set(p.votes.map((vote) => vote.voterEmail)).size === 1
+                          ? "1 voter"
+                          : `${new Set(p.votes.map((vote) => vote.voterEmail)).size} voters`}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        {p.votingMode === "invited" ? <Mail size={12} /> : <Globe2 size={12} />}
+                        {p.votingMode === "invited"
+                          ? `${p.invitees.length} invited`
+                          : "Public link"}
                       </span>
                     </p>
                   </div>

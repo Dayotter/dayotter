@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/page-header";
 import { type PollOptionResult, PollResults } from "@/components/poll-results";
 import { getSession } from "@/lib/auth/session";
+import { listPollMessageTemplates } from "@/lib/polls/poll-templates";
 import { getPollForHost } from "@/lib/polls/polls";
 import { DateTime } from "luxon";
 import Link from "next/link";
@@ -14,6 +15,10 @@ export default async function PollResultsPage({ params }: { params: Promise<{ id
   const tz = (session!.user as { timezone?: string }).timezone ?? "UTC";
   const poll = await getPollForHost(id, session!.user.id);
   if (!poll) notFound();
+
+  // The host's saved meeting-details templates: the default one pre-fills the
+  // finalize editor, the rest are offered in the picker.
+  const templates = await listPollMessageTemplates(session!.user.id);
 
   const appHost = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
   const shareUrl = `${appHost}/poll/${poll.token}`;
@@ -31,6 +36,7 @@ export default async function PollResultsPage({ params }: { params: Promise<{ id
   });
 
   const uniqueVoters = new Set(poll.votes.map((v) => v.voterEmail)).size;
+  const voterEmails = new Set(poll.votes.map((vote) => vote.voterEmail.toLowerCase()));
 
   return (
     <>
@@ -56,6 +62,14 @@ export default async function PollResultsPage({ params }: { params: Promise<{ id
         status={poll.status}
         options={options}
         finalizedOptionId={poll.finalizedOptionId}
+        votingMode={poll.votingMode}
+        invitees={poll.invitees.map((invitee) => ({
+          email: invitee.email,
+          voted: voterEmails.has(invitee.email.toLowerCase()),
+          sent: invitee.sentAt !== null,
+        }))}
+        finalizeMessage={poll.finalizeMessage}
+        templates={templates}
       />
     </>
   );

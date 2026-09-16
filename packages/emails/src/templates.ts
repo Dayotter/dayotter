@@ -14,12 +14,39 @@ export interface BookingEmailData {
   manageUrl: string;
   /** Optional host-written note shown on cancel/reschedule emails. */
   reason?: string | null;
+  /** Optional host-written meeting details (Zoom link, address, ...) appended
+   * to the booking confirmation. Rendered with line breaks preserved. */
+  message?: string | null;
+  /** Who made the booking (the primary attendee). Shown when known. */
+  booker?: { name?: string; email: string };
+  /** Additional people on the booking beyond the booker (guests). */
+  addedAttendees?: { name?: string; email: string }[];
 }
 
 interface Rendered {
   subject: string;
   text: string;
   html: string;
+}
+
+export interface PollInvitationData {
+  pollTitle: string;
+  hostName: string;
+  voteUrl: string;
+  optionCount: number;
+  /** Optional host-written note ("bring your laptop", "here's the agenda"...) shown
+   * with the invitation, or when the host shares the public link directly. */
+  message?: string;
+}
+
+export interface PollVoteUpdateData {
+  pollTitle: string;
+  voterName: string;
+  voterEmail: string;
+  participationLabel: string;
+  resultsUrl: string;
+  timezone: string;
+  options: { startsAt: Date; yes: number; maybe: number; no: number }[];
 }
 
 function fmt(date: Date, tz: string): string {
@@ -47,6 +74,20 @@ function safeUrl(url: string): string {
   return /^https?:\/\//i.test(url) ? url : "#";
 }
 
+/** Render a host-written multi-line note for email HTML: escape once, then keep
+ * blank-line paragraph breaks and <br/> for single line breaks inside one <p>. */
+function messageParagraphs(text: string): string[] {
+  return text
+    .split(/\n{2,}/)
+    .map((paragraph) => esc(paragraph).replace(/\n/g, "<br/>"))
+    .filter((paragraph) => paragraph.length > 0);
+}
+
+/** "Name <email>" when a name is present, the bare email otherwise. */
+function personLabel(p: { name?: string; email: string }): string {
+  return p.name ? `${p.name} <${p.email}>` : p.email;
+}
+
 function shell(
   heading: string,
   lines: string[],
@@ -70,6 +111,45 @@ function shell(
   </div>`;
 }
 
+export function pollInvitation(d: PollInvitationData): Rendered {
+  const note = d.message ? messageParagraphs(d.message) : [];
+  return {
+    subject: `Vote on a time: ${d.pollTitle}`,
+    text: `${d.hostName} invited you to vote on a time for ${d.pollTitle}.\n\nThere are ${d.optionCount} proposed times.\n${d.message ? `\n${d.message}\n` : ""}Vote here: ${d.voteUrl}`,
+    html: shell(
+      `${esc(d.hostName)} is finding a time`,
+      [
+        `You were invited to vote on <strong>${esc(d.pollTitle)}</strong>.`,
+        `Choose what works for you from ${d.optionCount} proposed times.`,
+        ...note,
+      ],
+      { label: "Vote on times", url: d.voteUrl },
+    ),
+  };
+}
+
+export function pollVoteUpdate(d: PollVoteUpdateData): Rendered {
+  const summaries = d.options.map((option) => {
+    const when = DateTime.fromJSDate(option.startsAt)
+      .setZone(d.timezone)
+      .toFormat("ccc, LLL d · h:mm a");
+    return `${when}: ${option.yes} yes, ${option.maybe} maybe, ${option.no} no`;
+  });
+  return {
+    subject: `New vote: ${d.pollTitle}`,
+    text: `${d.voterName} (${d.voterEmail}) submitted or updated a vote on ${d.pollTitle}.\n\nPoll status: Open · ${d.participationLabel}\n\n${summaries.join("\n")}\n\nView results: ${d.resultsUrl}`,
+    html: shell(
+      `New vote on ${esc(d.pollTitle)}`,
+      [
+        `<strong>${esc(d.voterName)}</strong> (${esc(d.voterEmail)}) submitted or updated a vote.`,
+        `Poll status: <strong>Open</strong> · ${esc(d.participationLabel)}`,
+        ...summaries.map((summary) => esc(summary)),
+      ],
+      { label: "View poll results", url: d.resultsUrl },
+    ),
+  };
+}
+
 export function bookingConfirmation(d: BookingEmailData): Rendered {
   const when = fmt(d.start, d.timezone);
   const where = d.meetingUrl
@@ -77,15 +157,25 @@ export function bookingConfirmation(d: BookingEmailData): Rendered {
     : d.location
       ? `Location: ${d.location}`
       : "";
+  const note = d.message ? messageParagraphs(d.message) : [];
+  // Who booked it + anyone added alongside them (shown when known).
+  const extras = [
+    d.booker ? `Booked by: ${personLabel(d.booker)}` : "",
+    d.addedAttendees && d.addedAttendees.length > 0
+      ? `Also attending: ${d.addedAttendees.map(personLabel).join(", ")}`
+      : "",
+  ].filter(Boolean);
   return {
     subject: `Confirmed: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
-    text: `Your booking is confirmed.\n\n${d.eventTitle}\nWith: ${d.hostName}\nWhen: ${when}\n${where}\n\nManage or cancel: ${d.manageUrl}`,
+    text: `Your booking is confirmed.\n\n${d.eventTitle}\nWith: ${d.hostName}\n${extras.join("\n")}${extras.length > 0 ? "\n" : ""}When: ${when}\n${where}\n${d.message ? `\n${d.message}\n` : ""}\nManage or cancel: ${d.manageUrl}`,
     html: shell(
       "Your booking is confirmed 🎉",
       [
         `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)}`,
+        ...extras.map((line) => esc(line)),
         `🗓 ${when}`,
         where ? `📍 ${esc(where)}` : "",
+        ...note,
       ].filter(Boolean),
       { label: "View booking", url: d.manageUrl },
     ),

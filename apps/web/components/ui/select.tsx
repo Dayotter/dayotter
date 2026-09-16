@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { Check, ChevronDown } from "lucide-react";
 import {
   Children,
+  Fragment,
   type ReactNode,
   type SelectHTMLAttributes,
   isValidElement,
@@ -25,11 +26,18 @@ function optionLabel(children: ReactNode): string {
   return children == null || typeof children === "boolean" ? "" : String(children);
 }
 
-/** Flatten `<option>` children (including mapped arrays) into a plain list. */
+/** Flatten `<option>` children (including mapped arrays AND fragments) into a
+ * plain list. `React.Children` treats a fragment as one opaque child, so options
+ * grouped with `<>...</>` would otherwise be silently dropped. */
 function parseOptions(children: ReactNode): Opt[] {
   const out: Opt[] = [];
   Children.forEach(children, (child) => {
-    if (!isValidElement(child) || child.type !== "option") return;
+    if (!isValidElement(child)) return;
+    if (child.type === Fragment) {
+      out.push(...parseOptions((child.props as { children?: ReactNode }).children));
+      return;
+    }
+    if (child.type !== "option") return;
     const props = child.props as {
       value?: string | number;
       children?: ReactNode;

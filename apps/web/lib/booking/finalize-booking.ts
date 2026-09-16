@@ -223,6 +223,8 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
           location: eventType.locationDetail ?? undefined,
           meetingUrl,
           manageUrl,
+          booker: { name: attendee.name, email: attendee.email },
+          addedAttendees: guests.map((email) => ({ email })),
         }),
         to,
       });
