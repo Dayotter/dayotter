@@ -91,6 +91,7 @@ export default async function OneOffBookingPage({
               priceLabel={priceLabel}
               defaultDuration={eventType.durationMinutes}
               durationOptions={eventType.durationOptions ?? []}
+              requiresCode={eventType.accessCodeHash != null}
               linkToken={token}
             />
           </CardBody>
