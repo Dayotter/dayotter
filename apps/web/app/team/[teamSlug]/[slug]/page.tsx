@@ -63,6 +63,9 @@ export default async function TeamBookingPage({
             <h1 className="font-display mt-4 text-2xl leading-tight tracking-[-0.01em]">
               {eventType.title}
             </h1>
+            {eventType.description ? (
+              <p className="mt-2 text-sm text-[var(--color-muted)]">{eventType.description}</p>
+            ) : null}
             <p className="mt-2 text-sm text-[var(--color-muted)]">
               {TYPE_LABEL[eventType.schedulingType] ?? ""}
             </p>
