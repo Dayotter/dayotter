@@ -1,5 +1,6 @@
 import { hostDestinationAccount } from "@/lib/payments/connect";
 import { createCheckoutSession, paymentsEnabled } from "@/lib/payments/stripe";
+import { env } from "@/lib/server/env";
 import { jsonError } from "@/lib/server/http";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { eq, getDb, schema } from "@dayotter/db";
@@ -43,7 +44,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   });
   const destinationAccountId = et ? await hostDestinationAccount(et.ownerId) : undefined;
 
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
   const session = await createCheckoutSession({
     amount: pkg.priceAmount,
     currency: pkg.currency,

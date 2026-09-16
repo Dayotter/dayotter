@@ -4,6 +4,7 @@ import { creditBalance } from "@/lib/packages/credits";
 import { hostDestinationAccount } from "@/lib/payments/connect";
 import { stashPendingBooking } from "@/lib/payments/pending";
 import { createCheckoutSession, paymentsEnabled } from "@/lib/payments/stripe";
+import { env } from "@/lib/server/env";
 import { clientIp, enforceRateLimit, verifyCaptcha } from "@/lib/server/rate-limit";
 import { schema as db, eq, getDb } from "@dayotter/db";
 import { NextResponse } from "next/server";
@@ -117,7 +118,7 @@ export async function POST(request: Request) {
       }
       try {
         const token = await stashPendingBooking(input);
-        const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+        const appUrl = env.APP_URL;
         const returnPath = parsed.data.returnPath?.startsWith("/") ? parsed.data.returnPath : "/";
         const destinationAccountId = await hostDestinationAccount(et.ownerId);
         const { url } = await createCheckoutSession({

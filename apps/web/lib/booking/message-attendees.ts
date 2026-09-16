@@ -1,3 +1,4 @@
+import { env } from "@/lib/server/env";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
 import { bookingMessage, sendEmail } from "@dayotter/emails";
@@ -21,7 +22,7 @@ export async function messageBookingAttendees(
   if (!booking || booking.status === "cancelled") return "not_found";
   if (booking.hostId !== hostUserId) return "forbidden";
 
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
   await Promise.all(
     booking.attendees.map((a) =>
       sendEmail({

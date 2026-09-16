@@ -4,6 +4,7 @@ import {
   configFromInput,
   maskChannel,
 } from "@/lib/notifications/channel-input";
+import { env } from "@/lib/server/env";
 import { jsonError, withUser } from "@/lib/server/http";
 import { decryptJson, encryptJson, logger } from "@dayotter/core";
 import { asc, eq, getDb, schema } from "@dayotter/db";
@@ -62,7 +63,7 @@ export const POST = withUser(async (u, request) => {
   }
 
   const config = configFromInput(input);
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
 
   // Verify by delivering a real test message before we trust the channel.
   const test = await dispatchToChannel(input.type, config, {

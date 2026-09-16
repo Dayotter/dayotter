@@ -1,3 +1,4 @@
+import { env } from "@/lib/server/env";
 import { logger } from "@dayotter/core";
 import { and, eq, getDb, gte, ne, schema } from "@dayotter/db";
 import { bookingCancellation, sendEmail } from "@dayotter/emails";
@@ -134,7 +135,7 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
             timezone: a.timezone ?? booking.timezone,
             hostName: booking.host?.name ?? "your host",
             attendeeName: a.name ?? a.email,
-            manageUrl: `${process.env.APP_URL ?? "http://localhost:3000"}/booking/${uid}`,
+            manageUrl: `${env.APP_URL}/booking/${uid}`,
             reason: reason ?? null,
           }),
           to: a.email,

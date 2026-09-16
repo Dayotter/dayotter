@@ -1,3 +1,4 @@
+import { env } from "@/lib/server/env";
 import { logger } from "@dayotter/core";
 import { and, eq, getDb, gte, lt, ne, schema, sql } from "@dayotter/db";
 import { bookingRescheduled, sendEmail } from "@dayotter/emails";
@@ -266,7 +267,7 @@ export async function rescheduleBooking(
   }
 
   // Notify.
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
   try {
     await Promise.all(
       [

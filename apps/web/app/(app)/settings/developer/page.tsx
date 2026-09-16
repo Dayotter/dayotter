@@ -1,6 +1,7 @@
 import { DeveloperSettings } from "@/components/developer-settings";
 import { ProGate } from "@/components/upgrade-prompt";
 import { getSession } from "@/lib/auth/session";
+import { env } from "@/lib/server/env";
 import { eq, getDb, schema } from "@dayotter/db";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export default async function DeveloperSettingsPage() {
       })
     : null;
 
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
   return (
     <ProGate feature="developer">
       <DeveloperSettings appUrl={appUrl} handle={user?.handle ?? "your-handle"} />

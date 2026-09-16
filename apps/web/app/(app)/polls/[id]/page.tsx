@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { type PollOptionResult, PollResults } from "@/components/poll-results";
 import { getSession } from "@/lib/auth/session";
 import { getPollForHost } from "@/lib/polls/polls";
+import { env } from "@/lib/server/env";
 import { DateTime } from "luxon";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -15,7 +16,7 @@ export default async function PollResultsPage({ params }: { params: Promise<{ id
   const poll = await getPollForHost(id, session!.user.id);
   if (!poll) notFound();
 
-  const appHost = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const appHost = env.APP_URL;
   const shareUrl = `${appHost}/poll/${poll.token}`;
 
   const options: PollOptionResult[] = poll.options.map((o) => {

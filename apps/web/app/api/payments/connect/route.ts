@@ -1,4 +1,5 @@
 import { connectEnabled, createAccountLink, createConnectAccount } from "@/lib/payments/stripe";
+import { env } from "@/lib/server/env";
 import { withUser } from "@/lib/server/http";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
  * Stripe's account link handles both first-time onboarding and re-entry on expiry.
  */
 export const GET = withUser(async (u) => {
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
   const settings = `${appUrl}/settings/payouts`;
   if (!connectEnabled) return NextResponse.redirect(`${settings}?error=unconfigured`);
 

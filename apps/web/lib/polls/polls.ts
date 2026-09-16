@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { env } from "@/lib/server/env";
 import { logger } from "@dayotter/core";
 import { and, asc, eq, getDb, schema } from "@dayotter/db";
 import { bookingConfirmation, sendEmail } from "@dayotter/emails";
@@ -213,7 +214,7 @@ export async function finalizePoll(
   }
 
   // Confirm the time to the host + everyone who's coming.
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
   const recipients = [
     ...(poll.host?.email
       ? [{ email: poll.host.email, name: poll.host.name ?? "you", tz: poll.host.timezone }]

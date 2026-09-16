@@ -1,6 +1,7 @@
 import { isCloud } from "@/lib/billing/edition";
 import { primaryOrg } from "@/lib/billing/entitlements";
 import { createBillingPortalSession, subscriptionsEnabled } from "@/lib/payments/stripe";
+import { env } from "@/lib/server/env";
 import { jsonError, withUser } from "@/lib/server/http";
 import { and, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
@@ -21,7 +22,7 @@ export const POST = withUser(async (u) => {
     return jsonError("Only an owner or admin can manage billing.", 403);
   }
 
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
   try {
     const { url } = await createBillingPortalSession(
       org.stripeCustomerId,

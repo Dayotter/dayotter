@@ -1,3 +1,4 @@
+import { env } from "@/lib/server/env";
 import { eq, getDb, schema } from "@dayotter/db";
 import type { VoiceHost } from "./knowledge";
 
@@ -17,7 +18,7 @@ export async function resolveVoiceHost(_toNumber: string): Promise<VoiceHost | n
     columns: { id: true, name: true, handle: true, timezone: true },
   });
   if (!user) return null;
-  const appUrl = process.env.APP_URL ?? "https://dayotter.com";
+  const appUrl = env.APP_URL;
   return {
     userId: user.id,
     name: user.name ?? "our team",

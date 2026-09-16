@@ -2,6 +2,7 @@ import { isCloud } from "@/lib/billing/edition";
 import { primaryOrg } from "@/lib/billing/entitlements";
 import { seatCount } from "@/lib/billing/subscription";
 import { createSubscriptionCheckout, subscriptionsEnabled } from "@/lib/payments/stripe";
+import { env } from "@/lib/server/env";
 import { jsonError, withUser } from "@/lib/server/http";
 import { logger } from "@dayotter/core";
 import { and, eq, getDb, schema } from "@dayotter/db";
@@ -27,7 +28,7 @@ export const POST = withUser(async (u) => {
 
   if (org.plan === "pro") return jsonError("You're already on Pro.", 409);
 
-  const appUrl = process.env.APP_URL ?? "http://localhost:3000";
+  const appUrl = env.APP_URL;
   try {
     const { url, customerReset } = await createSubscriptionCheckout({
       organizationId: org.id,
