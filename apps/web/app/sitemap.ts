@@ -17,7 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     path: string,
     priority: number,
     changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] = "weekly",
-  ) => ({ url: `${base}${path}`, lastModified: now, changeFrequency, priority });
+    lastModified: Date = now,
+  ) => ({ url: `${base}${path}`, lastModified, changeFrequency, priority });
 
   return [
     entry("", 1, "daily"),
@@ -41,7 +42,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...INTEGRATIONS.map((i) => entry(`/integrations/${i.slug}`, 0.7)),
     ...COMPARISONS.map((c) => entry(`/vs/${c.slug}`, 0.8)),
     ...PERSONAS.map((p) => entry(`/for/${p.slug}`, 0.7)),
-    ...POSTS.map((p) => entry(`/blog/${p.slug}`, 0.6)),
+    // Blog posts carry a real publish date - use it (and a slower change cadence)
+    // so the freshness signal is accurate instead of "modified now" every crawl.
+    ...POSTS.map((p) => entry(`/blog/${p.slug}`, 0.6, "monthly", new Date(p.date))),
     ...GUIDES.map((g) => entry(`/docs/${g.slug}`, 0.5)),
     ...GLOSSARY.map((t) => entry(`/glossary/${t.slug}`, 0.5)),
   ];
