@@ -15,13 +15,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "drizzle-orm": "^0.38.3",
-    "pg": "^8.13.1"
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.23.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@types/pg": "^8.11.10",
-    "drizzle-kit": "^0.30.1",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.10",
     "typescript": "^5.7.2"
   }
 }
