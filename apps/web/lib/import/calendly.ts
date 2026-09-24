@@ -208,7 +208,9 @@ export function mapLocation(locations: CalendlyLocation[] | null | undefined): {
   }
 
   // Detail-requiring types must carry a non-empty detail to stay editable.
-  if (NEEDS_DETAIL.includes(location) && !detail?.trim()) {
+  // Zoom is not in NEEDS_DETAIL (auto-created via OAuth) but still needs a fallback
+  // when importing from Calendly without a join_url.
+  if ((NEEDS_DETAIL.includes(location) || location === "zoom") && !detail?.trim()) {
     detail =
       location === "zoom"
         ? "Add your Zoom link"

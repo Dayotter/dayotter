@@ -18,7 +18,7 @@ export type LocationTypeValue = (typeof LOCATION_TYPES)[number];
 export const AUTO_CONFERENCE: LocationTypeValue[] = ["google_meet", "ms_teams"];
 
 /** Location types where the host must supply a detail (link / number / address). */
-export const NEEDS_DETAIL: LocationTypeValue[] = ["zoom", "phone", "in_person", "custom"];
+export const NEEDS_DETAIL: LocationTypeValue[] = ["phone", "in_person", "custom"];
 
 export const LOCATION_LABELS: Record<LocationTypeValue, string> = {
   google_meet: "Google Meet",
@@ -102,7 +102,7 @@ export function calendarLocationFields(
 export const LOCATION_DETAIL_PLACEHOLDER: Record<LocationTypeValue, string> = {
   google_meet: "",
   ms_teams: "",
-  zoom: "https://zoom.us/j/…",
+  zoom: "Optional fallback link (auto-created when Zoom is connected)",
   jitsi: "",
   phone: "+1 555 123 4567 (or 'I'll call you')",
   in_person: "123 Main St, or a place to meet",
