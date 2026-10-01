@@ -819,6 +819,12 @@ export const GUIDES: DocGuide[] = [
         ],
       },
       {
+        heading: "Temporary holds",
+        paragraphs: [
+          "Need to reserve a slot while you take payment or finish a signup in your own app? POST /api/v1/holds to hold a slot for a few minutes (default 5, up to 30). The slot is locked the instant the hold is created, so nobody else can book it. When your flow succeeds, POST /api/v1/holds/{uid}/confirm to turn the hold into a real booking (calendar, reminders, and emails all fire then); if it fails, DELETE /api/v1/holds/{uid} to release it early. An unconfirmed hold lapses on its own and frees the slot. Confirm and release are idempotent, so a retried call is always safe.",
+        ],
+      },
+      {
         heading: "Webhooks",
         paragraphs: [
           "Register an endpoint URL and subscribe to booking.created, booking.rescheduled, and booking.cancelled. Each delivery is signed with an HMAC-SHA-256 signature over a timestamped body (Stripe-style), so you can verify authenticity and reject replays. Deliveries retry with backoff and record their terminal status.",

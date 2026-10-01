@@ -52,6 +52,15 @@ export const bookings = pgTable(
     locationType: locationType("location_type"),
     meetingUrl: text("meeting_url"),
 
+    /** Set only on a temporary HOLD created by the holds API: a `pending` row that
+     * reserves the slot (pending counts in the guards/caps below) but runs NONE of
+     * the confirmed side-effects. An external integrator holds a slot while it
+     * collects payment elsewhere, then confirms (which finalizes the booking and
+     * clears this) or lets it lapse. A worker releases the row once this instant
+     * passes while still unconfirmed. Null for every normal booking - a `pending`
+     * row with a null hold is an ordinary host-review request, never swept. */
+    holdExpiresAt: timestamp("hold_expires_at", { withTimezone: true }),
+
     /** Answers to the event type's intake questions. */
     responses: jsonb("responses").$type<Record<string, unknown>>(),
     /** Stable public token used in reschedule/cancel links. */
@@ -107,6 +116,11 @@ export const bookings = pgTable(
       .where(
         sql`${t.status} IN ('confirmed', 'pending') AND ${t.isGroup} = false AND ${t.allowOverlap} = false`,
       ),
+    // Lets the worker find lapsed holds to release without scanning all bookings.
+    // Partial: only the handful of live holds carry a non-null hold_expires_at.
+    index("bookings_hold_expiry_idx")
+      .on(t.holdExpiresAt)
+      .where(sql`${t.holdExpiresAt} IS NOT NULL`),
   ],
 );
 

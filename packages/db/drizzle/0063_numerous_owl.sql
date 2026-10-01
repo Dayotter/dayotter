@@ -1,0 +1,2 @@
+ALTER TABLE "bookings" ADD COLUMN "hold_expires_at" timestamp with time zone;--> statement-breakpoint
+CREATE INDEX "bookings_hold_expiry_idx" ON "bookings" USING btree ("hold_expires_at") WHERE "bookings"."hold_expires_at" IS NOT NULL;

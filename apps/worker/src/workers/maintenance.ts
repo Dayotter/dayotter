@@ -3,6 +3,7 @@ import { and, eq, getDb, lt, schema } from "@dayotter/db";
 import { QUEUE_NAMES, connection, enqueueSync } from "@dayotter/jobs";
 import { Worker } from "bullmq";
 import { materializeWeeklyBlocks } from "./automation-weekly";
+import { releaseExpiredHolds } from "./holds";
 import {
   sendActivationNudges,
   sendFirstBookingCelebrations,
@@ -54,6 +55,11 @@ export function startMaintenanceWorker(): Worker {
 
       await materializeWeeklyBlocks();
       await markPastBookingsCompleted();
+      // Backstop the per-hold delayed release jobs: free any lapsed hold whose
+      // job was lost (Redis flush / worker down at fire time). Idempotent.
+      await releaseExpiredHolds().catch((err) => {
+        logger.error("hold sweep tick failed", { event: "hold_sweep_failed", err });
+      });
       // Daily morning briefing (personal + team) - self-guards on local time +
       // once-per-day.
       await sendDueBriefings().catch((err) => {

@@ -12,7 +12,7 @@ export type ReviewResult = "ok" | "not_found" | "forbidden" | "not_pending" | "f
  * rows. `createBooking` inserts the primary first (with a name + timezone);
  * guests carry only an email - so the primary is the row that has them.
  */
-function splitAttendees(
+export function splitAttendees(
   attendees: (typeof schema.bookingAttendees.$inferSelect)[],
   fallbackTz: string,
 ): { attendee: { name: string; email: string; timezone: string }; guests: string[] } {
