@@ -18,7 +18,7 @@ export type LocationTypeValue = (typeof LOCATION_TYPES)[number];
 export const AUTO_CONFERENCE: LocationTypeValue[] = ["google_meet", "ms_teams"];
 
 /** Location types where the host must supply a detail (link / number / address). */
-export const NEEDS_DETAIL: LocationTypeValue[] = ["zoom", "phone", "in_person", "custom"];
+export const NEEDS_DETAIL: LocationTypeValue[] = ["phone", "in_person", "custom"];
 
 export const LOCATION_LABELS: Record<LocationTypeValue, string> = {
   google_meet: "Google Meet",
@@ -102,7 +102,7 @@ export function calendarLocationFields(
 export const LOCATION_DETAIL_PLACEHOLDER: Record<LocationTypeValue, string> = {
   google_meet: "",
   ms_teams: "",
-  zoom: "https://zoom.us/j/…",
+  zoom: "Optional fallback link (auto-created when Zoom is connected)",
   jitsi: "",
   phone: "+1 555 123 4567 (or 'I'll call you')",
   in_person: "123 Main St, or a place to meet",
@@ -244,3 +244,26 @@ export const eventTypeInputSchema = z
   );
 
 export type EventTypeInput = z.infer<typeof eventTypeInputSchema>;
+
+/**
+ * Check that every Zoom location in the event type has a manual link when the
+ * host does NOT have an active Zoom OAuth connection. Without OAuth, meetings
+ * are never auto-created, so an empty detail would leave the booking linkless.
+ * Returns an error message, or null when the data is valid.
+ */
+export function validateZoomDetail(
+  d: { location: string; locationDetail?: string | null; locations?: { type: string; detail?: string | null }[] | null },
+  zoomConnected: boolean,
+): string | null {
+  if (zoomConnected) return null;
+  const hasDetail = (v?: string | null) => Boolean(v && v.trim());
+  // Single-location zoom without a manual link.
+  if (d.location === "zoom" && !hasDetail(d.locationDetail)) {
+    return "Add a Zoom link for this event type, or connect Zoom in Settings to auto-create meetings.";
+  }
+  // Menu-based zoom entry without a manual link.
+  if (d.locations?.some((l) => l.type === "zoom" && !hasDetail(l.detail))) {
+    return "Add a Zoom link for each Zoom location, or connect Zoom in Settings to auto-create meetings.";
+  }
+  return null;
+}
