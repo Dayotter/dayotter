@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { calendarLocationFields, eventTypeInputSchema } from "./event-type-input";
+import {
+  calendarLocationFields,
+  eventTypeInputSchema,
+  validateZoomDetail,
+} from "./event-type-input";
 
 const valid = {
   title: "Intro Call",
@@ -89,5 +93,56 @@ describe("calendarLocationFields", () => {
   it("returns nothing when there's no location", () => {
     expect(calendarLocationFields(null)).toEqual({});
     expect(calendarLocationFields(undefined, "x")).toEqual({});
+  });
+});
+
+describe("validateZoomDetail", () => {
+  it("passes when zoom is connected (no detail needed)", () => {
+    expect(validateZoomDetail({ location: "zoom" }, true)).toBeNull();
+    expect(validateZoomDetail({ location: "zoom", locationDetail: "" }, true)).toBeNull();
+  });
+
+  it("fails when zoom is not connected and no detail is provided", () => {
+    expect(validateZoomDetail({ location: "zoom" }, false)).toBeTruthy();
+    expect(validateZoomDetail({ location: "zoom", locationDetail: "" }, false)).toBeTruthy();
+    expect(validateZoomDetail({ location: "zoom", locationDetail: "  " }, false)).toBeTruthy();
+  });
+
+  it("passes when zoom is not connected but a detail is provided", () => {
+    expect(validateZoomDetail({ location: "zoom", locationDetail: "https://z" }, false)).toBeNull();
+  });
+
+  it("ignores non-zoom locations", () => {
+    expect(validateZoomDetail({ location: "google_meet" }, false)).toBeNull();
+    expect(
+      validateZoomDetail({ location: "phone", locationDetail: "+1" }, false),
+    ).toBeNull();
+  });
+
+  it("checks zoom entries in the locations menu", () => {
+    // Zoom in the menu without detail + not connected → fails
+    expect(
+      validateZoomDetail(
+        { location: "google_meet", locations: [{ type: "zoom", detail: null }] },
+        false,
+      ),
+    ).toBeTruthy();
+    // Zoom in the menu with detail + not connected → passes
+    expect(
+      validateZoomDetail(
+        {
+          location: "google_meet",
+          locations: [{ type: "zoom", detail: "https://z" }],
+        },
+        false,
+      ),
+    ).toBeNull();
+    // Zoom in the menu without detail + connected → passes
+    expect(
+      validateZoomDetail(
+        { location: "google_meet", locations: [{ type: "zoom", detail: null }] },
+        true,
+      ),
+    ).toBeNull();
   });
 });

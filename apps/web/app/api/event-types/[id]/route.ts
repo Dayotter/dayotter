@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth/session";
-import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
+import { eventTypeInputSchema, validateZoomDetail } from "@/lib/booking/event-type-input";
 import { resolveScheduleId } from "@/lib/booking/schedule";
+import { isZoomConnected } from "@/lib/integrations/zoom";
 import { hashAccessCode } from "@dayotter/core";
 import { and, eq, getDb, schema, sql } from "@dayotter/db";
 import { NextResponse } from "next/server";
@@ -103,6 +104,29 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const scheduleId = has("scheduleId")
     ? await resolveScheduleId(session.user.id, d.scheduleId)
     : existing.scheduleId;
+
+  // Zoom: without an OAuth connection the meeting is never auto-created, so a
+  // manual link is required. Determine the *effective* location after this
+  // partial update, then validate. `has("locations")` decides whether the menu
+  // is being replaced or preserved.
+  const zoomConnected = await isZoomConnected(session.user.id);
+  if (!zoomConnected) {
+    const effectiveLocations =
+      has("locations") && d.locations?.length
+        ? d.locations
+        : has("locations")
+          ? null
+          : existing.locations;
+    const effectiveLocation = pick("location", d.location, existing.location);
+    const effectiveDetail = pick("locationDetail", d.locationDetail ?? null, existing.locationDetail);
+    const zoomError = validateZoomDetail(
+      effectiveLocations
+        ? { location: effectiveLocation, locationDetail: effectiveDetail, locations: effectiveLocations }
+        : { location: effectiveLocation, locationDetail: effectiveDetail },
+      zoomConnected,
+    );
+    if (zoomError) return NextResponse.json({ error: zoomError }, { status: 400 });
+  }
 
   try {
     await getDb()

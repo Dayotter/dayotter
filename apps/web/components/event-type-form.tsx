@@ -197,11 +197,11 @@ export function EventTypeForm({
   const [showMore, setShowMore] = useState(mode === "edit");
 
   // Normalized location list for submit: keep a detail only where the type needs one.
-  // Zoom detail is optional (auto-created via OAuth when connected), but kept if provided.
+  // Zoom detail is optional when OAuth-connected (auto-created), but required otherwise.
   const cleanLocations = locations.map((l) => ({
     type: l.type,
     detail:
-      NEEDS_DETAIL.includes(l.type) || (l.type === "zoom" && l.detail.trim())
+      NEEDS_DETAIL.includes(l.type) || (l.type === "zoom" && (zoomConnected || l.detail.trim()))
         ? l.detail.trim()
         : undefined,
   }));
@@ -499,12 +499,24 @@ export function EventTypeForm({
                           aria-label={`Location ${i + 1} details`}
                           value={row.detail}
                           onChange={(e) => setLocationRow(i, { detail: e.target.value })}
-                          placeholder={LOCATION_DETAIL_PLACEHOLDER[row.type]}
+                          placeholder={
+                            row.type === "zoom"
+                              ? zoomConnected
+                                ? LOCATION_DETAIL_PLACEHOLDER.zoom
+                                : "https://zoom.us/j/…"
+                              : LOCATION_DETAIL_PLACEHOLDER[row.type]
+                          }
+                          required={row.type === "zoom" ? !zoomConnected : true}
                         />
                         {row.type === "zoom" && zoomConnected && (
                           <p className="mt-1 text-xs text-[var(--color-muted)]">
                             A new Zoom meeting will be created automatically for each booking. This
                             field is optional as a fallback.
+                          </p>
+                        )}
+                        {row.type === "zoom" && !zoomConnected && (
+                          <p className="mt-1 text-xs text-[var(--color-muted)]">
+                            Connect Zoom in Settings to auto-create meetings, or add a link here.
                           </p>
                         )}
                       </>
