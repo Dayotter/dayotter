@@ -21,6 +21,7 @@ export const QUEUE_NAMES = {
   webhooks: "webhooks",
   crmSync: "crm-sync",
   guardrailAlerts: "guardrail-alerts",
+  holds: "holds",
 } as const;
 
 /** Liveness key the worker refreshes so the web /health can confirm it's alive. */
@@ -69,6 +70,10 @@ export interface CrmSyncJob {
 
 export interface GuardrailAlertJob {
   eventId: string;
+}
+
+export interface HoldReleaseJob {
+  bookingId: string;
 }
 
 /**
@@ -120,6 +125,29 @@ export async function enqueueCrmSync(job: CrmSyncJob): Promise<void> {
     removeOnComplete: true,
     removeOnFail: 200,
   });
+}
+
+/**
+ * Schedule a lapsed hold to be released at its expiry, freeing the slot promptly
+ * (the index guard keeps the slot locked until the pending row is gone). Keyed
+ * per booking so re-enqueuing is a no-op, and best-effort - the maintenance tick
+ * sweeps any hold whose delayed job was lost (e.g. Redis flush / worker down at
+ * fire time), so this is an optimization, not a correctness dependency.
+ */
+export async function scheduleHoldRelease(bookingId: string, expiresAt: Date): Promise<void> {
+  const delay = Math.max(0, expiresAt.getTime() - Date.now());
+  await queue<HoldReleaseJob>(QUEUE_NAMES.holds).add(
+    "release",
+    { bookingId },
+    {
+      jobId: `hold-${bookingId}`,
+      delay,
+      attempts: 3,
+      backoff: { type: "exponential", delay: 10_000 },
+      removeOnComplete: true,
+      removeOnFail: 100,
+    },
+  );
 }
 
 /**

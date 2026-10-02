@@ -2,6 +2,7 @@ import { logger } from "@dayotter/core";
 import { type SyncJob, connection, scheduleMaintenance, writeHeartbeat } from "@dayotter/jobs";
 import { startCrmSyncWorker } from "./workers/crm-sync";
 import { startGuardrailAlertsWorker } from "./workers/guardrail-alerts";
+import { startHoldsWorker } from "./workers/holds";
 import { startMaintenanceWorker } from "./workers/maintenance";
 import { startRemindersWorker } from "./workers/reminders";
 import { startSyncWorker } from "./workers/sync";
@@ -19,6 +20,7 @@ async function main(): Promise<void> {
   const webhooks = startWebhooksWorker();
   const crmSync = startCrmSyncWorker();
   const guardrailAlerts = startGuardrailAlertsWorker();
+  const holds = startHoldsWorker();
 
   const workers = [
     ["reminders", reminders],
@@ -27,6 +29,7 @@ async function main(): Promise<void> {
     ["webhooks", webhooks],
     ["crm-sync", crmSync],
     ["guardrail-alerts", guardrailAlerts],
+    ["holds", holds],
   ] as const;
 
   for (const [name, worker] of workers) {

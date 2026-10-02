@@ -4,6 +4,7 @@ import { env } from "@/lib/server/env";
 import { logger, roundRobinPick, verifyAccessCode } from "@dayotter/core";
 import { and, eq, getDb, gte, inArray, lt, schema, sql } from "@dayotter/db";
 import { bookingRequested, newBookingRequest, sendEmail } from "@dayotter/emails";
+import { scheduleHoldRelease } from "@dayotter/jobs";
 import { DateTime } from "luxon";
 import {
   SLOT_REVALIDATION_WINDOW_MS,
@@ -150,11 +151,18 @@ export interface CreateBookingInput {
   /** Redeem one prepaid package credit for the attendee instead of charging.
    * Consumed atomically inside the booking transaction (restored on rollback). */
   redeemCredit?: boolean;
+  /** Create a temporary HOLD instead of a live booking: the row is stored
+   * `pending` with a `hold_expires_at` so it reserves the slot, but NONE of the
+   * confirmed side-effects run and no host-review emails are sent. An integrator
+   * confirms it later (`confirmHold`, which finalizes it) or it lapses and a
+   * worker releases it. Mutually exclusive with payment/credit - the integrator
+   * owns payment out-of-band. */
+  hold?: { ttlSeconds: number };
 }
 
 export async function createBooking(
   input: CreateBookingInput,
-): Promise<{ uid: string; redirectUrl: string | null }> {
+): Promise<{ uid: string; redirectUrl: string | null; holdExpiresAt?: Date }> {
   const db = getDb();
 
   const eventType = await db.query.eventTypes.findFirst({
@@ -262,7 +270,11 @@ export async function createBooking(
   // count only `confirmed` rows, so a pending request never consumes a cap slot.
   const requiresConfirmation =
     Boolean(eventType.requiresConfirmation) && !input.payment && !input.redeemCredit;
-  const initialStatus = requiresConfirmation ? "pending" : "confirmed";
+  // A hold is a `pending` reservation with an expiry; it supersedes the opt-in
+  // review flow (the integrator, not the host, decides whether to confirm) and
+  // runs none of the confirmed side-effects until `confirmHold` finalizes it.
+  const holdExpiresAt = input.hold ? new Date(Date.now() + input.hold.ttlSeconds * 1000) : null;
+  const initialStatus = input.hold || requiresConfirmation ? "pending" : "confirmed";
 
   // Persist booking + attendees atomically. The partial unique index on
   // (hostId, startsAt) guards against a concurrent double-book: a request that
@@ -482,6 +494,7 @@ export async function createBooking(
           endsAt: end,
           timezone: input.attendee.timezone,
           status: initialStatus,
+          holdExpiresAt,
           isGroup,
           location: finalLocation.detail ?? null,
           locationType: finalLocation.type,
@@ -532,6 +545,26 @@ export async function createBooking(
   // NB: the "created" lifecycle fan-out (webhooks / CRM / plugins) fires from
   // finalizeConfirmedBooking, i.e. only once the booking is actually confirmed -
   // so a `pending` opt-in request doesn't emit a phantom "created".
+
+  // A hold stops here: the slot is reserved as a `pending` row and nothing else
+  // runs - no host-review emails, no calendar write, no confirmation. The
+  // integrator confirms it (which finalizes everything) or it lapses and is
+  // released. No attendee/host email either: a hold is a machine reservation,
+  // not a human request awaiting a decision.
+  if (input.hold && holdExpiresAt) {
+    // Schedule prompt release at expiry; the worker's maintenance sweep backstops
+    // this if the delayed job is ever lost. Best-effort, never blocks the hold.
+    try {
+      await scheduleHoldRelease(booking.id, holdExpiresAt);
+    } catch (err) {
+      logger.warn("hold release schedule failed", {
+        event: "hold_release_schedule_failed",
+        bookingId: booking.id,
+        err,
+      });
+    }
+    return { uid, redirectUrl: null, holdExpiresAt };
+  }
 
   // Opt-in bookings stop here: the request is held as `pending` and NONE of the
   // confirmed side-effects run. Tell the attendee it's been requested and the
