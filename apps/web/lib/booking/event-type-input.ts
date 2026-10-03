@@ -178,6 +178,13 @@ export const eventTypeInputSchema = z
      * mirrors the first entry into `location`/`locationDetail`.
      */
     locations: z.array(locationOptionSchema).max(6).nullable().default(null),
+    /**
+     * How the meeting platform is resolved at booking time.
+     * "fixed" (default) - the event type's `location` is always used.
+     * "host_preference" - for team events, use the resolved host's preferred
+     * platform, falling back to `location` when the host has no connection.
+     */
+    locationMode: z.enum(["fixed", "host_preference"]).default("fixed"),
     bufferBeforeMinutes: z.number().int().min(0).max(240).default(0),
     bufferAfterMinutes: z.number().int().min(0).max(240).default(0),
     // 0 = no minimum; capped at 30 days.
@@ -252,11 +259,15 @@ export type EventTypeInput = z.infer<typeof eventTypeInputSchema>;
  * Returns an error message, or null when the data is valid.
  */
 export function validateZoomDetail(
-  d: { location: string; locationDetail?: string | null; locations?: { type: string; detail?: string | null }[] | null },
+  d: {
+    location: string;
+    locationDetail?: string | null;
+    locations?: { type: string; detail?: string | null }[] | null;
+  },
   zoomConnected: boolean,
 ): string | null {
   if (zoomConnected) return null;
-  const hasDetail = (v?: string | null) => Boolean(v && v.trim());
+  const hasDetail = (v?: string | null) => Boolean(v?.trim());
   // Single-location zoom without a manual link.
   if (d.location === "zoom" && !hasDetail(d.locationDetail)) {
     return "Add a Zoom link for this event type, or connect Zoom in Settings to auto-create meetings.";

@@ -46,6 +46,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       location: et.location,
       locationDetail: et.locationDetail,
       locations: et.locations,
+      locationMode: et.locationMode,
       bufferBeforeMinutes: et.bufferBeforeMinutes,
       bufferAfterMinutes: et.bufferAfterMinutes,
       minimumNoticeMinutes: et.minimumNoticeMinutes,
@@ -118,10 +119,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           ? null
           : existing.locations;
     const effectiveLocation = pick("location", d.location, existing.location);
-    const effectiveDetail = pick("locationDetail", d.locationDetail ?? null, existing.locationDetail);
+    const effectiveDetail = pick(
+      "locationDetail",
+      d.locationDetail ?? null,
+      existing.locationDetail,
+    );
     const zoomError = validateZoomDetail(
       effectiveLocations
-        ? { location: effectiveLocation, locationDetail: effectiveDetail, locations: effectiveLocations }
+        ? {
+            location: effectiveLocation,
+            locationDetail: effectiveDetail,
+            locations: effectiveLocations,
+          }
         : { location: effectiveLocation, locationDetail: effectiveDetail },
       zoomConnected,
     );
@@ -154,6 +163,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             ? d.locations
             : null
           : existing.locations,
+        locationMode: pick("locationMode", d.locationMode, existing.locationMode),
         bufferBeforeMinutes: pick(
           "bufferBeforeMinutes",
           d.bufferBeforeMinutes,

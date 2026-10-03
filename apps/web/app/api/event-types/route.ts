@@ -77,6 +77,7 @@ export async function POST(request: Request) {
         location: d.locations?.length ? d.locations[0]!.type : d.location,
         locationDetail: d.locations?.length ? (d.locations[0]!.detail ?? null) : d.locationDetail,
         locations: d.locations?.length ? d.locations : null,
+        locationMode: d.locationMode,
         bufferBeforeMinutes: d.bufferBeforeMinutes,
         bufferAfterMinutes: d.bufferAfterMinutes,
         minimumNoticeMinutes: d.minimumNoticeMinutes,

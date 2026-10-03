@@ -52,6 +52,7 @@ export interface EventTypeInitial {
   location?: LocationTypeValue;
   locationDetail?: string | null;
   locations?: { type: string; detail?: string | null }[] | null;
+  locationMode?: "fixed" | "host_preference";
   bufferBeforeMinutes?: number;
   bufferAfterMinutes?: number;
   minimumNoticeMinutes?: number;
@@ -124,6 +125,12 @@ export function EventTypeForm({
   };
   const removeLocation = (i: number) =>
     setLocations((ls) => (ls.length > 1 ? ls.filter((_, idx) => idx !== i) : ls));
+  // Meeting platform resolution: "fixed" uses the event type's location; for team
+  // events, "host_preference" lets each booking follow the resolved host's
+  // preferred platform (with fallback to the fixed location).
+  const [locationMode, setLocationMode] = useState<"fixed" | "host_preference">(
+    initial?.locationMode ?? "fixed",
+  );
   const [bufferBefore, setBufferBefore] = useState(initial?.bufferBeforeMinutes ?? 0);
   const [bufferAfter, setBufferAfter] = useState(initial?.bufferAfterMinutes ?? 0);
   const [minimumNotice, setMinimumNotice] = useState(initial?.minimumNoticeMinutes ?? 60);
@@ -273,6 +280,7 @@ export function EventTypeForm({
       // Send the full menu when there's more than one; an empty array clears any
       // stored menu back to the single primary location.
       locations: cleanLocations.length > 1 ? cleanLocations : [],
+      locationMode,
       bufferBeforeMinutes: bufferBefore,
       bufferAfterMinutes: bufferAfter,
       minimumNoticeMinutes: minimumNotice,
@@ -534,6 +542,40 @@ export function EventTypeForm({
                 <Plus size={14} /> Add another location
               </button>
             ) : null}
+          </div>
+
+          <div>
+            <Label htmlFor="location-mode">Meeting platform</Label>
+            <div className="mt-1 flex gap-2">
+              {(
+                [
+                  { v: "fixed", label: "Fixed", hint: "Always use the selected platform" },
+                  {
+                    v: "host_preference",
+                    label: "Host's preference",
+                    hint: "Team events follow the host",
+                  },
+                ] as const
+              ).map((o) => (
+                <button
+                  key={o.v}
+                  type="button"
+                  onClick={() => setLocationMode(o.v)}
+                  className={
+                    locationMode === o.v
+                      ? "rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)]/10 px-3 py-2 text-left text-sm"
+                      : "rounded-md border border-[var(--color-border-strong)] px-3 py-2 text-left text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                  }
+                >
+                  <div className="font-medium text-[var(--color-text)]">{o.label}</div>
+                  <div className="text-xs text-[var(--color-muted)]">{o.hint}</div>
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-[var(--color-faint)]">
+              For team events, "Host&apos;s preference" uses the resolved host&apos;s preferred
+              platform (set in their profile) instead of the fixed location above.
+            </p>
           </div>
 
           <div>

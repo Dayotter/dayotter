@@ -114,9 +114,7 @@ describe("validateZoomDetail", () => {
 
   it("ignores non-zoom locations", () => {
     expect(validateZoomDetail({ location: "google_meet" }, false)).toBeNull();
-    expect(
-      validateZoomDetail({ location: "phone", locationDetail: "+1" }, false),
-    ).toBeNull();
+    expect(validateZoomDetail({ location: "phone", locationDetail: "+1" }, false)).toBeNull();
   });
 
   it("checks zoom entries in the locations menu", () => {

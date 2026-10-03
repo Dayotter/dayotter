@@ -241,6 +241,41 @@ export async function createBooking(
 
   const { host, coHostEmails } = await resolveHost(eventType, start, hostIds, perHost);
 
+  // Host-preference mode: for team events, the meeting platform follows the
+  // resolved host's preference (stored in userPreferences.defaultLocationType).
+  // Falls back to the event type's fixed location when the host has no
+  // connection for their preferred platform - a booking must never end up
+  // without a link.
+  let bookingLocation = finalLocation;
+  if (eventType.locationMode === "host_preference" && eventType.teamId) {
+    const hostPrefs = await db.query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, host.id),
+      columns: { defaultLocationType: true },
+    });
+    const preferred = hostPrefs?.defaultLocationType;
+    if (preferred && preferred !== finalLocation.type) {
+      // For Zoom, the host must have an active OAuth connection. Calendar-based
+      // platforms (google_meet, ms_teams) always work via the host's calendar.
+      // Jitsi/phone/in_person/custom don't need a connection.
+      const needsConnection = preferred === "zoom";
+      let canUse = !needsConnection;
+      if (needsConnection) {
+        const conn = await db.query.conferencingConnections.findFirst({
+          where: and(
+            eq(schema.conferencingConnections.userId, host.id),
+            eq(schema.conferencingConnections.provider, "zoom"),
+            eq(schema.conferencingConnections.status, "active"),
+          ),
+          columns: { id: true },
+        });
+        canUse = Boolean(conn);
+      }
+      if (canUse) {
+        bookingLocation = { type: preferred, detail: null };
+      }
+    }
+  }
+
   // Focus protection: when the host caps their daily meetings, we hard-decline a
   // booking that would push the day over the limit (see the guard in the tx below).
   const focusPrefs = await db.query.userPreferences.findFirst({
@@ -496,8 +531,8 @@ export async function createBooking(
           status: initialStatus,
           holdExpiresAt,
           isGroup,
-          location: finalLocation.detail ?? null,
-          locationType: finalLocation.type,
+          location: bookingLocation.detail ?? null,
+          locationType: bookingLocation.type,
           responses: input.responses,
           uid,
           recurrenceUid,
@@ -581,7 +616,7 @@ export async function createBooking(
           timezone: input.attendee.timezone,
           hostName: host.name ?? "your host",
           attendeeName: input.attendee.name,
-          location: finalLocation.detail ?? undefined,
+          location: bookingLocation.detail ?? undefined,
           manageUrl: attendeeManageUrl,
         }),
         to: input.attendee.email,
@@ -604,7 +639,7 @@ export async function createBooking(
             timezone: host.timezone,
             hostName: host.name ?? "you",
             attendeeName: input.attendee.name,
-            location: finalLocation.detail ?? undefined,
+            location: bookingLocation.detail ?? undefined,
             manageUrl: hostReviewUrl,
           }),
           to: host.email,
