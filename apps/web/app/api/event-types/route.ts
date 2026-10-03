@@ -1,8 +1,9 @@
 import { getSession } from "@/lib/auth/session";
-import { eventTypeInputSchema } from "@/lib/booking/event-type-input";
+import { eventTypeInputSchema, validateZoomDetail } from "@/lib/booking/event-type-input";
 import { notPersonalType } from "@/lib/booking/personal-event-type";
 import { resolveScheduleId } from "@/lib/booking/schedule";
 import { ensureUserWorkspace } from "@/lib/bootstrap";
+import { isZoomConnected } from "@/lib/integrations/zoom";
 import { sha256hex } from "@dayotter/core";
 import { and, desc, eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
@@ -47,6 +48,12 @@ export async function POST(request: Request) {
   }
   const d = parsed.data;
 
+  // Zoom: without an OAuth connection the meeting is never auto-created, so a
+  // manual link is required to guarantee the booking ends up with a join URL.
+  const zoomConnected = await isZoomConnected(session.user.id);
+  const zoomError = validateZoomDetail(d, zoomConnected);
+  if (zoomError) return NextResponse.json({ error: zoomError }, { status: 400 });
+
   const { organizationId, scheduleId, handle } = await ensureUserWorkspace(session.user.id);
 
   // Honor a chosen schedule only if it belongs to this user (no cross-tenant
@@ -70,6 +77,7 @@ export async function POST(request: Request) {
         location: d.locations?.length ? d.locations[0]!.type : d.location,
         locationDetail: d.locations?.length ? (d.locations[0]!.detail ?? null) : d.locationDetail,
         locations: d.locations?.length ? d.locations : null,
+        locationMode: d.locationMode,
         bufferBeforeMinutes: d.bufferBeforeMinutes,
         bufferAfterMinutes: d.bufferAfterMinutes,
         minimumNoticeMinutes: d.minimumNoticeMinutes,

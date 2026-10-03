@@ -52,6 +52,7 @@ export interface EventTypeInitial {
   location?: LocationTypeValue;
   locationDetail?: string | null;
   locations?: { type: string; detail?: string | null }[] | null;
+  locationMode?: "fixed" | "host_preference";
   bufferBeforeMinutes?: number;
   bufferAfterMinutes?: number;
   minimumNoticeMinutes?: number;
@@ -124,6 +125,12 @@ export function EventTypeForm({
   };
   const removeLocation = (i: number) =>
     setLocations((ls) => (ls.length > 1 ? ls.filter((_, idx) => idx !== i) : ls));
+  // Meeting platform resolution: "fixed" uses the event type's location; for team
+  // events, "host_preference" lets each booking follow the resolved host's
+  // preferred platform (with fallback to the fixed location).
+  const [locationMode, setLocationMode] = useState<"fixed" | "host_preference">(
+    initial?.locationMode ?? "fixed",
+  );
   const [bufferBefore, setBufferBefore] = useState(initial?.bufferBeforeMinutes ?? 0);
   const [bufferAfter, setBufferAfter] = useState(initial?.bufferAfterMinutes ?? 0);
   const [minimumNotice, setMinimumNotice] = useState(initial?.minimumNoticeMinutes ?? 60);
@@ -187,6 +194,7 @@ export function EventTypeForm({
   const [schedules, setSchedules] = useState<{ id: string; name: string; isDefault: boolean }[]>(
     [],
   );
+  const [zoomConnected, setZoomConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -196,9 +204,13 @@ export function EventTypeForm({
   const [showMore, setShowMore] = useState(mode === "edit");
 
   // Normalized location list for submit: keep a detail only where the type needs one.
+  // Zoom detail is optional when OAuth-connected (auto-created), but required otherwise.
   const cleanLocations = locations.map((l) => ({
     type: l.type,
-    detail: NEEDS_DETAIL.includes(l.type) ? l.detail.trim() : undefined,
+    detail:
+      NEEDS_DETAIL.includes(l.type) || (l.type === "zoom" && (zoomConnected || l.detail.trim()))
+        ? l.detail.trim()
+        : undefined,
   }));
   const primaryLocation = cleanLocations[0] ?? {
     type: "google_meet" as LocationTypeValue,
@@ -220,6 +232,20 @@ export function EventTypeForm({
             ? ""
             : cur,
         );
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Check if Zoom is connected via OAuth for helper text in location section.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/integrations/zoom")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (active) setZoomConnected(Boolean(d?.connected));
       })
       .catch(() => {});
     return () => {
@@ -254,6 +280,7 @@ export function EventTypeForm({
       // Send the full menu when there's more than one; an empty array clears any
       // stored menu back to the single primary location.
       locations: cleanLocations.length > 1 ? cleanLocations : [],
+      locationMode,
       bufferBeforeMinutes: bufferBefore,
       bufferAfterMinutes: bufferAfter,
       minimumNoticeMinutes: minimumNotice,
@@ -473,14 +500,34 @@ export function EventTypeForm({
                         </button>
                       ) : null}
                     </div>
-                    {NEEDS_DETAIL.includes(row.type) ? (
-                      <Input
-                        className="mt-2"
-                        aria-label={`Location ${i + 1} details`}
-                        value={row.detail}
-                        onChange={(e) => setLocationRow(i, { detail: e.target.value })}
-                        placeholder={LOCATION_DETAIL_PLACEHOLDER[row.type]}
-                      />
+                    {NEEDS_DETAIL.includes(row.type) || row.type === "zoom" ? (
+                      <>
+                        <Input
+                          className="mt-2"
+                          aria-label={`Location ${i + 1} details`}
+                          value={row.detail}
+                          onChange={(e) => setLocationRow(i, { detail: e.target.value })}
+                          placeholder={
+                            row.type === "zoom"
+                              ? zoomConnected
+                                ? LOCATION_DETAIL_PLACEHOLDER.zoom
+                                : "https://zoom.us/j/…"
+                              : LOCATION_DETAIL_PLACEHOLDER[row.type]
+                          }
+                          required={row.type === "zoom" ? !zoomConnected : true}
+                        />
+                        {row.type === "zoom" && zoomConnected && (
+                          <p className="mt-1 text-xs text-[var(--color-muted)]">
+                            A new Zoom meeting will be created automatically for each booking. This
+                            field is optional as a fallback.
+                          </p>
+                        )}
+                        {row.type === "zoom" && !zoomConnected && (
+                          <p className="mt-1 text-xs text-[var(--color-muted)]">
+                            Connect Zoom in Settings to auto-create meetings, or add a link here.
+                          </p>
+                        )}
+                      </>
                     ) : null}
                   </div>
                 );
@@ -495,6 +542,40 @@ export function EventTypeForm({
                 <Plus size={14} /> Add another location
               </button>
             ) : null}
+          </div>
+
+          <div>
+            <Label htmlFor="location-mode">Meeting platform</Label>
+            <div className="mt-1 flex gap-2">
+              {(
+                [
+                  { v: "fixed", label: "Fixed", hint: "Always use the selected platform" },
+                  {
+                    v: "host_preference",
+                    label: "Host's preference",
+                    hint: "Team events follow the host",
+                  },
+                ] as const
+              ).map((o) => (
+                <button
+                  key={o.v}
+                  type="button"
+                  onClick={() => setLocationMode(o.v)}
+                  className={
+                    locationMode === o.v
+                      ? "rounded-md border border-[var(--color-accent)] bg-[var(--color-accent)]/10 px-3 py-2 text-left text-sm"
+                      : "rounded-md border border-[var(--color-border-strong)] px-3 py-2 text-left text-sm text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                  }
+                >
+                  <div className="font-medium text-[var(--color-text)]">{o.label}</div>
+                  <div className="text-xs text-[var(--color-muted)]">{o.hint}</div>
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-[var(--color-faint)]">
+              For team events, "Host&apos;s preference" uses the resolved host&apos;s preferred
+              platform (set in their profile) instead of the fixed location above.
+            </p>
           </div>
 
           <div>

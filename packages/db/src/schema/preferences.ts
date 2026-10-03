@@ -9,7 +9,13 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { notificationChannelType, themePref, timeFormat, timestamps } from "./_shared";
+import {
+  locationType,
+  notificationChannelType,
+  themePref,
+  timeFormat,
+  timestamps,
+} from "./_shared";
 import { users } from "./orgs";
 
 /**
@@ -81,6 +87,12 @@ export const userPreferences = pgTable(
     /** Booking-page analytics pixels (typed provider IDs only - see
      * lib/booking/analytics-pixels). e.g. { ga4, gtm, metaPixel, fathom, plausible }. */
     bookingPageAnalytics: jsonb("booking_page_analytics").$type<Record<string, string>>(),
+
+    // Scheduling preferences.
+    /** Preferred meeting platform for team events in "host preference" mode.
+     * Falls back to the event type's fixed location when the host has no
+     * connection for this platform. */
+    defaultLocationType: locationType("default_location_type").notNull().default("google_meet"),
 
     /** Encrypted JSON for sensitive / evolving preferences. */
     encryptedData: text("encrypted_data"),

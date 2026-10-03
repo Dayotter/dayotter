@@ -191,6 +191,14 @@ export const eventTypes = pgTable(
      * every single-location consumer keeps working unchanged.
      */
     locations: jsonb("locations").$type<{ type: string; detail?: string | null }[]>(),
+    /**
+     * How the meeting platform is resolved at booking time.
+     * "fixed" (default) - the event type's `location` is always used.
+     * "host_preference" - for team events, use the resolved host's
+     * `userPreferences.defaultLocationType`, falling back to `location` when the
+     * host has no connection for that platform.
+     */
+    locationMode: text("location_mode").notNull().default("fixed"),
 
     // Availability controls
     bufferBeforeMinutes: integer("buffer_before_minutes").notNull().default(0),

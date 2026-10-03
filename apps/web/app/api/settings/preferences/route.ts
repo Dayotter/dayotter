@@ -31,6 +31,7 @@ export const GET = withUser(async (u) => {
       lunchStartMinute: prefs?.lunchStartMinute ?? 720,
       lunchEndMinute: prefs?.lunchEndMinute ?? 780,
       bookingPageAssistant: prefs?.bookingPageAssistant ?? true,
+      defaultLocationType: prefs?.defaultLocationType ?? "google_meet",
     },
   });
 });
@@ -57,6 +58,9 @@ const bodySchema = z.object({
   lunchStartMinute: z.number().int().min(0).max(1439).optional(),
   lunchEndMinute: z.number().int().min(1).max(1440).optional(),
   bookingPageAssistant: z.boolean().optional(),
+  defaultLocationType: z
+    .enum(["google_meet", "zoom", "ms_teams", "jitsi", "phone", "in_person", "custom"])
+    .optional(),
 });
 
 export const PATCH = withUser(async (u, request) => {
@@ -85,6 +89,7 @@ export const PATCH = withUser(async (u, request) => {
   if (d.lunchStartMinute !== undefined) fields.lunchStartMinute = d.lunchStartMinute;
   if (d.lunchEndMinute !== undefined) fields.lunchEndMinute = d.lunchEndMinute;
   if (d.bookingPageAssistant !== undefined) fields.bookingPageAssistant = d.bookingPageAssistant;
+  if (d.defaultLocationType !== undefined) fields.defaultLocationType = d.defaultLocationType;
   // Guard against an inverted lunch window (end must be after start) when enabling.
   if (d.lunchEnabled !== undefined) {
     const start = d.lunchStartMinute ?? 720;

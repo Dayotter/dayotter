@@ -33,6 +33,7 @@ export default async function PreferencesSettingsPage() {
           lunchStartMinute: prefs?.lunchStartMinute ?? 720,
           lunchEndMinute: prefs?.lunchEndMinute ?? 780,
           bookingPageAssistant: prefs?.bookingPageAssistant ?? true,
+          defaultLocationType: prefs?.defaultLocationType ?? "google_meet",
         }}
       />
       <AnalyticsPreferences />
