@@ -98,8 +98,16 @@ export async function PUT(request: Request) {
       .delete(schema.availabilityRules)
       .where(eq(schema.availabilityRules.scheduleId, scheduleId));
     if (rows.length) await tx.insert(schema.availabilityRules).values(rows);
-    await tx.delete(schema.dateOverrides).where(eq(schema.dateOverrides.scheduleId, scheduleId));
-    if (overrideRows.length) await tx.insert(schema.dateOverrides).values(overrideRows);
+    // Only touch date overrides when the client actually manages them. A client
+    // that omits `overrides` (e.g. the mobile weekly-hours editor, which has no
+    // overrides UI) leaves the host's web-set holidays/one-off hours intact -
+    // otherwise saving weekly hours from mobile would silently wipe them. An
+    // explicit `overrides: []` still clears, so the web editor's full-replace is
+    // unaffected.
+    if (parsed.data.overrides !== undefined) {
+      await tx.delete(schema.dateOverrides).where(eq(schema.dateOverrides.scheduleId, scheduleId));
+      if (overrideRows.length) await tx.insert(schema.dateOverrides).values(overrideRows);
+    }
   });
 
   return NextResponse.json({ ok: true });
