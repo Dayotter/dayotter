@@ -31,9 +31,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#12305F"
       },
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -47,9 +45,7 @@
         {
           "microphonePermission": "DayOtter uses the microphone so you can speak scheduling commands.",
           "speechRecognitionPermission": "DayOtter turns your spoken commands into scheduling actions.",
-          "androidSpeechServicePackages": [
-            "com.google.android.googlequicksearchbox"
-          ]
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
         }
       ],
       [
