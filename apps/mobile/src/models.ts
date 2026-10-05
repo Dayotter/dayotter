@@ -307,6 +307,16 @@ export interface BookingDetail extends Booking {
   hostName: string | null;
   /** True when this booking is one occurrence of a recurring series. */
   isRecurring?: boolean;
+  /** Payment state: "none" for free events, else "paid"/"refunded"/... */
+  paymentStatus?: string;
+  /** Amount charged in the currency's smallest unit (cents), if paid. */
+  amountPaid?: number | null;
+  paymentCurrency?: string | null;
+  /** Why the booking was last cancelled / moved, if any. */
+  cancelReason?: string | null;
+  rescheduleReason?: string | null;
+  /** The booker's answers to the event type's intake questions. */
+  responses?: { label: string; value: unknown }[];
 }
 
 export interface Schedule {
