@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
   name: z.string().min(1).max(120),
-  email: z.string().email(),
+  email: z.string().email().optional().default(""),
+  inviteToken: z.string().min(16).max(200).optional(),
   responses: z
     .array(
       z.object({
@@ -32,6 +33,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
       token,
       { name: parsed.data.name, email: parsed.data.email },
       parsed.data.responses,
+      parsed.data.inviteToken,
     );
     return NextResponse.json({ ok: true });
   } catch (err) {

@@ -16,14 +16,18 @@ const bodySchema = z.object({
   durationMinutes: z.number().int().min(5).max(1440),
   location: z.string().max(200).optional(),
   times: z.array(z.string().datetime()).min(2).max(20),
+  votingMode: z.enum(["public", "invited"]).optional(),
+  inviteeEmails: z.array(z.string().email()).max(100).optional(),
+  /** Host-written note shown on the poll page and sent with invitation emails. */
+  message: z.string().max(2000).optional(),
 });
 
 export const POST = withUser(async (u, request) => {
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Invalid poll", 400);
   try {
-    const { token, id } = await createPoll(u.id, parsed.data);
-    return NextResponse.json({ token, id, url: `/polls/${id}` });
+    const result = await createPoll(u.id, parsed.data);
+    return NextResponse.json({ ...result, url: `/polls/${result.id}` });
   } catch (err) {
     if (err instanceof PollError) return jsonError(err.message, err.status);
     throw err;

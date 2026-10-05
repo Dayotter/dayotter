@@ -105,13 +105,6 @@ export function DateTimeField({
     };
   }, [open]);
 
-  // Scroll the selected time into view when the popover opens.
-  useEffect(() => {
-    if (!open) return;
-    const el = timeListRef.current?.querySelector<HTMLElement>("[data-selected='true']");
-    el?.scrollIntoView({ block: "center" });
-  }, [open]);
-
   const draft = DateTime.fromJSDate(draftDay);
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on draftDay, not the derived `draft`
   const times = useMemo(() => {
@@ -124,6 +117,23 @@ export function DateTimeField({
     }
     return out;
   }, [draftDay, stepMinutes]);
+
+  // Scroll the chosen time into view when the popover opens (centered); with no
+  // choice yet, start the time column at noon instead of midnight - nobody picks
+  // a meeting by scanning up from 12 AM, and early hours stay reachable above.
+  useEffect(() => {
+    if (!open) return;
+    const list = timeListRef.current;
+    if (!list) return;
+    const chosen = list.querySelector<HTMLElement>("[data-selected='true']");
+    if (chosen) {
+      chosen.scrollIntoView({ block: "center" });
+      return;
+    }
+    const noon = times.find((t) => t.hour >= 12);
+    const el = noon ? (list.children[times.indexOf(noon)] as HTMLElement | undefined) : undefined;
+    el?.scrollIntoView({ block: "start" });
+  }, [open, times]);
 
   function commitTime(time: DateTime) {
     onChange(draft.set({ hour: time.hour, minute: time.minute }).toFormat(VALUE_FMT));
