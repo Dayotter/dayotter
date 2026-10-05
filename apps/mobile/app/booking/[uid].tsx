@@ -3,7 +3,7 @@ import { Badge, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
 import { useAsync } from "@/hooks";
 import type { BookingDetail } from "@/models";
-import { colors, radius, statusColor } from "@/theme";
+import { colors, radius, statusColor, statusLabel } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
@@ -207,7 +207,10 @@ export default function BookingDetailScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.top}>
-            <Badge label={data.status} color={statusColor[data.status] ?? colors.muted} />
+            <Badge
+              label={statusLabel(data.status)}
+              color={statusColor[data.status] ?? colors.muted}
+            />
           </View>
           <Text style={styles.title}>{data.title}</Text>
           {data.hostName ? <Text style={styles.host}>with {data.hostName}</Text> : null}
@@ -228,7 +231,43 @@ export default function BookingDetailScreen() {
                 <Row icon="videocam-outline" text="Join the call" accent />
               </Pressable>
             ) : null}
+            {data.amountPaid && data.paymentStatus && data.paymentStatus !== "none" ? (
+              <Row
+                icon="card-outline"
+                text={`${data.paymentStatus === "refunded" ? "Refunded" : "Paid"} ${money(
+                  data.amountPaid,
+                  data.paymentCurrency ?? "usd",
+                )}`}
+              />
+            ) : null}
           </View>
+
+          {/* The booker's answers to the event type's intake questions. */}
+          {data.responses && data.responses.length > 0 ? (
+            <View style={styles.card}>
+              {data.responses.map((r) => (
+                <View key={r.label} style={styles.qa}>
+                  <Text style={styles.qaLabel}>{r.label}</Text>
+                  <Text style={styles.qaValue}>
+                    {r.value === true ? "Yes" : r.value === false ? "No" : String(r.value)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          {/* Why it was cancelled / last moved. */}
+          {data.cancelReason ? (
+            <View style={styles.card}>
+              <Text style={styles.qaLabel}>Reason for cancelling</Text>
+              <Text style={styles.qaValue}>{data.cancelReason}</Text>
+            </View>
+          ) : data.rescheduleReason ? (
+            <View style={styles.card}>
+              <Text style={styles.qaLabel}>Reason for the last change</Text>
+              <Text style={styles.qaValue}>{data.rescheduleReason}</Text>
+            </View>
+          ) : null}
 
           {/* Opt-in request awaiting the host's decision: approve or decline. */}
           {data.status === "pending" && !isPast ? (
@@ -354,6 +393,35 @@ export default function BookingDetailScreen() {
   );
 }
 
+// Zero-decimal currencies have no minor unit (¥1000 = 1000, not 100000).
+const ZERO_DECIMAL = new Set([
+  "bif",
+  "clp",
+  "djf",
+  "gnf",
+  "jpy",
+  "kmf",
+  "krw",
+  "mga",
+  "pyg",
+  "rwf",
+  "ugx",
+  "vnd",
+  "vuv",
+  "xaf",
+  "xof",
+  "xpf",
+]);
+
+/** Format a minor-unit amount as currency (divides by the right factor). */
+function money(minor: number, currency = "usd"): string {
+  const perUnit = ZERO_DECIMAL.has(currency.toLowerCase()) ? 1 : 100;
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  }).format(minor / perUnit);
+}
+
 function Row({
   icon,
   text,
@@ -382,6 +450,9 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: "row", alignItems: "center", gap: 10 },
   rowText: { color: colors.text, fontSize: 14, flexShrink: 1 },
+  qa: { gap: 2 },
+  qaLabel: { color: colors.muted, fontSize: 12 },
+  qaValue: { color: colors.text, fontSize: 14 },
   actions: { flexDirection: "row", gap: 10, marginTop: 24 },
   action: {
     flex: 1,

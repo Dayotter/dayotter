@@ -25,4 +25,11 @@ export const statusColor: Record<string, string> = {
   cancelled: colors.danger,
   pending: colors.amber,
   rejected: colors.danger,
+  no_show: colors.amber,
+  completed: colors.muted,
 };
+
+/** Human label for a booking status (e.g. no_show -> "no-show"). */
+export function statusLabel(status: string): string {
+  return status === "no_show" ? "no-show" : status;
+}

@@ -3,7 +3,7 @@ import { Badge, Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { formatDay, formatTime } from "@/format";
 import { useAsync } from "@/hooks";
 import { type Booking, type RangeBooking, eventColorHex } from "@/models";
-import { colors, radius, statusColor } from "@/theme";
+import { colors, radius, statusColor, statusLabel } from "@/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -254,7 +254,10 @@ function History() {
                       </Text>
                     ) : null}
                   </View>
-                  <Badge label={b.status} color={statusColor[b.status] ?? colors.muted} />
+                  <Badge
+                    label={statusLabel(b.status)}
+                    color={statusColor[b.status] ?? colors.muted}
+                  />
                 </View>
               </Card>
             </Pressable>
