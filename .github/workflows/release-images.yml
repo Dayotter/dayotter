@@ -43,7 +43,7 @@ jobs:
       # vX.Y.Z (exact), vX.Y (track patches), and `latest` for the newest stable
       # (not for -rc/-beta prereleases). metadata-action lowercases the image name.
       - id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ matrix.image }}
           tags: |
