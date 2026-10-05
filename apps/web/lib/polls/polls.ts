@@ -1,10 +1,10 @@
 import { randomBytes } from "node:crypto";
-import { env } from "@/lib/server/env";
 import { logger } from "@dayotter/core";
 import { and, asc, eq, getDb, inArray, schema } from "@dayotter/db";
 import { bookingConfirmation, pollInvitation, pollVoteUpdate, sendEmail } from "@dayotter/emails";
 import { AUTO_CONFERENCE, LOCATION_LABELS } from "../booking/event-type-input";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
+import { env } from "../server/env";
 import { applyCalendarMessage, applyFinalizeMessage } from "./message-templates";
 
 export class PollError extends Error {
@@ -127,7 +127,7 @@ export async function createPoll(
       where: eq(schema.users.id, hostId),
       columns: { name: true },
     });
-    const appUrl = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+    const appUrl = env.APP_URL;
     const sentIds: string[] = [];
     const deliveries = await Promise.allSettled(
       result.invitees.map(async (invitee) => {
@@ -271,17 +271,25 @@ export async function submitVotes(
       });
   }
 
-  if (poll.host?.email) {
+  // Notify the host of a new/changed vote - but ONLY for invited polls (bounded
+  // to <=100 recipients) and only when the host hasn't opted out of product
+  // emails. A widely shared PUBLIC poll must never email the host once per vote:
+  // with hundreds of voters that's a flood, and the host never asked for it.
+  const hostPrefs =
+    poll.votingMode === "invited" && poll.host?.email
+      ? await db.query.userPreferences.findFirst({
+          where: eq(schema.userPreferences.userId, poll.hostId),
+          columns: { productEmails: true },
+        })
+      : null;
+  if (poll.votingMode === "invited" && poll.host?.email && hostPrefs?.productEmails !== false) {
     const votes = await db.query.pollVotes.findMany({
       where: eq(schema.pollVotes.pollId, poll.id),
       columns: { optionId: true, voterEmail: true, response: true },
     });
     const voterEmails = new Set(votes.map((vote) => vote.voterEmail.toLowerCase()));
-    const participationLabel =
-      poll.votingMode === "invited"
-        ? `${poll.invitees.filter((invitee) => voterEmails.has(invitee.email.toLowerCase())).length} of ${poll.invitees.length} invited recipients have voted`
-        : `${voterEmails.size} ${voterEmails.size === 1 ? "person has" : "people have"} voted`;
-    const appUrl = (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+    const participationLabel = `${poll.invitees.filter((invitee) => voterEmails.has(invitee.email.toLowerCase())).length} of ${poll.invitees.length} invited recipients have voted`;
+    const appUrl = env.APP_URL;
     await sendEmail({
       to: poll.host.email,
       ...pollVoteUpdate({
