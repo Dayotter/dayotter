@@ -1,3 +1,4 @@
+import { withdrawMinimum } from "@/lib/booking/money";
 import {
   type CurrencyBalance,
   WITHDRAW_MINIMUM,
@@ -57,7 +58,12 @@ export const GET = withUser(async (u) => {
     payoutsEnabled,
     detailsSubmitted,
     balances,
+    // Per-currency withdrawal minimum (smallest unit), so the mobile screen can
+    // gate each balance against its own threshold instead of the USD one - a
+    // zero-decimal currency (¥) is otherwise checked against a 100x-wrong figure.
+    // `minimum` stays as a USD default for the empty-balance hint / back-compat.
     minimum: WITHDRAW_MINIMUM,
+    minimums: Object.fromEntries(balances.map((b) => [b.currency, withdrawMinimum(b.currency)])),
     feePercent: platformFeePercent,
   });
 });
