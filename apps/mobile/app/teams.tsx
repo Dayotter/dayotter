@@ -1,11 +1,21 @@
-import { api } from "@/api";
+import { ApiError, api } from "@/api";
 import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { Team } from "@/models";
-import { colors } from "@/theme";
+import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import {
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function TeamsScreen() {
   const router = useRouter();
@@ -14,6 +24,25 @@ export default function TeamsScreen() {
     return res.teams;
   });
 
+  const [name, setName] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  async function createTeam() {
+    const value = name.trim();
+    if (!value) return;
+    setCreating(true);
+    try {
+      const res = await api.post<{ id: string }>("/api/teams", { name: value });
+      setName("");
+      reload();
+      router.push(`/teams/${res.id}`);
+    } catch (e) {
+      Alert.alert("Couldn't create team", e instanceof ApiError ? e.message : "Please try again.");
+    } finally {
+      setCreating(false);
+    }
+  }
+
   return (
     <View style={styles.safe}>
       <Stack.Screen options={{ headerShown: true, title: "Teams" }} />
@@ -21,6 +50,24 @@ export default function TeamsScreen() {
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={reload} />}
       >
+        <View style={styles.createBox}>
+          <TextInput
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+            placeholder="New team name"
+            placeholderTextColor={colors.faint}
+          />
+          <Pressable
+            style={[styles.createBtn, (!name.trim() || creating) && styles.disabled]}
+            onPress={createTeam}
+            disabled={!name.trim() || creating}
+          >
+            <Ionicons name="add" size={18} color={colors.white} />
+            <Text style={styles.createText}>{creating ? "Creating…" : "Create"}</Text>
+          </Pressable>
+        </View>
+
         {loading && !data ? (
           <Loading />
         ) : error ? (
@@ -28,7 +75,7 @@ export default function TeamsScreen() {
         ) : !data || data.length === 0 ? (
           <EmptyState
             title="No teams yet"
-            body="Create a team on the web to share availability with your founders."
+            body="Create a team above to share availability with your teammates."
           />
         ) : (
           data.map((t) => (
@@ -71,4 +118,25 @@ const styles = StyleSheet.create({
   },
   name: { fontWeight: "600", color: colors.text },
   members: { color: colors.muted, fontSize: 13 },
+  createBox: { flexDirection: "row", gap: 8, marginBottom: 16 },
+  input: {
+    flex: 1,
+    backgroundColor: colors.surface2,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    color: colors.text,
+  },
+  createBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.accent,
+    borderRadius: radius.md,
+    paddingHorizontal: 16,
+  },
+  createText: { color: colors.white, fontWeight: "600" },
+  disabled: { opacity: 0.5 },
 });

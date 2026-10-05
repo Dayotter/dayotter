@@ -12,6 +12,7 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -41,6 +42,7 @@ interface Member {
   email: string;
   role: Role;
   priority: number;
+  publicBookable: boolean;
 }
 
 /** A team event type (GET /api/teams/[id]/event-types). */
@@ -159,6 +161,44 @@ export default function TeamDetailScreen() {
     } finally {
       setCreatingEvent(false);
     }
+  }
+
+  // Member controls (PATCH /api/teams/[id]/members/[memberId]). Each accepts one
+  // of: round-robin weight, publicBookable, or a role change (promote/transfer).
+  async function patchMember(memberId: string, patch: Record<string, unknown>) {
+    try {
+      await api.patch(`/api/teams/${id}/members/${memberId}`, patch);
+      reload();
+    } catch (e) {
+      Alert.alert("Couldn't update", e instanceof ApiError ? e.message : "Please try again.");
+    }
+  }
+
+  function setWeight(m: Member, next: number) {
+    const clamped = Math.max(0, Math.min(10, next));
+    if (clamped !== m.priority) patchMember(m.id, { priority: clamped });
+  }
+
+  function confirmPromote(m: Member) {
+    Alert.alert("Promote to admin", `Give ${m.name ?? m.email} admin access to this team?`, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Promote", onPress: () => patchMember(m.id, { role: "admin" }) },
+    ]);
+  }
+
+  function confirmTransfer(m: Member) {
+    Alert.alert(
+      "Transfer ownership",
+      `Make ${m.name ?? m.email} the owner? You'll become an admin. This can't be undone by you alone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Transfer",
+          style: "destructive",
+          onPress: () => patchMember(m.id, { role: "owner" }),
+        },
+      ],
+    );
   }
 
   function confirmDeleteEventType(et: TeamEventType) {
@@ -311,28 +351,77 @@ export default function TeamDetailScreen() {
           {/* MEMBERS — roster with role + weight; add/remove gated on admin. */}
           <Text style={styles.section}>Members</Text>
           {data.members.map((m) => (
-            <View key={m.id} style={styles.member}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{(m.name ?? m.email).charAt(0).toUpperCase()}</Text>
-              </View>
-              <View style={styles.memberInfo}>
-                <View style={styles.memberNameRow}>
-                  <Text style={styles.memberName} numberOfLines={1}>
-                    {m.name ?? "Member"}
+            <View key={m.id} style={styles.memberCard}>
+              <View style={styles.memberTop}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {(m.name ?? m.email).charAt(0).toUpperCase()}
                   </Text>
-                  <View style={styles.roleBadge}>
-                    <Text style={styles.roleBadgeText}>{m.role}</Text>
-                  </View>
                 </View>
-                <Text style={styles.memberEmail} numberOfLines={1}>
-                  {m.email}
-                </Text>
-                <Text style={styles.memberWeight}>Weight {m.priority}</Text>
+                <View style={styles.memberInfo}>
+                  <View style={styles.memberNameRow}>
+                    <Text style={styles.memberName} numberOfLines={1}>
+                      {m.name ?? "Member"}
+                    </Text>
+                    <View style={styles.roleBadge}>
+                      <Text style={styles.roleBadgeText}>{m.role}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.memberEmail} numberOfLines={1}>
+                    {m.email}
+                  </Text>
+                  {!canManage ? <Text style={styles.memberWeight}>Weight {m.priority}</Text> : null}
+                </View>
+                {canManage && m.role !== "owner" ? (
+                  <Pressable onPress={() => confirmRemoveMember(m)} hitSlop={8}>
+                    <Ionicons name="person-remove-outline" size={18} color={colors.faint} />
+                  </Pressable>
+                ) : null}
               </View>
-              {canManage && m.role !== "owner" ? (
-                <Pressable onPress={() => confirmRemoveMember(m)} hitSlop={8}>
-                  <Ionicons name="person-remove-outline" size={18} color={colors.faint} />
-                </Pressable>
+
+              {canManage ? (
+                <View style={styles.memberControls}>
+                  <View style={styles.ctrlRow}>
+                    <Text style={styles.ctrlLabel}>Weight</Text>
+                    <Pressable
+                      style={styles.stepBtn}
+                      hitSlop={6}
+                      onPress={() => setWeight(m, m.priority - 1)}
+                    >
+                      <Ionicons name="remove" size={16} color={colors.text} />
+                    </Pressable>
+                    <Text style={styles.weightVal}>{m.priority}</Text>
+                    <Pressable
+                      style={styles.stepBtn}
+                      hitSlop={6}
+                      onPress={() => setWeight(m, m.priority + 1)}
+                    >
+                      <Ionicons name="add" size={16} color={colors.text} />
+                    </Pressable>
+                  </View>
+                  <View style={styles.ctrlRow}>
+                    <Text style={styles.ctrlLabel}>Bookable</Text>
+                    <Switch
+                      value={m.publicBookable}
+                      onValueChange={(v) => patchMember(m.id, { publicBookable: v })}
+                    />
+                  </View>
+                  {(m.role === "member" && canManage) ||
+                  (data.viewerRole === "owner" && m.role !== "owner") ? (
+                    <View style={styles.memberActions}>
+                      {m.role === "member" ? (
+                        <Pressable style={styles.smallBtn} onPress={() => confirmPromote(m)}>
+                          <Text style={styles.smallBtnText}>Make admin</Text>
+                        </Pressable>
+                      ) : null}
+                      {data.viewerRole === "owner" ? (
+                        <Pressable style={styles.smallBtn} onPress={() => confirmTransfer(m)}>
+                          <Text style={styles.smallBtnText}>Make owner</Text>
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  ) : null}
+                </View>
               ) : null}
             </View>
           ))}
@@ -650,6 +739,47 @@ const styles = StyleSheet.create({
   addBox: { gap: 10, marginBottom: 10 },
   etControls: { gap: 8 },
   memberWeight: { color: colors.faint, fontSize: 11, marginTop: 2 },
+  memberCard: {
+    backgroundColor: colors.surface2,
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: 10,
+    gap: 12,
+  },
+  memberTop: { flexDirection: "row", alignItems: "center", gap: 12 },
+  memberControls: {
+    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: 10,
+  },
+  ctrlRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  ctrlLabel: { color: colors.muted, fontSize: 13, flex: 1 },
+  stepBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  weightVal: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: "600",
+    minWidth: 20,
+    textAlign: "center",
+  },
+  memberActions: { flexDirection: "row", gap: 8 },
+  smallBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  smallBtnText: { color: colors.text, fontSize: 12, fontWeight: "600" },
   rule: {
     flexDirection: "row",
     alignItems: "center",

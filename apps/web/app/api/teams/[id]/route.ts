@@ -49,6 +49,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       email: byId.get(r.userId)?.email ?? "",
       role: r.role,
       priority: r.priority,
+      publicBookable: r.publicBookable,
     }))
     // Owners first, then admins, then members; stable by email within a role.
     .sort((a, b) => {
