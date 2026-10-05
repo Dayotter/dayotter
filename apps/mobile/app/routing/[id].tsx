@@ -96,6 +96,10 @@ const FIELD_TYPE_LABEL: Record<RoutingField["type"], string> = {
   email: "Email",
 };
 
+const FIELD_TYPES: RoutingField["type"][] = ["select", "text", "email"];
+
+const newId = () => `r_${Math.random().toString(36).slice(2, 10)}`;
+
 export default function RoutingFormScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -105,10 +109,13 @@ export default function RoutingFormScreen() {
     return normalizeDetail(res);
   }, [id]);
 
-  // Editable basics; seeded once the form loads.
+  // Editable state; seeded once the form loads.
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [active, setActive] = useState(true);
+  const [fields, setFields] = useState<RoutingField[]>([]);
+  const [routes, setRoutes] = useState<RoutingRoute[]>([]);
+  const [fallbackId, setFallbackId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -117,6 +124,9 @@ export default function RoutingFormScreen() {
       setTitle(data.title);
       setDescription(data.description ?? "");
       setActive(data.isActive);
+      setFields(data.fields);
+      setRoutes(data.routes);
+      setFallbackId(data.fallbackEventTypeId);
     }
   }, [data]);
 
@@ -126,7 +136,38 @@ export default function RoutingFormScreen() {
     !!data &&
     (title.trim() !== data.title ||
       description.trim() !== (data.description ?? "") ||
-      active !== data.isActive);
+      active !== data.isActive ||
+      JSON.stringify(fields) !== JSON.stringify(data.fields) ||
+      JSON.stringify(routes) !== JSON.stringify(data.routes) ||
+      fallbackId !== data.fallbackEventTypeId);
+
+  function addField() {
+    setFields((f) => [...f, { id: newId(), label: "", type: "text" }]);
+  }
+  function patchField(fid: string, patch: Partial<RoutingField>) {
+    setFields((f) => f.map((x) => (x.id === fid ? { ...x, ...patch } : x)));
+  }
+  function removeField(fid: string) {
+    setFields((f) => f.filter((x) => x.id !== fid));
+    setRoutes((r) => r.filter((x) => x.fieldId !== fid)); // drop rules that referenced it
+  }
+  function addRoute() {
+    setRoutes((r) => [
+      ...r,
+      {
+        id: newId(),
+        fieldId: fields[0]?.id ?? "",
+        equals: "",
+        eventTypeId: data?.eventTypes[0]?.id ?? "",
+      },
+    ]);
+  }
+  function patchRoute(rid: string, patch: Partial<RoutingRoute>) {
+    setRoutes((r) => r.map((x) => (x.id === rid ? { ...x, ...patch } : x)));
+  }
+  function removeRoute(rid: string) {
+    setRoutes((r) => r.filter((x) => x.id !== rid));
+  }
 
   async function save() {
     if (!data) return;
@@ -135,17 +176,28 @@ export default function RoutingFormScreen() {
       Alert.alert("Name required", "Give your form a name.");
       return;
     }
+    // Keep only complete entries so the server's schema accepts the payload.
+    const cleanFields = fields
+      .filter((f) => f.label.trim().length > 0)
+      .map((f) => ({
+        ...f,
+        label: f.label.trim(),
+        options:
+          f.type === "select" ? (f.options ?? []).map((o) => o.trim()).filter(Boolean) : undefined,
+      }));
+    const fieldIds = new Set(cleanFields.map((f) => f.id));
+    const cleanRoutes = routes.filter(
+      (r) => fieldIds.has(r.fieldId) && r.eventTypeId && r.equals.trim().length > 0,
+    );
     setSaving(true);
     try {
-      // PUT replaces the whole form. Preserve the fields/routes/fallback loaded
-      // from the server (edited only in the web builder) and change the basics.
       await api.put(`/api/routing/${data.id}`, {
         title: name,
         description: description.trim() || null,
         isActive: active,
-        fields: data.fields,
-        routes: data.routes,
-        fallbackEventTypeId: data.fallbackEventTypeId,
+        fields: cleanFields,
+        routes: cleanRoutes,
+        fallbackEventTypeId: fallbackId,
       });
       reload();
     } catch (e) {
@@ -174,10 +226,6 @@ export default function RoutingFormScreen() {
         },
       },
     ]);
-  }
-
-  function eventTypeName(eventTypeId: string): string {
-    return data?.eventTypes.find((e) => e.id === eventTypeId)?.title ?? "a booking page";
   }
 
   return (
@@ -248,6 +296,165 @@ export default function RoutingFormScreen() {
             <Switch value={active} onValueChange={setActive} />
           </View>
 
+          {/* Questions editor */}
+          <Text style={styles.section}>Questions</Text>
+          {fields.map((f) => (
+            <View key={f.id} style={styles.item}>
+              <View style={styles.itemHead}>
+                <TextInput
+                  style={styles.fieldLabel}
+                  value={f.label}
+                  onChangeText={(v) => patchField(f.id, { label: v })}
+                  placeholder="Question label"
+                  placeholderTextColor={colors.faint}
+                />
+                <Pressable onPress={() => removeField(f.id)} hitSlop={8}>
+                  <Ionicons name="close" size={18} color={colors.faint} />
+                </Pressable>
+              </View>
+              <View style={styles.typeRow}>
+                {FIELD_TYPES.map((t) => (
+                  <Pressable
+                    key={t}
+                    onPress={() => patchField(f.id, { type: t })}
+                    style={[styles.typePill, f.type === t && styles.typePillOn]}
+                  >
+                    <Text style={[styles.typePillText, f.type === t && styles.typePillTextOn]}>
+                      {FIELD_TYPE_LABEL[t]}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              {f.type === "select" ? (
+                <TextInput
+                  style={styles.optionsInput}
+                  value={(f.options ?? []).join(", ")}
+                  onChangeText={(v) =>
+                    patchField(f.id, { options: v.split(",").map((o) => o.trimStart()) })
+                  }
+                  placeholder="Choices, comma-separated"
+                  placeholderTextColor={colors.faint}
+                />
+              ) : null}
+              <Pressable
+                style={styles.requiredRow}
+                onPress={() => patchField(f.id, { required: !f.required })}
+              >
+                <Switch
+                  value={Boolean(f.required)}
+                  onValueChange={(v) => patchField(f.id, { required: v })}
+                />
+                <Text style={styles.requiredText}>Required</Text>
+              </Pressable>
+            </View>
+          ))}
+          <Pressable style={styles.addDashed} onPress={addField}>
+            <Ionicons name="add" size={16} color={colors.accent} />
+            <Text style={styles.addDashedText}>Add question</Text>
+          </Pressable>
+
+          {/* Routing rules editor */}
+          <Text style={styles.section}>Where answers go</Text>
+          <Text style={styles.readonlyNote}>
+            Rules are checked top to bottom; the first match wins.
+          </Text>
+          {routes.map((r) => {
+            const field = fields.find((f) => f.id === r.fieldId);
+            return (
+              <View key={r.id} style={styles.item}>
+                <View style={styles.itemHead}>
+                  <Text style={styles.ruleLead}>If answer is…</Text>
+                  <Pressable onPress={() => removeRoute(r.id)} hitSlop={8}>
+                    <Ionicons name="close" size={18} color={colors.faint} />
+                  </Pressable>
+                </View>
+                {/* Which question */}
+                <View style={styles.chipRow}>
+                  {fields.map((f) => (
+                    <Pressable
+                      key={f.id}
+                      onPress={() => patchRoute(r.id, { fieldId: f.id })}
+                      style={[styles.chip, r.fieldId === f.id && styles.chipOn]}
+                    >
+                      <Text style={[styles.chipText, r.fieldId === f.id && styles.chipTextOn]}>
+                        {f.label || "Untitled"}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                {/* equals value — pills for a choice field, else free text */}
+                {field?.type === "select" && (field.options ?? []).length > 0 ? (
+                  <View style={styles.chipRow}>
+                    {(field.options ?? []).map((opt) => (
+                      <Pressable
+                        key={opt}
+                        onPress={() => patchRoute(r.id, { equals: opt })}
+                        style={[styles.chip, r.equals === opt && styles.chipOn]}
+                      >
+                        <Text style={[styles.chipText, r.equals === opt && styles.chipTextOn]}>
+                          {opt || "—"}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : (
+                  <TextInput
+                    style={styles.optionsInput}
+                    value={r.equals}
+                    onChangeText={(v) => patchRoute(r.id, { equals: v })}
+                    placeholder="equals this answer"
+                    placeholderTextColor={colors.faint}
+                  />
+                )}
+                {/* route to which event type */}
+                <Text style={styles.ruleLead}>→ book</Text>
+                <View style={styles.chipRow}>
+                  {data.eventTypes.map((et) => (
+                    <Pressable
+                      key={et.id}
+                      onPress={() => patchRoute(r.id, { eventTypeId: et.id })}
+                      style={[styles.chip, r.eventTypeId === et.id && styles.chipOn]}
+                    >
+                      <Text style={[styles.chipText, r.eventTypeId === et.id && styles.chipTextOn]}>
+                        {et.title}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            );
+          })}
+          <Pressable
+            style={[styles.addDashed, fields.length === 0 && styles.saveDisabled]}
+            onPress={addRoute}
+            disabled={fields.length === 0}
+          >
+            <Ionicons name="add" size={16} color={colors.accent} />
+            <Text style={styles.addDashedText}>Add rule</Text>
+          </Pressable>
+
+          {/* Fallback */}
+          <Text style={styles.section}>Otherwise book</Text>
+          <View style={styles.chipRow}>
+            <Pressable
+              onPress={() => setFallbackId(null)}
+              style={[styles.chip, fallbackId === null && styles.chipOn]}
+            >
+              <Text style={[styles.chipText, fallbackId === null && styles.chipTextOn]}>None</Text>
+            </Pressable>
+            {data.eventTypes.map((et) => (
+              <Pressable
+                key={et.id}
+                onPress={() => setFallbackId(et.id)}
+                style={[styles.chip, fallbackId === et.id && styles.chipOn]}
+              >
+                <Text style={[styles.chipText, fallbackId === et.id && styles.chipTextOn]}>
+                  {et.title}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
           <Pressable
             style={[styles.save, (!dirty || saving) && styles.saveDisabled]}
             onPress={save}
@@ -255,61 +462,6 @@ export default function RoutingFormScreen() {
           >
             <Text style={styles.saveText}>{saving ? "Saving…" : "Save changes"}</Text>
           </Pressable>
-
-          {/* Read-only: questions */}
-          <Text style={styles.section}>Questions</Text>
-          <Text style={styles.readonlyNote}>
-            Questions and routing rules are edited in the DayOtter web app.
-          </Text>
-          {data.fields.length > 0 ? (
-            data.fields.map((f) => (
-              <View key={f.id} style={styles.item}>
-                <View style={styles.itemHead}>
-                  <Text style={styles.itemTitle} numberOfLines={2}>
-                    {f.label || "Untitled question"}
-                  </Text>
-                  <Text style={styles.itemType}>
-                    {FIELD_TYPE_LABEL[f.type]}
-                    {f.required ? " · required" : ""}
-                  </Text>
-                </View>
-                {f.type === "select" && f.options && f.options.length > 0 ? (
-                  <Text style={styles.itemBody}>{f.options.join(" · ")}</Text>
-                ) : null}
-              </View>
-            ))
-          ) : (
-            <Text style={styles.emptyLine}>No questions yet.</Text>
-          )}
-
-          {/* Read-only: routing rules */}
-          <Text style={styles.section}>Where answers go</Text>
-          {data.routes.length > 0 ? (
-            data.routes.map((r) => {
-              const field = data.fields.find((f) => f.id === r.fieldId);
-              return (
-                <View key={r.id} style={styles.item}>
-                  <Text style={styles.itemBody}>
-                    <Text style={styles.dim}>If </Text>
-                    {field?.label || "a question"}
-                    <Text style={styles.dim}> is </Text>“{r.equals}”
-                    <Text style={styles.dim}> → </Text>
-                    {eventTypeName(r.eventTypeId)}
-                  </Text>
-                </View>
-              );
-            })
-          ) : (
-            <Text style={styles.emptyLine}>No routing rules yet.</Text>
-          )}
-          {data.fallbackEventTypeId ? (
-            <View style={styles.item}>
-              <Text style={styles.itemBody}>
-                <Text style={styles.dim}>Otherwise → </Text>
-                {eventTypeName(data.fallbackEventTypeId)}
-              </Text>
-            </View>
-          ) : null}
 
           <Pressable style={styles.delete} onPress={confirmDelete} disabled={deleting}>
             <Ionicons name="trash-outline" size={16} color={colors.danger} />
@@ -383,6 +535,62 @@ const styles = StyleSheet.create({
   itemBody: { color: colors.text, fontSize: 14, marginTop: 6, lineHeight: 20 },
   dim: { color: colors.muted },
   emptyLine: { color: colors.muted, fontSize: 13, marginBottom: 10 },
+  fieldLabel: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: "600",
+    paddingVertical: 2,
+  },
+  typeRow: { flexDirection: "row", gap: 8, marginTop: 10 },
+  typePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  typePillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+  typePillText: { color: colors.muted, fontSize: 12 },
+  typePillTextOn: { color: colors.text, fontWeight: "600" },
+  optionsInput: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.text,
+    backgroundColor: colors.surface,
+  },
+  requiredRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
+  requiredText: { color: colors.muted, fontSize: 13 },
+  addDashed: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderStyle: "dashed",
+    borderRadius: radius.md,
+    paddingVertical: 12,
+    marginBottom: 6,
+  },
+  addDashedText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
+  ruleLead: { color: colors.muted, fontSize: 13, marginTop: 10 },
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  chipOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+  chipText: { color: colors.muted, fontSize: 12 },
+  chipTextOn: { color: colors.text, fontWeight: "600" },
   delete: {
     marginTop: 24,
     flexDirection: "row",
