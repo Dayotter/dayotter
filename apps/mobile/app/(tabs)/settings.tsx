@@ -475,7 +475,12 @@ export default function SettingsScreen() {
         </Pressable>
 
         <Text style={styles.section}>Integrations</Text>
-        <Pressable style={styles.navRow} onPress={() => router.push("/crm")}>
+        <Pressable style={styles.navRow} onPress={() => router.push("/apps")}>
+          <Ionicons name="grid-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Apps &amp; integrations</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
+        <Pressable style={[styles.navRow, { marginTop: 10 }]} onPress={() => router.push("/crm")}>
           <Ionicons name="business-outline" size={18} color={colors.muted} />
           <Text style={styles.navText}>CRM</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.faint} />
