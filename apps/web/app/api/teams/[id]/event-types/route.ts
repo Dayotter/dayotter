@@ -18,6 +18,38 @@ const body = z.object({
   schedulingType: z.enum(["collective", "round_robin"]),
 });
 
+/** The team's event types, for any member (the web page reads these server-side;
+ *  this JSON endpoint serves the mobile team screen). */
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { id: teamId } = await params;
+  const db = getDb();
+
+  const caller = await db.query.teamMembers.findFirst({
+    where: and(
+      eq(schema.teamMembers.teamId, teamId),
+      eq(schema.teamMembers.userId, session.user.id),
+    ),
+  });
+  if (!caller) return NextResponse.json({ error: "Not a team member" }, { status: 403 });
+
+  const rows = await db.query.eventTypes.findMany({
+    where: eq(schema.eventTypes.teamId, teamId),
+    columns: {
+      id: true,
+      title: true,
+      slug: true,
+      durationMinutes: true,
+      schedulingType: true,
+      isActive: true,
+    },
+    orderBy: (e, { asc }) => asc(e.createdAt),
+  });
+
+  return NextResponse.json({ eventTypes: rows });
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
