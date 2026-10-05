@@ -23,11 +23,22 @@ const LOCATIONS: { value: LocationType; label: string }[] = [
   { value: "google_meet", label: "Google Meet" },
   { value: "ms_teams", label: "Teams" },
   { value: "zoom", label: "Zoom" },
+  { value: "jitsi", label: "Jitsi" },
   { value: "phone", label: "Phone" },
   { value: "in_person", label: "In person" },
   { value: "custom", label: "Custom" },
 ];
 const NEEDS_DETAIL: LocationType[] = ["zoom", "phone", "in_person", "custom"];
+
+// "Show slots every" cadence. null = use the event's duration (the default).
+const SLOT_INTERVALS: { value: number | null; label: string }[] = [
+  { value: null, label: "Default" },
+  { value: 10, label: "10m" },
+  { value: 15, label: "15m" },
+  { value: 20, label: "20m" },
+  { value: 30, label: "30m" },
+  { value: 60, label: "60m" },
+];
 
 const NOTICE_OPTIONS = [
   { value: 0, label: "None" },
@@ -105,6 +116,16 @@ export default function EventTypeForm() {
   const [offsetStart, setOffsetStart] = useState("0");
   const [requiresConfirmation, setRequiresConfirmation] = useState(false);
   const [durationOptions, setDurationOptions] = useState<number[]>([]);
+  // Meeting-platform resolution: "fixed" uses the location above; for team events
+  // "host_preference" follows the resolved host's preferred platform (#296).
+  const [locationMode, setLocationMode] = useState<"fixed" | "host_preference">("fixed");
+  // Which named availability schedule the event uses (null = the default).
+  const [scheduleId, setScheduleId] = useState<string | null>(null);
+  const [schedules, setSchedules] = useState<{ id: string; name: string; isDefault: boolean }[]>(
+    [],
+  );
+  // "Show slots every" cadence in minutes (null = use the event duration).
+  const [slotInterval, setSlotInterval] = useState<number | null>(null);
   const [questions, setQuestions] = useState<BookingQuestion[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -123,6 +144,19 @@ export default function EventTypeForm() {
     api
       .get<{ paymentsEnabled?: boolean }>("/api/me")
       .then((d) => active && setPaymentsEnabled(Boolean(d.paymentsEnabled)))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // The host's named schedules, so a multi-schedule user can point this event at
+  // a non-default one (the picker only shows when more than one exists).
+  useEffect(() => {
+    let active = true;
+    api
+      .get<{ schedules: { id: string; name: string; isDefault: boolean }[] }>("/api/schedules")
+      .then((d) => active && setSchedules(d.schedules ?? []))
       .catch(() => {});
     return () => {
       active = false;
@@ -186,6 +220,9 @@ export default function EventTypeForm() {
         setRequiresConfirmation(e.requiresConfirmation ?? false);
         setDurationOptions(e.durationOptions ?? []);
         setQuestions(e.questions ?? []);
+        setLocationMode(e.locationMode ?? "fixed");
+        setScheduleId(e.scheduleId ?? null);
+        setSlotInterval(e.slotIntervalMinutes ?? null);
       })
       .catch(() => setError("Could not load event type"))
       .finally(() => active && setLoading(false));
@@ -233,7 +270,10 @@ export default function EventTypeForm() {
       description: description || undefined,
       location,
       locationDetail: needsDetail ? locationDetail : undefined,
+      locationMode,
       locations: locationsPayload,
+      scheduleId,
+      slotIntervalMinutes: slotInterval,
       weeklyBookingLimit: weeklyLimitOn ? Number(weeklyLimit) || 1 : null,
       monthlyBookingLimit: monthlyLimitOn ? Number(monthlyLimit) || 1 : null,
       yearlyBookingLimit: yearlyLimitOn ? Number(yearlyLimit) || 1 : null,
@@ -346,6 +386,56 @@ export default function EventTypeForm() {
             </Pressable>
           ))}
         </View>
+        <Field
+          label="Custom duration (minutes)"
+          value={DURATIONS.includes(duration) ? "" : String(duration)}
+          onChange={(v) => {
+            const n = Number(v);
+            if (Number.isFinite(n) && n >= 5 && n <= 480) setDuration(n);
+          }}
+          placeholder="e.g. 90"
+          numeric
+          hint="Leave blank to use a preset above."
+        />
+
+        <Text style={styles.label}>Show slots every</Text>
+        <View style={styles.pills}>
+          {SLOT_INTERVALS.map((s) => (
+            <Pressable
+              key={String(s.value)}
+              onPress={() => setSlotInterval(s.value)}
+              style={[styles.pill, s.value === slotInterval && styles.pillOn]}
+            >
+              <Text style={[styles.pillText, s.value === slotInterval && styles.pillTextOn]}>
+                {s.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {schedules.length > 1 ? (
+          <>
+            <Text style={styles.label}>Availability schedule</Text>
+            <View style={styles.wrapPills}>
+              {schedules.map((s) => {
+                const on = scheduleId === s.id || (scheduleId === null && s.isDefault);
+                return (
+                  <Pressable
+                    key={s.id}
+                    onPress={() => setScheduleId(s.id)}
+                    style={[styles.chip, on && styles.pillOn]}
+                  >
+                    <Text style={[styles.pillText, on && styles.pillTextOn]}>
+                      {s.name}
+                      {s.isDefault ? " (default)" : ""}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <View style={{ height: 18 }} />
+          </>
+        ) : null}
 
         <Text style={styles.label}>Location</Text>
         <View style={styles.wrapPills}>
@@ -371,6 +461,31 @@ export default function EventTypeForm() {
         ) : (
           <View style={{ height: 18 }} />
         )}
+
+        <Text style={styles.label}>Meeting platform</Text>
+        <View style={styles.pills}>
+          {(
+            [
+              { v: "fixed", label: "Fixed" },
+              { v: "host_preference", label: "Host's preference" },
+            ] as const
+          ).map((o) => (
+            <Pressable
+              key={o.v}
+              onPress={() => setLocationMode(o.v)}
+              style={[styles.chip, o.v === locationMode && styles.pillOn]}
+            >
+              <Text style={[styles.pillText, o.v === locationMode && styles.pillTextOn]}>
+                {o.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.hint}>
+          For team events, "Host's preference" uses the resolved host's preferred platform instead
+          of the fixed location above.
+        </Text>
+        <View style={{ height: 18 }} />
 
         {/* Extra locations the booker can choose from (multi-location). */}
         {extraLocations.map((row, i) => {
