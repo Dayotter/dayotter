@@ -487,6 +487,14 @@ export default function SettingsScreen() {
           <Text style={styles.navText}>Connected calendars</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.faint} />
         </Pressable>
+        <Pressable
+          style={[styles.navRow, { marginTop: 10 }]}
+          onPress={() => router.push("/import")}
+        >
+          <Ionicons name="download-outline" size={18} color={colors.muted} />
+          <Text style={styles.navText}>Import from Calendly / Cal.com</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+        </Pressable>
 
         <Text style={styles.section}>Reminders</Text>
         <Pressable style={styles.navRow} onPress={() => router.push("/notifications")}>
