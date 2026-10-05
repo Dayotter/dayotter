@@ -214,13 +214,36 @@ function EventRow({ b, onPress }: { b: RangeBooking; onPress: () => void }) {
   );
 }
 
+// History status filters. "cancelled" also covers rejected requests, matching web.
+const FILTERS = [
+  { key: "all", label: "All", match: (_s: string) => true },
+  { key: "confirmed", label: "Confirmed", match: (s: string) => s === "confirmed" },
+  { key: "pending", label: "Pending", match: (s: string) => s === "pending" },
+  { key: "completed", label: "Completed", match: (s: string) => s === "completed" },
+  {
+    key: "cancelled",
+    label: "Cancelled",
+    match: (s: string) => s === "cancelled" || s === "rejected",
+  },
+  { key: "no_show", label: "No-show", match: (s: string) => s === "no_show" },
+] as const;
+
 function History() {
   const router = useRouter();
+  const [filter, setFilter] = useState<string>("all");
   const { data, loading, error, reload } = useAsync<Booking[]>(async () => {
     const res = await api.get<{ bookings: Booking[] }>("/api/bookings");
     return res.bookings;
   });
   useFocusEffect(useCallback(() => reload(), [reload]));
+
+  // Only offer a chip for a status that's actually present (plus All).
+  const present = useMemo(() => new Set((data ?? []).map((b) => b.status)), [data]);
+  const chips = FILTERS.filter(
+    (f) => f.key === "all" || (data ?? []).some((b) => f.match(b.status)),
+  );
+  const active = FILTERS.find((f) => f.key === filter) ?? FILTERS[0];
+  const shown = (data ?? []).filter((b) => active.match(b.status));
 
   return (
     <ScrollView
@@ -234,35 +257,62 @@ function History() {
       ) : !data || data.length === 0 ? (
         <EmptyState title="No bookings yet" body="Bookings people make with you appear here." />
       ) : (
-        data.map((b) => {
-          const who = b.attendees.map((a) => a.name ?? a.email).join(", ");
-          return (
-            <Pressable key={b.uid} onPress={() => router.push(`/booking/${b.uid}`)}>
-              <Card>
-                <View style={styles.row}>
-                  <View style={styles.dateBox}>
-                    <Text style={styles.date}>{formatDay(b.startsAt)}</Text>
-                    <Text style={styles.time}>{formatTime(b.startsAt)}</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.title} numberOfLines={1}>
-                      {b.title}
+        <>
+          {chips.length > 2 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterRow}
+            >
+              {chips.map((f) => {
+                const on = f.key === filter;
+                return (
+                  <Pressable
+                    key={f.key}
+                    onPress={() => setFilter(f.key)}
+                    style={[styles.filterChip, on && styles.filterChipOn]}
+                  >
+                    <Text style={[styles.filterChipText, on && styles.filterChipTextOn]}>
+                      {f.label}
                     </Text>
-                    {who ? (
-                      <Text style={styles.who} numberOfLines={1}>
-                        {who}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          ) : null}
+          {shown.length === 0 && present.size > 0 ? (
+            <EmptyState title="Nothing here" body="No bookings match this filter." />
+          ) : null}
+          {shown.map((b) => {
+            const who = b.attendees.map((a) => a.name ?? a.email).join(", ");
+            return (
+              <Pressable key={b.uid} onPress={() => router.push(`/booking/${b.uid}`)}>
+                <Card>
+                  <View style={styles.row}>
+                    <View style={styles.dateBox}>
+                      <Text style={styles.date}>{formatDay(b.startsAt)}</Text>
+                      <Text style={styles.time}>{formatTime(b.startsAt)}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.title} numberOfLines={1}>
+                        {b.title}
                       </Text>
-                    ) : null}
+                      {who ? (
+                        <Text style={styles.who} numberOfLines={1}>
+                          {who}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Badge
+                      label={statusLabel(b.status)}
+                      color={statusColor[b.status] ?? colors.muted}
+                    />
                   </View>
-                  <Badge
-                    label={statusLabel(b.status)}
-                    color={statusColor[b.status] ?? colors.muted}
-                  />
-                </View>
-              </Card>
-            </Pressable>
-          );
-        })
+                </Card>
+              </Pressable>
+            );
+          })}
+        </>
       )}
     </ScrollView>
   );
@@ -292,6 +342,17 @@ const styles = StyleSheet.create({
   tabText: { color: colors.muted, fontSize: 13, textTransform: "capitalize" },
   tabTextOn: { color: colors.white, fontWeight: "600" },
   scroll: { paddingHorizontal: 20, paddingBottom: 32 },
+  filterRow: { gap: 8, paddingBottom: 12 },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  filterChipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  filterChipText: { color: colors.muted, fontSize: 13 },
+  filterChipTextOn: { color: colors.white, fontWeight: "600" },
   row: { flexDirection: "row", alignItems: "center" },
   dateBox: { width: 56 },
   date: { fontWeight: "600", fontSize: 13, color: colors.text },

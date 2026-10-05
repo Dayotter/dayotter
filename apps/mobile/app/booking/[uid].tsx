@@ -1,4 +1,4 @@
-import { ApiError, api } from "@/api";
+import { ApiError, api, getServerUrl } from "@/api";
 import { Badge, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
 import { useAsync } from "@/hooks";
@@ -269,6 +269,23 @@ export default function BookingDetailScreen() {
             </View>
           ) : null}
 
+          {/* Add the confirmed meeting to a calendar (Google link or .ics). */}
+          {data.status === "confirmed" ? (
+            <View style={styles.calRow}>
+              <Pressable style={styles.calBtn} onPress={() => Linking.openURL(gcalUrl(data))}>
+                <Ionicons name="logo-google" size={15} color={colors.text} />
+                <Text style={styles.calText}>Google Calendar</Text>
+              </Pressable>
+              <Pressable
+                style={styles.calBtn}
+                onPress={() => Linking.openURL(`${getServerUrl()}/api/bookings/${data.uid}/ics`)}
+              >
+                <Ionicons name="download-outline" size={15} color={colors.text} />
+                <Text style={styles.calText}>Download .ics</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
           {/* Opt-in request awaiting the host's decision: approve or decline. */}
           {data.status === "pending" && !isPast ? (
             <>
@@ -413,6 +430,22 @@ const ZERO_DECIMAL = new Set([
   "xpf",
 ]);
 
+/** A Google Calendar "add event" template link for a booking. */
+function gcalUrl(b: BookingDetail): string {
+  const fmt = (iso: string) =>
+    new Date(iso)
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}/, "");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: b.title,
+    dates: `${fmt(b.startsAt)}/${fmt(b.endsAt)}`,
+  });
+  if (b.meetingUrl) params.set("details", `Join: ${b.meetingUrl}`);
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 /** Format a minor-unit amount as currency (divides by the right factor). */
 function money(minor: number, currency = "usd"): string {
   const perUnit = ZERO_DECIMAL.has(currency.toLowerCase()) ? 1 : 100;
@@ -453,6 +486,19 @@ const styles = StyleSheet.create({
   qa: { gap: 2 },
   qaLabel: { color: colors.muted, fontSize: 12 },
   qaValue: { color: colors.text, fontSize: 14 },
+  calRow: { flexDirection: "row", gap: 10, marginTop: 16 },
+  calBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 11,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  calText: { color: colors.text, fontSize: 13, fontWeight: "600" },
   actions: { flexDirection: "row", gap: 10, marginTop: 24 },
   action: {
     flex: 1,
