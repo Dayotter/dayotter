@@ -28,8 +28,10 @@ interface PayoutStatus {
   payoutsEnabled: boolean;
   detailsSubmitted: boolean;
   balances: Balance[];
-  /** WITHDRAW_MINIMUM in minor units (10000 = $100). */
+  /** USD withdrawal minimum in minor units (10000 = $100) - the default/empty-state fallback. */
   minimum: number;
+  /** Per-currency withdrawal minimum in that currency's smallest unit. */
+  minimums: Record<string, number>;
   feePercent: number;
 }
 
@@ -39,12 +41,42 @@ interface WithdrawResult {
   payouts?: { amount: number; currency: string }[];
 }
 
-/** Format minor units as currency, mirroring payouts-panel's money(). */
+// Zero-decimal currencies (no minor unit) - mirrors ZERO_DECIMAL_CURRENCIES in
+// lib/booking/money.ts. The mobile app can't import the server helper, so the
+// set is kept in sync here.
+const ZERO_DECIMAL = new Set([
+  "bif",
+  "clp",
+  "djf",
+  "gnf",
+  "jpy",
+  "kmf",
+  "krw",
+  "mga",
+  "pyg",
+  "rwf",
+  "ugx",
+  "vnd",
+  "vuv",
+  "xaf",
+  "xof",
+  "xpf",
+]);
+
+/** Format minor units as currency, mirroring payouts-panel's money(). Divides by
+ *  the right factor so a zero-decimal currency (¥10,000 = 10000 minor) isn't
+ *  shown 100x too small. */
 function money(minor: number, currency = "usd"): string {
+  const perUnit = ZERO_DECIMAL.has(currency.toLowerCase()) ? 1 : 100;
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: currency.toUpperCase(),
-  }).format(minor / 100);
+  }).format(minor / perUnit);
+}
+
+/** The withdrawal minimum for a currency, falling back to the USD default. */
+function minFor(data: PayoutStatus, currency: string): number {
+  return data.minimums[currency] ?? data.minimum;
 }
 
 export default function PayoutsScreen() {
@@ -72,10 +104,10 @@ export default function PayoutsScreen() {
   }
 
   // Confirm before moving money.
-  function confirmWithdraw(minimum: number) {
+  function confirmWithdraw() {
     Alert.alert(
       "Withdraw to bank",
-      `Pay out your available balance to your connected bank account? Minimum ${money(minimum)} per currency.`,
+      "Pay out your available balance to your connected bank account? Each currency is paid out once it clears its own minimum.",
       [
         { text: "Cancel", style: "cancel" },
         { text: "Withdraw", onPress: withdraw },
@@ -96,8 +128,9 @@ export default function PayoutsScreen() {
   const ready = data
     ? data.connected && data.chargesEnabled && data.payoutsEnabled && data.detailsSubmitted
     : false;
-  // Withdraw is enabled if ANY currency bucket clears the minimum.
-  const canWithdraw = !!data && ready && data.balances.some((b) => b.available >= data.minimum);
+  // Withdraw is enabled if ANY currency bucket clears its own minimum.
+  const canWithdraw =
+    !!data && ready && data.balances.some((b) => b.available >= minFor(data, b.currency));
   const primary = data?.balances[0]?.currency ?? "usd";
 
   return (
@@ -166,19 +199,25 @@ export default function PayoutsScreen() {
                           {money(b.pending, b.currency)} on the way
                         </Text>
                       ) : null}
+                      {b.available < minFor(data, b.currency) ? (
+                        <Text style={styles.balPending}>
+                          min {money(minFor(data, b.currency), b.currency)}
+                        </Text>
+                      ) : null}
                     </View>
                   ))
                 )}
                 <Text style={styles.balHint}>
-                  Minimum withdrawal {money(data.minimum, primary)} per currency. Payouts are manual
-                  - withdraw once your balance clears the minimum.
+                  Each currency has its own minimum (e.g. {money(minFor(data, primary), primary)}{" "}
+                  for {primary.toUpperCase()}). Payouts are manual - withdraw once a balance clears
+                  its minimum.
                 </Text>
               </View>
             </View>
 
             <Pressable
               style={[styles.primaryBtn, (!canWithdraw || busy) && styles.btnDisabled]}
-              onPress={() => confirmWithdraw(data.minimum)}
+              onPress={confirmWithdraw}
               disabled={!canWithdraw || busy}
             >
               <Ionicons name="cash-outline" size={18} color={colors.white} />
@@ -186,7 +225,8 @@ export default function PayoutsScreen() {
             </Pressable>
             {!canWithdraw ? (
               <Text style={styles.belowMin}>
-                You can withdraw once your balance reaches {money(data.minimum, primary)}.
+                You can withdraw once a balance reaches its minimum (
+                {money(minFor(data, primary), primary)} for {primary.toUpperCase()}).
               </Text>
             ) : null}
 
