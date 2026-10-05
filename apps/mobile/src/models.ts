@@ -10,7 +10,14 @@ export interface AppUser {
   timezone: string;
 }
 
-export type LocationType = "google_meet" | "ms_teams" | "zoom" | "phone" | "in_person" | "custom";
+export type LocationType =
+  | "google_meet"
+  | "ms_teams"
+  | "zoom"
+  | "jitsi"
+  | "phone"
+  | "in_person"
+  | "custom";
 
 export type QuestionType = "text" | "textarea" | "email" | "phone" | "select" | "checkbox";
 
@@ -59,10 +66,14 @@ export interface EventTypeDetail {
   description: string | null;
   location: LocationType;
   locationDetail: string | null;
+  /** Fixed platform, or (team events) follow the resolved host's preference. */
+  locationMode?: "fixed" | "host_preference";
   /** Optional multi-location menu; null/absent = the single `location` above. The
    * mobile editor only edits the primary today, but must round-trip this untouched
    * so saving from mobile never wipes a menu set on the web. */
   locations?: { type: LocationType; detail?: string | null }[] | null;
+  /** The named availability schedule this event uses (null = the default). */
+  scheduleId?: string | null;
   bufferBeforeMinutes: number;
   bufferAfterMinutes: number;
   minimumNoticeMinutes: number;
