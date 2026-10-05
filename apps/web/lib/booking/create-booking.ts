@@ -254,17 +254,39 @@ export async function createBooking(
     });
     const preferred = hostPrefs?.defaultLocationType;
     if (preferred && preferred !== finalLocation.type) {
-      // For Zoom, the host must have an active OAuth connection. Calendar-based
-      // platforms (google_meet, ms_teams) always work via the host's calendar.
-      // Jitsi/phone/in_person/custom don't need a connection.
-      const needsConnection = preferred === "zoom";
-      let canUse = !needsConnection;
-      if (needsConnection) {
+      // Only adopt the host's preferred platform when they can actually produce a
+      // link for it; otherwise the booking would carry that platform's label with
+      // a mismatched link (the calendar write mints whatever the host IS connected
+      // to) or no link at all. Fall back to the event type's fixed location in
+      // that case - a booking must never end up linkless. The link itself is
+      // minted at finalize time from booking.locationType:
+      //   zoom        -> active Zoom OAuth connection
+      //   google_meet -> active Google calendar connection (Meet minted on write)
+      //   ms_teams    -> active Microsoft calendar connection (Teams minted on write)
+      //   jitsi       -> always (we mint the room ourselves, no account needed)
+      let canUse = false;
+      if (preferred === "jitsi") {
+        canUse = true;
+      } else if (preferred === "zoom") {
         const conn = await db.query.conferencingConnections.findFirst({
           where: and(
             eq(schema.conferencingConnections.userId, host.id),
             eq(schema.conferencingConnections.provider, "zoom"),
             eq(schema.conferencingConnections.status, "active"),
+          ),
+          columns: { id: true },
+        });
+        canUse = Boolean(conn);
+      } else {
+        // google_meet / ms_teams: the conference link is minted when the booking
+        // is written to the host's calendar, so require an active connection on
+        // the matching calendar provider.
+        const calendarProvider = preferred === "google_meet" ? "google" : "microsoft";
+        const conn = await db.query.calendarConnections.findFirst({
+          where: and(
+            eq(schema.calendarConnections.userId, host.id),
+            eq(schema.calendarConnections.provider, calendarProvider),
+            eq(schema.calendarConnections.status, "active"),
           ),
           columns: { id: true },
         });

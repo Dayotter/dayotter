@@ -58,9 +58,12 @@ const bodySchema = z.object({
   lunchStartMinute: z.number().int().min(0).max(1439).optional(),
   lunchEndMinute: z.number().int().min(1).max(1440).optional(),
   bookingPageAssistant: z.boolean().optional(),
-  defaultLocationType: z
-    .enum(["google_meet", "zoom", "ms_teams", "jitsi", "phone", "in_person", "custom"])
-    .optional(),
+  // Only the auto-resolving platforms are valid as a host preference: these mint
+  // a link at booking time (Meet/Teams via the calendar, Zoom via OAuth, Jitsi
+  // self-minted). The detail-requiring types (phone/in_person/custom) are
+  // excluded - a preference carries no detail, so they'd yield a detail-less
+  // booking. Keep in sync with the picker in preferences-form.tsx.
+  defaultLocationType: z.enum(["google_meet", "zoom", "ms_teams", "jitsi"]).optional(),
 });
 
 export const PATCH = withUser(async (u, request) => {
