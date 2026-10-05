@@ -6,7 +6,7 @@ import type { Workflow } from "@/models";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -46,32 +46,69 @@ export default function WorkflowsScreen() {
     return res.workflows;
   });
 
+  const DEFAULT_BODY =
+    "Hi {{attendee_name}},\n\nThis is a reminder about {{event_title}} on {{event_date}}.\n\nSee you then!";
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [trigger, setTrigger] = useState<"before_event" | "after_event">("before_event");
   const [offset, setOffset] = useState(60);
   const [subject, setSubject] = useState("Reminder: {{event_title}}");
-  const [body, setBody] = useState(
-    "Hi {{attendee_name}},\n\nThis is a reminder about {{event_title}} on {{event_date}}.\n\nSee you then!",
-  );
+  const [body, setBody] = useState(DEFAULT_BODY);
+  const [eventTypeIds, setEventTypeIds] = useState<string[]>([]);
+  const [eventTypes, setEventTypes] = useState<{ id: string; title: string }[]>([]);
   const [saving, setSaving] = useState(false);
 
-  async function add() {
+  // Event types, so a workflow can be scoped to specific ones (empty = all).
+  useEffect(() => {
+    let active = true;
+    api
+      .get<{ eventTypes: { id: string; title: string }[] }>("/api/event-types")
+      .then((d) => active && setEventTypes(d.eventTypes ?? []))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function resetForm() {
+    setEditingId(null);
+    setName("");
+    setTrigger("before_event");
+    setOffset(60);
+    setSubject("Reminder: {{event_title}}");
+    setBody(DEFAULT_BODY);
+    setEventTypeIds([]);
+  }
+
+  function startEdit(w: Workflow) {
+    setEditingId(w.id);
+    setName(w.name);
+    setTrigger(w.trigger);
+    setOffset(w.offsetMinutes);
+    setSubject(w.subjectTemplate ?? "");
+    setBody(w.bodyTemplate ?? "");
+    setEventTypeIds(w.eventTypeIds ?? []);
+  }
+
+  async function save() {
     if (!name.trim() || !body.trim()) return;
     setSaving(true);
+    const payload = {
+      name,
+      trigger,
+      offsetMinutes: offset,
+      subjectTemplate: subject,
+      bodyTemplate: body,
+      isActive: true,
+      eventTypeIds,
+    };
     try {
-      await api.post("/api/workflows", {
-        name,
-        trigger,
-        offsetMinutes: offset,
-        subjectTemplate: subject,
-        bodyTemplate: body,
-        isActive: true,
-        eventTypeIds: [],
-      });
-      setName("");
+      if (editingId) await api.put(`/api/workflows/${editingId}`, payload);
+      else await api.post("/api/workflows", payload);
+      resetForm();
       reload();
     } catch (e) {
-      Alert.alert("Couldn't create", e instanceof ApiError ? e.message : "Please try again.");
+      Alert.alert("Couldn't save", e instanceof ApiError ? e.message : "Please try again.");
     } finally {
       setSaving(false);
     }
@@ -122,11 +159,14 @@ export default function WorkflowsScreen() {
           <>
             {data && data.length > 0 ? (
               data.map((w) => (
-                <View key={w.id} style={styles.rule}>
-                  <View style={{ flex: 1 }}>
+                <View key={w.id} style={[styles.rule, editingId === w.id && styles.ruleEditing]}>
+                  <Pressable style={{ flex: 1 }} onPress={() => startEdit(w)}>
                     <Text style={styles.ruleName}>{w.name}</Text>
                     <Text style={styles.ruleDesc}>{describe(w)}</Text>
-                  </View>
+                    <Text style={styles.ruleEdit}>
+                      {editingId === w.id ? "Editing below…" : "Tap to edit"}
+                    </Text>
+                  </Pressable>
                   <Switch value={w.isActive} onValueChange={() => toggle(w)} />
                   <Pressable onPress={() => confirmDelete(w)} hitSlop={8} style={{ marginLeft: 8 }}>
                     <Ionicons name="trash-outline" size={18} color={colors.faint} />
@@ -140,7 +180,7 @@ export default function WorkflowsScreen() {
               />
             )}
 
-            <Text style={styles.section}>New workflow</Text>
+            <Text style={styles.section}>{editingId ? "Edit workflow" : "New workflow"}</Text>
             <TextInput
               style={styles.input}
               value={name}
@@ -197,13 +237,52 @@ export default function WorkflowsScreen() {
               {"{{meeting_url}}"}
             </Text>
 
+            {eventTypes.length > 0 ? (
+              <>
+                <Text style={styles.section}>Applies to</Text>
+                <View style={styles.pills}>
+                  <Pressable
+                    onPress={() => setEventTypeIds([])}
+                    style={[styles.pill, eventTypeIds.length === 0 && styles.pillOn]}
+                  >
+                    <Text style={[styles.pillText, eventTypeIds.length === 0 && styles.pillTextOn]}>
+                      All events
+                    </Text>
+                  </Pressable>
+                  {eventTypes.map((et) => {
+                    const on = eventTypeIds.includes(et.id);
+                    return (
+                      <Pressable
+                        key={et.id}
+                        onPress={() =>
+                          setEventTypeIds((ids) =>
+                            on ? ids.filter((x) => x !== et.id) : [...ids, et.id],
+                          )
+                        }
+                        style={[styles.pill, on && styles.pillOn]}
+                      >
+                        <Text style={[styles.pillText, on && styles.pillTextOn]}>{et.title}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </>
+            ) : null}
+
             <Pressable
               style={styles.save}
-              onPress={add}
+              onPress={save}
               disabled={saving || !name.trim() || !body.trim()}
             >
-              <Text style={styles.saveText}>{saving ? "Adding…" : "Add workflow"}</Text>
+              <Text style={styles.saveText}>
+                {saving ? "Saving…" : editingId ? "Save changes" : "Add workflow"}
+              </Text>
             </Pressable>
+            {editingId ? (
+              <Pressable style={styles.cancel} onPress={resetForm}>
+                <Text style={styles.cancelText}>Cancel edit</Text>
+              </Pressable>
+            ) : null}
           </>
         )}
       </ScrollView>
@@ -223,8 +302,10 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
   },
+  ruleEditing: { borderWidth: 1, borderColor: colors.accent },
   ruleName: { color: colors.text, fontWeight: "600" },
   ruleDesc: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  ruleEdit: { color: colors.accent, fontSize: 11, marginTop: 4 },
   section: { marginTop: 18, marginBottom: 10, fontWeight: "600", color: colors.muted },
   input: {
     minHeight: 48,
@@ -259,4 +340,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  cancel: { marginTop: 10, paddingVertical: 12, alignItems: "center" },
+  cancelText: { color: colors.muted, fontSize: 14 },
 });
