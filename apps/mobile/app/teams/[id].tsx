@@ -4,7 +4,7 @@ import { useAsync } from "@/hooks";
 import type { Team } from "@/models";
 import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
@@ -43,12 +43,23 @@ interface Member {
   priority: number;
 }
 
+/** A team event type (GET /api/teams/[id]/event-types). */
+interface TeamEventType {
+  id: string;
+  title: string;
+  slug: string;
+  durationMinutes: number;
+  schedulingType: string;
+  isActive: boolean;
+}
+
 /** Everything the detail screen needs, loaded together so one reload refreshes all. */
 interface DetailData {
   team: Team;
   viewerRole: Role;
   members: Member[];
   rules: TeamRule[];
+  eventTypes: TeamEventType[];
 }
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -94,14 +105,16 @@ export default function TeamDetailScreen() {
 
   // Team detail (name + roster + viewer's role) and rules, loaded together so a
   // single reload() refreshes team + members + rules.
+  const router = useRouter();
   const { data, loading, error, reload } = useAsync<DetailData>(async () => {
-    const [detailRes, rulesRes] = await Promise.all([
+    const [detailRes, rulesRes, eventsRes] = await Promise.all([
       api.get<{
         team: { id: string; name: string; slug: string };
         viewerRole: Role;
         members: Member[];
       }>(`/api/teams/${id}`),
       api.get<{ rules: TeamRule[] }>(`/api/teams/${id}/rules`),
+      api.get<{ eventTypes: TeamEventType[] }>(`/api/teams/${id}/event-types`),
     ]);
     const team: Team = {
       id: detailRes.team.id,
@@ -114,10 +127,57 @@ export default function TeamDetailScreen() {
       viewerRole: detailRes.viewerRole,
       members: detailRes.members,
       rules: rulesRes.rules,
+      eventTypes: eventsRes.eventTypes,
     };
   }, [id]);
 
   const canManage = data?.viewerRole === "owner" || data?.viewerRole === "admin";
+
+  // Create a team event type (POST /api/teams/[id]/event-types). The full set of
+  // fields is edited afterwards in the shared event-type editor.
+  const [etTitle, setEtTitle] = useState("");
+  const [etDuration, setEtDuration] = useState(30);
+  const [etType, setEtType] = useState<"collective" | "round_robin">("collective");
+  const [creatingEvent, setCreatingEvent] = useState(false);
+
+  async function createEventType() {
+    const title = etTitle.trim();
+    if (!title) return;
+    setCreatingEvent(true);
+    try {
+      const res = await api.post<{ id: string }>(`/api/teams/${id}/event-types`, {
+        title,
+        durationMinutes: etDuration,
+        schedulingType: etType,
+      });
+      setEtTitle("");
+      reload();
+      // Jump straight into the full editor to finish setup (location, limits, ...).
+      router.push({ pathname: "/event-type", params: { id: res.id } });
+    } catch (e) {
+      Alert.alert("Couldn't create", e instanceof ApiError ? e.message : "Please try again.");
+    } finally {
+      setCreatingEvent(false);
+    }
+  }
+
+  function confirmDeleteEventType(et: TeamEventType) {
+    Alert.alert("Delete event type", `Delete "${et.title}"? This can't be undone.`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await api.del(`/api/event-types/${et.id}`);
+            reload();
+          } catch (e) {
+            Alert.alert("Couldn't delete", e instanceof ApiError ? e.message : "Please try again.");
+          }
+        },
+      },
+    ]);
+  }
 
   // Add member (POST /api/teams/[id]/members). Roster listing + removal aren't
   // exposed by the REST API, so this is add-only; the server gates to admins.
@@ -301,6 +361,87 @@ export default function TeamDetailScreen() {
                 <Text style={styles.primaryText}>{addingMember ? "Adding…" : "Add member"}</Text>
               </Pressable>
             </>
+          ) : null}
+
+          {/* TEAM EVENT TYPES — list, create (collective / round-robin), edit, delete. */}
+          <Text style={styles.section}>Team event types</Text>
+          {data.eventTypes.length === 0 ? (
+            <Text style={styles.help}>No team event types yet.</Text>
+          ) : (
+            data.eventTypes.map((et) => (
+              <Pressable
+                key={et.id}
+                style={styles.memberRow}
+                onPress={() => router.push({ pathname: "/event-type", params: { id: et.id } })}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.memberName}>
+                    {et.title}
+                    {et.isActive ? "" : " (inactive)"}
+                  </Text>
+                  <Text style={styles.memberMeta}>
+                    {et.durationMinutes}m ·{" "}
+                    {et.schedulingType === "round_robin" ? "Round-robin" : "Collective"}
+                  </Text>
+                </View>
+                {canManage ? (
+                  <Pressable hitSlop={8} onPress={() => confirmDeleteEventType(et)}>
+                    <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                  </Pressable>
+                ) : (
+                  <Ionicons name="chevron-forward" size={18} color={colors.faint} />
+                )}
+              </Pressable>
+            ))
+          )}
+          {canManage ? (
+            <View style={styles.addBox}>
+              <TextInput
+                style={styles.input}
+                value={etTitle}
+                onChangeText={setEtTitle}
+                placeholder="New event type title"
+                placeholderTextColor={colors.faint}
+              />
+              <View style={styles.etControls}>
+                <View style={styles.pills}>
+                  {[15, 30, 45, 60].map((d) => (
+                    <Pressable
+                      key={d}
+                      onPress={() => setEtDuration(d)}
+                      style={[styles.pill, d === etDuration && styles.pillOn]}
+                    >
+                      <Text style={[styles.pillText, d === etDuration && styles.pillTextOn]}>
+                        {d}m
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <View style={styles.pills}>
+                  {(["collective", "round_robin"] as const).map((t) => (
+                    <Pressable
+                      key={t}
+                      onPress={() => setEtType(t)}
+                      style={[styles.pill, t === etType && styles.pillOn]}
+                    >
+                      <Text style={[styles.pillText, t === etType && styles.pillTextOn]}>
+                        {t === "round_robin" ? "Round-robin" : "Collective"}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+              <Pressable
+                style={[styles.primary, (!etTitle.trim() || creatingEvent) && styles.disabled]}
+                onPress={createEventType}
+                disabled={!etTitle.trim() || creatingEvent}
+              >
+                <Ionicons name="add-circle-outline" size={16} color={colors.white} />
+                <Text style={styles.primaryText}>
+                  {creatingEvent ? "Creating…" : "Create event type"}
+                </Text>
+              </Pressable>
+            </View>
           ) : null}
 
           {/* RULES — list, add (holiday / meeting-free window), remove. */}
@@ -496,6 +637,18 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
   },
   memberEmail: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  memberRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: colors.surface2,
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: 10,
+  },
+  memberMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  addBox: { gap: 10, marginBottom: 10 },
+  etControls: { gap: 8 },
   memberWeight: { color: colors.faint, fontSize: 11, marginTop: 2 },
   rule: {
     flexDirection: "row",
