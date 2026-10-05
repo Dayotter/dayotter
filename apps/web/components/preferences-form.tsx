@@ -6,6 +6,7 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { ProLock } from "@/components/upgrade-prompt";
+import { LOCATION_LABELS, LOCATION_TYPES } from "@/lib/booking/event-type-input";
 import { cn } from "@/lib/cn";
 import { type Locale, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
@@ -83,6 +84,7 @@ export function PreferencesForm({
     lunchStartMinute?: number;
     lunchEndMinute?: number;
     bookingPageAssistant?: boolean;
+    defaultLocationType?: string;
   };
 }) {
   const [timeFormat, setTimeFormat] = useState(initial.timeFormat);
@@ -102,6 +104,9 @@ export function PreferencesForm({
   const [lunchStart, setLunchStart] = useState(initial.lunchStartMinute ?? 720);
   const [lunchEnd, setLunchEnd] = useState(initial.lunchEndMinute ?? 780);
   const [bookingAssistant, setBookingAssistant] = useState(initial.bookingPageAssistant ?? true);
+  const [defaultLocation, setDefaultLocation] = useState(
+    initial.defaultLocationType ?? "google_meet",
+  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,6 +157,7 @@ export function PreferencesForm({
         lunchStartMinute: lunchStart,
         lunchEndMinute: lunchEnd,
         bookingPageAssistant: bookingAssistant,
+        defaultLocationType: defaultLocation,
       }),
     });
     setSaving(false);
@@ -390,6 +396,30 @@ export function PreferencesForm({
                 </span>
               </span>
             </label>
+          </div>
+
+          <div className="border-t border-[var(--color-border)] pt-4">
+            <Label htmlFor="pref-location">Preferred meeting platform</Label>
+            <p className="mb-2 -mt-1 text-xs text-[var(--color-faint)]">
+              Used for team events in "Host&apos;s preference" mode. Falls back to the event&apos;s
+              fixed location if you have no connection for this platform.
+            </p>
+            <Select
+              id="pref-location"
+              value={defaultLocation}
+              onChange={(e) => {
+                setDefaultLocation(e.target.value);
+                setSaved(false);
+              }}
+            >
+              {LOCATION_TYPES.filter((t) =>
+                ["google_meet", "zoom", "ms_teams", "jitsi"].includes(t),
+              ).map((t) => (
+                <option key={t} value={t}>
+                  {LOCATION_LABELS[t]}
+                </option>
+              ))}
+            </Select>
           </div>
 
           <p className="border-t border-[var(--color-border)] pt-4 text-xs font-semibold uppercase tracking-wide text-[var(--color-faint)]">

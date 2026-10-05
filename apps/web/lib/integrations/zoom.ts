@@ -112,6 +112,19 @@ export async function connectZoom(
     });
 }
 
+/** Whether the user has an active Zoom OAuth connection. */
+export async function isZoomConnected(userId: string): Promise<boolean> {
+  if (!zoomEnabled) return false;
+  const conn = await getDb().query.conferencingConnections.findFirst({
+    where: and(
+      eq(schema.conferencingConnections.userId, userId),
+      eq(schema.conferencingConnections.provider, "zoom"),
+    ),
+    columns: { status: true },
+  });
+  return Boolean(conn && conn.status === "active");
+}
+
 /** Refresh an expired access token and persist the rotated credentials. */
 async function refreshCredentials(
   connectionId: string,

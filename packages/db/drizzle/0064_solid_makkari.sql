@@ -1,0 +1,2 @@
+ALTER TABLE "event_types" ADD COLUMN "location_mode" text DEFAULT 'fixed' NOT NULL;--> statement-breakpoint
+ALTER TABLE "user_preferences" ADD COLUMN "default_location_type" "location_type" DEFAULT 'google_meet' NOT NULL;
