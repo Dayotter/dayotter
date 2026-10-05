@@ -6,7 +6,16 @@ import { colors, radius } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 /** GET /api/polls/[id] detail (mirrors getPollForHost). */
 interface PollOption {
@@ -16,7 +25,12 @@ interface PollOption {
 interface PollVote {
   optionId: string;
   voterName: string;
+  voterEmail: string;
   response: string; // "yes" | "no" | "maybe"
+}
+interface PollInvitee {
+  email: string;
+  sentAt: string | null;
 }
 interface PollDetail {
   id: string;
@@ -26,8 +40,10 @@ interface PollDetail {
   finalizedOptionId: string | null;
   durationMinutes?: string | number;
   location?: string | null;
+  votingMode?: "public" | "invited";
   options: PollOption[];
   votes: PollVote[];
+  invitees?: PollInvitee[];
 }
 
 interface OptionResult {
@@ -57,6 +73,7 @@ export default function PollDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [finalizing, setFinalizing] = useState<string | null>(null);
+  const [finalizeMessage, setFinalizeMessage] = useState("");
 
   const { data, loading, error, reload } = useAsync<PollDetail>(async () => {
     const res = await api.get<{ poll: PollDetail }>(`/api/polls/${id}`);
@@ -66,6 +83,12 @@ export default function PollDetailScreen() {
   const isFinalized = data?.status === "finalized";
   const results = data ? tally(data) : [];
   const uniqueVoters = data ? new Set(data.votes.map((v) => v.voterName)).size : 0;
+
+  // Invited polls: track who has voted vs. is still awaiting (or whose invite
+  // email failed to send - sentAt never set).
+  const votedEmails = new Set((data?.votes ?? []).map((v) => v.voterEmail?.toLowerCase()));
+  const invitees = data?.votingMode === "invited" ? (data.invitees ?? []) : [];
+  const votedCount = invitees.filter((i) => votedEmails.has(i.email.toLowerCase())).length;
 
   // Highlight the leader (most yes, then most maybe) while the poll is open.
   const leaderId = !isFinalized
@@ -90,7 +113,10 @@ export default function PollDetailScreen() {
   async function finalize(optionId: string) {
     setFinalizing(optionId);
     try {
-      await api.post(`/api/polls/${id}/finalize`, { optionId });
+      await api.post(`/api/polls/${id}/finalize`, {
+        optionId,
+        message: finalizeMessage.trim() || undefined,
+      });
       reload();
     } catch (e) {
       Alert.alert("Couldn't finalize", e instanceof ApiError ? e.message : "Please try again.");
@@ -132,6 +158,42 @@ export default function PollDetailScreen() {
               </View>
               <Ionicons name="open-outline" size={16} color={colors.faint} />
             </Pressable>
+          ) : null}
+
+          {invitees.length > 0 ? (
+            <>
+              <Text style={styles.section}>
+                Invitees · {votedCount} of {invitees.length} voted
+              </Text>
+              {invitees.map((inv) => {
+                const voted = votedEmails.has(inv.email.toLowerCase());
+                const failed = !voted && !inv.sentAt;
+                const label = voted ? "Voted" : failed ? "Email failed" : "Awaiting vote";
+                const color = voted ? colors.success : failed ? colors.danger : colors.faint;
+                return (
+                  <View key={inv.email} style={styles.inviteeRow}>
+                    <Text style={styles.inviteeEmail} numberOfLines={1}>
+                      {inv.email}
+                    </Text>
+                    <Text style={[styles.inviteeStatus, { color }]}>{label}</Text>
+                  </View>
+                );
+              })}
+            </>
+          ) : null}
+
+          {!isFinalized ? (
+            <>
+              <Text style={styles.section}>Meeting details (optional)</Text>
+              <TextInput
+                style={styles.messageInput}
+                value={finalizeMessage}
+                onChangeText={setFinalizeMessage}
+                placeholder="Zoom link, address, agenda… sent with the confirmation."
+                placeholderTextColor={colors.faint}
+                multiline
+              />
+            </>
           ) : null}
 
           <Text style={styles.section}>Proposed times</Text>
@@ -217,6 +279,29 @@ const styles = StyleSheet.create({
   shareLabel: { color: colors.muted, fontSize: 12 },
   shareUrl: { color: colors.text, fontSize: 13, marginTop: 2 },
   section: { marginTop: 22, marginBottom: 10, fontWeight: "600", color: colors.muted },
+  inviteeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  inviteeEmail: { color: colors.text, fontSize: 14, flexShrink: 1 },
+  inviteeStatus: { fontSize: 12, fontWeight: "600" },
+  messageInput: {
+    minHeight: 80,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    textAlignVertical: "top",
+  },
   option: {
     borderWidth: 1,
     borderColor: colors.border,

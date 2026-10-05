@@ -26,7 +26,20 @@ export default function NewPollScreen() {
   const [location, setLocation] = useState("google_meet");
   const [message, setMessage] = useState("");
   const [times, setTimes] = useState<Date[]>([]);
+  const [votingMode, setVotingMode] = useState<"public" | "invited">("public");
+  const [inviteeText, setInviteeText] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Parse the invitee box into unique, lightly-validated emails (the server
+  // validates properly). Split on commas / whitespace / newlines.
+  const inviteeEmails = [
+    ...new Set(
+      inviteeText
+        .split(/[\s,]+/)
+        .map((e) => e.trim().toLowerCase())
+        .filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)),
+    ),
+  ];
 
   // Two-step native picker (date → time) so it behaves the same on iOS + Android.
   const [picker, setPicker] = useState<"date" | "time" | null>(null);
@@ -65,6 +78,11 @@ export default function NewPollScreen() {
     setTimes((prev) => prev.filter((_, i) => i !== idx));
   }
 
+  const canSubmit =
+    title.trim().length > 0 &&
+    times.filter((d) => d.getTime() > Date.now()).length >= 2 &&
+    (votingMode === "public" || inviteeEmails.length > 0);
+
   async function submit() {
     if (!title.trim()) {
       Alert.alert("Add a title", "Give your poll a name so invitees know what it's for.");
@@ -76,6 +94,10 @@ export default function NewPollScreen() {
       Alert.alert("Add more times", "Propose at least two future time options.");
       return;
     }
+    if (votingMode === "invited" && inviteeEmails.length === 0) {
+      Alert.alert("Add recipients", "Invite at least one email address, or switch to a link poll.");
+      return;
+    }
     setSaving(true);
     try {
       const res = await api.post<{ id: string; token: string; url: string }>("/api/polls", {
@@ -84,6 +106,8 @@ export default function NewPollScreen() {
         location,
         message: message.trim() || undefined,
         times: iso,
+        votingMode,
+        inviteeEmails: votingMode === "invited" ? inviteeEmails : undefined,
       });
       // Replace so Back returns to the list, not the empty create form.
       router.replace(`/polls/${res.id}`);
@@ -135,6 +159,51 @@ export default function NewPollScreen() {
           ))}
         </View>
 
+        <Text style={styles.label}>Who can vote?</Text>
+        <View style={styles.pills}>
+          {(
+            [
+              { v: "public", label: "Anyone with the link" },
+              { v: "invited", label: "Invited emails only" },
+            ] as const
+          ).map((o) => (
+            <Pressable
+              key={o.v}
+              onPress={() => setVotingMode(o.v)}
+              style={[styles.pill, o.v === votingMode && styles.pillOn]}
+            >
+              <Text style={[styles.pillText, o.v === votingMode && styles.pillTextOn]}>
+                {o.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {votingMode === "invited" ? (
+          <>
+            <Text style={styles.label}>Invitee emails</Text>
+            <Text style={styles.hint}>
+              One per line (or comma-separated). Each gets a personal voting link. Up to 100.
+            </Text>
+            <TextInput
+              style={[styles.input, styles.messageInput]}
+              value={inviteeText}
+              onChangeText={setInviteeText}
+              placeholder={"sam@example.com\nalex@example.com"}
+              placeholderTextColor={colors.faint}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              multiline
+            />
+            {inviteeEmails.length > 0 ? (
+              <Text style={styles.hint}>
+                {inviteeEmails.length} recipient{inviteeEmails.length === 1 ? "" : "s"} will be
+                invited.
+              </Text>
+            ) : null}
+          </>
+        ) : null}
+
         <Text style={styles.label}>Message to invitees (optional)</Text>
         <TextInput
           style={[styles.input, styles.messageInput]}
@@ -172,9 +241,9 @@ export default function NewPollScreen() {
         </Pressable>
 
         <Pressable
-          style={[styles.save, (saving || !title.trim() || times.length < 2) && styles.saveOff]}
+          style={[styles.save, (saving || !canSubmit) && styles.saveOff]}
           onPress={submit}
-          disabled={saving || !title.trim() || times.length < 2}
+          disabled={saving || !canSubmit}
         >
           <Text style={styles.saveText}>{saving ? "Creating…" : "Create poll"}</Text>
         </Pressable>
