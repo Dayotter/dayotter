@@ -75,6 +75,19 @@ function StoreBadge({
   );
 }
 
+// What the app now does beyond showing your day - the parity story, shown as
+// quick chips so the breadth reads at a glance.
+const CAPABILITIES = [
+  "Event types",
+  "Teams",
+  "Routing forms",
+  "Group polls",
+  "Workflows",
+  "Availability",
+  "Payouts",
+  "Import",
+];
+
 const AGENDA = [
   { time: "9:30", title: "Standup", hue: "violet" as Hue, who: "Team" },
   { time: "11:00", title: "Intro call · Dana", hue: "mint" as Hue, who: "Google Meet" },
@@ -174,13 +187,24 @@ export function MobileApps() {
         <Reveal>
           <span className="eyebrow">iOS &amp; Android</span>
           <h2 className="font-display mt-4 text-4xl leading-[1.08] tracking-[-0.02em] sm:text-5xl">
-            Your calendar, <em className="text-[var(--color-accent)]">in your pocket.</em>
+            Not a companion app. <em className="text-[var(--color-accent)]">The whole thing.</em>
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-[var(--color-muted)]">
-            The DayOtter Android app is live on Google Play - the same calm scheduling, built for
-            the moments you're on the move. Push reminders, one-tap booking, and your whole team's
-            availability, wherever you are. iPhone is on the way.
+            The DayOtter Android app now runs almost everything the web does. Edit your booking
+            types in full, manage teams and team events, build routing forms, run invited polls,
+            tune workflows and availability, and see a booking's payment and answers - all from your
+            phone. Live on Google Play; iPhone is on the way.
           </p>
+          <ul className="mt-6 flex max-w-md flex-wrap gap-2">
+            {CAPABILITIES.map((c) => (
+              <li
+                key={c}
+                className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[13px] text-[var(--color-muted)]"
+              >
+                {c}
+              </li>
+            ))}
+          </ul>
           <div className="mt-8 flex flex-wrap gap-3">
             <StoreBadge
               logo={<PlayLogo />}
