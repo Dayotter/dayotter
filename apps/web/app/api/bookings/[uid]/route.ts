@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ uid
   // page already shows to anyone holding the uid, so returning it here (for the
   // mobile host view) discloses nothing new.
   const responseValues = (booking.responses ?? {}) as Record<string, unknown>;
-  const responses = (booking.eventType?.questions ?? [])
+  const responseDetails = (booking.eventType?.questions ?? [])
     .map((q) => ({ label: q.label, value: responseValues[q.id] ?? null }))
     .filter((r) => r.value !== null && r.value !== undefined && r.value !== "");
 
@@ -42,8 +42,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ uid
       // Why it was last cancelled / moved, shown on the detail view.
       cancelReason: booking.cancelReason,
       rescheduleReason: booking.rescheduleReason,
-      // The booker's answers to the event type's intake questions (label + value).
-      responses,
+      // Keep the keyed response contract used by the ScaleUp booking-to-CRM
+      // integration while also exposing human-readable labels to newer clients.
+      responses: booking.responses ?? null,
+      responseDetails,
       // This endpoint is reachable by anyone holding the (unguessable) uid, so
       // don't disclose every co-attendee's email. Only the primary attendee's
       // email is returned (they're the confirmation recipient); guests get names.
