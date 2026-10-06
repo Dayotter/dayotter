@@ -70,6 +70,29 @@ describe("eventTypeInputSchema", () => {
     };
     expect(eventTypeInputSchema.safeParse(badType).success).toBe(false);
   });
+
+  it("allows an Other free-text response only on dropdown questions", () => {
+    const dropdown = {
+      ...valid,
+      questions: [
+        {
+          id: "heard_from",
+          label: "How did you hear about us?",
+          type: "select",
+          required: false,
+          options: ["Google search", "Referral from someone"],
+          allowOther: true,
+        },
+      ],
+    };
+    expect(eventTypeInputSchema.safeParse(dropdown).success).toBe(true);
+    expect(
+      eventTypeInputSchema.safeParse({
+        ...dropdown,
+        questions: [{ ...dropdown.questions[0], type: "text" }],
+      }).success,
+    ).toBe(false);
+  });
 });
 
 describe("calendarLocationFields", () => {

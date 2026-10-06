@@ -260,6 +260,8 @@ export type BookingQuestion = {
   type: "text" | "textarea" | "email" | "phone" | "select" | "checkbox";
   required: boolean;
   options?: string[];
+  /** A dropdown-only Other choice whose response is captured as free text. */
+  allowOther?: boolean;
 };
 
 /** Single-use / expiring booking links for an event type (Calendly "one-off links"). */
