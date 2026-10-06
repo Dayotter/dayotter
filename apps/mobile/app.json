@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.dayotter.app",
-      "versionCode": 14,
+      "versionCode": 15,
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

@@ -75,6 +75,22 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             {block.paragraphs.map((p, j) => (
               <p key={j}>{p}</p>
             ))}
+            {block.image ? (
+              <figure className="my-8 flex flex-col items-center">
+                {/* Real phone screenshots - shown at phone width so they read as a device shot. */}
+                <img
+                  src={block.image.src}
+                  alt={block.image.alt}
+                  loading="lazy"
+                  className="w-full max-w-[300px] rounded-[26px] border border-[var(--color-border)] shadow-[var(--shadow-float)]"
+                />
+                {block.image.caption ? (
+                  <figcaption className="mt-3 max-w-sm text-center text-sm text-[var(--color-faint)]">
+                    {block.image.caption}
+                  </figcaption>
+                ) : null}
+              </figure>
+            ) : null}
           </div>
         ))}
         <hr />
