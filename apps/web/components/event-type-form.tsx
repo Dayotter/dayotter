@@ -318,6 +318,7 @@ export function EventTypeForm({
             q.type === "select"
               ? (q.options ?? []).map((o) => o.trim()).filter(Boolean)
               : undefined,
+          allowOther: q.type === "select" ? Boolean(q.allowOther) : undefined,
         })),
     };
     const res = await fetch(
@@ -1203,6 +1204,19 @@ export function EventTypeForm({
                             />
                             Required
                           </label>
+                          {q.type === "select" ? (
+                            <label className="flex items-center gap-1.5 text-sm text-[var(--color-muted)]">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(q.allowOther)}
+                                onChange={(e) =>
+                                  updateQuestion(q.id, { allowOther: e.target.checked })
+                                }
+                                className="accent-[var(--color-accent)]"
+                              />
+                              Other type-in
+                            </label>
+                          ) : null}
                         </div>
                         {q.type === "select" ? (
                           <Input

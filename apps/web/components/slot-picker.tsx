@@ -16,6 +16,8 @@ import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+const OTHER_SELECT_VALUE = "__dayotter_other__";
+
 export function SlotPicker({
   eventTypeId,
   questions = [],
@@ -61,6 +63,7 @@ export function SlotPicker({
   const [guestInput, setGuestInput] = useState("");
   const [notes, setNotes] = useState("");
   const [answers, setAnswers] = useState<Record<string, string | boolean>>({});
+  const [otherSelections, setOtherSelections] = useState<Record<string, boolean>>({});
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,6 +86,12 @@ export function SlotPicker({
 
   function setAnswer(id: string, value: string | boolean) {
     setAnswers((a) => ({ ...a, [id]: value }));
+  }
+
+  function setSelectAnswer(id: string, value: string) {
+    const isOther = value === OTHER_SELECT_VALUE;
+    setOtherSelections((current) => ({ ...current, [id]: isOther }));
+    setAnswer(id, isOther ? "" : value);
   }
 
   function addGuest() {
@@ -389,21 +398,38 @@ export function SlotPicker({
                   className="w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
                 />
               ) : q.type === "select" ? (
-                <Select
-                  id={fieldId}
-                  required={q.required}
-                  value={(answers[q.id] as string) ?? ""}
-                  onChange={(e) => setAnswer(q.id, e.target.value)}
-                >
-                  <option value="" disabled>
-                    {t(locale, "selectPlaceholder")}
-                  </option>
-                  {(q.options ?? []).map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
+                <div className="space-y-2">
+                  <Select
+                    id={fieldId}
+                    required={q.required}
+                    value={
+                      otherSelections[q.id] ? OTHER_SELECT_VALUE : ((answers[q.id] as string) ?? "")
+                    }
+                    onChange={(e) => setSelectAnswer(q.id, e.target.value)}
+                  >
+                    <option value="" disabled>
+                      {t(locale, "selectPlaceholder")}
                     </option>
-                  ))}
-                </Select>
+                    {(q.options ?? [])
+                      .filter((opt) => !(q.allowOther && opt.trim().toLowerCase() === "other"))
+                      .map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    {q.allowOther ? <option value={OTHER_SELECT_VALUE}>Other</option> : null}
+                  </Select>
+                  {q.allowOther && otherSelections[q.id] ? (
+                    <Input
+                      type="text"
+                      required
+                      aria-label={`${q.label} — Other`}
+                      placeholder="Please specify"
+                      value={(answers[q.id] as string) ?? ""}
+                      onChange={(e) => setAnswer(q.id, e.target.value)}
+                    />
+                  ) : null}
+                </div>
               ) : (
                 <Input
                   id={fieldId}

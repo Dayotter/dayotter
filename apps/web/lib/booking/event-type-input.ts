@@ -150,13 +150,25 @@ export const QUESTION_TYPE_LABELS: Record<(typeof QUESTION_TYPES)[number], strin
   checkbox: "Checkbox",
 };
 
-export const bookingQuestionSchema = z.object({
-  id: z.string().min(1).max(64),
-  label: z.string().min(1).max(200),
-  type: z.enum(QUESTION_TYPES),
-  required: z.boolean().default(false),
-  options: z.array(z.string().min(1).max(120)).max(20).optional(),
-});
+export const bookingQuestionSchema = z
+  .object({
+    id: z.string().min(1).max(64),
+    label: z.string().min(1).max(200),
+    type: z.enum(QUESTION_TYPES),
+    required: z.boolean().default(false),
+    options: z.array(z.string().min(1).max(120)).max(20).optional(),
+    /** Add an Other choice that reveals a free-text input on the booking page. */
+    allowOther: z.boolean().optional(),
+  })
+  .superRefine((question, ctx) => {
+    if (question.allowOther && question.type !== "select") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["allowOther"],
+        message: "allowOther is only valid for dropdown questions",
+      });
+    }
+  });
 
 export type BookingQuestionInput = z.infer<typeof bookingQuestionSchema>;
 
