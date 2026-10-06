@@ -9,6 +9,17 @@ export const metadata: Metadata = {
 
 const ENTRIES = [
   {
+    date: "October 2026",
+    title: "The mobile app catches up: run your whole day from your phone",
+    items: [
+      "Mobile parity: the Android app now does almost everything the web does - edit booking types in full, manage teams and team event types (collective or round-robin), build routing forms, run invited group polls, edit reminder workflows, manage multiple availability schedules with date overrides, see a booking's payment and intake answers, import from Calendly or Cal.com, and browse the apps marketplace.",
+      "Temporary booking holds API: reserve a slot for a few minutes while a customer finishes paying in your own app, then confirm it or release it. The slot is locked the moment you hold it, and confirm and release are idempotent.",
+      "Host's preference for team events: a team booking can follow each resolved host's preferred meeting platform instead of one fixed location, with a safe fallback so a booking never ends up without a link.",
+      "Email-invited group polls: restrict a poll to specific people, each with their own voting link, and track who has responded.",
+      "Per-currency payout minimums, handled correctly for zero-decimal currencies.",
+    ],
+  },
+  {
     date: "July 2026",
     title: "DayOtter for Android is live on Google Play",
     items: [
