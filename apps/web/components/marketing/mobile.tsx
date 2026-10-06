@@ -75,17 +75,12 @@ function StoreBadge({
   );
 }
 
-// What the app now does beyond showing your day - the parity story, shown as
-// quick chips so the breadth reads at a glance.
-const CAPABILITIES = [
-  "Event types",
-  "Teams",
-  "Routing forms",
-  "Group polls",
-  "Workflows",
-  "Availability",
-  "Payouts",
-  "Import",
+// Plain-language value, not a feature list: what you actually get to do from
+// your phone, written the way someone deciding on the product would read it.
+const ON_YOUR_PHONE = [
+  "Your day and next booking the moment you open it",
+  "Change how people book you and set your hours anywhere",
+  "Push reminders, plus book and move things by talking to Otter",
 ];
 
 const AGENDA = [
@@ -187,20 +182,24 @@ export function MobileApps() {
         <Reveal>
           <span className="eyebrow">iOS &amp; Android</span>
           <h2 className="font-display mt-4 text-4xl leading-[1.08] tracking-[-0.02em] sm:text-5xl">
-            Not a companion app. <em className="text-[var(--color-accent)]">The whole thing.</em>
+            Run your scheduling <em className="text-[var(--color-accent)]">from your phone.</em>
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-[var(--color-muted)]">
-            The DayOtter Android app now runs almost everything the web does. Edit your booking
-            types in full, manage teams and team events, build routing forms, run invited polls,
-            tune workflows and availability, and see a booking's payment and answers - all from your
-            phone. Live on Google Play; iPhone is on the way.
+            Open the app and your day is right there - what's booked, what's next, and anything
+            waiting on you. Set up how people book you, adjust your hours, handle your team, and
+            hand the busywork to Otter by voice. It does the real work, not just a read-only glance
+            at your calendar.
           </p>
-          <ul className="mt-6 flex max-w-md flex-wrap gap-2">
-            {CAPABILITIES.map((c) => (
+          <ul className="mt-6 flex max-w-md flex-col gap-2.5">
+            {ON_YOUR_PHONE.map((c) => (
               <li
                 key={c}
-                className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[13px] text-[var(--color-muted)]"
+                className="flex items-start gap-2.5 text-[15px] text-[var(--color-muted)]"
               >
+                <span
+                  aria-hidden
+                  className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-accent)]"
+                />
                 {c}
               </li>
             ))}

@@ -467,6 +467,47 @@ export const FEATURES: Feature[] = [
     ],
     related: ["adaptive-availability", "focus-time", "calendar-sync"],
   },
+  {
+    slug: "developer-api",
+    label: "Developer API",
+    blurb: "REST API, signed webhooks, embed, and booking holds - put scheduling in your own app.",
+    title: "Developer API, webhooks & booking holds",
+    subtitle:
+      "DayOtter is API-first: everything the dashboard does runs through endpoints you can call. Read and write bookings, react to signed webhooks, embed the booking widget, and reserve a slot while your customer pays.",
+    intro: [
+      "Every screen in DayOtter is built on the same public REST API you get. Create a key in Settings, send it as a bearer token, and call /api/v1 for bookings, event types, and availability - the UI has no private backdoor the API doesn't.",
+      "The piece developers ask for most is temporary holds. Reserve a slot for a few minutes while your own checkout or signup finishes, then confirm it or let it lapse. The slot is locked the instant you hold it, so two customers can never grab the same time.",
+    ],
+    points: [
+      {
+        title: "Hold a slot while they pay",
+        body: "POST /api/v1/holds locks a time for up to 30 minutes. Confirm it to turn the hold into a real booking, or release it and the slot frees at once. Confirm and release are idempotent, so a retried call is always safe.",
+      },
+      {
+        title: "Signed webhooks",
+        body: "Subscribe to booking.created, rescheduled, and cancelled. Each delivery is HMAC-SHA-256 signed over a timestamped body, retries with backoff, and records its final status so you can replay failures.",
+      },
+      {
+        title: "Embed anywhere",
+        body: "Drop the booking widget on your own page, or link and iframe the public booking URLs. People pick a time without leaving your site.",
+      },
+      {
+        title: "Safe by default",
+        body: "Secrets are encrypted at rest and API keys are stored hashed. Webhook URLs are checked against internal IP ranges and pinned to their resolved public IP, so a booking event can't be turned into a request inside your network.",
+      },
+    ],
+    faq: [
+      {
+        q: "Is the API available when I self-host?",
+        a: "Yes. The REST API, webhooks, embed, and booking holds are all in the open-source core, so they work the same self-hosted as on the cloud.",
+      },
+      {
+        q: "What happens to a hold I never confirm?",
+        a: "It lapses on its own after its window (default 5 minutes, up to 30) and the slot frees automatically. You can also DELETE it to release the time early.",
+      },
+    ],
+    related: ["payments", "routing-forms", "calendar-sync"],
+  },
 ];
 
 export function getFeature(slug: string): Feature | undefined {
