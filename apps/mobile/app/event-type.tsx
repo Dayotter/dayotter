@@ -307,6 +307,7 @@ export default function EventTypeForm() {
             q.type === "select"
               ? (q.options ?? []).map((o) => o.trim()).filter(Boolean)
               : undefined,
+          allowOther: q.type === "select" ? Boolean(q.allowOther) : undefined,
         })),
     };
     try {
@@ -885,13 +886,23 @@ export default function EventTypeForm() {
               ))}
             </View>
             {q.type === "select" ? (
-              <TextInput
-                style={[styles.input, { marginTop: 8 }]}
-                value={(q.options ?? []).join(", ")}
-                onChangeText={(v) => patchQuestion(q.id, { options: v.split(",") })}
-                placeholder="Option 1, Option 2"
-                placeholderTextColor={colors.faint}
-              />
+              <>
+                <TextInput
+                  style={[styles.input, { marginTop: 8 }]}
+                  value={(q.options ?? []).join(", ")}
+                  onChangeText={(v) => patchQuestion(q.id, { options: v.split(",") })}
+                  placeholder="Option 1, Option 2"
+                  placeholderTextColor={colors.faint}
+                />
+                <View style={styles.qRequired}>
+                  <Text style={{ color: colors.muted }}>Other type-in</Text>
+                  <Switch
+                    value={Boolean(q.allowOther)}
+                    onValueChange={(v) => patchQuestion(q.id, { allowOther: v })}
+                    trackColor={{ true: colors.accent }}
+                  />
+                </View>
+              </>
             ) : null}
             <View style={styles.qRequired}>
               <Text style={{ color: colors.muted }}>Required</Text>

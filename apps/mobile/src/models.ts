@@ -44,6 +44,7 @@ export interface BookingQuestion {
   type: QuestionType;
   required: boolean;
   options?: string[];
+  allowOther?: boolean;
 }
 
 export interface EventType {
