@@ -1,11 +1,11 @@
 import { ApiError, api } from "@/api";
 import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 interface Teammate {
@@ -41,6 +41,8 @@ function fmtDate(d: Date | null): string {
 /** First-class out-of-office (#102): block a date range and optionally redirect
  *  new bookings to a teammate while away. Mirrors the web Availability panel. */
 export default function OutOfOfficeScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { data, loading, error, reload } = useAsync<{
     periods: Period[];
     teammates: Teammate[];
@@ -229,57 +231,64 @@ export default function OutOfOfficeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
-  hint: { color: colors.muted, fontSize: 13, marginBottom: 16 },
-  empty: { color: colors.muted, fontSize: 14, marginVertical: 8 },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: 12,
-    marginBottom: 10,
-  },
-  rowTitle: { color: colors.text, fontWeight: "600", fontSize: 14 },
-  rowSub: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  section: { fontWeight: "700", fontSize: 16, color: colors.text, marginTop: 20, marginBottom: 12 },
-  dateRow: { flexDirection: "row", gap: 12 },
-  label: { fontWeight: "500", fontSize: 14, marginBottom: 6, marginTop: 12, color: colors.text },
-  input: {
-    height: 46,
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  inputText: { fontSize: 15, color: colors.text },
-  inputPlaceholder: { fontSize: 15, color: colors.faint },
-  pills: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { color: colors.text, fontSize: 13 },
-  chipTextOn: { color: colors.white, fontWeight: "600" },
-  error: { color: colors.danger, marginTop: 14 },
-  save: {
-    marginTop: 20,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 40 },
+    hint: { color: colors.muted, fontSize: 13, marginBottom: 16 },
+    empty: { color: colors.muted, fontSize: 14, marginVertical: 8 },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: 12,
+      marginBottom: 10,
+    },
+    rowTitle: { color: colors.text, fontWeight: "600", fontSize: 14 },
+    rowSub: { color: colors.muted, fontSize: 12, marginTop: 2 },
+    section: {
+      fontWeight: "700",
+      fontSize: 16,
+      color: colors.text,
+      marginTop: 20,
+      marginBottom: 12,
+    },
+    dateRow: { flexDirection: "row", gap: 12 },
+    label: { fontWeight: "500", fontSize: 14, marginBottom: 6, marginTop: 12, color: colors.text },
+    input: {
+      height: 46,
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    inputText: { fontSize: 15, color: colors.text },
+    inputPlaceholder: { fontSize: 15, color: colors.faint },
+    pills: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    chip: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 999,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+    },
+    chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+    chipText: { color: colors.text, fontSize: 13 },
+    chipTextOn: { color: colors.white, fontWeight: "600" },
+    error: { color: colors.danger, marginTop: 14 },
+    save: {
+      marginTop: 20,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      alignItems: "center",
+    },
+    saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  });

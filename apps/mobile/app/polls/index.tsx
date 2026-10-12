@@ -1,10 +1,10 @@
 import { api } from "@/api";
 import { Badge, Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
-import { colors } from "@/theme";
+import { type ThemeColors, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
 /** A host's poll as returned by GET /api/polls (mirrors listPolls). */
@@ -28,6 +28,8 @@ function voteCount(p: PollListItem): number {
 }
 
 export default function PollsListScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const { data, loading, error, reload } = useAsync<PollListItem[]>(async () => {
     const res = await api.get<{ polls: PollListItem[] }>("/api/polls");
@@ -100,27 +102,28 @@ export default function PollsListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
-  headerBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: colors.accent,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  headerBtnText: { color: colors.white, fontWeight: "600", fontSize: 14 },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  title: { fontWeight: "600", fontSize: 15, color: colors.text, flexShrink: 1 },
-  metaRow: { flexDirection: "row", gap: 16, marginTop: 8 },
-  meta: { flexDirection: "row", alignItems: "center", gap: 5 },
-  metaText: { color: colors.muted, fontSize: 13 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 40 },
+    headerBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      backgroundColor: colors.accent,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+    },
+    headerBtnText: { color: colors.white, fontWeight: "600", fontSize: 14 },
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+    },
+    title: { fontWeight: "600", fontSize: 15, color: colors.text, flexShrink: 1 },
+    metaRow: { flexDirection: "row", gap: 16, marginTop: 8 },
+    meta: { flexDirection: "row", alignItems: "center", gap: 5 },
+    metaText: { color: colors.muted, fontSize: 13 },
+  });

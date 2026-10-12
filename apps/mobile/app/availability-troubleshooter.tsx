@@ -1,11 +1,11 @@
 import { ApiError, api } from "@/api";
 import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 interface EventTypeLite {
@@ -44,6 +44,8 @@ function fmtDate(d: Date): string {
 /** Availability troubleshooter (#131): explain why a booking type does (or does
  *  not) offer times on a given day. Host-only diagnostic, parity with web. */
 export default function TroubleshooterScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { data: eventTypes, loading: loadingTypes } = useAsync<EventTypeLite[]>(async () => {
     const res = await api.get<{ eventTypes: EventTypeLite[] }>("/api/event-types");
     return res.eventTypes ?? [];
@@ -167,6 +169,8 @@ export default function TroubleshooterScreen() {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.stat}>
       <Text style={styles.statLabel}>{label}</Text>
@@ -175,63 +179,64 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
-  hint: { color: colors.muted, fontSize: 13, marginBottom: 16 },
-  empty: { color: colors.muted, fontSize: 13, marginBottom: 8 },
-  label: { fontWeight: "500", fontSize: 14, marginBottom: 8, marginTop: 8, color: colors.text },
-  pills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 8 },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { color: colors.text, fontSize: 13 },
-  chipTextOn: { color: colors.white, fontWeight: "600" },
-  input: {
-    height: 46,
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    backgroundColor: colors.surface,
-  },
-  inputText: { fontSize: 15, color: colors.text },
-  error: { color: colors.danger, marginTop: 14 },
-  save: {
-    marginTop: 18,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  result: {
-    marginTop: 22,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface2,
-    padding: 16,
-  },
-  resultTitle: { fontWeight: "700", fontSize: 15, color: colors.text, marginBottom: 12 },
-  reasonRow: { flexDirection: "row", gap: 8, alignItems: "flex-start", marginBottom: 8 },
-  reason: { flex: 1, color: colors.muted, fontSize: 13 },
-  stats: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: 14,
-    marginTop: 6,
-  },
-  stat: { minWidth: "40%" },
-  statLabel: { color: colors.faint, fontSize: 11 },
-  statValue: { color: colors.text, fontSize: 13, marginTop: 2 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 40 },
+    hint: { color: colors.muted, fontSize: 13, marginBottom: 16 },
+    empty: { color: colors.muted, fontSize: 13, marginBottom: 8 },
+    label: { fontWeight: "500", fontSize: 14, marginBottom: 8, marginTop: 8, color: colors.text },
+    pills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 8 },
+    chip: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 999,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+    },
+    chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+    chipText: { color: colors.text, fontSize: 13 },
+    chipTextOn: { color: colors.white, fontWeight: "600" },
+    input: {
+      height: 46,
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      backgroundColor: colors.surface,
+    },
+    inputText: { fontSize: 15, color: colors.text },
+    error: { color: colors.danger, marginTop: 14 },
+    save: {
+      marginTop: 18,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      alignItems: "center",
+    },
+    saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    result: {
+      marginTop: 22,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      backgroundColor: colors.surface2,
+      padding: 16,
+    },
+    resultTitle: { fontWeight: "700", fontSize: 15, color: colors.text, marginBottom: 12 },
+    reasonRow: { flexDirection: "row", gap: 8, alignItems: "flex-start", marginBottom: 8 },
+    reason: { flex: 1, color: colors.muted, fontSize: 13 },
+    stats: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingTop: 14,
+      marginTop: 6,
+    },
+    stat: { minWidth: "40%" },
+    statLabel: { color: colors.faint, fontSize: 11 },
+    statValue: { color: colors.text, fontSize: 13, marginTop: 2 },
+  });

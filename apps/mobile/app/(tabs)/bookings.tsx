@@ -3,7 +3,7 @@ import { Badge, Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { formatDay, formatTime } from "@/format";
 import { useAsync } from "@/hooks";
 import { type Booking, type RangeBooking, eventColorHex } from "@/models";
-import { colors, radius, statusColor, statusLabel } from "@/theme";
+import { type ThemeColors, radius, statusColor, statusLabel, useColors } from "@/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -28,6 +28,8 @@ type CalTab = "agenda" | "month" | "history";
 const VIEWS: CalTab[] = ["agenda", "month", "history"];
 
 export default function BookingsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [view, setView] = useState<CalTab>("agenda");
 
   return (
@@ -50,6 +52,8 @@ export default function BookingsScreen() {
 }
 
 function Calendar({ view }: { view: "agenda" | "month" }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
   const [selected, setSelected] = useState(() => startOfDay(new Date()));
@@ -196,6 +200,8 @@ function Calendar({ view }: { view: "agenda" | "month" }) {
 }
 
 function EventRow({ b, onPress }: { b: RangeBooking; onPress: () => void }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable onPress={onPress} style={styles.eventRow}>
       <View style={[styles.bar, { backgroundColor: eventColorHex(b.color) }]} />
@@ -229,6 +235,8 @@ const FILTERS = [
 ] as const;
 
 function History() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const [filter, setFilter] = useState<string>("all");
   const { data, loading, error, reload } = useAsync<Booking[]>(async () => {
@@ -318,84 +326,85 @@ function History() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: colors.text,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-  tabs: {
-    flexDirection: "row",
-    marginHorizontal: 20,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    padding: 3,
-  },
-  tab: { flex: 1, paddingVertical: 7, alignItems: "center", borderRadius: radius.sm },
-  tabOn: { backgroundColor: colors.accent },
-  tabText: { color: colors.muted, fontSize: 13, textTransform: "capitalize" },
-  tabTextOn: { color: colors.white, fontWeight: "600" },
-  scroll: { paddingHorizontal: 20, paddingBottom: 32 },
-  filterRow: { gap: 8, paddingBottom: 12 },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  filterChipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
-  filterChipText: { color: colors.muted, fontSize: 13 },
-  filterChipTextOn: { color: colors.white, fontWeight: "600" },
-  row: { flexDirection: "row", alignItems: "center" },
-  dateBox: { width: 56 },
-  date: { fontWeight: "600", fontSize: 13, color: colors.text },
-  time: { color: colors.muted, fontSize: 12 },
-  title: { fontWeight: "600", color: colors.text },
-  who: { color: colors.muted, fontSize: 12, marginTop: 1 },
-  // agenda
-  agendaDay: { marginBottom: 18 },
-  agendaDate: { fontWeight: "600", color: colors.muted, fontSize: 13, marginBottom: 8 },
-  eventRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: 12,
-    marginBottom: 8,
-  },
-  bar: { width: 4, height: 34, borderRadius: 999 },
-  eventTitle: { fontWeight: "600", color: colors.text, fontSize: 14 },
-  eventWho: { color: colors.muted, fontSize: 12, marginTop: 1 },
-  eventTime: { color: colors.muted, fontSize: 12 },
-  // month
-  monthNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  navArrow: { fontSize: 26, color: colors.muted, paddingHorizontal: 12 },
-  monthTitle: { fontWeight: "700", fontSize: 16, color: colors.text },
-  weekRow: { flexDirection: "row", marginBottom: 4 },
-  weekLabel: { flex: 1, textAlign: "center", fontSize: 11, color: colors.faint },
-  grid: { flexDirection: "row", flexWrap: "wrap" },
-  cell: { width: `${100 / 7}%`, aspectRatio: 1, padding: 2 },
-  cellInner: { flex: 1, alignItems: "center", paddingTop: 4, borderRadius: radius.sm },
-  cellSel: { backgroundColor: colors.accentSoft },
-  cellNum: { fontSize: 12, color: colors.muted },
-  cellNumOut: { color: colors.faint, opacity: 0.5 },
-  cellNumToday: { color: colors.accent, fontWeight: "700" },
-  dots: { flexDirection: "row", gap: 2, marginTop: 3 },
-  cellDot: { width: 5, height: 5, borderRadius: 999 },
-  selHeader: { marginTop: 16, marginBottom: 8, fontWeight: "600", color: colors.text },
-  empty: { color: colors.faint, fontSize: 13 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    header: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: colors.text,
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      paddingBottom: 8,
+    },
+    tabs: {
+      flexDirection: "row",
+      marginHorizontal: 20,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      padding: 3,
+    },
+    tab: { flex: 1, paddingVertical: 7, alignItems: "center", borderRadius: radius.sm },
+    tabOn: { backgroundColor: colors.accent },
+    tabText: { color: colors.muted, fontSize: 13, textTransform: "capitalize" },
+    tabTextOn: { color: colors.white, fontWeight: "600" },
+    scroll: { paddingHorizontal: 20, paddingBottom: 32 },
+    filterRow: { gap: 8, paddingBottom: 12 },
+    filterChip: {
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    filterChipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+    filterChipText: { color: colors.muted, fontSize: 13 },
+    filterChipTextOn: { color: colors.white, fontWeight: "600" },
+    row: { flexDirection: "row", alignItems: "center" },
+    dateBox: { width: 56 },
+    date: { fontWeight: "600", fontSize: 13, color: colors.text },
+    time: { color: colors.muted, fontSize: 12 },
+    title: { fontWeight: "600", color: colors.text },
+    who: { color: colors.muted, fontSize: 12, marginTop: 1 },
+    // agenda
+    agendaDay: { marginBottom: 18 },
+    agendaDate: { fontWeight: "600", color: colors.muted, fontSize: 13, marginBottom: 8 },
+    eventRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: 12,
+      marginBottom: 8,
+    },
+    bar: { width: 4, height: 34, borderRadius: 999 },
+    eventTitle: { fontWeight: "600", color: colors.text, fontSize: 14 },
+    eventWho: { color: colors.muted, fontSize: 12, marginTop: 1 },
+    eventTime: { color: colors.muted, fontSize: 12 },
+    // month
+    monthNav: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 10,
+    },
+    navArrow: { fontSize: 26, color: colors.muted, paddingHorizontal: 12 },
+    monthTitle: { fontWeight: "700", fontSize: 16, color: colors.text },
+    weekRow: { flexDirection: "row", marginBottom: 4 },
+    weekLabel: { flex: 1, textAlign: "center", fontSize: 11, color: colors.faint },
+    grid: { flexDirection: "row", flexWrap: "wrap" },
+    cell: { width: `${100 / 7}%`, aspectRatio: 1, padding: 2 },
+    cellInner: { flex: 1, alignItems: "center", paddingTop: 4, borderRadius: radius.sm },
+    cellSel: { backgroundColor: colors.accentSoft },
+    cellNum: { fontSize: 12, color: colors.muted },
+    cellNumOut: { color: colors.faint, opacity: 0.5 },
+    cellNumToday: { color: colors.accent, fontWeight: "700" },
+    dots: { flexDirection: "row", gap: 2, marginTop: 3 },
+    cellDot: { width: 5, height: 5, borderRadius: 999 },
+    selHeader: { marginTop: 16, marginBottom: 8, fontWeight: "600", color: colors.text },
+    empty: { color: colors.faint, fontSize: 13 },
+  });

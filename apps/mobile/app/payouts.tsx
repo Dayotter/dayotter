@@ -1,10 +1,10 @@
 import { ApiError, api, getServerUrl } from "@/api";
 import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 // --- Local types -------------------------------------------------------------
@@ -80,6 +80,8 @@ function minFor(data: PayoutStatus, currency: string): number {
 }
 
 export default function PayoutsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { data, loading, error, reload } = useAsync<PayoutStatus>(() =>
     api.get<PayoutStatus>("/api/payments/status"),
   );
@@ -256,69 +258,70 @@ export default function PayoutsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    marginBottom: 14,
-  },
-  titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
-  cardTitle: { color: colors.text, fontSize: 16, fontWeight: "700" },
-  cardBody: { color: colors.muted, fontSize: 14, lineHeight: 20 },
-  balBox: {
-    marginTop: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: 14,
-  },
-  balLabel: {
-    color: colors.faint,
-    fontSize: 11,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  balRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    gap: 12,
-    marginTop: 4,
-  },
-  balValue: { color: colors.text, fontSize: 28, fontWeight: "700" },
-  balPending: { color: colors.faint, fontSize: 12 },
-  balHint: { color: colors.faint, fontSize: 12, marginTop: 10 },
-  primaryBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    marginBottom: 4,
-  },
-  btnDisabled: { opacity: 0.5 },
-  primaryText: { color: colors.white, fontSize: 15, fontWeight: "600" },
-  belowMin: { color: colors.muted, fontSize: 13, marginTop: 6 },
-  section: { marginTop: 20, marginBottom: 12, fontWeight: "600", color: colors.muted },
-  addRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    marginBottom: 10,
-  },
-  addText: { color: colors.text, fontSize: 15, fontWeight: "500" },
-  addSub: { color: colors.faint, fontSize: 12, marginTop: 2 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      marginBottom: 14,
+    },
+    titleRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+    cardTitle: { color: colors.text, fontSize: 16, fontWeight: "700" },
+    cardBody: { color: colors.muted, fontSize: 14, lineHeight: 20 },
+    balBox: {
+      marginTop: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: 14,
+    },
+    balLabel: {
+      color: colors.faint,
+      fontSize: 11,
+      fontWeight: "600",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    balRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      gap: 12,
+      marginTop: 4,
+    },
+    balValue: { color: colors.text, fontSize: 28, fontWeight: "700" },
+    balPending: { color: colors.faint, fontSize: 12 },
+    balHint: { color: colors.faint, fontSize: 12, marginTop: 10 },
+    primaryBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      marginBottom: 4,
+    },
+    btnDisabled: { opacity: 0.5 },
+    primaryText: { color: colors.white, fontSize: 15, fontWeight: "600" },
+    belowMin: { color: colors.muted, fontSize: 13, marginTop: 6 },
+    section: { marginTop: 20, marginBottom: 12, fontWeight: "600", color: colors.muted },
+    addRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+      marginBottom: 10,
+    },
+    addText: { color: colors.text, fontSize: 15, fontWeight: "500" },
+    addSub: { color: colors.faint, fontSize: 12, marginTop: 2 },
+  });

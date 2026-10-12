@@ -1,6 +1,6 @@
 import { useAuth } from "@/auth";
 import { Loading } from "@/components/ui";
-import { colors } from "@/theme";
+import { useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
 import { Platform } from "react-native";
@@ -14,6 +14,7 @@ function tabIcon(base: keyof typeof Ionicons.glyphMap, active: keyof typeof Ioni
 
 export default function TabsLayout() {
   const { user, initializing } = useAuth();
+  const colors = useColors();
 
   if (initializing) return <Loading />;
   if (!user) return <Redirect href="/sign-in" />;

@@ -3,10 +3,10 @@ import { Badge, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
 import { useAsync } from "@/hooks";
 import type { BookingDetail } from "@/models";
-import { colors, radius, statusColor, statusLabel } from "@/theme";
+import { type ThemeColors, radius, statusColor, statusLabel, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Linking,
@@ -24,6 +24,8 @@ interface Slot {
 }
 
 export default function BookingDetailScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const [cancelling, setCancelling] = useState(false);
@@ -460,6 +462,8 @@ function Row({
   text,
   accent,
 }: { icon: keyof typeof Ionicons.glyphMap; text: string; accent?: boolean }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.row}>
       <Ionicons name={icon} size={17} color={accent ? colors.accent : colors.muted} />
@@ -468,111 +472,112 @@ function Row({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20 },
-  top: { flexDirection: "row", marginBottom: 12 },
-  title: { fontSize: 24, fontWeight: "700", color: colors.text },
-  host: { color: colors.muted, marginTop: 4 },
-  card: {
-    marginTop: 20,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 16,
-    gap: 12,
-  },
-  row: { flexDirection: "row", alignItems: "center", gap: 10 },
-  rowText: { color: colors.text, fontSize: 14, flexShrink: 1 },
-  qa: { gap: 2 },
-  qaLabel: { color: colors.muted, fontSize: 12 },
-  qaValue: { color: colors.text, fontSize: 14 },
-  calRow: { flexDirection: "row", gap: 10, marginTop: 16 },
-  calBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingVertical: 11,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  calText: { color: colors.text, fontSize: 13, fontWeight: "600" },
-  actions: { flexDirection: "row", gap: 10, marginTop: 24 },
-  action: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-  },
-  actionText: { color: colors.text, fontWeight: "500", fontSize: 13 },
-  reschedule: {
-    marginTop: 12,
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 12,
-  },
-  reasonInput: {
-    marginTop: 12,
-    minHeight: 44,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    color: colors.text,
-    textAlignVertical: "top",
-  },
-  slotBox: {
-    marginTop: 14,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-  },
-  slotHeader: { fontWeight: "600", color: colors.text, marginBottom: 8 },
-  slotRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingVertical: 12,
-  },
-  slotText: { color: colors.text, fontSize: 14 },
-  slotEmpty: { color: colors.muted, paddingVertical: 8 },
-  slotCancel: { alignItems: "center", marginTop: 10 },
-  cancel: {
-    marginTop: 14,
-    backgroundColor: colors.danger,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  cancelText: { color: colors.white, fontWeight: "600" },
-  pendingNote: { marginTop: 14, color: colors.muted, fontSize: 13 },
-  approve: {
-    marginTop: 12,
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-  },
-  approveText: { color: colors.white, fontWeight: "600" },
-  back: { marginTop: 14, alignItems: "center" },
-  backText: { color: colors.muted },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20 },
+    top: { flexDirection: "row", marginBottom: 12 },
+    title: { fontSize: 24, fontWeight: "700", color: colors.text },
+    host: { color: colors.muted, marginTop: 4 },
+    card: {
+      marginTop: 20,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 16,
+      gap: 12,
+    },
+    row: { flexDirection: "row", alignItems: "center", gap: 10 },
+    rowText: { color: colors.text, fontSize: 14, flexShrink: 1 },
+    qa: { gap: 2 },
+    qaLabel: { color: colors.muted, fontSize: 12 },
+    qaValue: { color: colors.text, fontSize: 14 },
+    calRow: { flexDirection: "row", gap: 10, marginTop: 16 },
+    calBtn: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingVertical: 11,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    calText: { color: colors.text, fontSize: 13, fontWeight: "600" },
+    actions: { flexDirection: "row", gap: 10, marginTop: 24 },
+    action: {
+      flex: 1,
+      flexDirection: "row",
+      gap: 6,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+    },
+    actionText: { color: colors.text, fontWeight: "500", fontSize: 13 },
+    reschedule: {
+      marginTop: 12,
+      flexDirection: "row",
+      gap: 6,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 12,
+    },
+    reasonInput: {
+      marginTop: 12,
+      minHeight: 44,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      color: colors.text,
+      textAlignVertical: "top",
+    },
+    slotBox: {
+      marginTop: 14,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+    },
+    slotHeader: { fontWeight: "600", color: colors.text, marginBottom: 8 },
+    slotRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      paddingVertical: 12,
+    },
+    slotText: { color: colors.text, fontSize: 14 },
+    slotEmpty: { color: colors.muted, paddingVertical: 8 },
+    slotCancel: { alignItems: "center", marginTop: 10 },
+    cancel: {
+      marginTop: 14,
+      backgroundColor: colors.danger,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      alignItems: "center",
+    },
+    cancelText: { color: colors.white, fontWeight: "600" },
+    pendingNote: { marginTop: 14, color: colors.muted, fontSize: 13 },
+    approve: {
+      marginTop: 12,
+      flexDirection: "row",
+      gap: 6,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+    },
+    approveText: { color: colors.white, fontWeight: "600" },
+    back: { marginTop: 14, alignItems: "center" },
+    backText: { color: colors.muted },
+  });

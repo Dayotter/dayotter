@@ -2,10 +2,10 @@ import { ApiError, api, getServerUrl } from "@/api";
 import { Badge, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
 import { useAsync } from "@/hooks";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Linking,
@@ -70,6 +70,8 @@ function tally(poll: PollDetail): OptionResult[] {
 }
 
 export default function PollDetailScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [finalizing, setFinalizing] = useState<string | null>(null);
@@ -261,80 +263,81 @@ export default function PollDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
-  top: { flexDirection: "row", marginBottom: 12 },
-  title: { fontSize: 24, fontWeight: "700", color: colors.text },
-  subtitle: { color: colors.muted, marginTop: 6, fontSize: 14 },
-  shareBox: {
-    marginTop: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-  },
-  shareLabel: { color: colors.muted, fontSize: 12 },
-  shareUrl: { color: colors.text, fontSize: 13, marginTop: 2 },
-  section: { marginTop: 22, marginBottom: 10, fontWeight: "600", color: colors.muted },
-  inviteeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  inviteeEmail: { color: colors.text, fontSize: 14, flexShrink: 1 },
-  inviteeStatus: { fontSize: 12, fontWeight: "600" },
-  messageInput: {
-    minHeight: 80,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    textAlignVertical: "top",
-  },
-  option: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: 16,
-    marginBottom: 10,
-    backgroundColor: colors.surface,
-  },
-  optionWinner: { borderColor: colors.success, backgroundColor: colors.surface2 },
-  optionLeader: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  optionHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  optionTime: { fontWeight: "600", color: colors.text, fontSize: 15, flexShrink: 1 },
-  tag: { flexDirection: "row", alignItems: "center", gap: 4 },
-  tagText: { fontSize: 12, fontWeight: "600" },
-  counts: { flexDirection: "row", gap: 14, marginTop: 8 },
-  count: { fontSize: 13, color: colors.muted },
-  voters: { color: colors.faint, fontSize: 12, marginTop: 8 },
-  pick: {
-    marginTop: 14,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 11,
-    alignItems: "center",
-  },
-  pickPrimary: { backgroundColor: colors.accent, borderColor: colors.accent },
-  pickText: { color: colors.text, fontWeight: "600", fontSize: 14 },
-  pickTextPrimary: { color: colors.white },
-  back: { marginTop: 18, alignItems: "center" },
-  backText: { color: colors.muted },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 40 },
+    top: { flexDirection: "row", marginBottom: 12 },
+    title: { fontSize: 24, fontWeight: "700", color: colors.text },
+    subtitle: { color: colors.muted, marginTop: 6, fontSize: 14 },
+    shareBox: {
+      marginTop: 18,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+    },
+    shareLabel: { color: colors.muted, fontSize: 12 },
+    shareUrl: { color: colors.text, fontSize: 13, marginTop: 2 },
+    section: { marginTop: 22, marginBottom: 10, fontWeight: "600", color: colors.muted },
+    inviteeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    inviteeEmail: { color: colors.text, fontSize: 14, flexShrink: 1 },
+    inviteeStatus: { fontSize: 12, fontWeight: "600" },
+    messageInput: {
+      minHeight: 80,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 14,
+      color: colors.text,
+      backgroundColor: colors.surface,
+      textAlignVertical: "top",
+    },
+    option: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      padding: 16,
+      marginBottom: 10,
+      backgroundColor: colors.surface,
+    },
+    optionWinner: { borderColor: colors.success, backgroundColor: colors.surface2 },
+    optionLeader: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+    optionHead: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 8,
+    },
+    optionTime: { fontWeight: "600", color: colors.text, fontSize: 15, flexShrink: 1 },
+    tag: { flexDirection: "row", alignItems: "center", gap: 4 },
+    tagText: { fontSize: 12, fontWeight: "600" },
+    counts: { flexDirection: "row", gap: 14, marginTop: 8 },
+    count: { fontSize: 13, color: colors.muted },
+    voters: { color: colors.faint, fontSize: 12, marginTop: 8 },
+    pick: {
+      marginTop: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 11,
+      alignItems: "center",
+    },
+    pickPrimary: { backgroundColor: colors.accent, borderColor: colors.accent },
+    pickText: { color: colors.text, fontWeight: "600", fontSize: 14 },
+    pickTextPrimary: { color: colors.white },
+    back: { marginTop: 18, alignItems: "center" },
+    backText: { color: colors.muted },
+  });

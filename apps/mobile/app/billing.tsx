@@ -1,10 +1,10 @@
 import { ApiError, api, getServerUrl } from "@/api";
 import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Linking,
@@ -50,6 +50,8 @@ interface BillingUrl {
 }
 
 function FeatureList() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.features}>
       {PRO_FEATURES.map((f) => (
@@ -63,6 +65,8 @@ function FeatureList() {
 }
 
 export default function BillingScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { data, loading, error } = useAsync<MeResponse>(() => api.get<MeResponse>("/api/me"));
   const [busy, setBusy] = useState(false);
 
@@ -158,47 +162,54 @@ export default function BillingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 18,
-    gap: 16,
-  },
-  planHeader: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
-  overline: {
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-    color: colors.faint,
-  },
-  planName: { fontSize: 22, fontWeight: "700", color: colors.text, marginTop: 2 },
-  planMeta: { flexShrink: 1, textAlign: "right", fontSize: 13, color: colors.muted, marginTop: 14 },
-  selfRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  selfTitle: { flex: 1, fontSize: 15, fontWeight: "600", color: colors.text },
-  body: { color: colors.muted, fontSize: 14, lineHeight: 20 },
-  features: { gap: 10 },
-  featureRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  featureText: { color: colors.text, fontSize: 14 },
-  hint: { color: colors.faint, fontSize: 13, lineHeight: 19 },
-  primaryBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  primaryText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  secondaryBtn: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  secondaryText: { color: colors.text, fontWeight: "600", fontSize: 15 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 18,
+      gap: 16,
+    },
+    planHeader: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+    overline: {
+      fontSize: 11,
+      fontWeight: "600",
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+      color: colors.faint,
+    },
+    planName: { fontSize: 22, fontWeight: "700", color: colors.text, marginTop: 2 },
+    planMeta: {
+      flexShrink: 1,
+      textAlign: "right",
+      fontSize: 13,
+      color: colors.muted,
+      marginTop: 14,
+    },
+    selfRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+    selfTitle: { flex: 1, fontSize: 15, fontWeight: "600", color: colors.text },
+    body: { color: colors.muted, fontSize: 14, lineHeight: 20 },
+    features: { gap: 10 },
+    featureRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+    featureText: { color: colors.text, fontSize: 14 },
+    hint: { color: colors.faint, fontSize: 13, lineHeight: 19 },
+    primaryBtn: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      alignItems: "center",
+    },
+    primaryText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    secondaryBtn: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      alignItems: "center",
+    },
+    secondaryText: { color: colors.text, fontWeight: "600", fontSize: 15 },
+  });

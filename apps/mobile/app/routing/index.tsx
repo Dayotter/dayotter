@@ -1,9 +1,10 @@
 import { api, getServerUrl } from "@/api";
 import { EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 /** Shareable public URL for a form's booker page (mirrors web `/forms/<token>`). */
@@ -46,6 +47,8 @@ function normalizeList(res: unknown): RoutingFormListItem[] {
 }
 
 export default function RoutingListScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const { data, loading, error, reload } = useAsync<RoutingFormListItem[]>(async () => {
     const res = await api.get<unknown>("/api/routing");
@@ -130,39 +133,40 @@ export default function RoutingListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  intro: { color: colors.muted, fontSize: 13, marginBottom: 16, lineHeight: 19 },
-  row: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
-  card: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-  },
-  titleLine: { flexDirection: "row", alignItems: "center", gap: 6 },
-  title: { color: colors.text, fontWeight: "600", flexShrink: 1 },
-  meta: { color: colors.muted, fontSize: 12, marginTop: 3 },
-  badge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeLive: { backgroundColor: `${colors.success}26` },
-  badgeDraft: { backgroundColor: colors.border },
-  badgeText: { fontSize: 11, fontWeight: "600" },
-  badgeTextLive: { color: colors.success },
-  badgeTextDraft: { color: colors.muted },
-  linkBtn: { padding: 6 },
-  new: {
-    marginTop: 18,
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-  },
-  newText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    intro: { color: colors.muted, fontSize: 13, marginBottom: 16, lineHeight: 19 },
+    row: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
+    card: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+    },
+    titleLine: { flexDirection: "row", alignItems: "center", gap: 6 },
+    title: { color: colors.text, fontWeight: "600", flexShrink: 1 },
+    meta: { color: colors.muted, fontSize: 12, marginTop: 3 },
+    badge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+    badgeLive: { backgroundColor: `${colors.success}26` },
+    badgeDraft: { backgroundColor: colors.border },
+    badgeText: { fontSize: 11, fontWeight: "600" },
+    badgeTextLive: { color: colors.success },
+    badgeTextDraft: { color: colors.muted },
+    linkBtn: { padding: 6 },
+    new: {
+      marginTop: 18,
+      flexDirection: "row",
+      gap: 6,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+    },
+    newText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  });

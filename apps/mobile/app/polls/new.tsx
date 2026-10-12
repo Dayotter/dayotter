@@ -1,10 +1,10 @@
 import { ApiError, api } from "@/api";
 import { formatDateTime } from "@/format";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 const DURATIONS = [15, 30, 45, 60, 90];
@@ -20,6 +20,8 @@ const LOCATIONS: { value: string; label: string }[] = [
 const MAX_TIMES = 20;
 
 export default function NewPollScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState(30);
@@ -256,68 +258,69 @@ export default function NewPollScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  label: { fontWeight: "600", color: colors.text, marginBottom: 8, marginTop: 4 },
-  input: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    marginBottom: 18,
-  },
-  messageInput: { minHeight: 88, textAlignVertical: "top" },
-  pills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
-  pill: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-  },
-  pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  pillText: { color: colors.muted, fontSize: 13 },
-  pillTextOn: { color: colors.text, fontWeight: "600" },
-  hint: { color: colors.faint, fontSize: 12, marginBottom: 12, marginTop: -2 },
-  timeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 8,
-    backgroundColor: colors.surface,
-  },
-  timeText: { flex: 1, color: colors.text, fontSize: 14 },
-  addTime: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderStyle: "dashed",
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    marginTop: 4,
-  },
-  addTimeText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
-  save: {
-    marginTop: 24,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  saveOff: { opacity: 0.5 },
-  saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    label: { fontWeight: "600", color: colors.text, marginBottom: 8, marginTop: 4 },
+    input: {
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+      marginBottom: 18,
+    },
+    messageInput: { minHeight: 88, textAlignVertical: "top" },
+    pills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
+    pill: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 999,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+    },
+    pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+    pillText: { color: colors.muted, fontSize: 13 },
+    pillTextOn: { color: colors.text, fontWeight: "600" },
+    hint: { color: colors.faint, fontSize: 12, marginBottom: 12, marginTop: -2 },
+    timeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      marginBottom: 8,
+      backgroundColor: colors.surface,
+    },
+    timeText: { flex: 1, color: colors.text, fontSize: 14 },
+    addTime: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderStyle: "dashed",
+      borderRadius: radius.md,
+      paddingVertical: 12,
+      marginTop: 4,
+    },
+    addTimeText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
+    save: {
+      marginTop: 24,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      alignItems: "center",
+    },
+    saveOff: { opacity: 0.5 },
+    saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  });

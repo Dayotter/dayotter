@@ -11,10 +11,10 @@ import {
   type LocationType,
   type QuestionType,
 } from "@/models";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 const DURATIONS = [15, 30, 45, 60];
@@ -70,6 +70,8 @@ function newId() {
 }
 
 export default function EventTypeForm() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
   const isEdit = Boolean(params.id);
@@ -1022,6 +1024,8 @@ function Field(props: {
   multiline?: boolean;
   numeric?: boolean;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={{ marginBottom: 18 }}>
       <Text style={styles.label}>{props.label}</Text>
@@ -1040,167 +1044,168 @@ function Field(props: {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  label: { fontWeight: "500", fontSize: 14, marginBottom: 6, color: colors.text },
-  section: {
-    fontWeight: "600",
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    color: colors.faint,
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  hint: { color: colors.faint, fontSize: 12, marginTop: 6 },
-  input: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  pills: { flexDirection: "row", gap: 8, marginBottom: 18 },
-  wrapPills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
-  pill: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-  },
-  chipSm: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 999,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-  },
-  pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  pillText: { color: colors.muted },
-  pillTextSm: { color: colors.muted, fontSize: 13 },
-  pillTextOn: { color: colors.text, fontWeight: "600" },
-  row: { flexDirection: "row", gap: 12 },
-  rowItem: { flex: 1 },
-  toggleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 18,
-  },
-  extraLoc: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: 12,
-    marginBottom: 12,
-  },
-  extraLocHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  addLoc: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 18 },
-  addLocText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
-  swatches: { flexDirection: "row", gap: 12, marginBottom: 18 },
-  swatch: { width: 34, height: 34, borderRadius: 999 },
-  swatchOn: { borderWidth: 3, borderColor: colors.text },
-  qCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: 12,
-    marginBottom: 12,
-  },
-  qHeader: { flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 8 },
-  qRemove: { padding: 8 },
-  qRequired: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-  addQ: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  error: { color: colors.danger, marginBottom: 12 },
-  linkBox: {
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 20,
-  },
-  priceBox: {
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 20,
-  },
-  priceHead: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
-  priceRow: { marginTop: 12 },
-  currencyPills: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  curPill: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  curPillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  curText: { color: colors.muted, fontWeight: "600" },
-  curTextOn: { color: colors.text },
-  priceInputRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 12 },
-  priceLabel: { color: colors.text, fontSize: 14, flex: 1 },
-  priceInput: {
-    minWidth: 100,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    textAlign: "right",
-  },
-  linkTitle: { color: colors.text, fontWeight: "600" },
-  linkHint: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  linkUrl: { color: colors.accent, fontSize: 13, marginTop: 10, fontFamily: "Courier" },
-  linkBtn: {
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 11,
-    alignItems: "center",
-  },
-  linkBtnText: { color: colors.text, fontWeight: "500" },
-  save: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  delete: { marginTop: 16, alignItems: "center" },
-  deleteText: { color: colors.danger },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    label: { fontWeight: "500", fontSize: 14, marginBottom: 6, color: colors.text },
+    section: {
+      fontWeight: "600",
+      fontSize: 12,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      color: colors.faint,
+      marginTop: 8,
+      marginBottom: 12,
+    },
+    hint: { color: colors.faint, fontSize: 12, marginTop: 6 },
+    input: {
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    pills: { flexDirection: "row", gap: 8, marginBottom: 18 },
+    wrapPills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
+    pill: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 12,
+      alignItems: "center",
+    },
+    chip: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 999,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+    },
+    chipSm: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 999,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+    },
+    pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+    pillText: { color: colors.muted },
+    pillTextSm: { color: colors.muted, fontSize: 13 },
+    pillTextOn: { color: colors.text, fontWeight: "600" },
+    row: { flexDirection: "row", gap: 12 },
+    rowItem: { flex: 1 },
+    toggleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 18,
+    },
+    extraLoc: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: 12,
+      marginBottom: 12,
+    },
+    extraLocHead: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 8,
+    },
+    addLoc: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 18 },
+    addLocText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
+    swatches: { flexDirection: "row", gap: 12, marginBottom: 18 },
+    swatch: { width: 34, height: 34, borderRadius: 999 },
+    swatchOn: { borderWidth: 3, borderColor: colors.text },
+    qCard: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: 12,
+      marginBottom: 12,
+    },
+    qHeader: { flexDirection: "row", gap: 8, alignItems: "center", marginBottom: 8 },
+    qRemove: { padding: 8 },
+    qRequired: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: 8,
+    },
+    addQ: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 12,
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    error: { color: colors.danger, marginBottom: 12 },
+    linkBox: {
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 20,
+    },
+    priceBox: {
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 20,
+    },
+    priceHead: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
+    priceRow: { marginTop: 12 },
+    currencyPills: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+    curPill: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+    },
+    curPillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+    curText: { color: colors.muted, fontWeight: "600" },
+    curTextOn: { color: colors.text },
+    priceInputRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 12 },
+    priceLabel: { color: colors.text, fontSize: 14, flex: 1 },
+    priceInput: {
+      minWidth: 100,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+      textAlign: "right",
+    },
+    linkTitle: { color: colors.text, fontWeight: "600" },
+    linkHint: { color: colors.muted, fontSize: 12, marginTop: 2 },
+    linkUrl: { color: colors.accent, fontSize: 13, marginTop: 10, fontFamily: "Courier" },
+    linkBtn: {
+      marginTop: 12,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 11,
+      alignItems: "center",
+    },
+    linkBtnText: { color: colors.text, fontWeight: "500" },
+    save: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      alignItems: "center",
+    },
+    saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    delete: { marginTop: 16, alignItems: "center" },
+    deleteText: { color: colors.danger },
+  });

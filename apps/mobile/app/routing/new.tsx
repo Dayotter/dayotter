@@ -1,7 +1,7 @@
 import { ApiError, api } from "@/api";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 /** POST /api/routing response — `{ id, url }` (mirrors createForm on the web). */
@@ -11,6 +11,8 @@ interface CreateResponse {
 }
 
 export default function NewRoutingFormScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -80,32 +82,33 @@ export default function NewRoutingFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  intro: { color: colors.muted, fontSize: 13, marginBottom: 20, lineHeight: 19 },
-  label: { color: colors.muted, fontWeight: "600", marginBottom: 8, fontSize: 13 },
-  input: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    marginBottom: 18,
-  },
-  multiline: { minHeight: 88, textAlignVertical: "top" },
-  error: { color: colors.danger, marginBottom: 12 },
-  save: {
-    marginTop: 4,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  saveDisabled: { opacity: 0.5 },
-  saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    intro: { color: colors.muted, fontSize: 13, marginBottom: 20, lineHeight: 19 },
+    label: { color: colors.muted, fontWeight: "600", marginBottom: 8, fontSize: 13 },
+    input: {
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+      marginBottom: 18,
+    },
+    multiline: { minHeight: 88, textAlignVertical: "top" },
+    error: { color: colors.danger, marginBottom: 12 },
+    save: {
+      marginTop: 4,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      alignItems: "center",
+    },
+    saveDisabled: { opacity: 0.5 },
+    saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+  });

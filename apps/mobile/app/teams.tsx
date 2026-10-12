@@ -2,10 +2,10 @@ import { ApiError, api } from "@/api";
 import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { Team } from "@/models";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -18,6 +18,8 @@ import {
 } from "react-native";
 
 export default function TeamsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const { data, loading, error, reload } = useAsync<Team[]>(async () => {
     const res = await api.get<{ teams: Team[] }>("/api/teams");
@@ -102,41 +104,42 @@ export default function TeamsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 32 },
-  row: { flexDirection: "row", alignItems: "center" },
-  grow: { flex: 1 },
-  iconBox: {
-    height: 42,
-    width: 42,
-    borderRadius: 11,
-    backgroundColor: colors.accentSoft,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  name: { fontWeight: "600", color: colors.text },
-  members: { color: colors.muted, fontSize: 13 },
-  createBox: { flexDirection: "row", gap: 8, marginBottom: 16 },
-  input: {
-    flex: 1,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    color: colors.text,
-  },
-  createBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingHorizontal: 16,
-  },
-  createText: { color: colors.white, fontWeight: "600" },
-  disabled: { opacity: 0.5 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 32 },
+    row: { flexDirection: "row", alignItems: "center" },
+    grow: { flex: 1 },
+    iconBox: {
+      height: 42,
+      width: 42,
+      borderRadius: 11,
+      backgroundColor: colors.accentSoft,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 12,
+    },
+    name: { fontWeight: "600", color: colors.text },
+    members: { color: colors.muted, fontSize: 13 },
+    createBox: { flexDirection: "row", gap: 8, marginBottom: 16 },
+    input: {
+      flex: 1,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      color: colors.text,
+    },
+    createBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingHorizontal: 16,
+    },
+    createText: { color: colors.white, fontWeight: "600" },
+    disabled: { opacity: 0.5 },
+  });
