@@ -5,7 +5,7 @@ import type { Team } from "@/models";
 import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -55,6 +55,13 @@ interface TeamEventType {
   isActive: boolean;
 }
 
+/** Team daily-briefing config (GET /api/teams/[id], saved via PATCH /briefing). */
+interface Briefing {
+  enabled: boolean;
+  hour: number;
+  recipients: "admins" | "all";
+}
+
 /** Everything the detail screen needs, loaded together so one reload refreshes all. */
 interface DetailData {
   team: Team;
@@ -62,6 +69,7 @@ interface DetailData {
   members: Member[];
   rules: TeamRule[];
   eventTypes: TeamEventType[];
+  briefing: Briefing;
 }
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -92,6 +100,14 @@ function formatDate(iso: string | null): string {
   return `${MONTHS[(m || 1) - 1] ?? ""} ${d}, ${y}`;
 }
 
+/** 0 -> "12 AM", 8 -> "8 AM", 13 -> "1 PM". */
+function hourLabel(h: number): string {
+  if (h === 0) return "12 AM";
+  if (h < 12) return `${h} AM`;
+  if (h === 12) return "12 PM";
+  return `${h - 12} PM`;
+}
+
 function describeRule(r: TeamRule): string {
   if (r.kind === "holiday") return `Holiday · ${formatDate(r.theDate)}`;
   const when = r.dayOfWeek == null ? "Every day" : DAYS_LONG[r.dayOfWeek];
@@ -116,6 +132,7 @@ export default function TeamDetailScreen() {
         team: { id: string; name: string; slug: string };
         viewerRole: Role;
         members: Member[];
+        briefing: Briefing;
       }>(`/api/teams/${id}`),
       api.get<{ rules: TeamRule[] }>(`/api/teams/${id}/rules`),
       api.get<{ eventTypes: TeamEventType[] }>(`/api/teams/${id}/event-types`),
@@ -132,6 +149,7 @@ export default function TeamDetailScreen() {
       members: detailRes.members,
       rules: rulesRes.rules,
       eventTypes: eventsRes.eventTypes,
+      briefing: detailRes.briefing,
     };
   }, [id]);
 
@@ -179,6 +197,36 @@ export default function TeamDetailScreen() {
   function setWeight(m: Member, next: number) {
     const clamped = Math.max(0, Math.min(10, next));
     if (clamped !== m.priority) patchMember(m.id, { priority: clamped });
+  }
+
+  // Daily team briefing (PATCH /api/teams/[id]/briefing). Local state mirrors the
+  // loaded config and updates optimistically; a failed save reverts via reload().
+  const [briefEnabled, setBriefEnabled] = useState(false);
+  const [briefHour, setBriefHour] = useState(8);
+  const [briefRecipients, setBriefRecipients] = useState<"admins" | "all">("admins");
+  useEffect(() => {
+    if (data?.briefing) {
+      setBriefEnabled(data.briefing.enabled);
+      setBriefHour(data.briefing.hour);
+      setBriefRecipients(data.briefing.recipients);
+    }
+  }, [data?.briefing]);
+
+  async function saveBriefing(next: Partial<Briefing>) {
+    const body: Briefing = {
+      enabled: next.enabled ?? briefEnabled,
+      hour: next.hour ?? briefHour,
+      recipients: next.recipients ?? briefRecipients,
+    };
+    setBriefEnabled(body.enabled);
+    setBriefHour(body.hour);
+    setBriefRecipients(body.recipients);
+    try {
+      await api.patch(`/api/teams/${id}/briefing`, body);
+    } catch (e) {
+      Alert.alert("Couldn't save", e instanceof ApiError ? e.message : "Please try again.");
+      reload();
+    }
   }
 
   function confirmPromote(m: Member) {
@@ -533,6 +581,63 @@ export default function TeamDetailScreen() {
                 </Text>
               </Pressable>
             </View>
+          ) : null}
+
+          {/* DAILY BRIEFING — shared morning digest; owner/admin only. */}
+          {canManage ? (
+            <>
+              <Text style={styles.section}>Daily briefing</Text>
+              <Text style={styles.help}>
+                A morning summary of the team's day - meeting load, who's busiest, focus time held -
+                over email and notification channels.
+              </Text>
+              <View style={styles.addBox}>
+                <View style={styles.ctrlRow}>
+                  <Text style={styles.ctrlLabel}>Send a daily briefing</Text>
+                  <Switch
+                    value={briefEnabled}
+                    onValueChange={(v) => saveBriefing({ enabled: v })}
+                  />
+                </View>
+                {briefEnabled ? (
+                  <>
+                    <View style={styles.ctrlRow}>
+                      <Text style={styles.ctrlLabel}>Send at</Text>
+                      <Pressable
+                        style={styles.stepBtn}
+                        hitSlop={6}
+                        onPress={() => saveBriefing({ hour: (briefHour + 23) % 24 })}
+                      >
+                        <Ionicons name="remove" size={16} color={colors.text} />
+                      </Pressable>
+                      <Text style={styles.weightVal}>{hourLabel(briefHour)}</Text>
+                      <Pressable
+                        style={styles.stepBtn}
+                        hitSlop={6}
+                        onPress={() => saveBriefing({ hour: (briefHour + 1) % 24 })}
+                      >
+                        <Ionicons name="add" size={16} color={colors.text} />
+                      </Pressable>
+                    </View>
+                    <View style={[styles.pills, { marginTop: 10 }]}>
+                      {(["admins", "all"] as const).map((r) => (
+                        <Pressable
+                          key={r}
+                          onPress={() => saveBriefing({ recipients: r })}
+                          style={[styles.pill, r === briefRecipients && styles.pillOn]}
+                        >
+                          <Text
+                            style={[styles.pillText, r === briefRecipients && styles.pillTextOn]}
+                          >
+                            {r === "admins" ? "Owner & admins" : "All members"}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </>
+                ) : null}
+              </View>
+            </>
           ) : null}
 
           {/* RULES — list, add (holiday / meeting-free window), remove. */}

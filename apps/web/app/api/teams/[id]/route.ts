@@ -29,6 +29,18 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
   if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
 
+  // Current daily-briefing config, so a client can render the toggle with its
+  // real value (PATCH /briefing has no GET of its own). Defaults when unset.
+  const prefs = await db.query.teamPreferences.findFirst({
+    where: eq(schema.teamPreferences.teamId, teamId),
+    columns: { briefingEnabled: true, briefingHour: true, briefingRecipients: true },
+  });
+  const briefing = {
+    enabled: prefs?.briefingEnabled ?? false,
+    hour: prefs?.briefingHour ?? 8,
+    recipients: (prefs?.briefingRecipients ?? "admins") as "admins" | "all",
+  };
+
   const rows = await db.query.teamMembers.findMany({
     where: eq(schema.teamMembers.teamId, teamId),
   });
@@ -57,5 +69,5 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       return rank[a.role] - rank[b.role] || a.email.localeCompare(b.email);
     });
 
-  return NextResponse.json({ team, viewerRole: caller.role, members });
+  return NextResponse.json({ team, viewerRole: caller.role, members, briefing });
 }
