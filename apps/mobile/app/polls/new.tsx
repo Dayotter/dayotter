@@ -24,6 +24,7 @@ export default function NewPollScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [duration, setDuration] = useState(30);
   const [location, setLocation] = useState("google_meet");
   const [message, setMessage] = useState("");
@@ -104,6 +105,7 @@ export default function NewPollScreen() {
     try {
       const res = await api.post<{ id: string; token: string; url: string }>("/api/polls", {
         title: title.trim(),
+        description: description.trim() || undefined,
         durationMinutes: duration,
         location,
         message: message.trim() || undefined,
@@ -131,6 +133,16 @@ export default function NewPollScreen() {
           onChangeText={setTitle}
           placeholder="Q3 planning sync"
           placeholderTextColor={colors.faint}
+        />
+
+        <Text style={styles.label}>Description (optional)</Text>
+        <TextInput
+          style={[styles.input, styles.messageInput]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="What invitees should know before they vote"
+          placeholderTextColor={colors.faint}
+          multiline
         />
 
         <Text style={styles.label}>Duration</Text>

@@ -127,6 +127,26 @@ export default function PollDetailScreen() {
     }
   }
 
+  function confirmDelete() {
+    Alert.alert(
+      "Delete this poll?",
+      "This removes the poll and everyone's votes. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: removePoll },
+      ],
+    );
+  }
+
+  async function removePoll() {
+    try {
+      await api.del(`/api/polls/${id}`);
+      router.back();
+    } catch (e) {
+      Alert.alert("Couldn't delete", e instanceof ApiError ? e.message : "Please try again.");
+    }
+  }
+
   return (
     <View style={styles.safe}>
       <Stack.Screen options={{ headerShown: true, title: "Group poll" }} />
@@ -253,6 +273,23 @@ export default function PollDetailScreen() {
               </View>
             );
           })}
+
+          <Pressable
+            onPress={confirmDelete}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              paddingVertical: 12,
+              marginTop: 8,
+            }}
+          >
+            <Ionicons name="trash-outline" size={16} color={colors.danger} />
+            <Text style={{ color: colors.danger, fontWeight: "600", fontSize: 14 }}>
+              Delete poll
+            </Text>
+          </Pressable>
 
           <Pressable style={styles.back} onPress={() => router.back()}>
             <Text style={styles.backText}>All polls</Text>
