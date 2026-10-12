@@ -2,10 +2,10 @@ import { ApiError, api, getServerUrl } from "@/api";
 import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { CalendarConnection } from "@/models";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Linking,
@@ -29,6 +29,8 @@ const PROVIDER_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 export default function CalendarsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { data, loading, error, reload } = useAsync<CalendarConnection[]>(async () => {
     const res = await api.get<{ connections: CalendarConnection[] }>("/api/calendars");
     return res.connections;
@@ -149,59 +151,60 @@ export default function CalendarsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  conn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 10,
-  },
-  connName: { color: colors.text, fontWeight: "600" },
-  connMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  dot: { width: 10, height: 10, borderRadius: 999 },
-  empty: { color: colors.muted },
-  section: { marginTop: 18, marginBottom: 12, fontWeight: "600", color: colors.muted },
-  addRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    marginBottom: 10,
-  },
-  addText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
-  appleBox: {
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 10,
-  },
-  input: {
-    minHeight: 46,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    marginBottom: 10,
-  },
-  hint: { color: colors.faint, fontSize: 12, marginBottom: 12 },
-  connectBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 13,
-    alignItems: "center",
-  },
-  connectText: { color: colors.white, fontWeight: "600" },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    conn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 10,
+    },
+    connName: { color: colors.text, fontWeight: "600" },
+    connMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
+    dot: { width: 10, height: 10, borderRadius: 999 },
+    empty: { color: colors.muted },
+    section: { marginTop: 18, marginBottom: 12, fontWeight: "600", color: colors.muted },
+    addRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+      marginBottom: 10,
+    },
+    addText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
+    appleBox: {
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 10,
+    },
+    input: {
+      minHeight: 46,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+      marginBottom: 10,
+    },
+    hint: { color: colors.faint, fontSize: 12, marginBottom: 12 },
+    connectBtn: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 13,
+      alignItems: "center",
+    },
+    connectText: { color: colors.white, fontWeight: "600" },
+  });

@@ -9,10 +9,10 @@ import {
   serverHost,
   setServerUrl,
 } from "@/server";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -26,6 +26,8 @@ import {
 type Status = { kind: "idle" | "testing" | "ok" | "error"; msg?: string };
 
 export default function ServerScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const { user, signOut } = useAuth();
   const [url, setUrl] = useState(getServerUrl());
@@ -150,53 +152,54 @@ export default function ServerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
-  h: { fontSize: 20, fontWeight: "700", color: colors.text },
-  sub: { color: colors.muted, marginTop: 6, fontSize: 14, lineHeight: 20 },
-  label: { fontWeight: "500", fontSize: 14, marginTop: 22, marginBottom: 6, color: colors.text },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  hint: { color: colors.faint, fontSize: 12, marginTop: 8 },
-  status: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 14,
-    padding: 12,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  statusText: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 18 },
-  testBtn: {
-    marginTop: 18,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 13,
-    alignItems: "center",
-    backgroundColor: colors.surface,
-  },
-  testText: { color: colors.text, fontWeight: "600", fontSize: 15 },
-  saveBtn: {
-    marginTop: 10,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  reset: { marginTop: 22, alignItems: "center" },
-  resetText: { color: colors.muted, fontSize: 14 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 40 },
+    h: { fontSize: 20, fontWeight: "700", color: colors.text },
+    sub: { color: colors.muted, marginTop: 6, fontSize: 14, lineHeight: 20 },
+    label: { fontWeight: "500", fontSize: 14, marginTop: 22, marginBottom: 6, color: colors.text },
+    input: {
+      height: 48,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    hint: { color: colors.faint, fontSize: 12, marginTop: 8 },
+    status: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 14,
+      padding: 12,
+      borderRadius: radius.md,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    statusText: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 18 },
+    testBtn: {
+      marginTop: 18,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 13,
+      alignItems: "center",
+      backgroundColor: colors.surface,
+    },
+    testText: { color: colors.text, fontWeight: "600", fontSize: 15 },
+    saveBtn: {
+      marginTop: 10,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      alignItems: "center",
+    },
+    saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    reset: { marginTop: 22, alignItems: "center" },
+    resetText: { color: colors.muted, fontSize: 14 },
+  });

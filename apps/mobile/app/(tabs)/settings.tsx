@@ -3,10 +3,10 @@ import { useAuth } from "@/auth";
 import { Loading } from "@/components/ui";
 import type { Locale, UserPreferences } from "@/models";
 import { serverHost } from "@/server";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, type ThemePreference, radius, useColors, useTheme } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -37,10 +37,20 @@ const REMINDER_OPTIONS = [
 ];
 /** Booking-page accent presets (hex); null = the default theme. */
 const BRAND_PRESETS = ["#6743e6", "#0ea5e9", "#10b981", "#f59e0b", "#ef6a52", "#ec4899"];
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  // The theme choice lives in the ThemeProvider so it applies instantly across
+  // the app; it's also sent to the server (below) to persist across devices.
+  const { preference: themePref, setPreference: setThemePref } = useTheme();
   const [name, setName] = useState(user?.name ?? "");
   const [handle, setHandle] = useState(user?.handle ?? "");
   const [timezone, setTimezone] = useState(user?.timezone ?? "UTC");
@@ -93,6 +103,7 @@ export default function SettingsScreen() {
         setLunchStart(p.lunchStartMinute ?? 720);
         setLunchEnd(p.lunchEndMinute ?? 780);
         setBookingAssistant(p.bookingPageAssistant ?? true);
+        if (p.theme) setThemePref(p.theme);
         setWelcomeMessage(me?.branding?.welcomeMessage ?? "");
         setBrandColor(me?.branding?.brandColor ?? null);
       })
@@ -101,7 +112,7 @@ export default function SettingsScreen() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [setThemePref]);
 
   function toggleReminder(v: number) {
     setSaved(false);
@@ -120,9 +131,8 @@ export default function SettingsScreen() {
         brandColor,
         welcomeMessage: welcomeMessage.trim() || null,
       });
-      // Partial update - we intentionally omit `theme` (no dark mode on mobile
-      // yet) so a web-set theme is preserved by the server's merge.
       await api.patch("/api/settings/preferences", {
+        theme: themePref,
         timeFormat,
         weekStartsOn,
         locale,
@@ -214,6 +224,22 @@ export default function SettingsScreen() {
         />
 
         <Text style={styles.section}>Preferences</Text>
+        <Text style={styles.label}>Theme</Text>
+        <View style={styles.pills}>
+          {THEME_OPTIONS.map((t) => (
+            <Pressable
+              key={t.value}
+              onPress={() => setThemePref(t.value)}
+              style={[styles.pill, t.value === themePref && styles.pillOn]}
+            >
+              <Text style={[styles.pillText, t.value === themePref && styles.pillTextOn]}>
+                {t.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={styles.hint}>System follows your device's light or dark setting.</Text>
+
         <Text style={styles.label}>Time format</Text>
         <View style={styles.pills}>
           {TIME_FORMATS.map((t) => (
@@ -555,6 +581,8 @@ function ToggleRow(props: {
   value: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable style={styles.toggleRow} onPress={() => props.onChange(!props.value)}>
       <View style={{ flex: 1 }}>
@@ -575,6 +603,8 @@ function Field(props: {
   placeholder?: string;
   hint?: string;
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={{ marginBottom: 18 }}>
       <Text style={styles.label}>{props.label}</Text>
@@ -591,115 +621,116 @@ function Field(props: {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  header: { fontSize: 22, fontWeight: "700", color: colors.text, marginBottom: 12 },
-  section: {
-    fontWeight: "600",
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    color: colors.faint,
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  label: { fontWeight: "500", fontSize: 14, marginBottom: 6, color: colors.text },
-  hint: { color: colors.faint, fontSize: 12, marginTop: 6 },
-  input: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  pills: { flexDirection: "row", gap: 8, marginBottom: 18 },
-  wrapPills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
-  pill: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-  },
-  toggleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 16,
-  },
-  switch: {
-    width: 46,
-    height: 28,
-    borderRadius: 999,
-    backgroundColor: colors.borderStrong,
-    padding: 3,
-    justifyContent: "center",
-  },
-  switchOn: { backgroundColor: colors.accent },
-  knob: {
-    width: 22,
-    height: 22,
-    borderRadius: 999,
-    backgroundColor: colors.white,
-  },
-  knobOn: { alignSelf: "flex-end" },
-  inlineField: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 18,
-  },
-  numInput: {
-    minWidth: 64,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    textAlign: "center",
-  },
-  pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  pillText: { color: colors.muted },
-  swatch: { width: 36, height: 36, borderRadius: 999 },
-  swatchOn: { borderWidth: 3, borderColor: colors.text },
-  pillTextOn: { color: colors.text, fontWeight: "600" },
-  error: { color: colors.danger, marginBottom: 12 },
-  save: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  savedText: { color: colors.success, textAlign: "center", marginTop: 10 },
-  navRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-  },
-  navText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
-  navValue: { color: colors.faint, fontSize: 13, maxWidth: 150, marginRight: 6 },
-  signOut: { marginTop: 28, alignItems: "center" },
-  signOutText: { color: colors.danger, fontWeight: "500" },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    header: { fontSize: 22, fontWeight: "700", color: colors.text, marginBottom: 12 },
+    section: {
+      fontWeight: "600",
+      fontSize: 12,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      color: colors.faint,
+      marginTop: 8,
+      marginBottom: 12,
+    },
+    label: { fontWeight: "500", fontSize: 14, marginBottom: 6, color: colors.text },
+    hint: { color: colors.faint, fontSize: 12, marginTop: 6 },
+    input: {
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    pills: { flexDirection: "row", gap: 8, marginBottom: 18 },
+    wrapPills: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
+    pill: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 12,
+      alignItems: "center",
+    },
+    chip: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 999,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+    },
+    toggleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 16,
+    },
+    switch: {
+      width: 46,
+      height: 28,
+      borderRadius: 999,
+      backgroundColor: colors.borderStrong,
+      padding: 3,
+      justifyContent: "center",
+    },
+    switchOn: { backgroundColor: colors.accent },
+    knob: {
+      width: 22,
+      height: 22,
+      borderRadius: 999,
+      backgroundColor: colors.white,
+    },
+    knobOn: { alignSelf: "flex-end" },
+    inlineField: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 18,
+    },
+    numInput: {
+      minWidth: 64,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+      textAlign: "center",
+    },
+    pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+    pillText: { color: colors.muted },
+    swatch: { width: 36, height: 36, borderRadius: 999 },
+    swatchOn: { borderWidth: 3, borderColor: colors.text },
+    pillTextOn: { color: colors.text, fontWeight: "600" },
+    error: { color: colors.danger, marginBottom: 12 },
+    save: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      alignItems: "center",
+    },
+    saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    savedText: { color: colors.success, textAlign: "center", marginTop: 10 },
+    navRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+    },
+    navText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
+    navValue: { color: colors.faint, fontSize: 13, maxWidth: 150, marginRight: 6 },
+    signOut: { marginTop: 28, alignItems: "center" },
+    signOutText: { color: colors.danger, fontWeight: "500" },
+  });

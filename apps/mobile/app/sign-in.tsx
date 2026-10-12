@@ -3,10 +3,10 @@ import { googleAuthEnabled, phoneAuthEnabled } from "@/auth-client";
 import { BrandMark } from "@/components/brand-mark";
 import { hasOnboarded } from "@/onboarding-state";
 import { serverHost } from "@/server";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +20,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignInScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const {
     signIn,
@@ -365,6 +367,8 @@ function Field(props: {
   textContentType?: "telephoneNumber" | "oneTimeCode";
   autoComplete?: "tel" | "sms-otp";
 }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={{ marginBottom: 16 }}>
       <Text style={styles.label}>{props.label}</Text>
@@ -384,48 +388,49 @@ function Field(props: {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: "center", padding: 24 },
-  logoRow: { marginBottom: 20, alignSelf: "flex-start" },
-  heading: { fontSize: 28, fontWeight: "700", color: colors.text },
-  sub: { color: colors.muted, marginTop: 6 },
-  form: { marginTop: 28 },
-  label: { fontWeight: "500", fontSize: 14, marginBottom: 6, color: colors.text },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  error: { color: colors.danger, marginBottom: 12 },
-  button: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  buttonText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  divider: { flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 18 },
-  line: { flex: 1, height: 1, backgroundColor: colors.border },
-  dividerText: { color: colors.faint, fontSize: 12 },
-  googleBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    backgroundColor: colors.surface,
-  },
-  googleText: { color: colors.text, fontWeight: "600", fontSize: 15 },
-  toggle: { color: colors.accent, textAlign: "center", marginTop: 18 },
-  serverLink: { color: colors.faint, textAlign: "center", marginTop: 22, fontSize: 13 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    flex: { flex: 1 },
+    scroll: { flexGrow: 1, justifyContent: "center", padding: 24 },
+    logoRow: { marginBottom: 20, alignSelf: "flex-start" },
+    heading: { fontSize: 28, fontWeight: "700", color: colors.text },
+    sub: { color: colors.muted, marginTop: 6 },
+    form: { marginTop: 28 },
+    label: { fontWeight: "500", fontSize: 14, marginBottom: 6, color: colors.text },
+    input: {
+      height: 48,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    error: { color: colors.danger, marginBottom: 12 },
+    button: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      alignItems: "center",
+    },
+    buttonText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    divider: { flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 18 },
+    line: { flex: 1, height: 1, backgroundColor: colors.border },
+    dividerText: { color: colors.faint, fontSize: 12 },
+    googleBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      backgroundColor: colors.surface,
+    },
+    googleText: { color: colors.text, fontWeight: "600", fontSize: 15 },
+    toggle: { color: colors.accent, textAlign: "center", marginTop: 18 },
+    serverLink: { color: colors.faint, textAlign: "center", marginTop: 22, fontSize: 13 },
+  });

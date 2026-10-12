@@ -1,7 +1,7 @@
 import { completeOnboarding } from "@/onboarding-state";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Stack, useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Image,
   type NativeScrollEvent,
@@ -43,6 +43,8 @@ const SLIDES = [
 ];
 
 export default function Onboarding() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const { width } = useWindowDimensions();
   const [index, setIndex] = useState(0);
@@ -105,30 +107,31 @@ export default function Onboarding() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  top: { alignItems: "flex-end", paddingHorizontal: 20, paddingTop: 6 },
-  skip: { color: colors.muted, fontSize: 15, fontWeight: "500" },
-  slide: { alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
-  img: { width: 260, height: 260, marginBottom: 36 },
-  title: { fontSize: 26, fontWeight: "700", color: colors.text, textAlign: "center" },
-  body: {
-    marginTop: 12,
-    fontSize: 15,
-    lineHeight: 22,
-    color: colors.muted,
-    textAlign: "center",
-    maxWidth: 320,
-  },
-  footer: { paddingHorizontal: 24, paddingBottom: 12 },
-  dots: { flexDirection: "row", justifyContent: "center", gap: 8, marginBottom: 20 },
-  dot: { height: 7, width: 7, borderRadius: 4, backgroundColor: colors.borderStrong },
-  dotActive: { backgroundColor: colors.accent, width: 20 },
-  btn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  btnText: { color: colors.white, fontWeight: "600", fontSize: 16 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    top: { alignItems: "flex-end", paddingHorizontal: 20, paddingTop: 6 },
+    skip: { color: colors.muted, fontSize: 15, fontWeight: "500" },
+    slide: { alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+    img: { width: 260, height: 260, marginBottom: 36 },
+    title: { fontSize: 26, fontWeight: "700", color: colors.text, textAlign: "center" },
+    body: {
+      marginTop: 12,
+      fontSize: 15,
+      lineHeight: 22,
+      color: colors.muted,
+      textAlign: "center",
+      maxWidth: 320,
+    },
+    footer: { paddingHorizontal: 24, paddingBottom: 12 },
+    dots: { flexDirection: "row", justifyContent: "center", gap: 8, marginBottom: 20 },
+    dot: { height: 7, width: 7, borderRadius: 4, backgroundColor: colors.borderStrong },
+    dotActive: { backgroundColor: colors.accent, width: 20 },
+    btn: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 16,
+      alignItems: "center",
+    },
+    btnText: { color: colors.white, fontWeight: "600", fontSize: 16 },
+  });

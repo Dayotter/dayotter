@@ -3,10 +3,10 @@ import { ProLock, useFeature } from "@/components/pro-lock";
 import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { ApiKey } from "@/models";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -26,6 +26,8 @@ interface Endpoint {
 }
 
 export default function DeveloperScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const feat = useFeature("developer");
   const keys = useAsync<ApiKey[]>(async () => {
     const res = await api.get<{ keys: ApiKey[] }>("/api/api-keys");
@@ -219,6 +221,8 @@ function SecretReveal({
   value,
   onDone,
 }: { label: string; value: string; onDone: () => void }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.reveal}>
       <Text style={styles.revealLabel}>{label}</Text>
@@ -232,51 +236,52 @@ function SecretReveal({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  reveal: {
-    borderWidth: 1,
-    borderColor: colors.accent,
-    backgroundColor: colors.accentSoft,
-    borderRadius: radius.md,
-    padding: 12,
-    marginBottom: 12,
-  },
-  revealLabel: { color: colors.text, fontSize: 12, fontWeight: "600", marginBottom: 6 },
-  revealValue: { color: colors.text, fontFamily: "Courier", fontSize: 12 },
-  revealDone: { color: colors.muted, fontSize: 12 },
-  scroll: { padding: 20, paddingBottom: 60 },
-  section: { marginTop: 18, fontWeight: "600", color: colors.text, fontSize: 16 },
-  hint: { color: colors.faint, fontSize: 12, marginTop: 2, marginBottom: 12 },
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.md,
-    padding: 12,
-    marginBottom: 8,
-  },
-  itemTitle: { color: colors.text, fontWeight: "600", fontSize: 13 },
-  itemMeta: { color: colors.faint, fontSize: 12, marginTop: 2 },
-  row: { flexDirection: "row", gap: 8, marginTop: 4 },
-  input: {
-    flex: 1,
-    minHeight: 46,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  addBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingHorizontal: 16,
-    justifyContent: "center",
-  },
-  addText: { color: colors.white, fontWeight: "600" },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    reveal: {
+      borderWidth: 1,
+      borderColor: colors.accent,
+      backgroundColor: colors.accentSoft,
+      borderRadius: radius.md,
+      padding: 12,
+      marginBottom: 12,
+    },
+    revealLabel: { color: colors.text, fontSize: 12, fontWeight: "600", marginBottom: 6 },
+    revealValue: { color: colors.text, fontFamily: "Courier", fontSize: 12 },
+    revealDone: { color: colors.muted, fontSize: 12 },
+    scroll: { padding: 20, paddingBottom: 60 },
+    section: { marginTop: 18, fontWeight: "600", color: colors.text, fontSize: 16 },
+    hint: { color: colors.faint, fontSize: 12, marginTop: 2, marginBottom: 12 },
+    item: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.md,
+      padding: 12,
+      marginBottom: 8,
+    },
+    itemTitle: { color: colors.text, fontWeight: "600", fontSize: 13 },
+    itemMeta: { color: colors.faint, fontSize: 12, marginTop: 2 },
+    row: { flexDirection: "row", gap: 8, marginTop: 4 },
+    input: {
+      flex: 1,
+      minHeight: 46,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    addBtn: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingHorizontal: 16,
+      justifyContent: "center",
+    },
+    addText: { color: colors.white, fontWeight: "600" },
+  });

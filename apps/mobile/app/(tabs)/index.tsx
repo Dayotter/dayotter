@@ -6,10 +6,10 @@ import { Card, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
 import { useAsync } from "@/hooks";
 import type { Booking, Recommendation } from "@/models";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import {
   Linking,
   Pressable,
@@ -37,6 +37,8 @@ const REC_ICON: Record<Recommendation["icon"], keyof typeof Ionicons.glyphMap> =
 };
 
 export default function DashboardScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const { user, signOut } = useAuth();
   const firstName = (user?.name ?? "there").split(" ")[0];
@@ -171,72 +173,73 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  brand: { fontSize: 16, fontWeight: "700", color: colors.text },
-  headerActions: { flexDirection: "row", alignItems: "center", gap: 18 },
-  scroll: { paddingHorizontal: 20, paddingBottom: 32 },
-  hi: { fontSize: 22, color: colors.muted, fontWeight: "500" },
-  name: { fontSize: 30, fontWeight: "700", color: colors.text },
-  section: { marginTop: 20, marginBottom: 12, fontWeight: "600", color: colors.muted },
-  linkCard: {
-    marginTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderRadius: radius.lg,
-    backgroundColor: colors.accentSoft,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  linkLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    color: colors.accent,
-    textTransform: "uppercase",
-  },
-  linkUrl: { marginTop: 2, fontSize: 15, fontWeight: "600", color: colors.text },
-  linkView: { padding: 4 },
-  shareBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  shareText: { color: colors.white, fontWeight: "600", fontSize: 13 },
-  row: { flexDirection: "row", alignItems: "center" },
-  iconBox: {
-    height: 40,
-    width: 40,
-    borderRadius: 10,
-    backgroundColor: colors.accentSoft,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  recIconBox: {
-    height: 36,
-    width: 36,
-    borderRadius: 10,
-    backgroundColor: colors.surface2,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  title: { fontWeight: "600", color: colors.text },
-  when: { color: colors.muted, fontSize: 13, marginTop: 2 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+    },
+    brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+    brand: { fontSize: 16, fontWeight: "700", color: colors.text },
+    headerActions: { flexDirection: "row", alignItems: "center", gap: 18 },
+    scroll: { paddingHorizontal: 20, paddingBottom: 32 },
+    hi: { fontSize: 22, color: colors.muted, fontWeight: "500" },
+    name: { fontSize: 30, fontWeight: "700", color: colors.text },
+    section: { marginTop: 20, marginBottom: 12, fontWeight: "600", color: colors.muted },
+    linkCard: {
+      marginTop: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      borderRadius: radius.lg,
+      backgroundColor: colors.accentSoft,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
+    linkLabel: {
+      fontSize: 10,
+      fontWeight: "700",
+      letterSpacing: 0.5,
+      color: colors.accent,
+      textTransform: "uppercase",
+    },
+    linkUrl: { marginTop: 2, fontSize: 15, fontWeight: "600", color: colors.text },
+    linkView: { padding: 4 },
+    shareBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    shareText: { color: colors.white, fontWeight: "600", fontSize: 13 },
+    row: { flexDirection: "row", alignItems: "center" },
+    iconBox: {
+      height: 40,
+      width: 40,
+      borderRadius: 10,
+      backgroundColor: colors.accentSoft,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 12,
+    },
+    recIconBox: {
+      height: 36,
+      width: 36,
+      borderRadius: 10,
+      backgroundColor: colors.surface2,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 12,
+    },
+    title: { fontWeight: "600", color: colors.text },
+    when: { color: colors.muted, fontSize: 13, marginTop: 2 },
+  });

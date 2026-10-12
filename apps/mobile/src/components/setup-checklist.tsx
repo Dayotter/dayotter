@@ -1,6 +1,7 @@
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { type Href, useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface Setup {
@@ -14,6 +15,8 @@ interface Setup {
  * Hidden once every step is done. Tapping an unfinished step jumps to it.
  */
 export function SetupChecklist({ setup }: { setup?: Setup }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   if (!setup) return null;
 
@@ -55,39 +58,40 @@ export function SetupChecklist({ setup }: { setup?: Setup }) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    marginTop: 18,
-    borderRadius: radius.lg,
-    backgroundColor: colors.accentSoft,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    padding: 14,
-    gap: 8,
-  },
-  head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  title: { fontSize: 15, fontWeight: "700", color: colors.text },
-  count: { fontSize: 12, color: colors.muted, fontWeight: "600" },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-  },
-  num: {
-    height: 24,
-    width: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  numDone: { backgroundColor: colors.success, borderColor: colors.success },
-  numText: { fontSize: 12, fontWeight: "700", color: colors.muted },
-  step: { flex: 1, fontSize: 14, fontWeight: "600", color: colors.text },
-  stepDone: { color: colors.muted, textDecorationLine: "line-through" },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    wrap: {
+      marginTop: 18,
+      borderRadius: radius.lg,
+      backgroundColor: colors.accentSoft,
+      borderWidth: 1,
+      borderColor: colors.accent,
+      padding: 14,
+      gap: 8,
+    },
+    head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    title: { fontSize: 15, fontWeight: "700", color: colors.text },
+    count: { fontSize: 12, color: colors.muted, fontWeight: "600" },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: 12,
+      paddingVertical: 11,
+    },
+    num: {
+      height: 24,
+      width: 24,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    numDone: { backgroundColor: colors.success, borderColor: colors.success },
+    numText: { fontSize: 12, fontWeight: "700", color: colors.muted },
+    step: { flex: 1, fontSize: 14, fontWeight: "600", color: colors.text },
+    stepDone: { color: colors.muted, textDecorationLine: "line-through" },
+  });

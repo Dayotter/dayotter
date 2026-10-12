@@ -1,8 +1,8 @@
 import { ApiError, api } from "@/api";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 interface ImportSummary {
@@ -15,6 +15,8 @@ interface ImportSummary {
  * only for the one request and never stored (matches the web Import page).
  */
 export default function ImportScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [calendlyToken, setCalendlyToken] = useState("");
   const [calcomKey, setCalcomKey] = useState("");
   const [calcomBaseUrl, setCalcomBaseUrl] = useState("");
@@ -124,42 +126,49 @@ export default function ImportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 48 },
-  intro: { color: colors.muted, fontSize: 14, lineHeight: 20, marginBottom: 16 },
-  section: { marginTop: 22, marginBottom: 6, fontWeight: "700", color: colors.text, fontSize: 16 },
-  hint: { color: colors.faint, fontSize: 12, marginBottom: 10, lineHeight: 17 },
-  input: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-    marginBottom: 10,
-  },
-  btn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: 2,
-  },
-  btnOff: { opacity: 0.5 },
-  btnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  resultBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.md,
-    padding: 12,
-    marginBottom: 12,
-  },
-  resultText: { color: colors.text, fontSize: 14, flex: 1 },
-  error: { color: colors.danger, marginBottom: 12 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 48 },
+    intro: { color: colors.muted, fontSize: 14, lineHeight: 20, marginBottom: 16 },
+    section: {
+      marginTop: 22,
+      marginBottom: 6,
+      fontWeight: "700",
+      color: colors.text,
+      fontSize: 16,
+    },
+    hint: { color: colors.faint, fontSize: 12, marginBottom: 10, lineHeight: 17 },
+    input: {
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+      marginBottom: 10,
+    },
+    btn: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      alignItems: "center",
+      marginTop: 2,
+    },
+    btnOff: { opacity: 0.5 },
+    btnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    resultBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.md,
+      padding: 12,
+      marginBottom: 12,
+    },
+    resultText: { color: colors.text, fontSize: 14, flex: 1 },
+    error: { color: colors.danger, marginBottom: 12 },
+  });

@@ -3,12 +3,15 @@ import { EmptyState, ErrorText, Loading } from "@/components/ui";
 import { formatDateTime } from "@/format";
 import { useAsync } from "@/hooks";
 import type { InboxData } from "@/models";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function InboxScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const { data, loading, error } = useAsync<InboxData>(async () => {
     const res = await api.get<{ inbox: InboxData }>("/api/inbox");
@@ -76,20 +79,21 @@ export default function InboxScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20 },
-  section: { marginTop: 8, marginBottom: 10, fontWeight: "600", color: colors.muted },
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 10,
-  },
-  warn: { borderWidth: 1, borderColor: colors.danger },
-  itemTitle: { color: colors.text, fontWeight: "600" },
-  itemMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20 },
+    section: { marginTop: 8, marginBottom: 10, fontWeight: "600", color: colors.muted },
+    item: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 10,
+    },
+    warn: { borderWidth: 1, borderColor: colors.danger },
+    itemTitle: { color: colors.text, fontWeight: "600" },
+    itemMeta: { color: colors.muted, fontSize: 12, marginTop: 2 },
+  });

@@ -1,12 +1,12 @@
 import { ApiError, api } from "@/api";
 import { BrandMark } from "@/components/brand-mark";
 import { formatDateTime } from "@/format";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Speech from "expo-speech";
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -64,6 +64,8 @@ type Phase = "idle" | "listening" | "thinking" | "draft" | "done";
  * until you approve. Renders nothing unless the server has AI enabled.
  */
 export function OtterLauncher() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [open, setOpen] = useState(false);
@@ -100,6 +102,8 @@ export function OtterLauncher() {
 }
 
 function OtterSheet({ onClose }: { onClose: () => void }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [phase, setPhase] = useState<Phase>("idle");
   const [text, setText] = useState("");
@@ -484,160 +488,161 @@ function spokenSummary(d: Draft, target: Target | null): string {
   return d.message || "";
 }
 
-const styles = StyleSheet.create({
-  fab: {
-    position: "absolute",
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 999,
-    paddingLeft: 8,
-    paddingRight: 14,
-    paddingVertical: 7,
-    shadowColor: "#000",
-    shadowOpacity: 0.16,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-    zIndex: 50,
-  },
-  fabText: { color: colors.text, fontWeight: "700", fontSize: 14 },
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    fab: {
+      position: "absolute",
+      right: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 999,
+      paddingLeft: 8,
+      paddingRight: 14,
+      paddingVertical: 7,
+      shadowColor: "#000",
+      shadowOpacity: 0.16,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 6,
+      zIndex: 50,
+    },
+    fabText: { color: colors.text, fontWeight: "700", fontSize: 14 },
 
-  backdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.35)" },
-  backdropTap: { ...StyleSheet.absoluteFillObject },
-  sheet: {
-    backgroundColor: colors.bg,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    maxHeight: "88%",
-  },
-  grabber: {
-    alignSelf: "center",
-    width: 40,
-    height: 4,
-    borderRadius: 999,
-    backgroundColor: colors.borderStrong,
-    marginBottom: 12,
-  },
-  header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
-  headerTitle: { flex: 1, fontSize: 16, fontWeight: "700", color: colors.text },
-  headerBtn: { padding: 4 },
-  body: { alignItems: "center", paddingVertical: 18 },
+    backdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.35)" },
+    backdropTap: { ...StyleSheet.absoluteFillObject },
+    sheet: {
+      backgroundColor: colors.bg,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      maxHeight: "88%",
+    },
+    grabber: {
+      alignSelf: "center",
+      width: 40,
+      height: 4,
+      borderRadius: 999,
+      backgroundColor: colors.borderStrong,
+      marginBottom: 12,
+    },
+    header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
+    headerTitle: { flex: 1, fontSize: 16, fontWeight: "700", color: colors.text },
+    headerBtn: { padding: 4 },
+    body: { alignItems: "center", paddingVertical: 18 },
 
-  orbWrap: { width: 128, height: 128, alignItems: "center", justifyContent: "center" },
-  ring: {
-    position: "absolute",
-    width: 96,
-    height: 96,
-    borderRadius: 999,
-    backgroundColor: colors.accent,
-  },
-  orb: {
-    width: 96,
-    height: 96,
-    borderRadius: 999,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: colors.accent,
-    shadowOpacity: 0.4,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-  },
-  orbActive: { backgroundColor: colors.danger, shadowColor: colors.danger },
-  hint: { color: colors.muted, fontSize: 14, marginTop: 14, textAlign: "center" },
-  transcript: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: "500",
-    textAlign: "center",
-    marginTop: 12,
-    lineHeight: 24,
-  },
-  error: { color: colors.danger, marginTop: 14, fontSize: 14, textAlign: "center" },
-  doneRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14 },
-  done: { color: colors.success, fontSize: 14, fontWeight: "500" },
+    orbWrap: { width: 128, height: 128, alignItems: "center", justifyContent: "center" },
+    ring: {
+      position: "absolute",
+      width: 96,
+      height: 96,
+      borderRadius: 999,
+      backgroundColor: colors.accent,
+    },
+    orb: {
+      width: 96,
+      height: 96,
+      borderRadius: 999,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: colors.accent,
+      shadowOpacity: 0.4,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 8,
+    },
+    orbActive: { backgroundColor: colors.danger, shadowColor: colors.danger },
+    hint: { color: colors.muted, fontSize: 14, marginTop: 14, textAlign: "center" },
+    transcript: {
+      color: colors.text,
+      fontSize: 17,
+      fontWeight: "500",
+      textAlign: "center",
+      marginTop: 12,
+      lineHeight: 24,
+    },
+    error: { color: colors.danger, marginTop: 14, fontSize: 14, textAlign: "center" },
+    doneRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14 },
+    done: { color: colors.success, fontSize: 14, fontWeight: "500" },
 
-  card: {
-    alignSelf: "stretch",
-    marginTop: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    padding: 16,
-  },
-  cardKind: {
-    color: colors.accent,
-    fontSize: 11,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  cardTitle: { color: colors.text, fontWeight: "600", fontSize: 17, marginTop: 4 },
-  cardWhen: { color: colors.muted, fontSize: 14 },
-  timeEdit: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
-  cardWho: { color: colors.muted, fontSize: 13, marginTop: 4 },
-  actions: { flexDirection: "row", gap: 10, marginTop: 16 },
-  confirm: {
-    flex: 1,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 13,
-    alignItems: "center",
-  },
-  confirmText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  discard: {
-    paddingVertical: 13,
-    paddingHorizontal: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  discardText: { color: colors.muted, fontWeight: "500" },
+    card: {
+      alignSelf: "stretch",
+      marginTop: 18,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      backgroundColor: colors.surface,
+      padding: 16,
+    },
+    cardKind: {
+      color: colors.accent,
+      fontSize: 11,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    cardTitle: { color: colors.text, fontWeight: "600", fontSize: 17, marginTop: 4 },
+    cardWhen: { color: colors.muted, fontSize: 14 },
+    timeEdit: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
+    cardWho: { color: colors.muted, fontSize: 13, marginTop: 4 },
+    actions: { flexDirection: "row", gap: 10, marginTop: 16 },
+    confirm: {
+      flex: 1,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 13,
+      alignItems: "center",
+    },
+    confirmText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    discard: {
+      paddingVertical: 13,
+      paddingHorizontal: 18,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    discardText: { color: colors.muted, fontWeight: "500" },
 
-  chips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 22,
-    justifyContent: "center",
-  },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    backgroundColor: colors.surface,
-  },
-  chipText: { color: colors.muted, fontSize: 12 },
+    chips: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginTop: 22,
+      justifyContent: "center",
+    },
+    chip: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      backgroundColor: colors.surface,
+    },
+    chipText: { color: colors.muted, fontSize: 12 },
 
-  inputRow: { flexDirection: "row", gap: 10, alignItems: "center", marginTop: 6 },
-  input: {
-    flex: 1,
-    minHeight: 46,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  go: {
-    width: 46,
-    height: 46,
-    borderRadius: radius.md,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  foot: { color: colors.faint, fontSize: 11, textAlign: "center", marginTop: 10 },
-});
+    inputRow: { flexDirection: "row", gap: 10, alignItems: "center", marginTop: 6 },
+    input: {
+      flex: 1,
+      minHeight: 46,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    go: {
+      width: 46,
+      height: 46,
+      borderRadius: radius.md,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    foot: { color: colors.faint, fontSize: 11, textAlign: "center", marginTop: 10 },
+  });

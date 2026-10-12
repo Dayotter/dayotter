@@ -2,9 +2,9 @@ import { ApiError, api } from "@/api";
 import { EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { EventType } from "@/models";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Modal,
@@ -54,6 +54,8 @@ function money(minor: number, currency: string): string {
 }
 
 export default function PackagesScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { data, loading, error, reload } = useAsync<PackagesResponse>(async () => {
     return await api.get<PackagesResponse>("/api/packages");
   });
@@ -330,101 +332,102 @@ export default function PackagesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  newBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  newBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  section: { marginTop: 18, marginBottom: 10, fontWeight: "600", color: colors.muted },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    marginBottom: 10,
-  },
-  cardHead: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  cardName: { color: colors.text, fontWeight: "600", fontSize: 15, flexShrink: 1 },
-  cardMeta: { color: colors.muted, fontSize: 13 },
-  cardSub: { color: colors.faint, fontSize: 12, marginTop: 2 },
-  grantBtn: {
-    marginTop: 12,
-    alignSelf: "flex-start",
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 9,
-    paddingHorizontal: 16,
-  },
-  grantBtnText: { color: colors.text, fontWeight: "600", fontSize: 13 },
-  balanceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 10,
-  },
-  balanceEmail: { color: colors.text, fontWeight: "600" },
-  balanceCount: { color: colors.muted, fontSize: 13 },
-  hint: { color: colors.faint, fontSize: 13, marginBottom: 4 },
-  // Modal
-  backdrop: { flex: 1, backgroundColor: "#00000055", justifyContent: "flex-end" },
-  sheet: {
-    backgroundColor: colors.bg,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: 20,
-    paddingBottom: 32,
-    maxHeight: "90%",
-  },
-  sheetTitle: { fontSize: 18, fontWeight: "700", color: colors.text, marginBottom: 6 },
-  label: { color: colors.muted, fontWeight: "600", fontSize: 13, marginBottom: 6, marginTop: 12 },
-  input: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  row: { flexDirection: "row", gap: 12 },
-  pills: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  pill: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-  },
-  pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  pillText: { color: colors.muted, fontSize: 13 },
-  pillTextOn: { color: colors.text, fontWeight: "600" },
-  save: {
-    marginTop: 20,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 15,
-    alignItems: "center",
-  },
-  saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
-  disabled: { opacity: 0.5 },
-  cancel: { marginTop: 10, paddingVertical: 12, alignItems: "center" },
-  cancelText: { color: colors.muted, fontWeight: "600", fontSize: 14 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    newBtn: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    newBtnText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    section: { marginTop: 18, marginBottom: 10, fontWeight: "600", color: colors.muted },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      marginBottom: 10,
+    },
+    cardHead: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      gap: 8,
+    },
+    cardName: { color: colors.text, fontWeight: "600", fontSize: 15, flexShrink: 1 },
+    cardMeta: { color: colors.muted, fontSize: 13 },
+    cardSub: { color: colors.faint, fontSize: 12, marginTop: 2 },
+    grantBtn: {
+      marginTop: 12,
+      alignSelf: "flex-start",
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 9,
+      paddingHorizontal: 16,
+    },
+    grantBtnText: { color: colors.text, fontWeight: "600", fontSize: 13 },
+    balanceRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 10,
+    },
+    balanceEmail: { color: colors.text, fontWeight: "600" },
+    balanceCount: { color: colors.muted, fontSize: 13 },
+    hint: { color: colors.faint, fontSize: 13, marginBottom: 4 },
+    // Modal
+    backdrop: { flex: 1, backgroundColor: "#00000055", justifyContent: "flex-end" },
+    sheet: {
+      backgroundColor: colors.bg,
+      borderTopLeftRadius: radius.lg,
+      borderTopRightRadius: radius.lg,
+      padding: 20,
+      paddingBottom: 32,
+      maxHeight: "90%",
+    },
+    sheetTitle: { fontSize: 18, fontWeight: "700", color: colors.text, marginBottom: 6 },
+    label: { color: colors.muted, fontWeight: "600", fontSize: 13, marginBottom: 6, marginTop: 12 },
+    input: {
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    row: { flexDirection: "row", gap: 12 },
+    pills: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    pill: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 999,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+    },
+    pillOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+    pillText: { color: colors.muted, fontSize: 13 },
+    pillTextOn: { color: colors.text, fontWeight: "600" },
+    save: {
+      marginTop: 20,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 15,
+      alignItems: "center",
+    },
+    saveText: { color: colors.white, fontWeight: "600", fontSize: 15 },
+    disabled: { opacity: 0.5 },
+    cancel: { marginTop: 10, paddingVertical: 12, alignItems: "center" },
+    cancelText: { color: colors.muted, fontWeight: "600", fontSize: 14 },
+  });

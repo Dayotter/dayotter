@@ -1,7 +1,7 @@
 import { api, getServerUrl } from "@/api";
 import { ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 import { useMemo, useState } from "react";
@@ -23,7 +23,7 @@ interface AppItem {
 }
 
 /** Status pill text + color for an app. */
-function status(a: AppItem): { label: string; color: string } {
+function status(a: AppItem, colors: ThemeColors): { label: string; color: string } {
   if (a.builtIn) return { label: "Included", color: colors.muted };
   if (!a.configured) return { label: "Not configured", color: colors.faint };
   if (a.connected) return { label: "Connected", color: colors.success };
@@ -31,6 +31,8 @@ function status(a: AppItem): { label: string; color: string } {
 }
 
 export default function AppsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { data, loading, error, reload } = useAsync<AppItem[]>(async () => {
     const res = await api.get<{ apps: AppItem[] }>("/api/apps");
     return res.apps;
@@ -93,7 +95,7 @@ export default function AppsScreen() {
           </ScrollView>
 
           {shown.map((a) => {
-            const st = status(a);
+            const st = status(a, colors);
             return (
               <Pressable
                 key={a.id}
@@ -119,32 +121,33 @@ export default function AppsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
-  intro: { color: colors.muted, fontSize: 14, lineHeight: 20, marginBottom: 14 },
-  filterRow: { gap: 8, paddingBottom: 16 },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  filterChipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
-  filterText: { color: colors.muted, fontSize: 13 },
-  filterTextOn: { color: colors.white, fontWeight: "600" },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 10,
-  },
-  marker: { width: 10, height: 10, borderRadius: 5 },
-  name: { color: colors.text, fontWeight: "600", fontSize: 15 },
-  blurb: { color: colors.muted, fontSize: 12, marginTop: 3, lineHeight: 17 },
-  status: { fontSize: 12, fontWeight: "600", marginTop: 6 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 40 },
+    intro: { color: colors.muted, fontSize: 14, lineHeight: 20, marginBottom: 14 },
+    filterRow: { gap: 8, paddingBottom: 16 },
+    filterChip: {
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    filterChipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+    filterText: { color: colors.muted, fontSize: 13 },
+    filterTextOn: { color: colors.white, fontWeight: "600" },
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 10,
+    },
+    marker: { width: 10, height: 10, borderRadius: 5 },
+    name: { color: colors.text, fontWeight: "600", fontSize: 15 },
+    blurb: { color: colors.muted, fontSize: 12, marginTop: 3, lineHeight: 17 },
+    status: { fontSize: 12, fontWeight: "600", marginTop: 6 },
+  });

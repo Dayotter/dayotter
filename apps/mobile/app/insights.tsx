@@ -2,8 +2,9 @@ import { api } from "@/api";
 import { EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import { type Insights, eventColorHex } from "@/models";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Stack } from "expo-router";
+import { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -14,6 +15,8 @@ function fmtHours(min: number): string {
 }
 
 export default function InsightsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { data, loading, error } = useAsync<Insights>(async () => {
     const res = await api.get<{ insights: Insights }>("/api/insights");
     return res.insights;
@@ -157,6 +160,8 @@ export default function InsightsScreen() {
 }
 
 function MiniStat({ value, label }: { value: string; label: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.miniStat}>
       <Text style={styles.miniStatValue}>{value}</Text>
@@ -166,6 +171,8 @@ function MiniStat({ value, label }: { value: string; label: string }) {
 }
 
 function Stat({ value, label, sub }: { value: string; label: string; sub: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.stat}>
       <Text style={styles.statValue}>{value}</Text>
@@ -175,62 +182,69 @@ function Stat({ value, label, sub }: { value: string; label: string; sub: string
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 40 },
-  intro: { color: colors.muted, fontSize: 14, marginBottom: 16 },
-  stats: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 6 },
-  stat: {
-    width: "47%",
-    flexGrow: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: 14,
-    backgroundColor: colors.surface,
-  },
-  statValue: { fontSize: 22, fontWeight: "700", color: colors.text },
-  statLabel: { fontSize: 13, color: colors.muted, marginTop: 2 },
-  statSub: { fontSize: 11, color: colors.faint, marginTop: 1 },
-  card: {
-    marginTop: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: 16,
-    backgroundColor: colors.surface,
-  },
-  cardTitle: { fontSize: 14, fontWeight: "600", color: colors.text, marginBottom: 12 },
-  focusIntro: { color: colors.faint, fontSize: 12, marginTop: -6, marginBottom: 12 },
-  focusGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  miniStat: {
-    width: "47%",
-    flexGrow: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: 12,
-    backgroundColor: colors.bg,
-  },
-  miniStatValue: { fontSize: 20, fontWeight: "700", color: colors.text },
-  miniStatLabel: { fontSize: 11, color: colors.muted, marginTop: 2 },
-  ringRow: { flexDirection: "row", alignItems: "center", gap: 16 },
-  bigNum: { fontSize: 40, fontWeight: "700", color: colors.accent, width: 64, textAlign: "center" },
-  track: { height: 8, borderRadius: 999, backgroundColor: colors.surface2, overflow: "hidden" },
-  fill: { height: "100%", borderRadius: 999 },
-  sub: { color: colors.muted, fontSize: 12, marginTop: 8 },
-  bars: { flexDirection: "row", alignItems: "flex-end", gap: 8, height: 140 },
-  barCol: { flex: 1, alignItems: "center", gap: 6, height: "100%" },
-  barTrack: { flex: 1, width: "100%", justifyContent: "flex-end" },
-  barLabel: { fontSize: 11, color: colors.faint },
-  typeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  typeLeft: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
-  dot: { width: 10, height: 10, borderRadius: 999 },
-  typeTitle: { fontSize: 14, color: colors.text, flexShrink: 1 },
-  typeMin: { fontSize: 13, color: colors.muted },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 40 },
+    intro: { color: colors.muted, fontSize: 14, marginBottom: 16 },
+    stats: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 6 },
+    stat: {
+      width: "47%",
+      flexGrow: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: 14,
+      backgroundColor: colors.surface,
+    },
+    statValue: { fontSize: 22, fontWeight: "700", color: colors.text },
+    statLabel: { fontSize: 13, color: colors.muted, marginTop: 2 },
+    statSub: { fontSize: 11, color: colors.faint, marginTop: 1 },
+    card: {
+      marginTop: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      padding: 16,
+      backgroundColor: colors.surface,
+    },
+    cardTitle: { fontSize: 14, fontWeight: "600", color: colors.text, marginBottom: 12 },
+    focusIntro: { color: colors.faint, fontSize: 12, marginTop: -6, marginBottom: 12 },
+    focusGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    miniStat: {
+      width: "47%",
+      flexGrow: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: 12,
+      backgroundColor: colors.bg,
+    },
+    miniStatValue: { fontSize: 20, fontWeight: "700", color: colors.text },
+    miniStatLabel: { fontSize: 11, color: colors.muted, marginTop: 2 },
+    ringRow: { flexDirection: "row", alignItems: "center", gap: 16 },
+    bigNum: {
+      fontSize: 40,
+      fontWeight: "700",
+      color: colors.accent,
+      width: 64,
+      textAlign: "center",
+    },
+    track: { height: 8, borderRadius: 999, backgroundColor: colors.surface2, overflow: "hidden" },
+    fill: { height: "100%", borderRadius: 999 },
+    sub: { color: colors.muted, fontSize: 12, marginTop: 8 },
+    bars: { flexDirection: "row", alignItems: "flex-end", gap: 8, height: 140 },
+    barCol: { flex: 1, alignItems: "center", gap: 6, height: "100%" },
+    barTrack: { flex: 1, width: "100%", justifyContent: "flex-end" },
+    barLabel: { fontSize: 11, color: colors.faint },
+    typeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 6,
+    },
+    typeLeft: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
+    dot: { width: 10, height: 10, borderRadius: 999 },
+    typeTitle: { fontSize: 14, color: colors.text, flexShrink: 1 },
+    typeMin: { fontSize: 13, color: colors.muted },
+  });

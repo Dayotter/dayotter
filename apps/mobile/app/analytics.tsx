@@ -3,9 +3,9 @@ import { ProLock, useFeature } from "@/components/pro-lock";
 import { EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
 import type { Analytics } from "@/models";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 const RANGES = [
@@ -30,6 +30,8 @@ function pct(n: number): string {
 }
 
 export default function AnalyticsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [days, setDays] = useState(30);
   const feat = useFeature("analytics");
   const { data, loading, error } = useAsync<Analytics>(async () => {
@@ -126,6 +128,8 @@ export default function AnalyticsScreen() {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.stat}>
       <Text style={styles.statLabel}>{label}</Text>
@@ -140,6 +144,8 @@ function Bar({
   max,
   muted,
 }: { label: string; value: number; max: number; muted?: boolean }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const width = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
     <View style={{ marginBottom: 10 }}>
@@ -159,58 +165,59 @@ function Bar({
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20 },
-  range: { flexDirection: "row", gap: 8, marginBottom: 16 },
-  rangeBtn: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: radius.md,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  rangeBtnOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  rangeText: { color: colors.muted, fontWeight: "500" },
-  rangeTextOn: { color: colors.text, fontWeight: "600" },
-  stats: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  stat: {
-    flexGrow: 1,
-    flexBasis: "45%",
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-  },
-  statLabel: { color: colors.muted, fontSize: 12 },
-  statValue: { color: colors.text, fontSize: 24, fontWeight: "700", marginTop: 2 },
-  revenue: {
-    marginTop: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 16,
-  },
-  revenueLabel: { color: colors.muted },
-  revenueValue: { color: colors.text, fontSize: 18, fontWeight: "700" },
-  section: { marginTop: 22, marginBottom: 10, fontWeight: "600", color: colors.muted },
-  card: { backgroundColor: colors.surface2, borderRadius: radius.lg, padding: 16 },
-  barTop: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
-  barLabel: { color: colors.muted, fontSize: 12 },
-  barValue: { color: colors.text, fontSize: 12, fontWeight: "600" },
-  barTrack: { height: 8, borderRadius: 999, backgroundColor: colors.bg, overflow: "hidden" },
-  barFill: { height: "100%", borderRadius: 999 },
-  subtle: { color: colors.faint, fontSize: 12, marginTop: 6 },
-  typeRow: {
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 10,
-  },
-  typeHead: { flexDirection: "row", alignItems: "center", gap: 8 },
-  dot: { width: 10, height: 10, borderRadius: 999 },
-  typeTitle: { flex: 1, color: colors.text, fontWeight: "600" },
-  typeConv: { color: colors.text, fontWeight: "700" },
-  typeMeta: { color: colors.muted, fontSize: 12, marginTop: 4 },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20 },
+    range: { flexDirection: "row", gap: 8, marginBottom: 16 },
+    rangeBtn: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+    },
+    rangeBtnOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+    rangeText: { color: colors.muted, fontWeight: "500" },
+    rangeTextOn: { color: colors.text, fontWeight: "600" },
+    stats: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    stat: {
+      flexGrow: 1,
+      flexBasis: "45%",
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+    },
+    statLabel: { color: colors.muted, fontSize: 12 },
+    statValue: { color: colors.text, fontSize: 24, fontWeight: "700", marginTop: 2 },
+    revenue: {
+      marginTop: 12,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 16,
+    },
+    revenueLabel: { color: colors.muted },
+    revenueValue: { color: colors.text, fontSize: 18, fontWeight: "700" },
+    section: { marginTop: 22, marginBottom: 10, fontWeight: "600", color: colors.muted },
+    card: { backgroundColor: colors.surface2, borderRadius: radius.lg, padding: 16 },
+    barTop: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
+    barLabel: { color: colors.muted, fontSize: 12 },
+    barValue: { color: colors.text, fontSize: 12, fontWeight: "600" },
+    barTrack: { height: 8, borderRadius: 999, backgroundColor: colors.bg, overflow: "hidden" },
+    barFill: { height: "100%", borderRadius: 999 },
+    subtle: { color: colors.faint, fontSize: 12, marginTop: 6 },
+    typeRow: {
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 10,
+    },
+    typeHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+    dot: { width: 10, height: 10, borderRadius: 999 },
+    typeTitle: { flex: 1, color: colors.text, fontWeight: "600" },
+    typeConv: { color: colors.text, fontWeight: "700" },
+    typeMeta: { color: colors.muted, fontSize: 12, marginTop: 4 },
+  });

@@ -1,7 +1,7 @@
 import { api, getServerUrl } from "@/api";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 const LABELS: Record<string, string> = {
@@ -35,6 +35,8 @@ export function useFeature(feature: string): { loading: boolean; allowed: boolea
 
 /** Paywall shown in place of a Pro feature on the free plan (cloud only). */
 export function ProLock({ feature }: { feature: string }) {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.wrap}>
       <View style={styles.icon}>
@@ -61,24 +63,25 @@ export function ProLock({ feature }: { feature: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { alignItems: "center", padding: 28, gap: 10 },
-  icon: {
-    height: 46,
-    width: 46,
-    borderRadius: 999,
-    backgroundColor: colors.accentSoft,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: { fontSize: 17, fontWeight: "700", color: colors.text, textAlign: "center" },
-  body: { color: colors.muted, textAlign: "center", fontSize: 14, lineHeight: 20 },
-  btn: {
-    marginTop: 6,
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
-  btnText: { color: colors.white, fontWeight: "600" },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    wrap: { alignItems: "center", padding: 28, gap: 10 },
+    icon: {
+      height: 46,
+      width: 46,
+      borderRadius: 999,
+      backgroundColor: colors.accentSoft,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: { fontSize: 17, fontWeight: "700", color: colors.text, textAlign: "center" },
+    body: { color: colors.muted, textAlign: "center", fontSize: 14, lineHeight: 20 },
+    btn: {
+      marginTop: 6,
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+    },
+    btnText: { color: colors.white, fontWeight: "600" },
+  });

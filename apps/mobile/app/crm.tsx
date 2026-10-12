@@ -1,10 +1,10 @@
 import { ApiError, api, getServerUrl } from "@/api";
 import { Badge, EmptyState, ErrorText, Loading } from "@/components/ui";
 import { useAsync } from "@/hooks";
-import { colors, radius } from "@/theme";
+import { type ThemeColors, radius, useColors } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   Linking,
@@ -73,6 +73,8 @@ const STATUS_PATH = "/api/integrations/crm";
 const WEB_SETTINGS_URL = `${getServerUrl()}/settings/crm`;
 
 export default function CrmScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { data, loading, error, reload } = useAsync<CrmState>(async () => {
     try {
       const res = await api.get<CrmStatusResponse>(STATUS_PATH);
@@ -235,47 +237,48 @@ export default function CrmScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: 20, paddingBottom: 60 },
-  lead: { color: colors.muted, fontSize: 13, lineHeight: 19, marginBottom: 16 },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: colors.surface2,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 10,
-  },
-  brandDot: { width: 12, height: 12, borderRadius: 999 },
-  rowBody: { flex: 1 },
-  rowTitleLine: { flexDirection: "row", alignItems: "center", gap: 8 },
-  name: { color: colors.text, fontWeight: "600", fontSize: 15 },
-  blurb: { color: colors.muted, fontSize: 12, marginTop: 2 },
-  err: { color: colors.danger, fontSize: 12, marginTop: 4 },
-  linkBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
-  linkText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
-  dangerBtn: {
-    borderWidth: 1,
-    borderColor: colors.danger,
-    borderRadius: radius.md,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-  },
-  dangerText: { color: colors.danger, fontWeight: "600", fontSize: 13 },
-  notConfigured: { color: colors.faint, fontSize: 12 },
-  hint: { color: colors.faint, fontSize: 12, lineHeight: 18, marginTop: 8 },
-  webRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    marginTop: 14,
-  },
-  webRowText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
-});
+const makeStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: 20, paddingBottom: 60 },
+    lead: { color: colors.muted, fontSize: 13, lineHeight: 19, marginBottom: 16 },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: colors.surface2,
+      borderRadius: radius.lg,
+      padding: 14,
+      marginBottom: 10,
+    },
+    brandDot: { width: 12, height: 12, borderRadius: 999 },
+    rowBody: { flex: 1 },
+    rowTitleLine: { flexDirection: "row", alignItems: "center", gap: 8 },
+    name: { color: colors.text, fontWeight: "600", fontSize: 15 },
+    blurb: { color: colors.muted, fontSize: 12, marginTop: 2 },
+    err: { color: colors.danger, fontSize: 12, marginTop: 4 },
+    linkBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
+    linkText: { color: colors.accent, fontWeight: "600", fontSize: 14 },
+    dangerBtn: {
+      borderWidth: 1,
+      borderColor: colors.danger,
+      borderRadius: radius.md,
+      paddingVertical: 7,
+      paddingHorizontal: 12,
+    },
+    dangerText: { color: colors.danger, fontWeight: "600", fontSize: 13 },
+    notConfigured: { color: colors.faint, fontSize: 12 },
+    hint: { color: colors.faint, fontSize: 12, lineHeight: 18, marginTop: 8 },
+    webRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+      marginTop: 14,
+    },
+    webRowText: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "500" },
+  });
