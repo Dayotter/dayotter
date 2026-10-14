@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { marketingRedirect } from "./lib/marketing-gate";
 
 /**
  * Authenticated app surfaces that must NOT be framable (clickjacking defense).
@@ -19,8 +20,12 @@ const FRAME_DENY = [
 ];
 
 export function middleware(req: NextRequest) {
-  const res = NextResponse.next();
   const p = req.nextUrl.pathname;
+
+  const marketingTarget = marketingRedirect(p, process.env.DAYOTTER_MARKETING);
+  if (marketingTarget) return NextResponse.redirect(new URL(marketingTarget, req.url));
+
+  const res = NextResponse.next();
 
   // Baseline hardening on every response.
   res.headers.set("X-Content-Type-Options", "nosniff");
