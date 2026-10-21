@@ -134,5 +134,62 @@ export async function interpretOtterCommand(
     if (b) target = { uid: b.uid, title: b.title, startISO: b.startsAt.toISOString() };
   }
 
+  // Never invite an address the user didn't give. The model may "recall" an
+  // email from memory or past bookings and pick the wrong one, so for a new
+  // meeting an attendee email is kept only if it's written in the request
+  // itself, or it's the ONE address this host's past bookings have for exactly
+  // that name. Anything else becomes a question instead of a wrong invite.
+  if (draft.intent === "create" && draft.attendees.length > 0) {
+    const missing = await unverifiedAttendees(userId, text, draft.attendees);
+    if (missing.length > 0) {
+      const names = missing.map((a) => a.name || a.email).join(", ");
+      const msg = `I don't have a confirmed email for ${names}. Repeat the request with the address (e.g. "meeting with ${missing[0]?.name || "Alex"} alex@company.com tomorrow at 3pm") so I invite the right person.`;
+      return {
+        draft: noneDraft(msg),
+        timezone: tz,
+        target: null,
+        matchedEventType: null,
+        answer: msg,
+      };
+    }
+  }
+
   return { draft, timezone: tz, target, matchedEventType, answer: null };
+}
+
+const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").trim().toLowerCase();
+
+/** Attendees whose email is neither typed in the request nor this host's single
+ * known address for that exact name. Empty-email attendees are reported too. */
+async function unverifiedAttendees(
+  userId: string,
+  text: string,
+  attendees: { name: string; email: string }[],
+): Promise<{ name: string; email: string }[]> {
+  const typed = new Set(
+    (text.match(/[^\s@<>(),;:"']+@[^\s@<>(),;:"']+\.[a-z]{2,}/gi) ?? []).map((e) =>
+      e.toLowerCase(),
+    ),
+  );
+  const pending = attendees.filter((a) => !typed.has(a.email.trim().toLowerCase()));
+  if (pending.length === 0) return [];
+  // Past attendees of this host, grouped by accent/case-folded name.
+  const rows = await getDb()
+    .select({ email: schema.bookingAttendees.email, name: schema.bookingAttendees.name })
+    .from(schema.bookingAttendees)
+    .innerJoin(schema.bookings, eq(schema.bookings.id, schema.bookingAttendees.bookingId))
+    .where(eq(schema.bookings.hostId, userId));
+  const known = new Map<string, Set<string>>();
+  for (const r of rows) {
+    if (!r.name) continue;
+    const key = fold(r.name);
+    if (!known.has(key)) known.set(key, new Set());
+    known.get(key)?.add(r.email.toLowerCase());
+  }
+  return pending.filter((a) => {
+    const email = a.email.trim().toLowerCase();
+    if (!email || !a.name.trim()) return true;
+    const emails = known.get(fold(a.name));
+    return !(emails && emails.size === 1 && emails.has(email));
+  });
 }
