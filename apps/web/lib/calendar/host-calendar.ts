@@ -23,6 +23,22 @@ async function targetCalendar(userId: string) {
   return null;
 }
 
+/**
+ * Google sends its own invite / update / cancellation to every guest (sendUpdates
+ * = "all"): in the guest's language, with RSVP buttons and the Meet link. When
+ * that happens DayOtter skips its own guest email so nobody gets two messages
+ * for one action. DAYOTTER_GUEST_EMAILS_WHEN_CALENDAR=1 restores both.
+ */
+export function googleEmailsGuests(provider: string | null | undefined): boolean {
+  return provider === "google" && process.env.DAYOTTER_GUEST_EMAILS_WHEN_CALENDAR !== "1";
+}
+
+/** Calendar-event description carrying the DayOtter self-service link, since the
+ * provider's invite may be the only message the guest receives. */
+export function withManageLink(description: string | null | undefined, manageUrl: string): string {
+  return [description?.trim(), `Reschedule or cancel: ${manageUrl}`].filter(Boolean).join("\n\n");
+}
+
 export interface WrittenEvent {
   calendarId: string;
   provider: "google" | "microsoft" | "apple" | "ics";
@@ -76,6 +92,8 @@ export async function writeBookingToCalendar(
 export async function updateBookingCalendarEvent(
   bookingId: string,
   event: NewCalendarEvent,
+  /** Filled with how many events were moved where the provider itself emails guests. */
+  stats?: { guestsNotified: number },
 ): Promise<string | undefined> {
   const db = getDb();
   const refs = await db.query.bookingReferences.findMany({
@@ -92,6 +110,7 @@ export async function updateBookingCalendarEvent(
         event,
       );
       meetingUrl ??= updated.meetingUrl;
+      if (stats && googleEmailsGuests(ref.provider)) stats.guestsNotified++;
     } catch (err) {
       console.error("[reschedule] calendar update failed:", err);
     }
@@ -99,19 +118,23 @@ export async function updateBookingCalendarEvent(
   return meetingUrl;
 }
 
-/** Best-effort: delete the calendar event(s) behind a booking (on cancel). */
-export async function deleteBookingFromCalendar(bookingId: string): Promise<void> {
+/** Best-effort: delete the calendar event(s) behind a booking (on cancel).
+ * Returns how many deletions the provider announced to the guests itself. */
+export async function deleteBookingFromCalendar(bookingId: string): Promise<number> {
   const db = getDb();
   const refs = await db.query.bookingReferences.findMany({
     where: eq(schema.bookingReferences.bookingId, bookingId),
     with: { calendar: { with: { connection: true } } },
   });
+  let guestsNotified = 0;
   for (const ref of refs) {
     try {
       const adapter = await adapterForConnection(ref.calendar.connection);
       await adapter.deleteEvent(ref.calendar.externalId, ref.externalEventId);
+      if (googleEmailsGuests(ref.provider)) guestsNotified++;
     } catch {
       // Non-fatal: the booking is cancelled in DayOtter regardless.
     }
   }
+  return guestsNotified;
 }

@@ -4,7 +4,7 @@ import { and, eq, getDb, gte, lt, ne, schema, sql } from "@dayotter/db";
 import { bookingRescheduled, sendEmail } from "@dayotter/emails";
 import { DateTime } from "luxon";
 import { reserveRuleBlocks } from "../automation/apply-rules";
-import { updateBookingCalendarEvent } from "../calendar/host-calendar";
+import { updateBookingCalendarEvent, withManageLink } from "../calendar/host-calendar";
 import { SLOT_REVALIDATION_WINDOW_MS, eventConstraints, hostSlots } from "./availability";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { fanOutBookingLifecycle } from "./lifecycle";
@@ -177,16 +177,21 @@ export async function rescheduleBooking(
   }
 
   // Move the calendar event (best-effort).
-  const meetingUrl = await updateBookingCalendarEvent(booking.id, {
-    title: booking.title,
-    description: booking.description ?? undefined,
-    start: newStart,
-    end: newEnd,
-    timezone: booking.timezone,
-    attendees: booking.attendees.map((a) => ({ email: a.email, name: a.name ?? undefined })),
-    location: eventType.locationDetail ?? undefined,
-    createConference: AUTO_CONFERENCE.includes(eventType.location),
-  });
+  const calendarStats = { guestsNotified: 0 };
+  const meetingUrl = await updateBookingCalendarEvent(
+    booking.id,
+    {
+      title: booking.title,
+      description: withManageLink(booking.description, `${env.APP_URL}/booking/${uid}`),
+      start: newStart,
+      end: newEnd,
+      timezone: booking.timezone,
+      attendees: booking.attendees.map((a) => ({ email: a.email, name: a.name ?? undefined })),
+      location: eventType.locationDetail ?? undefined,
+      createConference: AUTO_CONFERENCE.includes(eventType.location),
+    },
+    calendarStats,
+  );
   if (meetingUrl) {
     await db.update(schema.bookings).set({ meetingUrl }).where(eq(schema.bookings.id, booking.id));
   }
@@ -271,7 +276,9 @@ export async function rescheduleBooking(
   try {
     await Promise.all(
       [
-        ...booking.attendees.map((a) => ({
+        // Google already emailed the guests the updated invite; only the host
+        // gets DayOtter's notice then.
+        ...(calendarStats.guestsNotified > 0 ? [] : booking.attendees).map((a) => ({
           email: a.email,
           name: a.name,
           tz: a.timezone ?? booking.timezone,
