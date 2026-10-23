@@ -50,14 +50,15 @@ export function et(
 /**
  * The full local date + time, e.g. "Wednesday, August 27, 2026 at 8:00 AM UTC"
  * in English or "mercredi 27 août 2026 à 08:00 UTC" in French. Uses Luxon's
- * locale-aware DATETIME_FULL preset so each language gets its own month/weekday
- * names AND its own 12h/24h convention - never the old hard-coded `h:mm a`.
+ * locale-aware DATETIME_HUGE preset (includes the weekday, matching the old
+ * `cccc, …` format) so each language gets its own month/weekday names AND its
+ * own 12h/24h convention - never the old hard-coded `h:mm a`.
  */
 export function formatEmailDateTime(date: Date, timezone: string, locale: EmailLocale): string {
   return DateTime.fromJSDate(date)
     .setZone(timezone)
     .setLocale(locale)
-    .toLocaleString(DateTime.DATETIME_FULL);
+    .toLocaleString(DateTime.DATETIME_HUGE);
 }
 
 /** A compact localized date + time for subject lines, e.g. "Aug 27, 8:00 AM" /
