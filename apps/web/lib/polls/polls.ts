@@ -3,6 +3,7 @@ import { logger } from "@dayotter/core";
 import { and, asc, eq, getDb, inArray, schema } from "@dayotter/db";
 import { bookingConfirmation, pollInvitation, pollVoteUpdate, sendEmail } from "@dayotter/emails";
 import { AUTO_CONFERENCE, LOCATION_LABELS } from "../booking/event-type-input";
+import { fanOutBookingLifecycle } from "../booking/lifecycle";
 import { hostBookingPrefs, scheduleBookingReminders } from "../booking/reminders";
 import { writeBookingToCalendar } from "../calendar/host-calendar";
 import { env } from "../server/env";
@@ -497,6 +498,33 @@ export async function finalizePoll(
           err,
         }),
       );
+    // Same side effects any confirmed booking triggers: outbound webhook, CRM
+    // sync, and plugin booking hooks - so a poll booking isn't invisible to
+    // integrations. Best-effort; never throws into the finalize flow. (#341)
+    const descriptorAttendees = attendees.map((a) => ({ name: a.name, email: a.email }));
+    await fanOutBookingLifecycle(
+      "created",
+      {
+        bookingId,
+        uid: booking.uid,
+        hostId,
+        eventTypeId: booking.eventTypeId,
+        title: booking.title,
+        startsAt: start.toISOString(),
+        endsAt: end.toISOString(),
+        attendees: descriptorAttendees,
+      },
+      {
+        uid: booking.uid,
+        eventTypeId: booking.eventTypeId,
+        title: booking.title,
+        startsAt: start.toISOString(),
+        endsAt: end.toISOString(),
+        status: "confirmed",
+        source: "poll",
+        attendees: descriptorAttendees,
+      },
+    );
   }
 
   // Confirm the time to the host + everyone who's coming.
