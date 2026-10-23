@@ -14,7 +14,7 @@
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "google-auth-library": "^9.15.0",
     "googleapis": "^144.0.0",
-    "ical-generator": "^8.0.1",
+    "ical-generator": "^11.1.0",
     "node-ical": "^0.20.1",
     "tsdav": "^2.1.2"
   },
