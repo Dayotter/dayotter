@@ -160,9 +160,13 @@ export interface CreateBookingInput {
   hold?: { ttlSeconds: number };
 }
 
-export async function createBooking(
-  input: CreateBookingInput,
-): Promise<{ uid: string; redirectUrl: string | null; holdExpiresAt?: Date }> {
+export async function createBooking(input: CreateBookingInput): Promise<{
+  uid: string;
+  redirectUrl: string | null;
+  holdExpiresAt?: Date;
+  /** ISO dates of recurring occurrences skipped because the host wasn't free. */
+  skippedDates: string[];
+}> {
   const db = getDb();
 
   const eventType = await db.query.eventTypes.findFirst({
@@ -620,7 +624,7 @@ export async function createBooking(
         err,
       });
     }
-    return { uid, redirectUrl: null, holdExpiresAt };
+    return { uid, redirectUrl: null, holdExpiresAt, skippedDates: [] as string[] };
   }
 
   // Opt-in bookings stop here: the request is held as `pending` and NONE of the
@@ -675,13 +679,13 @@ export async function createBooking(
         });
       }
     }
-    return { uid, redirectUrl: eventType.redirectUrl ?? null };
+    return { uid, redirectUrl: eventType.redirectUrl ?? null, skippedDates: [] as string[] };
   }
 
   // Confirmed immediately: run every confirmed-booking side-effect (meeting link,
   // host calendar, reminders, workflows, travel, confirmation emails, recurring
   // occurrences). Shared verbatim with the host-approval path.
-  await finalizeConfirmedBooking({
+  const { skippedOccurrences } = await finalizeConfirmedBooking({
     booking,
     eventType,
     host,
@@ -691,5 +695,9 @@ export async function createBooking(
     appUrl,
   });
 
-  return { uid, redirectUrl: eventType.redirectUrl ?? null };
+  return {
+    uid,
+    redirectUrl: eventType.redirectUrl ?? null,
+    skippedDates: skippedOccurrences.map((d) => d.toISOString()),
+  };
 }
