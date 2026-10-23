@@ -136,6 +136,9 @@ export interface CreateBookingInput {
   /** The booker's chosen location type for multi-location event types. Must be one
    * the event type offers; falls back to the primary location when omitted. */
   location?: string;
+  /** The booker's booking-page language, stored on the booking so their guest
+   * emails (confirmation, reminders, reschedule/cancel) are sent in it. */
+  locale?: string;
   /** Single-use booking-link token to consume atomically with the booking. */
   linkToken?: string;
   /** Access code, required when the event type is password-protected. */
@@ -554,6 +557,7 @@ export async function createBooking(input: CreateBookingInput): Promise<{
           startsAt: start,
           endsAt: end,
           timezone: input.attendee.timezone,
+          locale: input.locale ?? null,
           status: initialStatus,
           holdExpiresAt,
           isGroup,

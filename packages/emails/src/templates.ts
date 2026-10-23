@@ -1,4 +1,12 @@
 import { DateTime } from "luxon";
+import {
+  type EmailLocale,
+  et,
+  formatEmailDateTime,
+  formatEmailDateTimeMedium,
+  formatEmailDateTimeShort,
+  resolveEmailLocale,
+} from "./i18n";
 
 export interface BookingEmailData {
   eventTitle: string;
@@ -6,6 +14,9 @@ export interface BookingEmailData {
   end: Date;
   /** Timezone to render times in (usually the recipient's). */
   timezone: string;
+  /** The recipient's language. Guest/attendee mails use the booking's stored
+   * locale; host mails use the host's `userPreferences.locale`. Absent → English. */
+  locale?: EmailLocale;
   hostName: string;
   attendeeName: string;
   location?: string;
@@ -37,6 +48,8 @@ export interface PollInvitationData {
   /** Optional host-written note ("bring your laptop", "here's the agenda"...) shown
    * with the invitation, or when the host shares the public link directly. */
   message?: string;
+  /** The recipient's language (the poll host's locale). Absent → English. */
+  locale?: EmailLocale;
 }
 
 export interface PollVoteUpdateData {
@@ -47,6 +60,8 @@ export interface PollVoteUpdateData {
   resultsUrl: string;
   timezone: string;
   options: { startsAt: Date; yes: number; maybe: number; no: number }[];
+  /** The recipient's language (the poll host's locale). Absent → English. */
+  locale?: EmailLocale;
 }
 
 function fmt(date: Date, tz: string): string {
@@ -112,72 +127,93 @@ function shell(
 }
 
 export function pollInvitation(d: PollInvitationData): Rendered {
+  const locale = resolveEmailLocale(d.locale);
   const note = d.message ? messageParagraphs(d.message) : [];
   return {
-    subject: `Vote on a time: ${d.pollTitle}`,
-    text: `${d.hostName} invited you to vote on a time for ${d.pollTitle}.\n\nThere are ${d.optionCount} proposed times.\n${d.message ? `\n${d.message}\n` : ""}Vote here: ${d.voteUrl}`,
+    subject: et(locale, "pollInvitation.subject", { title: d.pollTitle }),
+    text: `${et(locale, "pollInvitation.textInvited", { host: d.hostName, title: d.pollTitle })}\n\n${et(locale, "pollInvitation.textProposed", { count: d.optionCount })}\n${d.message ? `\n${d.message}\n` : ""}${et(locale, "pollInvitation.textVoteHere", { url: d.voteUrl })}`,
     html: shell(
-      `${esc(d.hostName)} is finding a time`,
+      et(locale, "pollInvitation.heading", { host: esc(d.hostName) }),
       [
-        `You were invited to vote on <strong>${esc(d.pollTitle)}</strong>.`,
-        `Choose what works for you from ${d.optionCount} proposed times.`,
+        et(locale, "pollInvitation.htmlInvited", { title: `<strong>${esc(d.pollTitle)}</strong>` }),
+        et(locale, "pollInvitation.htmlChoose", { count: d.optionCount }),
         ...note,
       ],
-      { label: "Vote on times", url: d.voteUrl },
+      { label: et(locale, "pollInvitation.cta"), url: d.voteUrl },
     ),
   };
 }
 
 export function pollVoteUpdate(d: PollVoteUpdateData): Rendered {
+  const locale = resolveEmailLocale(d.locale);
   const summaries = d.options.map((option) => {
-    const when = DateTime.fromJSDate(option.startsAt)
-      .setZone(d.timezone)
-      .toFormat("ccc, LLL d · h:mm a");
-    return `${when}: ${option.yes} yes, ${option.maybe} maybe, ${option.no} no`;
+    const when = formatEmailDateTimeMedium(option.startsAt, d.timezone, locale);
+    return et(locale, "pollVoteUpdate.optionSummary", {
+      when,
+      yes: option.yes,
+      maybe: option.maybe,
+      no: option.no,
+    });
   });
+  const statusOpen = et(locale, "pollVoteUpdate.statusOpen");
   return {
-    subject: `New vote: ${d.pollTitle}`,
-    text: `${d.voterName} (${d.voterEmail}) submitted or updated a vote on ${d.pollTitle}.\n\nPoll status: Open · ${d.participationLabel}\n\n${summaries.join("\n")}\n\nView results: ${d.resultsUrl}`,
+    subject: et(locale, "pollVoteUpdate.subject", { title: d.pollTitle }),
+    text: `${et(locale, "pollVoteUpdate.textSubmitted", { voter: d.voterName, email: d.voterEmail, title: d.pollTitle })}\n\n${et(locale, "pollVoteUpdate.pollStatus", { status: statusOpen, label: d.participationLabel })}\n\n${summaries.join("\n")}\n\n${et(locale, "pollVoteUpdate.textViewResults", { url: d.resultsUrl })}`,
     html: shell(
-      `New vote on ${esc(d.pollTitle)}`,
+      et(locale, "pollVoteUpdate.heading", { title: esc(d.pollTitle) }),
       [
-        `<strong>${esc(d.voterName)}</strong> (${esc(d.voterEmail)}) submitted or updated a vote.`,
-        `Poll status: <strong>Open</strong> · ${esc(d.participationLabel)}`,
+        et(locale, "pollVoteUpdate.htmlSubmitted", {
+          voter: `<strong>${esc(d.voterName)}</strong>`,
+          email: esc(d.voterEmail),
+        }),
+        et(locale, "pollVoteUpdate.pollStatus", {
+          status: `<strong>${esc(statusOpen)}</strong>`,
+          label: esc(d.participationLabel),
+        }),
         ...summaries.map((summary) => esc(summary)),
       ],
-      { label: "View poll results", url: d.resultsUrl },
+      { label: et(locale, "pollVoteUpdate.cta"), url: d.resultsUrl },
     ),
   };
 }
 
 export function bookingConfirmation(d: BookingEmailData): Rendered {
-  const when = fmt(d.start, d.timezone);
+  const locale = resolveEmailLocale(d.locale);
+  const when = formatEmailDateTime(d.start, d.timezone, locale);
   const where = d.meetingUrl
-    ? `Join: ${d.meetingUrl}`
+    ? et(locale, "confirmation.join", { url: d.meetingUrl })
     : d.location
-      ? `Location: ${d.location}`
+      ? et(locale, "confirmation.location", { location: d.location })
       : "";
   const note = d.message ? messageParagraphs(d.message) : [];
   // Who booked it + anyone added alongside them (shown when known).
   const extras = [
-    d.booker ? `Booked by: ${personLabel(d.booker)}` : "",
+    d.booker ? et(locale, "confirmation.bookedBy", { person: personLabel(d.booker) }) : "",
     d.addedAttendees && d.addedAttendees.length > 0
-      ? `Also attending: ${d.addedAttendees.map(personLabel).join(", ")}`
+      ? et(locale, "confirmation.alsoAttending", {
+          people: d.addedAttendees.map(personLabel).join(", "),
+        })
       : "",
   ].filter(Boolean);
   return {
-    subject: `Confirmed: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
-    text: `Your booking is confirmed.\n\n${d.eventTitle}\nWith: ${d.hostName}\n${extras.join("\n")}${extras.length > 0 ? "\n" : ""}When: ${when}\n${where}\n${d.message ? `\n${d.message}\n` : ""}\nManage or cancel: ${d.manageUrl}`,
+    subject: et(locale, "confirmation.subject", {
+      title: d.eventTitle,
+      date: formatEmailDateTimeShort(d.start, d.timezone, locale),
+    }),
+    text: `${et(locale, "confirmation.textIntro")}\n\n${d.eventTitle}\n${et(locale, "confirmation.textWith", { host: d.hostName })}\n${extras.join("\n")}${extras.length > 0 ? "\n" : ""}${et(locale, "confirmation.textWhen", { when })}\n${where}\n${d.message ? `\n${d.message}\n` : ""}\n${et(locale, "confirmation.textManage", { url: d.manageUrl })}`,
     html: shell(
-      "Your booking is confirmed 🎉",
+      et(locale, "confirmation.heading"),
       [
-        `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)}`,
+        et(locale, "confirmation.htmlWith", {
+          title: `<strong>${esc(d.eventTitle)}</strong>`,
+          host: esc(d.hostName),
+        }),
         ...extras.map((line) => esc(line)),
         `🗓 ${when}`,
         where ? `📍 ${esc(where)}` : "",
         ...note,
       ].filter(Boolean),
-      { label: "View booking", url: d.manageUrl },
+      { label: et(locale, "confirmation.cta"), url: d.manageUrl },
     ),
   };
 }
@@ -227,71 +263,97 @@ export function guardrailAlert(d: GuardrailAlertData): Rendered {
 }
 
 export function bookingReminder(d: BookingEmailData & { leadLabel: string }): Rendered {
-  const when = fmt(d.start, d.timezone);
+  const locale = resolveEmailLocale(d.locale);
+  const when = formatEmailDateTime(d.start, d.timezone, locale);
   return {
-    subject: `Reminder: ${d.eventTitle} ${d.leadLabel}`,
-    text: `Reminder - ${d.eventTitle} with ${d.hostName} is ${d.leadLabel}.\nWhen: ${when}\n${d.meetingUrl ? `Join: ${d.meetingUrl}` : ""}\n\nManage: ${d.manageUrl}`,
+    subject: et(locale, "reminder.subject", { title: d.eventTitle, lead: d.leadLabel }),
+    text: `${et(locale, "reminder.textLine", { title: d.eventTitle, host: d.hostName, lead: d.leadLabel })}\n${et(locale, "reminder.textWhen", { when })}\n${d.meetingUrl ? et(locale, "reminder.join", { url: d.meetingUrl }) : ""}\n\n${et(locale, "reminder.textManage", { url: d.manageUrl })}`,
     html: shell(
-      `Reminder: your meeting is ${esc(d.leadLabel)}`,
-      [`<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)}`, `🗓 ${when}`],
+      et(locale, "reminder.heading", { lead: esc(d.leadLabel) }),
+      [
+        et(locale, "reminder.htmlWith", {
+          title: `<strong>${esc(d.eventTitle)}</strong>`,
+          host: esc(d.hostName),
+        }),
+        `🗓 ${when}`,
+      ],
       d.meetingUrl
-        ? { label: "Join call", url: d.meetingUrl }
-        : { label: "View booking", url: d.manageUrl },
+        ? { label: et(locale, "reminder.ctaJoin"), url: d.meetingUrl }
+        : { label: et(locale, "reminder.ctaView"), url: d.manageUrl },
     ),
   };
 }
 
 export function bookingFollowUp(d: BookingEmailData): Rendered {
+  const locale = resolveEmailLocale(d.locale);
   return {
-    subject: `Thanks for meeting - ${d.eventTitle}`,
-    text: `Thanks for taking the time to meet about ${d.eventTitle} with ${d.hostName}. If anything came up or you'd like to follow up, just reply - or book another time: ${d.manageUrl}`,
+    subject: et(locale, "followUp.subject", { title: d.eventTitle }),
+    text: et(locale, "followUp.text", {
+      title: d.eventTitle,
+      host: d.hostName,
+      url: d.manageUrl,
+    }),
     html: shell(
-      "Thanks for meeting 🙌",
+      et(locale, "followUp.heading"),
       [
-        `Thanks for taking the time to meet about <strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)}.`,
-        "If anything came up, just reply to this email - or grab another time below.",
+        et(locale, "followUp.htmlLine1", {
+          title: `<strong>${esc(d.eventTitle)}</strong>`,
+          host: esc(d.hostName),
+        }),
+        et(locale, "followUp.htmlLine2"),
       ],
-      { label: "Book another time", url: d.manageUrl },
+      { label: et(locale, "followUp.cta"), url: d.manageUrl },
     ),
   };
 }
 
 /** Sent after a meeting the attendee missed - warm, with a rebook link. */
 export function bookingNoShowFollowUp(d: BookingEmailData): Rendered {
+  const locale = resolveEmailLocale(d.locale);
   return {
-    subject: `Sorry we missed you - ${d.eventTitle}`,
-    text: `We had ${d.eventTitle} with ${d.hostName} on the calendar but didn't get to connect. No worries - grab a new time whenever it suits you: ${d.manageUrl}`,
+    subject: et(locale, "noShow.subject", { title: d.eventTitle }),
+    text: et(locale, "noShow.text", { title: d.eventTitle, host: d.hostName, url: d.manageUrl }),
     html: shell(
-      "Sorry we missed you",
+      et(locale, "noShow.heading"),
       [
-        `We had <strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} on the calendar but didn't get to connect.`,
-        "No worries at all - grab a new time whenever it suits you.",
+        et(locale, "noShow.htmlLine1", {
+          title: `<strong>${esc(d.eventTitle)}</strong>`,
+          host: esc(d.hostName),
+        }),
+        et(locale, "noShow.htmlLine2"),
       ],
-      { label: "Pick a new time", url: d.manageUrl },
+      { label: et(locale, "noShow.cta"), url: d.manageUrl },
     ),
   };
 }
 
 export function bookingRescheduled(d: BookingEmailData): Rendered {
-  const when = fmt(d.start, d.timezone);
+  const locale = resolveEmailLocale(d.locale);
+  const when = formatEmailDateTime(d.start, d.timezone, locale);
   const where = d.meetingUrl
-    ? `Join: ${d.meetingUrl}`
+    ? et(locale, "rescheduled.join", { url: d.meetingUrl })
     : d.location
-      ? `Location: ${d.location}`
+      ? et(locale, "rescheduled.location", { location: d.location })
       : "";
-  const note = d.reason ? `Reason: ${d.reason}` : "";
+  const note = d.reason ? et(locale, "rescheduled.reason", { reason: d.reason }) : "";
   return {
-    subject: `Rescheduled: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
-    text: `Your booking has been moved to a new time.\n\n${d.eventTitle} with ${d.hostName}\nNew time: ${when}\n${where}${note ? `\n\n${note}` : ""}\n\nManage: ${d.manageUrl}`,
+    subject: et(locale, "rescheduled.subject", {
+      title: d.eventTitle,
+      date: formatEmailDateTimeShort(d.start, d.timezone, locale),
+    }),
+    text: `${et(locale, "rescheduled.textIntro")}\n\n${et(locale, "rescheduled.textTitleWith", { title: d.eventTitle, host: d.hostName })}\n${et(locale, "rescheduled.textNewTime", { when })}\n${where}${note ? `\n\n${note}` : ""}\n\n${et(locale, "rescheduled.textManage", { url: d.manageUrl })}`,
     html: shell(
-      "Your booking was rescheduled",
+      et(locale, "rescheduled.heading"),
       [
-        `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} has a new time:`,
+        et(locale, "rescheduled.htmlHasNewTime", {
+          title: `<strong>${esc(d.eventTitle)}</strong>`,
+          host: esc(d.hostName),
+        }),
         `🗓 ${when}`,
         where ? `📍 ${esc(where)}` : "",
         note ? `💬 ${esc(note)}` : "",
       ].filter(Boolean),
-      { label: "View booking", url: d.manageUrl },
+      { label: et(locale, "rescheduled.cta"), url: d.manageUrl },
     ),
   };
 }
@@ -387,15 +449,23 @@ export function bookingDeclined(d: BookingEmailData): Rendered {
 }
 
 export function bookingCancellation(d: BookingEmailData): Rendered {
-  const note = d.reason ? `Reason: ${d.reason}` : "";
+  const locale = resolveEmailLocale(d.locale);
+  const when = formatEmailDateTime(d.start, d.timezone, locale);
+  const note = d.reason ? et(locale, "cancellation.reason", { reason: d.reason }) : "";
   return {
-    subject: `Cancelled: ${d.eventTitle} - ${DateTime.fromJSDate(d.start).setZone(d.timezone).toFormat("LLL d, h:mm a")}`,
-    text: `This booking has been cancelled.\n\n${d.eventTitle} with ${d.hostName}\nWas: ${fmt(d.start, d.timezone)}${note ? `\n\n${note}` : ""}`,
+    subject: et(locale, "cancellation.subject", {
+      title: d.eventTitle,
+      date: formatEmailDateTimeShort(d.start, d.timezone, locale),
+    }),
+    text: `${et(locale, "cancellation.textIntro")}\n\n${et(locale, "cancellation.textTitleWith", { title: d.eventTitle, host: d.hostName })}\n${et(locale, "cancellation.textWas", { when })}${note ? `\n\n${note}` : ""}`,
     html: shell(
-      "Booking cancelled",
+      et(locale, "cancellation.heading"),
       [
-        `<strong>${esc(d.eventTitle)}</strong> with ${esc(d.hostName)} has been cancelled.`,
-        `Was: ${fmt(d.start, d.timezone)}`,
+        et(locale, "cancellation.htmlCancelled", {
+          title: `<strong>${esc(d.eventTitle)}</strong>`,
+          host: esc(d.hostName),
+        }),
+        et(locale, "cancellation.htmlWas", { when }),
         note ? `💬 ${esc(note)}` : "",
       ].filter(Boolean),
     ),

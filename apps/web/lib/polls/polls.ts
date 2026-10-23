@@ -1,7 +1,13 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { logger } from "@dayotter/core";
 import { and, asc, eq, getDb, inArray, schema } from "@dayotter/db";
-import { bookingConfirmation, pollInvitation, pollVoteUpdate, sendEmail } from "@dayotter/emails";
+import {
+  bookingConfirmation,
+  pollInvitation,
+  pollVoteUpdate,
+  resolveEmailLocale,
+  sendEmail,
+} from "@dayotter/emails";
 import { AUTO_CONFERENCE, LOCATION_LABELS } from "../booking/event-type-input";
 import { fanOutBookingLifecycle } from "../booking/lifecycle";
 import { hostBookingPrefs, scheduleBookingReminders } from "../booking/reminders";
@@ -129,6 +135,13 @@ export async function createPoll(
       where: eq(schema.users.id, hostId),
       columns: { name: true },
     });
+    // Poll emails have no booker-page locale, so they follow the poll host's
+    // configured language.
+    const hostPrefsRow = await db.query.userPreferences.findFirst({
+      where: eq(schema.userPreferences.userId, hostId),
+      columns: { locale: true },
+    });
+    const hostLocale = resolveEmailLocale(hostPrefsRow?.locale);
     const appUrl = env.APP_URL;
     const sentIds: string[] = [];
     const deliveries = await Promise.allSettled(
@@ -142,6 +155,7 @@ export async function createPoll(
             voteUrl,
             optionCount: times.length,
             message: result.poll.inviteMessage ?? undefined,
+            locale: hostLocale,
           }),
         });
         sentIds.push(invitee.id);
@@ -281,7 +295,7 @@ export async function submitVotes(
     poll.votingMode === "invited" && poll.host?.email
       ? await db.query.userPreferences.findFirst({
           where: eq(schema.userPreferences.userId, poll.hostId),
-          columns: { productEmails: true },
+          columns: { productEmails: true, locale: true },
         })
       : null;
   if (poll.votingMode === "invited" && poll.host?.email && hostPrefs?.productEmails !== false) {
@@ -301,6 +315,7 @@ export async function submitVotes(
         participationLabel,
         resultsUrl: `${appUrl}/polls/${poll.id}`,
         timezone: poll.host.timezone ?? "UTC",
+        locale: resolveEmailLocale(hostPrefs?.locale),
         options: poll.options.map((option) => {
           const optionVotes = votes.filter((vote) => vote.optionId === option.id);
           return {
@@ -527,7 +542,13 @@ export async function finalizePoll(
     );
   }
 
-  // Confirm the time to the host + everyone who's coming.
+  // Confirm the time to the host + everyone who's coming. A poll has no
+  // booker-page locale, so every confirmation follows the poll host's language.
+  const pollHostPrefs = await db.query.userPreferences.findFirst({
+    where: eq(schema.userPreferences.userId, hostId),
+    columns: { locale: true },
+  });
+  const pollHostLocale = resolveEmailLocale(pollHostPrefs?.locale);
   const recipients = [
     ...(poll.host?.email
       ? [{ email: poll.host.email, name: poll.host.name ?? "you", tz: poll.host.timezone }]
@@ -548,6 +569,7 @@ export async function finalizePoll(
           meetingUrl,
           manageUrl,
           message: finalizeMessage,
+          locale: pollHostLocale,
           // The host locked in the time; everyone who can make it is listed
           // (minus the recipient, so nobody reads "Also attending: yourself").
           booker: poll.host?.email

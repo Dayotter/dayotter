@@ -463,6 +463,13 @@
       "when": 1791205220679,
       "tag": "0065_graceful_warbird",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1792737793308,
+      "tag": "0066_cheerful_proemial_gods",
+      "breakpoints": true
     }
   ]
 }

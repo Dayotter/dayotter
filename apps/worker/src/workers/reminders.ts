@@ -5,6 +5,7 @@ import {
   bookingReminder,
   bookingRunningLate,
   meetingRecap,
+  resolveEmailLocale,
   sendEmail,
   workflowEmail,
 } from "@dayotter/emails";
@@ -178,6 +179,7 @@ export function startRemindersWorker(): Worker<ReminderJob> {
       if (reminder.kind === "followup") {
         if (booking.status !== "cancelled" && booking.status !== "rejected") {
           const render = booking.status === "no_show" ? bookingNoShowFollowUp : bookingFollowUp;
+          const followUpLocale = resolveEmailLocale(booking.locale);
           await Promise.all(
             booking.attendees.map((a) =>
               sendEmail({
@@ -189,6 +191,7 @@ export function startRemindersWorker(): Worker<ReminderJob> {
                   hostName: booking.host?.name ?? "your host",
                   attendeeName: a.name ?? a.email,
                   manageUrl: `${appUrl}/booking/${booking.uid}`,
+                  locale: followUpLocale,
                 }),
                 to: a.email,
               }),
@@ -204,6 +207,7 @@ export function startRemindersWorker(): Worker<ReminderJob> {
 
       if (booking.status !== "confirmed") return;
       const label = leadLabel(booking.startsAt);
+      const reminderLocale = resolveEmailLocale(booking.locale);
 
       await Promise.all(
         booking.attendees.map((a) =>
@@ -219,6 +223,7 @@ export function startRemindersWorker(): Worker<ReminderJob> {
               location: booking.location ?? undefined,
               manageUrl: `${appUrl}/booking/${booking.uid}`,
               leadLabel: label,
+              locale: reminderLocale,
             }),
             to: a.email,
           }),

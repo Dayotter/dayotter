@@ -43,6 +43,11 @@ export const bookings = pgTable(
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     /** Booker's timezone as selected on the booking page. */
     timezone: text("timezone").notNull(),
+    /** Booker's chosen booking-page language (one of the supported locales), used
+     * to send the guest/attendee transactional emails in their language. Null on
+     * older rows / API bookings that didn't send one - consumers fall back to the
+     * default locale via `resolveEmailLocale`. */
+    locale: text("locale"),
     status: bookingStatus("status").notNull().default("confirmed"),
 
     location: text("location"),

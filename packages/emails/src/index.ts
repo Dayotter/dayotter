@@ -1,5 +1,13 @@
 export { sendEmail, type OutboundEmail } from "./mailer";
 export {
+  EMAIL_LOCALES,
+  type EmailLocale,
+  DEFAULT_EMAIL_LOCALE,
+  resolveEmailLocale,
+  et,
+  formatEmailDateTime,
+} from "./i18n";
+export {
   bookingConfirmation,
   bookingReminder,
   bookingFollowUp,
