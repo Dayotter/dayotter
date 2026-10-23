@@ -132,6 +132,9 @@ export function SlotPicker({
         responses: questions.length ? answers : undefined,
         durationMinutes: hasDurations ? duration : undefined,
         location: locations.length > 1 ? chosenLocation : undefined,
+        // The booking-page language the booker is viewing, so their guest emails
+        // (confirmation, reminders, ...) are sent in that language.
+        locale,
         captchaToken: captchaToken || undefined,
         linkToken: linkToken || undefined,
         accessCode: accessCode || undefined,

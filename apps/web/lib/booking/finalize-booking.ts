@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { logger } from "@dayotter/core";
 import { eq, getDb, schema } from "@dayotter/db";
-import { bookingConfirmation, sendEmail } from "@dayotter/emails";
+import { bookingConfirmation, resolveEmailLocale, sendEmail } from "@dayotter/emails";
 import { DateTime } from "luxon";
 import { applyBookingRules } from "../automation/apply-rules";
 import {
@@ -219,6 +219,14 @@ export async function finalizeConfirmedBooking(
   // must not stop the attendee's mail, and each failure is logged with its
   // recipient so the cause is visible instead of a single opaque error.
   const manageUrl = `${appUrl}/booking/${uid}`;
+  // The attendee's email follows the booker's chosen booking-page language
+  // (stored on the booking); the host's follows their own configured locale.
+  const attendeeLocale = resolveEmailLocale(booking.locale);
+  const hostPrefsRow = await db.query.userPreferences.findFirst({
+    where: eq(schema.userPreferences.userId, host.id),
+    columns: { locale: true },
+  });
+  const hostLocale = resolveEmailLocale(hostPrefsRow?.locale);
   const sendConfirmation = async (
     to: string,
     timezone: string,
@@ -237,6 +245,7 @@ export async function finalizeConfirmedBooking(
           location: eventType.locationDetail ?? undefined,
           meetingUrl,
           manageUrl,
+          locale: recipient === "host" ? hostLocale : attendeeLocale,
           booker: { name: attendee.name, email: attendee.email },
           addedAttendees: guests.map((email) => ({ email })),
         }),
@@ -325,6 +334,7 @@ export async function finalizeConfirmedBooking(
             startsAt: occStart,
             endsAt: occEnd,
             timezone: attendee.timezone,
+            locale: booking.locale,
             status: "confirmed",
             isGroup: false,
             location: eventType.locationDetail,

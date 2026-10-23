@@ -37,6 +37,9 @@ const schema = z.object({
   durationMinutes: z.number().int().min(5).max(1440).optional(),
   /** Chosen location type for multi-location event types (validated server-side). */
   location: z.string().max(32).nullish(),
+  /** The booker's booking-page language, stored on the booking so their guest
+   * emails are sent in it. Defaults to the default locale when absent/unknown. */
+  locale: z.enum(["en", "es", "fr", "de", "pt", "it", "nl"]).optional(),
   captchaToken: z.string().max(4000).optional(),
   /** Single-use booking-link token, if the booker came through one. */
   linkToken: z.string().max(64).optional(),
@@ -81,6 +84,7 @@ export async function POST(request: Request) {
     responses: parsed.data.responses,
     durationMinutes: parsed.data.durationMinutes,
     location: parsed.data.location ?? undefined,
+    locale: parsed.data.locale ?? "en",
     linkToken: parsed.data.linkToken,
     accessCode: parsed.data.accessCode,
   };

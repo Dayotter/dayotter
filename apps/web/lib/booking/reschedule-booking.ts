@@ -1,7 +1,7 @@
 import { env } from "@/lib/server/env";
 import { logger } from "@dayotter/core";
 import { and, eq, getDb, gte, lt, ne, schema, sql } from "@dayotter/db";
-import { bookingRescheduled, sendEmail } from "@dayotter/emails";
+import { bookingRescheduled, resolveEmailLocale, sendEmail } from "@dayotter/emails";
 import { DateTime } from "luxon";
 import { reserveRuleBlocks } from "../automation/apply-rules";
 import { updateBookingCalendarEvent, withManageLink } from "../calendar/host-calendar";
@@ -271,8 +271,17 @@ export async function rescheduleBooking(
     );
   }
 
-  // Notify.
+  // Notify. Guests get the email in the booker's chosen booking-page language
+  // (stored on the booking); the host gets theirs in their configured locale.
   const appUrl = env.APP_URL;
+  const attendeeLocale = resolveEmailLocale(booking.locale);
+  const hostPrefsRow = booking.hostId
+    ? await db.query.userPreferences.findFirst({
+        where: eq(schema.userPreferences.userId, booking.hostId),
+        columns: { locale: true },
+      })
+    : null;
+  const hostLocale = resolveEmailLocale(hostPrefsRow?.locale);
   try {
     await Promise.all(
       [
@@ -282,9 +291,17 @@ export async function rescheduleBooking(
           email: a.email,
           name: a.name,
           tz: a.timezone ?? booking.timezone,
+          locale: attendeeLocale,
         })),
         ...(booking.host?.email
-          ? [{ email: booking.host.email, name: booking.host.name, tz: booking.host.timezone }]
+          ? [
+              {
+                email: booking.host.email,
+                name: booking.host.name,
+                tz: booking.host.timezone,
+                locale: hostLocale,
+              },
+            ]
           : []),
       ].map((r) =>
         sendEmail({
@@ -299,6 +316,7 @@ export async function rescheduleBooking(
             location: eventType.locationDetail ?? undefined,
             manageUrl: `${appUrl}/booking/${uid}`,
             reason: reason ?? null,
+            locale: r.locale,
           }),
           to: r.email,
         }),

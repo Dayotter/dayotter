@@ -1,7 +1,7 @@
 import { env } from "@/lib/server/env";
 import { logger } from "@dayotter/core";
 import { and, eq, getDb, gte, ne, schema } from "@dayotter/db";
-import { bookingCancellation, sendEmail } from "@dayotter/emails";
+import { bookingCancellation, resolveEmailLocale, sendEmail } from "@dayotter/emails";
 import { deleteBookingFromCalendar } from "../calendar/host-calendar";
 import { restoreCredit } from "../packages/credits";
 import { paymentsEnabled, refundPayment } from "../payments/stripe";
@@ -123,7 +123,9 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
     );
   }
 
-  // Notify attendees.
+  // Notify attendees in the booker's chosen booking-page language (stored on the
+  // booking); unknown/older rows fall back to the default locale.
+  const attendeeLocale = resolveEmailLocale(booking.locale);
   try {
     await Promise.all(
       // Skipped when Google already sent the guests its own cancellation.
@@ -138,6 +140,7 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
             attendeeName: a.name ?? a.email,
             manageUrl: `${env.APP_URL}/booking/${uid}`,
             reason: reason ?? null,
+            locale: attendeeLocale,
           }),
           to: a.email,
         }),
