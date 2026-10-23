@@ -163,7 +163,10 @@ export function SlotPicker({
       window.location.href = data.redirectUrl;
       return;
     }
-    router.push(data.url as `/${string}`);
+    // A recurring series may skip occurrences the host wasn't free for; pass the
+    // count so the confirmation page can say so.
+    const skipped = Array.isArray(data.skippedDates) ? data.skippedDates.length : 0;
+    router.push((skipped > 0 ? `${data.url}?skipped=${skipped}` : data.url) as `/${string}`);
   }
 
   const durationSelector = hasDurations ? (

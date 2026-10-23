@@ -106,8 +106,11 @@ export async function POST(request: Request) {
       const credits = await creditBalance(parsed.data.eventTypeId, parsed.data.attendee.email);
       if (credits > 0) {
         try {
-          const { uid, redirectUrl } = await createBooking({ ...input, redeemCredit: true });
-          return NextResponse.json({ uid, url: `/booking/${uid}`, redirectUrl });
+          const { uid, redirectUrl, skippedDates } = await createBooking({
+            ...input,
+            redeemCredit: true,
+          });
+          return NextResponse.json({ uid, url: `/booking/${uid}`, redirectUrl, skippedDates });
         } catch (err) {
           if (err instanceof BookingError) {
             return NextResponse.json({ error: err.message }, { status: err.status });
@@ -148,8 +151,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { uid, redirectUrl } = await createBooking(input);
-    return NextResponse.json({ uid, url: `/booking/${uid}`, redirectUrl });
+    const { uid, redirectUrl, skippedDates } = await createBooking(input);
+    return NextResponse.json({ uid, url: `/booking/${uid}`, redirectUrl, skippedDates });
   } catch (err) {
     if (err instanceof BookingError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

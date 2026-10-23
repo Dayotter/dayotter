@@ -20,8 +20,17 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function BookingPage({ params }: { params: Promise<{ uid: string }> }) {
+export default async function BookingPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ uid: string }>;
+  searchParams: Promise<{ skipped?: string }>;
+}) {
   const { uid } = await params;
+  // A recurring booking skips occurrences the host wasn't free for (see
+  // finalize-booking); the slot picker passes the count here so we can say so.
+  const skippedCount = Math.max(0, Math.floor(Number((await searchParams).skipped) || 0));
   const booking = await getDb().query.bookings.findFirst({
     where: eq(schema.bookings.uid, uid),
     with: { host: true, attendees: true },
@@ -84,6 +93,15 @@ export default async function BookingPage({ params }: { params: Promise<{ uid: s
                     : `A confirmation was sent to ${booking.attendees[0]?.email ?? "your email"}.`}
             </p>
           </div>
+
+          {confirmed && skippedCount > 0 ? (
+            <div className="mt-4 rounded-[var(--radius-lg)] border border-[var(--color-amber)]/40 bg-[color-mix(in_srgb,var(--color-amber)_10%,transparent)] p-3 text-sm text-[var(--color-muted)]">
+              {skippedCount === 1
+                ? "One date in your recurring series was skipped because your host wasn't available then."
+                : `${skippedCount} dates in your recurring series were skipped because your host wasn't available then.`}{" "}
+              The times that were free are booked.
+            </div>
+          ) : null}
 
           <div className="mt-6 space-y-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4">
             <p className="font-medium">{booking.title}</p>

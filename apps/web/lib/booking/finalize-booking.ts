@@ -11,6 +11,7 @@ import {
 } from "../calendar/host-calendar";
 import { jitsiRoomUrl } from "../integrations/jitsi";
 import { createZoomMeeting } from "../integrations/zoom";
+import { SLOT_REVALIDATION_WINDOW_MS, eventConstraints, hostSlots } from "./availability";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { fanOutBookingLifecycle } from "./lifecycle";
 import {
@@ -49,9 +50,15 @@ export interface FinalizeContext {
  * Everything here is best-effort - the booking already exists and stands even if
  * an individual step (calendar, email, ...) fails.
  */
-export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<void> {
+export async function finalizeConfirmedBooking(
+  ctx: FinalizeContext,
+): Promise<{ skippedOccurrences: Date[] }> {
   const { booking, eventType, host, attendee, guests, notes, appUrl } = ctx;
   const db = getDb();
+  // Recurring occurrences we didn't create because the host wasn't actually free
+  // then (external calendar, OOO, a meeting-free rule, lunch, or the adaptive
+  // daily cap). Surfaced to the booker so the gaps aren't silent.
+  const skippedOccurrences: Date[] = [];
 
   // Multi-location: honour the location the booker chose (persisted on the booking)
   // over the event type's primary, so the right meeting link is generated and the
@@ -273,6 +280,11 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
       { email: attendee.email, name: attendee.name },
       ...guests.map((email) => ({ email })),
     ];
+    // Reuse the availability engine (the single source of truth) to check each
+    // occurrence, exactly as reschedule revalidates a moved slot. Only the host's
+    // own schedule is checked here; see the PR note on collective co-hosts.
+    const occScheduleId = eventType.ownerId === host.id ? eventType.scheduleId : null;
+    const occConstraints = eventConstraints(eventType);
     const finalizeOccurrence = async (i: number): Promise<void> => {
       const occStart =
         eventType.recurringFrequency === "monthly"
@@ -281,6 +293,26 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
             ? base.plus({ weeks: 2 * i }).toJSDate()
             : base.plus({ weeks: i }).toJSDate();
       const occEnd = new Date(occStart.getTime() + duration * 60_000);
+      // Skip an occurrence the host isn't actually free for, instead of writing
+      // a booking on top of a conflict. If the check itself fails, fall back to
+      // the old behavior (attempt the insert) rather than dropping the occurrence.
+      const slots = await hostSlots(
+        host.id,
+        occScheduleId,
+        occConstraints,
+        new Date(occStart.getTime() - SLOT_REVALIDATION_WINDOW_MS),
+        new Date(occStart.getTime() + SLOT_REVALIDATION_WINDOW_MS),
+        0,
+      ).catch(() => null);
+      if (slots && !slots.some((s) => s.start.getTime() === occStart.getTime())) {
+        skippedOccurrences.push(occStart);
+        logger.info("recurring occurrence skipped (host unavailable)", {
+          event: "recurrence_unavailable",
+          index: i,
+          occStart: occStart.toISOString(),
+        });
+        return;
+      }
       try {
         const [occ] = await db
           .insert(schema.bookings)
@@ -416,4 +448,8 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
       await Promise.all(indices.slice(c, c + CONCURRENCY).map(finalizeOccurrence));
     }
   }
+
+  // Keep skipped occurrences in chronological order for a stable, readable notice.
+  skippedOccurrences.sort((a, b) => a.getTime() - b.getTime());
+  return { skippedOccurrences };
 }
