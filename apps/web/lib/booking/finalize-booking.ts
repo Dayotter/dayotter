@@ -4,7 +4,11 @@ import { eq, getDb, schema } from "@dayotter/db";
 import { bookingConfirmation, sendEmail } from "@dayotter/emails";
 import { DateTime } from "luxon";
 import { applyBookingRules } from "../automation/apply-rules";
-import { writeBookingToCalendar } from "../calendar/host-calendar";
+import {
+  googleEmailsGuests,
+  withManageLink,
+  writeBookingToCalendar,
+} from "../calendar/host-calendar";
 import { jitsiRoomUrl } from "../integrations/jitsi";
 import { createZoomMeeting } from "../integrations/zoom";
 import { AUTO_CONFERENCE } from "./event-type-input";
@@ -117,12 +121,14 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
   // Write to the host's calendar (best-effort; booking stands without it).
   // Skipped for group events (see above).
   let meetingUrl: string | undefined = zoomUrl ?? jitsiUrl ?? undefined;
+  // True once Google has emailed the invite to the guests itself.
+  let guestsInvitedByCalendar = false;
   try {
     const written = isGroup
       ? null
       : await writeBookingToCalendar(host.id, {
           title: eventType.title,
-          description: notes ?? undefined,
+          description: withManageLink(notes, `${appUrl}/booking/${uid}`),
           start,
           end,
           timezone: attendee.timezone,
@@ -138,6 +144,7 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
       // A provider conference (Google Meet / Teams) wins if one was created;
       // otherwise keep the Zoom link.
       meetingUrl = written.meetingUrl ?? meetingUrl;
+      guestsInvitedByCalendar = googleEmailsGuests(written.provider);
       await db.insert(schema.bookingReferences).values({
         bookingId: booking.id,
         calendarId: written.calendarId,
@@ -238,7 +245,11 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
       });
     }
   };
-  await sendConfirmation(attendee.email, attendee.timezone, host.name ?? "your host", "attendee");
+  // The attendee already has Google's invite (in their language, with RSVP and
+  // the Meet link) - a second DayOtter email would be a duplicate.
+  if (!guestsInvitedByCalendar) {
+    await sendConfirmation(attendee.email, attendee.timezone, host.name ?? "your host", "attendee");
+  }
   if (host.email) {
     await sendConfirmation(host.email, host.timezone, host.name ?? "you", "host");
   }
@@ -310,7 +321,7 @@ export async function finalizeConfirmedBooking(ctx: FinalizeContext): Promise<vo
         await scheduleBookingReminders(occ.id, occStart, reminderOffsets);
         const written = await writeBookingToCalendar(host.id, {
           title: eventType.title,
-          description: notes ?? undefined,
+          description: withManageLink(notes, `${appUrl}/booking/${occ.uid}`),
           start: occStart,
           end: occEnd,
           timezone: attendee.timezone,

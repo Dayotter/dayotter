@@ -58,7 +58,7 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
   }
 
   // Remove from the host's calendar (best-effort).
-  await deleteBookingFromCalendar(booking.id);
+  const guestsNotifiedByCalendar = await deleteBookingFromCalendar(booking.id);
 
   // Cancel any pending reminder jobs.
   await clearBookingReminders(booking.id);
@@ -126,7 +126,8 @@ export async function cancelBooking(uid: string, reason?: string): Promise<boole
   // Notify attendees.
   try {
     await Promise.all(
-      booking.attendees.map((a) =>
+      // Skipped when Google already sent the guests its own cancellation.
+      (guestsNotifiedByCalendar > 0 ? [] : booking.attendees).map((a) =>
         sendEmail({
           ...bookingCancellation({
             eventTitle: booking.title,
