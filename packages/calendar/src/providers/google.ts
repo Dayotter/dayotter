@@ -131,12 +131,38 @@ export class GoogleCalendarAdapter implements CalendarAdapter {
     externalEventId: string,
     event: NewCalendarEvent,
   ): Promise<CreatedEvent> {
-    const { data } = await this.api.events.update({
+    // PATCH (not update) the existing event: keep its Google Meet link (only
+    // create one when the event has none) and each guest's RSVP answer, so a
+    // reschedule moves the same meeting instead of minting a new call.
+    const { data: current } = await this.api.events.get({
       calendarId: calendarExternalId,
       eventId: externalEventId,
-      conferenceDataVersion: event.createConference ? 1 : 0,
+    });
+    const requestBody = this.toGoogleEvent({
+      ...event,
+      createConference: event.createConference && !current.conferenceData,
+    });
+    const previous = new Map(
+      (current.attendees ?? []).map((a) => [(a.email ?? "").toLowerCase(), a]),
+    );
+    requestBody.attendees = [
+      ...(current.attendees ?? []).filter((a) => a.self || a.organizer || a.resource),
+      ...(requestBody.attendees ?? [])
+        .filter((a) => {
+          const p = previous.get((a.email ?? "").toLowerCase());
+          return !(p && (p.self || p.organizer || p.resource));
+        })
+        .map((a) => {
+          const p = previous.get((a.email ?? "").toLowerCase());
+          return p?.responseStatus ? { ...a, responseStatus: p.responseStatus } : a;
+        }),
+    ];
+    const { data } = await this.api.events.patch({
+      calendarId: calendarExternalId,
+      eventId: externalEventId,
+      conferenceDataVersion: 1,
       sendUpdates: "all",
-      requestBody: this.toGoogleEvent(event),
+      requestBody,
     });
     return this.fromGoogleEvent(data);
   }
