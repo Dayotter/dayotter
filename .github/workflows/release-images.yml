@@ -28,7 +28,7 @@ jobs:
             image: ghcr.io/${{ github.repository_owner }}/dayotter-worker
     name: ${{ matrix.app }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # arm64 is built under emulation - slower, but a release runs on tags only.
       - uses: docker/setup-qemu-action@v4
