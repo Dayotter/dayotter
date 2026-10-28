@@ -5,7 +5,7 @@ import { bookingConfirmation, resolveEmailLocale, sendEmail } from "@dayotter/em
 import { DateTime } from "luxon";
 import { applyBookingRules } from "../automation/apply-rules";
 import {
-  googleEmailsGuests,
+  providerEmailsGuests,
   withManageLink,
   writeBookingToCalendar,
 } from "../calendar/host-calendar";
@@ -151,7 +151,7 @@ export async function finalizeConfirmedBooking(
       // A provider conference (Google Meet / Teams) wins if one was created;
       // otherwise keep the Zoom link.
       meetingUrl = written.meetingUrl ?? meetingUrl;
-      guestsInvitedByCalendar = googleEmailsGuests(written.provider);
+      guestsInvitedByCalendar = providerEmailsGuests(written.provider);
       await db.insert(schema.bookingReferences).values({
         bookingId: booking.id,
         calendarId: written.calendarId,

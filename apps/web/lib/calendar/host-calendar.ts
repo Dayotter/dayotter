@@ -24,13 +24,16 @@ async function targetCalendar(userId: string) {
 }
 
 /**
- * Google sends its own invite / update / cancellation to every guest (sendUpdates
- * = "all"): in the guest's language, with RSVP buttons and the Meet link. When
- * that happens DayOtter skips its own guest email so nobody gets two messages
- * for one action. DAYOTTER_GUEST_EMAILS_WHEN_CALENDAR=1 restores both.
+ * Google (sendUpdates="all") and Microsoft Graph (invites attendees on any event
+ * with attendees) each email every guest their own invite / update / cancellation:
+ * in the guest's language, with RSVP and the meeting link. When that happens
+ * DayOtter skips its own guest email so nobody gets two messages for one action.
+ * Apple/CalDAV and ICS do NOT email guests, so DayOtter stays their only email.
+ * DAYOTTER_GUEST_EMAILS_WHEN_CALENDAR=1 restores both.
  */
-export function googleEmailsGuests(provider: string | null | undefined): boolean {
-  return provider === "google" && process.env.DAYOTTER_GUEST_EMAILS_WHEN_CALENDAR !== "1";
+export function providerEmailsGuests(provider: string | null | undefined): boolean {
+  const selfNotifies = provider === "google" || provider === "microsoft";
+  return selfNotifies && process.env.DAYOTTER_GUEST_EMAILS_WHEN_CALENDAR !== "1";
 }
 
 /** Calendar-event description carrying the DayOtter self-service link, since the
@@ -110,7 +113,7 @@ export async function updateBookingCalendarEvent(
         event,
       );
       meetingUrl ??= updated.meetingUrl;
-      if (stats && googleEmailsGuests(ref.provider)) stats.guestsNotified++;
+      if (stats && providerEmailsGuests(ref.provider)) stats.guestsNotified++;
     } catch (err) {
       console.error("[reschedule] calendar update failed:", err);
     }
@@ -131,7 +134,7 @@ export async function deleteBookingFromCalendar(bookingId: string): Promise<numb
     try {
       const adapter = await adapterForConnection(ref.calendar.connection);
       await adapter.deleteEvent(ref.calendar.externalId, ref.externalEventId);
-      if (googleEmailsGuests(ref.provider)) guestsNotified++;
+      if (providerEmailsGuests(ref.provider)) guestsNotified++;
     } catch {
       // Non-fatal: the booking is cancelled in DayOtter regardless.
     }
