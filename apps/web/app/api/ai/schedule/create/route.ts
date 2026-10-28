@@ -1,6 +1,7 @@
 import { aiEnabled } from "@/lib/ai/schedule-parse";
 import { LOCATION_TYPES } from "@/lib/booking/event-type-input";
 import { createOtterEvent } from "@/lib/booking/otter-create";
+import { isoDateTimeWithOffset } from "@/lib/booking/time-block";
 import { jsonError, withUser } from "@/lib/server/http";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { logger } from "@dayotter/core";
@@ -12,7 +13,9 @@ export const dynamic = "force-dynamic";
 
 const body = z.object({
   title: z.string().min(1).max(200),
-  startISO: z.string().datetime(),
+  // The Otter chat sends Luxon `toISO()` (a numeric offset, never `Z`), and AI
+  // drafts may carry one too; `new Date()` below normalizes to a UTC instant.
+  startISO: isoDateTimeWithOffset,
   durationMinutes: z.number().int().min(5).max(1440),
   notes: z.string().max(2000).optional(),
   attendees: z

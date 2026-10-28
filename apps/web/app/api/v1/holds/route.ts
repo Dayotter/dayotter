@@ -1,4 +1,5 @@
 import { BookingError, type CreateBookingInput, createBooking } from "@/lib/booking/create-booking";
+import { isoDateTimeWithOffset } from "@/lib/booking/time-block";
 import { withApiKey } from "@/lib/server/api-key";
 import { env } from "@/lib/server/env";
 import { and, eq, getDb, schema } from "@dayotter/db";
@@ -15,7 +16,9 @@ const MAX_TTL_SECONDS = 1800;
 
 const body = z.object({
   eventTypeId: z.string().uuid(),
-  start: z.string().datetime(),
+  // Public API: callers may send any ISO-8601 instant, `Z` or `+hh:mm`.
+  // createBooking normalizes via `new Date()`, so storage stays UTC.
+  start: isoDateTimeWithOffset,
   attendee: z.object({
     name: z.string().min(1).max(200),
     email: z.string().email(),
