@@ -12,6 +12,7 @@ import {
 import { jitsiRoomUrl } from "../integrations/jitsi";
 import { createZoomMeeting } from "../integrations/zoom";
 import { SLOT_REVALIDATION_WINDOW_MS, eventConstraints, hostSlots } from "./availability";
+import { bookingCapExceeded } from "./caps";
 import { AUTO_CONFERENCE } from "./event-type-input";
 import { fanOutBookingLifecycle } from "./lifecycle";
 import {
@@ -317,6 +318,22 @@ export async function finalizeConfirmedBooking(
         skippedOccurrences.push(occStart);
         logger.info("recurring occurrence skipped (host unavailable)", {
           event: "recurrence_unavailable",
+          index: i,
+          occStart: occStart.toISOString(),
+        });
+        return;
+      }
+      // Phase 2 (#64): the event type's own daily/weekly/monthly/yearly caps -
+      // hostSlots covers availability + the adaptive daily cap, but not these.
+      const capReason = await bookingCapExceeded(db, {
+        eventType,
+        slotStart: occStart,
+        timezone: host.timezone || "UTC",
+      }).catch(() => null);
+      if (capReason) {
+        skippedOccurrences.push(occStart);
+        logger.info("recurring occurrence skipped (cap reached)", {
+          event: "recurrence_cap",
           index: i,
           occStart: occStart.toISOString(),
         });
