@@ -1,14 +1,9 @@
 import { RescheduleError, rescheduleBooking } from "@/lib/booking/reschedule-booking";
+import { rescheduleInput } from "@/lib/booking/reschedule-input";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 export const dynamic = "force-dynamic";
-
-const schema = z.object({
-  start: z.string().datetime(),
-  reason: z.string().max(500).optional(),
-});
 
 export async function POST(request: Request, { params }: { params: Promise<{ uid: string }> }) {
   const { uid } = await params;
@@ -22,7 +17,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ uid
   });
   if (limited) return limited;
 
-  const parsed = schema.safeParse(await request.json().catch(() => null));
+  const parsed = rescheduleInput.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid start time" }, { status: 400 });
   }
