@@ -1,3 +1,4 @@
+import { DemoVideo } from "@/components/marketing/demo-video";
 import { Features } from "@/components/marketing/features";
 import { Hero } from "@/components/marketing/hero";
 import { Marquee } from "@/components/marketing/marquee";
@@ -16,6 +17,7 @@ export default function HomePage() {
         {/* The demo sits high on purpose: it's the first thing that shows the
             product doing the job, rather than describing it. */}
         <OtterDemo />
+        <DemoVideo />
         <Marquee />
         <Features />
         <Shift />

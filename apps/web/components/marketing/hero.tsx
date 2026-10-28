@@ -41,7 +41,7 @@ export function Hero() {
             <Link href="/sign-up" className={buttonVariants({ variant: "primary", size: "lg" })}>
               Get started free <ArrowRight size={17} />
             </Link>
-            <Link href="#how" className={buttonVariants({ variant: "outline", size: "lg" })}>
+            <Link href="#demo" className={buttonVariants({ variant: "outline", size: "lg" })}>
               See how it works
             </Link>
           </div>
