@@ -260,12 +260,20 @@ export async function rateLimit(
  * amplifying into thousands - BullMQ ignores an add whose jobId is already
  * waiting. Incremental syncs are cursor-based, so a coalesced run still catches
  * every change; the maintenance poll backstops anything missed.
+ *
+ * A finally-failed job is removed, not kept: a retained failed job still owns
+ * its jobId, so every later add for that calendar would be silently ignored and
+ * the calendar would stop syncing until someone cleaned Redis by hand. Transient
+ * errors get a few backed-off retries first; the failure itself is logged and
+ * recorded on the connection by the sync worker.
  */
 export async function enqueueSync(job: SyncJob): Promise<void> {
   const jobId = `sync-${job.calendarId ?? job.connectionId}`;
   await queue<SyncJob>(QUEUE_NAMES.sync).add(job.reason, job, {
     jobId,
+    attempts: 3,
+    backoff: { type: "exponential", delay: 30_000 },
     removeOnComplete: true,
-    removeOnFail: 100,
+    removeOnFail: true,
   });
 }
