@@ -17,6 +17,10 @@ describe("chunk", () => {
     expect(parts.flat()).toEqual(items);
   });
 
+  it("accepts the smallest valid size, one item per slice", () => {
+    expect(chunk([1, 2], 1)).toEqual([[1], [2]]);
+  });
+
   it("rejects a size that would loop forever or drop items", () => {
     expect(() => chunk([1], 0)).toThrow(RangeError);
     expect(() => chunk([1], 1.5)).toThrow(RangeError);
