@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { renderBookingTitle, unknownTitlePlaceholders } from "./booking-title";
+import {
+  joinOptions,
+  renderBookingTitle,
+  splitOptions,
+  titleSegments,
+  unknownTitlePlaceholders,
+} from "./booking-title";
 
 const questions = [
   { id: "q1", label: "Empresa" },
@@ -60,5 +66,46 @@ describe("unknownTitlePlaceholders", () => {
       unknownTitlePlaceholders("{nome} {Empresa} {q2} {cargo} || {email} {telefone}", questions),
     ).toEqual(["cargo", "telefone"]);
     expect(unknownTitlePlaceholders(null, questions)).toEqual([]);
+  });
+});
+
+describe("event fields", () => {
+  const event = { ...ctx(null), host: "Ana", typeTitle: "Intro call", durationMinutes: 30 };
+
+  it("fills host, booking type and duration", () => {
+    expect(renderBookingTitle("{host} <> {name} | {booking type} ({duration})", "R", event)).toBe(
+      "Ana <> Maria | Intro call (30 min)",
+    );
+  });
+
+  it("treats event fields as known placeholders", () => {
+    expect(unknownTitlePlaceholders("{host} {Booking Type} {duration}", [])).toEqual([]);
+  });
+
+  it("skips an account default option that cites a question the type lacks", () => {
+    expect(renderBookingTitle("{host} <> {Company} || {host} <> {name}", "R", event)).toBe(
+      "Ana <> Maria",
+    );
+  });
+});
+
+describe("options as a list", () => {
+  it("splits on || and drops empty options", () => {
+    expect(splitOptions(" a || || b ")).toEqual(["a", "b"]);
+    expect(splitOptions(null)).toEqual([]);
+  });
+
+  it("joins options back into the stored string", () => {
+    expect(joinOptions(["a", " ", "b "])).toBe("a || b");
+    expect(joinOptions(splitOptions(joinOptions(["x {name}", "y"])))).toBe("x {name} || y");
+  });
+
+  it("splits an option into text and field segments", () => {
+    expect(titleSegments("Ana <> {name} | {Company}")).toEqual([
+      { text: "Ana <> " },
+      { field: "name" },
+      { text: " | " },
+      { field: "Company" },
+    ]);
   });
 });
