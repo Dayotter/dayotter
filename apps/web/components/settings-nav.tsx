@@ -4,6 +4,7 @@ import { SETTINGS_NAV } from "@/components/nav-items";
 import { cn } from "@/lib/cn";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 /**
  * Settings sub-nav - a scrollable underline tab strip on mobile, a vertical
@@ -12,6 +13,12 @@ import { usePathname } from "next/navigation";
  */
 export function SettingsNav() {
   const pathname = usePathname();
+  const activeRef = useRef<HTMLAnchorElement>(null);
+  // Mobile strip scrolls sideways: bring the current tab into view.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run when the route changes
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ inline: "nearest", block: "nearest" });
+  }, [pathname]);
   return (
     <nav className="mb-6 flex gap-1 overflow-x-auto border-b border-[var(--color-border)] lg:sticky lg:top-8 lg:mb-0 lg:max-h-[calc(100dvh-4rem)] lg:flex-col lg:gap-0.5 lg:self-start lg:overflow-visible lg:border-b-0 lg:pt-1">
       {SETTINGS_NAV.map(({ href, label }) => {
@@ -20,6 +27,7 @@ export function SettingsNav() {
           <Link
             key={href}
             href={href}
+            ref={active ? activeRef : undefined}
             // The underline and the pill never coexist: `border-b-2` is the
             // mobile tab strip, `lg:rounded-md lg:border-b-0` is the desktop
             // rail. Slop detectors read this as an accent border on a rounded
