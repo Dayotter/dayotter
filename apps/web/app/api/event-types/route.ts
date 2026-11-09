@@ -103,6 +103,7 @@ export async function POST(request: Request) {
         currency: d.currency,
         depositAmount: d.depositAmount,
         questions: d.questions,
+        titleTemplate: d.titleTemplate || null,
       })
       .returning();
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { unknownTitlePlaceholders } from "./booking-title";
 import { CURRENCIES } from "./money";
 
 /** Location / meeting types a host can pick for an event type. */
@@ -240,6 +241,8 @@ export const eventTypeInputSchema = z
     /** Charge only this deposit (< price) to book. null = charge full price. */
     depositAmount: z.number().int().min(0).max(100_000_000).nullable().default(null),
     questions: z.array(bookingQuestionSchema).max(20).default([]),
+    /** Calendar title template; null/empty = the plain title. */
+    titleTemplate: z.string().trim().max(300).nullable().optional(),
     /** Which availability schedule this event type uses. null = the default. */
     scheduleId: z.string().uuid().nullable().default(null),
   })
@@ -249,6 +252,10 @@ export const eventTypeInputSchema = z
       Boolean(d.locationDetail && d.locationDetail.trim().length > 0),
     { message: "Add the details for this location type", path: ["locationDetail"] },
   )
+  .refine((d) => unknownTitlePlaceholders(d.titleTemplate, d.questions).length === 0, {
+    message: "The calendar title uses a field that isn't a booking question",
+    path: ["titleTemplate"],
+  })
   .refine(
     (d) =>
       !d.locations ||

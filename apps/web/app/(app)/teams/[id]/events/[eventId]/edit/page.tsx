@@ -69,6 +69,7 @@ export default async function EditTeamEventTypePage({
           currency: eventType.currency,
           depositAmount: eventType.depositAmount,
           questions: eventType.questions,
+          titleTemplate: eventType.titleTemplate,
           scheduleId: eventType.scheduleId,
         }}
       />
