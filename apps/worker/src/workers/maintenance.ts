@@ -1,5 +1,5 @@
 import { logger } from "@dayotter/core";
-import { and, eq, getDb, lt, schema } from "@dayotter/db";
+import { and, eq, getDb, inArray, lt, schema } from "@dayotter/db";
 import { QUEUE_NAMES, connection, enqueueSync } from "@dayotter/jobs";
 import { Worker } from "bullmq";
 import { materializeWeeklyBlocks } from "./automation-weekly";
@@ -33,7 +33,9 @@ export async function markPastBookingsCompleted(): Promise<void> {
 }
 
 /**
- * Periodic reconciliation: enqueue a sync for every active connection. This
+ * Periodic reconciliation: enqueue a sync for every active connection, and
+ * retry every errored one (a single transient failure must not stop a calendar
+ * syncing for good; expired/revoked need the user to reconnect). This
  * polls webhook-less providers (Apple/CalDAV), renews expiring push
  * subscriptions (via the sync worker's ensureSubscription), and is a safety net
  * for any change a webhook might have missed. Also materializes recurring
@@ -46,7 +48,7 @@ export function startMaintenanceWorker(): Worker {
     async () => {
       const db = getDb();
       const conns = await db.query.calendarConnections.findMany({
-        where: eq(schema.calendarConnections.status, "active"),
+        where: inArray(schema.calendarConnections.status, ["active", "error"]),
         columns: { id: true },
       });
       for (const c of conns) {
