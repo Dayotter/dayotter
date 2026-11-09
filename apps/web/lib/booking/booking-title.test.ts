@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  insertField,
   joinOptions,
   renderBookingTitle,
   splitOptions,
   titleSegments,
+  titleVariables,
   unknownTitlePlaceholders,
 } from "./booking-title";
 
@@ -107,5 +109,38 @@ describe("options as a list", () => {
       { text: " | " },
       { field: "Company" },
     ]);
+  });
+});
+
+describe("editor helpers", () => {
+  it("inserts a field at the caret and returns the caret after it", () => {
+    expect(insertField("Ana <> ", 7, "name")).toEqual({ text: "Ana <> {name}", caret: 13 });
+    expect(insertField("A  B", 2, "host")).toEqual({ text: "A {host} B", caret: 8 });
+  });
+
+  it("clamps a caret outside the text to its end", () => {
+    expect(insertField("x", 99, "email")).toEqual({ text: "x{email}", caret: 8 });
+  });
+
+  it("groups the variables a booking can fill", () => {
+    const groups = titleVariables([
+      { id: "q1", label: "Company", required: false },
+      { id: "q2", label: "Role", required: true },
+      { id: "q3", label: "  ", required: false },
+    ]);
+    expect(groups.map((g) => g.title)).toEqual(["Booker", "This type's questions", "Event"]);
+    expect(groups[0]?.fields).toEqual([
+      { key: "name", hint: "Always filled" },
+      { key: "email", hint: "Always filled" },
+    ]);
+    expect(groups[1]?.fields).toEqual([
+      { key: "Company", hint: "Optional · may be empty" },
+      { key: "Role", hint: "Required" },
+    ]);
+    expect(groups[2]?.fields.map((f) => f.key)).toEqual(["booking type", "host", "duration"]);
+  });
+
+  it("leaves out the questions group when there are none", () => {
+    expect(titleVariables([]).map((g) => g.title)).toEqual(["Booker", "Event"]);
   });
 });

@@ -108,3 +108,39 @@ export function unknownTitlePlaceholders(
     .flatMap(placeholders)
     .filter((key) => !(normalize(key) in BUILT_INS) && !findQuestion(key, questions));
 }
+
+/** Puts `{field}` at the caret (clamped to the text) and returns the caret after it. */
+export function insertField(
+  text: string,
+  caret: number,
+  field: string,
+): { text: string; caret: number } {
+  const at = Math.min(Math.max(caret, 0), text.length);
+  const token = `{${field}}`;
+  return { text: text.slice(0, at) + token + text.slice(at), caret: at + token.length };
+}
+
+export type TitleVariableGroup = { title: string; fields: { key: string; hint?: string }[] };
+
+/** What the "Insert variable" picker offers, in the order it shows them. */
+export function titleVariables(
+  questions: (Question & { required?: boolean })[],
+): TitleVariableGroup[] {
+  const asked = questions
+    .filter((q) => q.label.trim())
+    .map((q) => ({
+      key: q.label.trim(),
+      hint: q.required ? "Required" : "Optional · may be empty",
+    }));
+  return [
+    {
+      title: "Booker",
+      fields: [
+        { key: "name", hint: "Always filled" },
+        { key: "email", hint: "Always filled" },
+      ],
+    },
+    ...(asked.length ? [{ title: "This type's questions", fields: asked }] : []),
+    { title: "Event", fields: [{ key: "booking type" }, { key: "host" }, { key: "duration" }] },
+  ];
+}
