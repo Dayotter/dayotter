@@ -97,7 +97,8 @@ export const PATCH = withUser(async (u, request) => {
   if (d.lunchEndMinute !== undefined) fields.lunchEndMinute = d.lunchEndMinute;
   if (d.bookingPageAssistant !== undefined) fields.bookingPageAssistant = d.bookingPageAssistant;
   if (d.defaultLocationType !== undefined) fields.defaultLocationType = d.defaultLocationType;
-  if (d.bookingTitleTemplate !== undefined) fields.bookingTitleTemplate = d.bookingTitleTemplate || null;
+  if (d.bookingTitleTemplate !== undefined)
+    fields.bookingTitleTemplate = d.bookingTitleTemplate || null;
   // Guard against an inverted lunch window (end must be after start) when enabling.
   if (d.lunchEnabled !== undefined) {
     const start = d.lunchStartMinute ?? 720;
