@@ -18,7 +18,7 @@ export type BookingTitleContext = {
   email: string;
   questions: Question[];
   responses: Record<string, unknown> | null | undefined;
-  host?: string;
+  host?: string | null;
   typeTitle?: string;
   durationMinutes?: number;
 };

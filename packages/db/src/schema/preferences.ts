@@ -51,6 +51,10 @@ export const userPreferences = pgTable(
      * once instead of pasted into every poll. May contain the {details} placeholder. */
     pollMeetingDetailsTemplate: text("poll_meeting_details_template"),
 
+    /** Account default calendar title for bookings whose event type has no
+     * titleTemplate of its own. Same `Option 1 || Option 2` syntax. */
+    bookingTitleTemplate: text("booking_title_template"),
+
     /** Daily morning briefing: send a "here's your day" summary each morning. */
     briefingEnabled: boolean("briefing_enabled").notNull().default(false),
     /** Local hour (0–23) at which to send the morning briefing. */
