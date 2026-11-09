@@ -30,18 +30,10 @@ export function EventTitlesForm({
     setSaving(true);
     setError(null);
     setSaved(false);
-    const res = await fetch("/api/settings/preferences", {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ bookingTitleTemplate: template.trim() || null }),
-    });
+    const failure = await saveDefaultTitle(template);
     setSaving(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(typeof data.error === "string" ? data.error : "Could not save");
-      return;
-    }
-    setSaved(true);
+    setError(failure);
+    setSaved(!failure);
   }
 
   return (
@@ -77,32 +69,50 @@ export function EventTitlesForm({
         </CardBody>
       </Card>
 
-      <Card>
-        <CardHeader title="Booking types" description="Default follows the title above." />
-        {types.length === 0 ? (
-          <p className="px-5 py-4 text-sm text-[var(--color-muted)]">No booking types yet.</p>
-        ) : (
-          <ul className="divide-y divide-[var(--color-border)]">
-            {types.map((t) => (
-              <li key={t.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                <span className="min-w-0 truncate text-sm font-medium">{t.title}</span>
-                <span className="flex shrink-0 items-center gap-3">
-                  <span className="text-xs text-[var(--color-muted)]">
-                    {t.custom ? "Custom" : "Default"}
-                  </span>
-                  <Link
-                    href={`/event-types/${t.id}/edit`}
-                    aria-label={`Edit ${t.title}`}
-                    className="text-xs font-medium text-[var(--color-accent)] hover:underline"
-                  >
-                    Edit
-                  </Link>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+      <TypesList types={types} />
     </div>
+  );
+}
+
+/** PATCHes the account default; returns the error to show, or null when saved. */
+async function saveDefaultTitle(template: string): Promise<string | null> {
+  const res = await fetch("/api/settings/preferences", {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ bookingTitleTemplate: template.trim() || null }),
+  });
+  if (res.ok) return null;
+  const data = await res.json().catch(() => ({}));
+  return typeof data.error === "string" ? data.error : "Could not save";
+}
+
+function TypesList({ types }: { types: TypeRow[] }) {
+  return (
+    <Card>
+      <CardHeader title="Booking types" description="Default follows the title above." />
+      {types.length === 0 ? (
+        <p className="px-5 py-4 text-sm text-[var(--color-muted)]">No booking types yet.</p>
+      ) : (
+        <ul className="divide-y divide-[var(--color-border)]">
+          {types.map((t) => (
+            <li key={t.id} className="flex items-center justify-between gap-3 px-5 py-3">
+              <span className="min-w-0 truncate text-sm font-medium">{t.title}</span>
+              <span className="flex shrink-0 items-center gap-3">
+                <span className="text-xs text-[var(--color-muted)]">
+                  {t.custom ? "Custom" : "Default"}
+                </span>
+                <Link
+                  href={`/event-types/${t.id}/edit`}
+                  aria-label={`Edit ${t.title}`}
+                  className="text-xs font-medium text-[var(--color-accent)] hover:underline"
+                >
+                  Edit
+                </Link>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }

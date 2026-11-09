@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   insertField,
   joinOptions,
+  previewTitle,
   renderBookingTitle,
   splitOptions,
   titleSegments,
@@ -122,6 +123,15 @@ describe("editor helpers", () => {
     expect(insertField("x", 99, "email")).toEqual({ text: "x{email}", caret: 8 });
   });
 
+  it("clamps a negative caret to the start", () => {
+    expect(insertField("ab", -3, "name")).toEqual({ text: "{name}ab", caret: 6 });
+  });
+
+  it("keeps a lone brace as text, not a field", () => {
+    expect(titleSegments("{oops")).toEqual([{ text: "{oops" }]);
+    expect(titleSegments("oops}")).toEqual([{ text: "oops}" }]);
+  });
+
   it("groups the variables a booking can fill", () => {
     const groups = titleVariables([
       { id: "q1", label: "Company", required: false },
@@ -142,5 +152,42 @@ describe("editor helpers", () => {
 
   it("leaves out the questions group when there are none", () => {
     expect(titleVariables([]).map((g) => g.title)).toEqual(["Booker", "Event"]);
+  });
+
+  const sample = { host: "Ana", typeTitle: "Intro call", durationMinutes: 30 };
+  const qs = [
+    { id: "q1", label: "Company" },
+    { id: "q2", label: " " },
+  ];
+
+  it("previews a title with every question answered by its own label", () => {
+    expect(previewTitle("{host} <> {name} | {Company}", "Intro", qs, sample, true)).toEqual({
+      title: "Ana <> Maria | Company",
+    });
+  });
+
+  it("previews the next option when no question is answered", () => {
+    const t = "{name} | {Company} || {name} · {duration}";
+    expect(previewTitle(t, "Intro", qs, sample, false)).toEqual({ title: "Maria · 30 min" });
+  });
+
+  it("previews the fallback, or Untitled when it is blank", () => {
+    expect(previewTitle("{Company}", "Intro", qs, sample, false)).toEqual({ title: "Intro" });
+    expect(previewTitle("", "", qs, sample, true)).toEqual({ title: "Untitled" });
+  });
+
+  it("names the fields no question of the type can fill, ignoring blank labels", () => {
+    expect(previewTitle("{name} {Role} {Company}", "Intro", qs, sample, true)).toEqual({
+      unknown: ["Role"],
+    });
+  });
+
+  it("treats any field as a question for the account default", () => {
+    expect(previewTitle("{name} | {Role}", "Intro", undefined, sample, true)).toEqual({
+      title: "Maria | Role",
+    });
+    expect(previewTitle("{name} | {Role}", "Intro", undefined, sample, false)).toEqual({
+      title: "Intro",
+    });
   });
 });

@@ -144,3 +144,31 @@ export function titleVariables(
     { title: "Event", fields: [{ key: "booking type" }, { key: "host" }, { key: "duration" }] },
   ];
 }
+
+export type TitleSample = { host: string; typeTitle: string; durationMinutes: number };
+
+/**
+ * What the editor's preview shows for a sample booker "Maria": every question
+ * answered with its own label, or none. `questions` undefined = account
+ * default, where any non built-in field counts as some type's question.
+ */
+export function previewTitle(
+  template: string,
+  fallback: string,
+  questions: Question[] | undefined,
+  sample: TitleSample,
+  answered: boolean,
+): { title: string } | { unknown: string[] } {
+  const named = questions?.filter((q) => q.label.trim());
+  const unknown = named ? unknownTitlePlaceholders(template, named) : [];
+  if (unknown.length > 0) return { unknown };
+  const asked = named ?? unknownTitlePlaceholders(template, []).map((k) => ({ id: k, label: k }));
+  const title = renderBookingTitle(template, fallback || "Untitled", {
+    name: "Maria",
+    email: "maria@example.com",
+    questions: asked,
+    responses: answered ? Object.fromEntries(asked.map((q) => [q.id, q.label])) : {},
+    ...sample,
+  });
+  return { title };
+}

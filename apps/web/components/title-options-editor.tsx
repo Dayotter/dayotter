@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
+  type TitleSample,
   insertField,
   joinOptions,
-  renderBookingTitle,
+  previewTitle,
   splitOptions,
   titleSegments,
   titleVariables,
-  unknownTitlePlaceholders,
 } from "@/lib/booking/booking-title";
 import { Plus } from "lucide-react";
 import { useRef, useState } from "react";
@@ -67,7 +67,7 @@ export function TitleOptionsEditor({
   onChange: (v: string) => void;
   questions?: Question[];
   fallback: string;
-  sample: { host: string; typeTitle: string; durationMinutes: number };
+  sample: TitleSample;
 }) {
   // Local list so a just-added empty option survives until it is filled in.
   const [options, setOptions] = useState(() => {
@@ -105,136 +105,42 @@ export function TitleOptionsEditor({
   return (
     <div className="space-y-3">
       {asText ? (
-        <div>
-          <Input
-            aria-label="Calendar event title as text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            maxLength={300}
-            placeholder="Ana <> {name} | {Company} || Ana <> {name}"
-          />
-          <p className="mt-1 text-xs text-[var(--color-faint)]">
-            Separate options with ||: the first one whose fields are all answered is used.
-          </p>
-          <button
-            type="button"
-            onClick={leaveText}
-            className="mt-2 text-xs font-medium text-[var(--color-accent)] hover:underline"
-          >
-            Edit as options
-          </button>
-        </div>
+        <TextMode value={value} onChange={onChange} onLeave={leaveText} />
       ) : (
         <>
           <ol className="space-y-2">
             {options.map((option, i) => (
-              <li key={i}>
-                {i > 0 ? (
-                  <p className="mb-2 text-center text-xs text-[var(--color-faint)]">
-                    if an answer is missing
-                  </p>
-                ) : null}
-                <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium text-[var(--color-muted)]">
-                      Option {i + 1}
-                    </span>
-                    {options.length > 1 ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditing(null);
-                          update(options.filter((_, j) => j !== i));
-                        }}
-                        className="text-xs text-[var(--color-muted)] hover:text-[var(--color-danger)]"
-                      >
-                        Remove
-                      </button>
-                    ) : null}
-                  </div>
-                  {editing === i || !option ? (
-                    <Input
-                      aria-label={`Option ${i + 1}`}
-                      autoFocus={editing === i}
-                      value={option}
-                      maxLength={300}
-                      placeholder="e.g. {host} <> {name}"
-                      onChange={(e) => {
-                        caret.current = e.target.selectionStart ?? e.target.value.length;
-                        setOption(i, e.target.value);
-                      }}
-                      onSelect={(e) => {
-                        caret.current = e.currentTarget.selectionStart ?? 0;
-                      }}
-                      onFocus={() => setEditing(i)}
-                      onBlur={() =>
-                        setEditing((cur) => (cur === i && picker === null ? null : cur))
-                      }
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      aria-label={`Edit option ${i + 1}`}
-                      onClick={() => {
-                        caret.current = option.length;
-                        setEditing(i);
-                      }}
-                      className="flex min-h-9 w-full flex-wrap items-center gap-1 rounded-[var(--radius-sm)] text-left text-sm"
-                    >
-                      {titleSegments(option).map((s, k) =>
-                        "field" in s ? (
-                          <span
-                            key={k}
-                            className="rounded-full bg-[var(--color-surface-2)] px-2 py-0.5 text-xs font-medium"
-                          >
-                            {s.field}
-                          </span>
-                        ) : (
-                          <span key={k} className="whitespace-pre">
-                            {s.text}
-                          </span>
-                        ),
-                      )}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    // Keep the input's caret: mousedown would blur it first.
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => setPicker(i)}
-                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-accent)] hover:underline"
-                  >
-                    <Plus size={13} /> Variable
-                  </button>
-                </div>
-              </li>
+              <OptionCard
+                key={i}
+                index={i}
+                option={option}
+                editing={editing === i}
+                removable={options.length > 1}
+                onEdit={() => setEditing(i)}
+                onBlur={() => setEditing((cur) => (cur === i && picker === null ? null : cur))}
+                onChange={(text, at) => {
+                  caret.current = at;
+                  setOption(i, text);
+                }}
+                onCaret={(at) => {
+                  caret.current = at;
+                }}
+                onRemove={() => {
+                  setEditing(null);
+                  update(options.filter((_, j) => j !== i));
+                }}
+                onPick={() => setPicker(i)}
+              />
             ))}
           </ol>
-          <p className="text-center text-xs text-[var(--color-faint)]">if an answer is missing</p>
-          <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-border)] p-3 text-sm text-[var(--color-muted)]">
-            <span className="text-xs font-medium">Booking type title</span>
-            <p className="mt-1 text-[var(--color-text)]">{fallback || "Untitled"}</p>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                update([...options, ""]);
-                setEditing(options.length);
-              }}
-            >
-              <Plus size={15} /> Add option
-            </Button>
-            <button
-              type="button"
-              onClick={() => setAsText(true)}
-              className="text-xs font-medium text-[var(--color-accent)] hover:underline"
-            >
-              Edit as text
-            </button>
-          </div>
+          <OptionsFooter
+            fallback={fallback}
+            onAdd={() => {
+              update([...options, ""]);
+              setEditing(options.length);
+            }}
+            onText={() => setAsText(true)}
+          />
         </>
       )}
 
@@ -247,6 +153,179 @@ export function TitleOptionsEditor({
         questions={questions ?? []}
       />
     </div>
+  );
+}
+
+function TextMode({
+  value,
+  onChange,
+  onLeave,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onLeave: () => void;
+}) {
+  return (
+    <div>
+      <Input
+        aria-label="Calendar event title as text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        maxLength={300}
+        placeholder="Ana <> {name} | {Company} || Ana <> {name}"
+      />
+      <p className="mt-1 text-xs text-[var(--color-faint)]">
+        Separate options with ||: the first one whose fields are all answered is used.
+      </p>
+      <button
+        type="button"
+        onClick={onLeave}
+        className="mt-2 text-xs font-medium text-[var(--color-accent)] hover:underline"
+      >
+        Edit as options
+      </button>
+    </div>
+  );
+}
+
+const MISSING = (
+  <p className="mb-2 text-center text-xs text-[var(--color-faint)]">if an answer is missing</p>
+);
+
+function OptionCard({
+  index,
+  option,
+  editing,
+  removable,
+  onEdit,
+  onBlur,
+  onChange,
+  onCaret,
+  onRemove,
+  onPick,
+}: {
+  index: number;
+  option: string;
+  editing: boolean;
+  removable: boolean;
+  onEdit: () => void;
+  onBlur: () => void;
+  onChange: (text: string, caret: number) => void;
+  onCaret: (caret: number) => void;
+  onRemove: () => void;
+  onPick: () => void;
+}) {
+  const n = index + 1;
+  return (
+    <li>
+      {index > 0 ? MISSING : null}
+      <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-xs font-medium text-[var(--color-muted)]">Option {n}</span>
+          {removable ? (
+            <button
+              type="button"
+              onClick={onRemove}
+              className="text-xs text-[var(--color-muted)] hover:text-[var(--color-danger)]"
+            >
+              Remove
+            </button>
+          ) : null}
+        </div>
+        {editing || !option ? (
+          <Input
+            aria-label={`Option ${n}`}
+            autoFocus={editing}
+            value={option}
+            maxLength={300}
+            placeholder="e.g. {host} <> {name}"
+            onChange={(e) =>
+              onChange(e.target.value, e.target.selectionStart ?? e.target.value.length)
+            }
+            onSelect={(e) => onCaret(e.currentTarget.selectionStart ?? 0)}
+            onFocus={onEdit}
+            onBlur={onBlur}
+          />
+        ) : (
+          <OptionChips
+            n={n}
+            option={option}
+            onClick={() => {
+              onCaret(option.length);
+              onEdit();
+            }}
+          />
+        )}
+        <button
+          type="button"
+          // Keep the input's caret: mousedown would blur it first.
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onPick}
+          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-accent)] hover:underline"
+        >
+          <Plus size={13} /> Variable
+        </button>
+      </div>
+    </li>
+  );
+}
+
+/** A saved option read as text with its fields as chips; click to edit. */
+function OptionChips({ n, option, onClick }: { n: number; option: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={`Edit option ${n}`}
+      onClick={onClick}
+      className="flex min-h-9 w-full flex-wrap items-center gap-1 rounded-[var(--radius-sm)] text-left text-sm"
+    >
+      {titleSegments(option).map((s, k) =>
+        "field" in s ? (
+          <span
+            key={k}
+            className="rounded-full bg-[var(--color-surface-2)] px-2 py-0.5 text-xs font-medium"
+          >
+            {s.field}
+          </span>
+        ) : (
+          <span key={k} className="whitespace-pre">
+            {s.text}
+          </span>
+        ),
+      )}
+    </button>
+  );
+}
+
+function OptionsFooter({
+  fallback,
+  onAdd,
+  onText,
+}: {
+  fallback: string;
+  onAdd: () => void;
+  onText: () => void;
+}) {
+  return (
+    <>
+      {MISSING}
+      <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-border)] p-3 text-sm text-[var(--color-muted)]">
+        <span className="text-xs font-medium">Booking type title</span>
+        <p className="mt-1 text-[var(--color-text)]">{fallback || "Untitled"}</p>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Button type="button" variant="outline" size="sm" onClick={onAdd}>
+          <Plus size={15} /> Add option
+        </Button>
+        <button
+          type="button"
+          onClick={onText}
+          className="text-xs font-medium text-[var(--color-accent)] hover:underline"
+        >
+          Edit as text
+        </button>
+      </div>
+    </>
   );
 }
 
@@ -331,29 +410,17 @@ function TitlePreview({
   value: string;
   fallback: string;
   questions?: Question[];
-  sample: { host: string; typeTitle: string; durationMinutes: number };
+  sample: TitleSample;
 }) {
   const [mode, setMode] = useState<"with" | "without">("with");
-  const named = questions?.filter((q) => q.label.trim());
-  const unknown = named ? unknownTitlePlaceholders(value, named) : [];
-  if (unknown.length > 0) {
+  const preview = previewTitle(value, fallback, questions, sample, mode === "with");
+  if ("unknown" in preview) {
     return (
       <p className="text-xs text-[var(--color-danger)]">
-        No booking question named: {unknown.join(", ")}
+        No booking question named: {preview.unknown.join(", ")}
       </p>
     );
   }
-  // Account default: questions vary per type, so treat any other field as a question.
-  const asked = named ?? unknownTitlePlaceholders(value, []).map((k) => ({ id: k, label: k }));
-  const title = renderBookingTitle(value, fallback || "Untitled", {
-    name: "Maria",
-    email: "maria@example.com",
-    questions: asked,
-    responses: mode === "with" ? Object.fromEntries(asked.map((q) => [q.id, q.label])) : {},
-    host: sample.host,
-    typeTitle: sample.typeTitle,
-    durationMinutes: sample.durationMinutes,
-  });
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
@@ -366,7 +433,7 @@ function TitlePreview({
         data-testid="title-preview"
         className="rounded-[var(--radius-md)] border-l-4 border-[var(--color-accent)] bg-[var(--color-surface-2)] px-3 py-2"
       >
-        <p className="text-sm font-medium">{title}</p>
+        <p className="text-sm font-medium">{preview.title}</p>
         <p className="text-xs text-[var(--color-muted)]">
           {sample.durationMinutes} min · {sample.host}
         </p>
