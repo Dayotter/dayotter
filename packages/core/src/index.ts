@@ -14,6 +14,7 @@ export {
   verifyAccessCode,
 } from "./crypto";
 export { roundRobinPick } from "./round-robin";
+export { chunk } from "./chunk";
 export { DEFAULT_REMINDER_OFFSETS } from "./constants";
 export { logger, type LogContext } from "./logger";
 export {
