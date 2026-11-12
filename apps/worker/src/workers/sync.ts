@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { CalendarAdapter } from "@dayotter/calendar";
-import { logger } from "@dayotter/core";
+import { chunk, logger } from "@dayotter/core";
 import { and, eq, getDb, inArray, schema, sql } from "@dayotter/db";
 import { adapterForConnection } from "@dayotter/integrations";
 import { QUEUE_NAMES, type SyncJob, connection } from "@dayotter/jobs";
@@ -8,6 +8,14 @@ import { Worker } from "bullmq";
 
 /** Rolling window we keep the free/busy cache warm for. */
 const SYNC_WINDOW_DAYS = 90;
+
+/**
+ * Rows per bulk statement. A Google incremental delta has no time window, so a
+ * cursor that sat idle for days can return thousands of events; one multi-row
+ * insert of them (19 columns each) overflows Postgres' 65,535 bind parameters
+ * and fails every retry. 500 rows x 19 columns stays far below the limit.
+ */
+const WRITE_BATCH = 500;
 
 type CalendarRow = typeof schema.calendars.$inferSelect;
 
@@ -90,13 +98,13 @@ async function syncCalendar(
     }
   }
 
-  if (result.deletedExternalIds.length > 0) {
+  for (const deleted of chunk(result.deletedExternalIds, WRITE_BATCH)) {
     await db
       .delete(schema.busyBlocks)
       .where(
         and(
           eq(schema.busyBlocks.calendarId, cal.id),
-          inArray(schema.busyBlocks.externalEventId, result.deletedExternalIds),
+          inArray(schema.busyBlocks.externalEventId, deleted),
         ),
       );
     await db
@@ -104,17 +112,17 @@ async function syncCalendar(
       .where(
         and(
           eq(schema.calendarEvents.calendarId, cal.id),
-          inArray(schema.calendarEvents.externalEventId, result.deletedExternalIds),
+          inArray(schema.calendarEvents.externalEventId, deleted),
         ),
       );
   }
 
-  if (result.events.length > 0) {
+  for (const events of chunk(result.events, WRITE_BATCH)) {
     // Rich unified event model.
     await db
       .insert(schema.calendarEvents)
       .values(
-        result.events.map((e) => ({
+        events.map((e) => ({
           calendarId: cal.id,
           externalEventId: e.externalEventId,
           title: e.title,
@@ -162,7 +170,7 @@ async function syncCalendar(
     // Availability projection: opaque (time-blocking) events. Transparent events
     // (free / most all-day reminders) don't block. All-day opaque events (e.g.
     // vacation) still block, matching prior behavior.
-    const busy = result.events.filter((e) => e.transparency !== "transparent");
+    const busy = events.filter((e) => e.transparency !== "transparent");
     if (busy.length > 0) {
       await db
         .insert(schema.busyBlocks)
@@ -184,7 +192,7 @@ async function syncCalendar(
     // intentionally kept as busy above, so freeing it would let bookings land on
     // a day the host has blocked. All-day *transparent* events are already caught
     // by the transparent check.
-    const freed = result.events
+    const freed = events
       .filter((e) => e.transparency === "transparent")
       .map((e) => e.externalEventId);
     if (freed.length > 0) {
