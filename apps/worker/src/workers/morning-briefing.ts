@@ -51,7 +51,7 @@ export async function sendDueBriefings(now = new Date()): Promise<number> {
         lt(schema.bookings.startsAt, dayEnd),
       ),
       orderBy: asc(schema.bookings.startsAt),
-      columns: { title: true, startsAt: true },
+      columns: { id: true, title: true, startsAt: true },
     });
 
     const blocks = await db.query.timeBlocks.findMany({
@@ -65,10 +65,25 @@ export async function sendDueBriefings(now = new Date()): Promise<number> {
     });
     const focus = focusLabel(focusMinutes(blocks));
 
-    const meetings = bookings.map((b) => ({
-      time: DateTime.fromJSDate(b.startsAt).setZone(tz).toFormat("h:mm a"),
-      title: b.title,
-    }));
+    // The user's day isn't only DayOtter bookings: include meetings synced from
+    // their connected calendars, or a calendar full of external Google/Outlook
+    // meetings reads as "clear". DayOtter's own synced events are de-duped.
+    const external = await externalMeetingsForDay(
+      db,
+      pref.userId,
+      bookings.map((b) => b.id),
+      dayStart,
+      dayEnd,
+    );
+    const meetings = [
+      ...bookings.map((b) => ({ startsAt: b.startsAt, title: b.title })),
+      ...external,
+    ]
+      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+      .map((m) => ({
+        time: DateTime.fromJSDate(m.startsAt).setZone(tz).toFormat("h:mm a"),
+        title: m.title,
+      }));
 
     // Email (the reliable baseline for an opt-in daily summary).
     try {
@@ -113,4 +128,80 @@ export async function sendDueBriefings(now = new Date()): Promise<number> {
     logger.info("morning briefings sent", { event: "briefings_sent", count: sent });
   }
   return sent;
+}
+
+/**
+ * Timed, busy meetings on the user's connected calendars for the day - the same
+ * external events the availability engine tracks. Excludes transparent/free and
+ * all-day entries (not meetings), and DayOtter's own bookings (they sync back as
+ * a calendar event and are already listed from the bookings table).
+ */
+async function externalMeetingsForDay(
+  db: ReturnType<typeof getDb>,
+  userId: string,
+  bookingIds: string[],
+  dayStart: Date,
+  dayEnd: Date,
+): Promise<{ startsAt: Date; title: string }[]> {
+  const conns = await db.query.calendarConnections.findMany({
+    where: and(
+      eq(schema.calendarConnections.userId, userId),
+      eq(schema.calendarConnections.status, "active"),
+    ),
+    columns: { id: true },
+  });
+  if (conns.length === 0) return [];
+
+  const cals = await db.query.calendars.findMany({
+    where: and(
+      inArray(
+        schema.calendars.connectionId,
+        conns.map((c) => c.id),
+      ),
+      eq(schema.calendars.checkForConflicts, true),
+    ),
+    columns: { id: true },
+  });
+  const calendarIds = cals.map((c) => c.id);
+  if (calendarIds.length === 0) return [];
+
+  // DayOtter bookings sync back into these calendars; skip those rows so a
+  // DayOtter meeting isn't counted twice.
+  const ownEventIds = new Set<string>();
+  if (bookingIds.length > 0) {
+    const refs = await db.query.bookingReferences.findMany({
+      where: inArray(schema.bookingReferences.bookingId, bookingIds),
+      columns: { externalEventId: true },
+    });
+    for (const r of refs) ownEventIds.add(r.externalEventId);
+  }
+
+  const events = await db.query.calendarEvents.findMany({
+    where: and(
+      inArray(schema.calendarEvents.calendarId, calendarIds),
+      eq(schema.calendarEvents.allDay, false),
+      gte(schema.calendarEvents.startsAt, dayStart),
+      lt(schema.calendarEvents.startsAt, dayEnd),
+    ),
+    columns: {
+      title: true,
+      startsAt: true,
+      transparency: true,
+      status: true,
+      externalEventId: true,
+    },
+    orderBy: asc(schema.calendarEvents.startsAt),
+  });
+
+  const seen = new Set<string>();
+  const out: { startsAt: Date; title: string }[] = [];
+  for (const e of events) {
+    if (e.transparency === "transparent") continue; // free time, not a meeting
+    if (e.status === "cancelled") continue;
+    if (ownEventIds.has(e.externalEventId)) continue; // a DayOtter booking, already listed
+    if (seen.has(e.externalEventId)) continue; // same event synced on two calendars
+    seen.add(e.externalEventId);
+    out.push({ startsAt: e.startsAt, title: e.title?.trim() || "Busy" });
+  }
+  return out;
 }
