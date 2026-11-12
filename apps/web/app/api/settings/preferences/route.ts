@@ -32,6 +32,7 @@ export const GET = withUser(async (u) => {
       lunchEndMinute: prefs?.lunchEndMinute ?? 780,
       bookingPageAssistant: prefs?.bookingPageAssistant ?? true,
       defaultLocationType: prefs?.defaultLocationType ?? "google_meet",
+      bookingTitleTemplate: prefs?.bookingTitleTemplate ?? null,
     },
   });
 });
@@ -64,6 +65,9 @@ const bodySchema = z.object({
   // excluded - a preference carries no detail, so they'd yield a detail-less
   // booking. Keep in sync with the picker in preferences-form.tsx.
   defaultLocationType: z.enum(["google_meet", "zoom", "ms_teams", "jitsi"]).optional(),
+  // Questions differ per event type, so unknown fields are not rejected here: an
+  // option citing a question the type lacks is simply skipped at render time.
+  bookingTitleTemplate: z.string().trim().max(300).nullable().optional(),
 });
 
 export const PATCH = withUser(async (u, request) => {
@@ -93,6 +97,8 @@ export const PATCH = withUser(async (u, request) => {
   if (d.lunchEndMinute !== undefined) fields.lunchEndMinute = d.lunchEndMinute;
   if (d.bookingPageAssistant !== undefined) fields.bookingPageAssistant = d.bookingPageAssistant;
   if (d.defaultLocationType !== undefined) fields.defaultLocationType = d.defaultLocationType;
+  if (d.bookingTitleTemplate !== undefined)
+    fields.bookingTitleTemplate = d.bookingTitleTemplate || null;
   // Guard against an inverted lunch window (end must be after start) when enabling.
   if (d.lunchEnabled !== undefined) {
     const start = d.lunchStartMinute ?? 720;

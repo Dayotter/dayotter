@@ -310,7 +310,7 @@ export async function createBooking(input: CreateBookingInput): Promise<{
   // booking that would push the day over the limit (see the guard in the tx below).
   const focusPrefs = await db.query.userPreferences.findFirst({
     where: eq(schema.userPreferences.userId, host.id),
-    columns: { adaptiveAvailability: true, maxMeetingsPerDay: true },
+    columns: { adaptiveAvailability: true, maxMeetingsPerDay: true, bookingTitleTemplate: true },
   });
 
   const uid = randomUUID();
@@ -556,12 +556,19 @@ export async function createBooking(input: CreateBookingInput): Promise<{
           // Group slots are shared, so they keep the plain event-type title.
           title: isGroup
             ? eventType.title
-            : renderBookingTitle(eventType.titleTemplate, eventType.title, {
-                name: input.attendee.name,
-                email: input.attendee.email,
-                questions: eventType.questions,
-                responses: input.responses,
-              }),
+            : renderBookingTitle(
+                eventType.titleTemplate || focusPrefs?.bookingTitleTemplate,
+                eventType.title,
+                {
+                  name: input.attendee.name,
+                  email: input.attendee.email,
+                  questions: eventType.questions,
+                  responses: input.responses,
+                  host: host.name,
+                  typeTitle: eventType.title,
+                  durationMinutes: duration,
+                },
+              ),
           description: input.notes,
           startsAt: start,
           endsAt: end,
