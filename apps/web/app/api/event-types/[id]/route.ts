@@ -70,6 +70,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       currency: et.currency,
       depositAmount: et.depositAmount,
       questions: et.questions,
+      titleTemplate: et.titleTemplate,
       scheduleId: et.scheduleId,
       isActive: et.isActive,
     },
@@ -239,6 +240,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         currency: pick("currency", d.currency, existing.currency as typeof d.currency),
         depositAmount: pick("depositAmount", d.depositAmount, existing.depositAmount),
         questions: pick("questions", d.questions, existing.questions),
+        titleTemplate: pick("titleTemplate", d.titleTemplate || null, existing.titleTemplate),
         // Access code: undefined = unchanged, null = remove, string = set.
         ...(d.accessCode === undefined
           ? {}

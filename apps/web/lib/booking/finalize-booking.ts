@@ -92,7 +92,7 @@ export async function finalizeConfirmedBooking(
       uid,
       hostId: host.id,
       eventTypeId: eventType.id,
-      title: eventType.title,
+      title: booking.title,
       startsAt: start.toISOString(),
       endsAt: end.toISOString(),
       attendees: [{ name: attendee.name, email: attendee.email }],
@@ -100,7 +100,7 @@ export async function finalizeConfirmedBooking(
     {
       uid,
       eventTypeId: eventType.id,
-      title: eventType.title,
+      title: booking.title,
       startsAt: start.toISOString(),
       endsAt: end.toISOString(),
       status: "confirmed",
@@ -116,7 +116,7 @@ export async function finalizeConfirmedBooking(
   let zoomUrl: string | null = null;
   if (!isGroup && eventType.location === "zoom") {
     zoomUrl = await createZoomMeeting(host.id, {
-      topic: eventType.title,
+      topic: booking.title,
       startISO: start.toISOString(),
       durationMinutes: duration,
       timezone: attendee.timezone,
@@ -135,7 +135,7 @@ export async function finalizeConfirmedBooking(
     const written = isGroup
       ? null
       : await writeBookingToCalendar(host.id, {
-          title: eventType.title,
+          title: booking.title,
           description: withManageLink(notes, `${appUrl}/booking/${uid}`),
           start,
           end,
@@ -200,7 +200,7 @@ export async function finalizeConfirmedBooking(
   await applyBookingRules({
     bookingId: booking.id,
     hostId: host.id,
-    title: eventType.title,
+    title: booking.title,
     startsAt: start,
     endsAt: end,
   });
@@ -237,7 +237,7 @@ export async function finalizeConfirmedBooking(
     try {
       await sendEmail({
         ...bookingConfirmation({
-          eventTitle: eventType.title,
+          eventTitle: booking.title,
           start,
           end,
           timezone,
@@ -346,7 +346,7 @@ export async function finalizeConfirmedBooking(
             organizationId: eventType.organizationId,
             eventTypeId: eventType.id,
             hostId: host.id,
-            title: eventType.title,
+            title: booking.title,
             description: notes,
             startsAt: occStart,
             endsAt: occEnd,
@@ -379,7 +379,7 @@ export async function finalizeConfirmedBooking(
         }
         await scheduleBookingReminders(occ.id, occStart, reminderOffsets);
         const written = await writeBookingToCalendar(host.id, {
-          title: eventType.title,
+          title: booking.title,
           description: withManageLink(notes, `${appUrl}/booking/${occ.uid}`),
           start: occStart,
           end: occEnd,
@@ -418,7 +418,7 @@ export async function finalizeConfirmedBooking(
             uid: occ.uid,
             hostId: host.id,
             eventTypeId: eventType.id,
-            title: eventType.title,
+            title: booking.title,
             startsAt: occStartISO,
             endsAt: occEndISO,
             attendees: [{ name: attendee.name, email: attendee.email }],
@@ -426,7 +426,7 @@ export async function finalizeConfirmedBooking(
           {
             uid: occ.uid,
             eventTypeId: eventType.id,
-            title: eventType.title,
+            title: booking.title,
             startsAt: occStartISO,
             endsAt: occEndISO,
             status: occ.status,
@@ -445,7 +445,7 @@ export async function finalizeConfirmedBooking(
         await applyBookingRules({
           bookingId: occ.id,
           hostId: host.id,
-          title: eventType.title,
+          title: booking.title,
           startsAt: occStart,
           endsAt: occEnd,
         }).catch(() => {});

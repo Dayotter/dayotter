@@ -229,6 +229,10 @@ export const eventTypes = pgTable(
     /** If set + non-empty, the booker chooses one of these durations (minutes). */
     durationOptions: jsonb("duration_options").$type<number[]>(),
 
+    /** Per-booking calendar title, e.g. `Ana <> {name} | {company} || Ana <> {name}`
+     * (see apps/web/lib/booking/booking-title.ts). Null = use `title`. */
+    titleTemplate: text("title_template"),
+
     // Intake form: array of { id, label, type, required }.
     questions: jsonb("questions").$type<BookingQuestion[]>().notNull().default([]),
 

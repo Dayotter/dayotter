@@ -68,6 +68,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       currency: source.currency,
       depositAmount: source.depositAmount,
       questions: source.questions,
+      titleTemplate: source.titleTemplate,
     })
     .returning();
 

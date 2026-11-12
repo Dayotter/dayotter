@@ -13,6 +13,7 @@ import {
   isAllowedDuration,
 } from "./availability";
 import { BookingError, mapInsertError, validateResponses } from "./booking-logic";
+import { renderBookingTitle } from "./booking-title";
 import { resolveChosenLocation } from "./event-type-input";
 import { finalizeConfirmedBooking } from "./finalize-booking";
 
@@ -552,7 +553,15 @@ export async function createBooking(input: CreateBookingInput): Promise<{
           organizationId: eventType.organizationId,
           eventTypeId: eventType.id,
           hostId: host.id,
-          title: eventType.title,
+          // Group slots are shared, so they keep the plain event-type title.
+          title: isGroup
+            ? eventType.title
+            : renderBookingTitle(eventType.titleTemplate, eventType.title, {
+                name: input.attendee.name,
+                email: input.attendee.email,
+                questions: eventType.questions,
+                responses: input.responses,
+              }),
           description: input.notes,
           startsAt: start,
           endsAt: end,
@@ -640,7 +649,7 @@ export async function createBooking(input: CreateBookingInput): Promise<{
     try {
       await sendEmail({
         ...bookingRequested({
-          eventTitle: eventType.title,
+          eventTitle: booking.title,
           start,
           end,
           timezone: input.attendee.timezone,
@@ -663,7 +672,7 @@ export async function createBooking(input: CreateBookingInput): Promise<{
       try {
         await sendEmail({
           ...newBookingRequest({
-            eventTitle: eventType.title,
+            eventTitle: booking.title,
             start,
             end,
             timezone: host.timezone,

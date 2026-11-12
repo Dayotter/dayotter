@@ -8,6 +8,7 @@ import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { ProLock } from "@/components/upgrade-prompt";
 import { track } from "@/lib/analytics";
+import { renderBookingTitle, unknownTitlePlaceholders } from "@/lib/booking/booking-title";
 import {
   type BookingQuestionInput,
   EVENT_COLORS,
@@ -77,6 +78,7 @@ export interface EventTypeInitial {
   currency?: string | null;
   depositAmount?: number | null;
   questions?: BookingQuestionInput[];
+  titleTemplate?: string | null;
   scheduleId?: string | null;
 }
 
@@ -190,6 +192,7 @@ export function EventTypeForm({
     initial?.depositAmount ? (initial.depositAmount / 100).toString() : "",
   );
   const [questions, setQuestions] = useState<BookingQuestionInput[]>(initial?.questions ?? []);
+  const [titleTemplate, setTitleTemplate] = useState(initial?.titleTemplate ?? "");
   const [scheduleId, setScheduleId] = useState<string>(initial?.scheduleId ?? "");
   const [schedules, setSchedules] = useState<{ id: string; name: string; isDefault: boolean }[]>(
     [],
@@ -320,6 +323,7 @@ export function EventTypeForm({
               : undefined,
           allowOther: q.type === "select" ? Boolean(q.allowOther) : undefined,
         })),
+      titleTemplate: titleTemplate.trim() || null,
     };
     const res = await fetch(
       mode === "create" ? "/api/event-types" : `/api/event-types/${initial!.id}`,
@@ -1151,6 +1155,25 @@ export function EventTypeForm({
               </div>
 
               <div className="border-t border-[var(--color-border)] pt-4">
+                <Label htmlFor="titleTemplate">Calendar event title (optional)</Label>
+                <Input
+                  id="titleTemplate"
+                  value={titleTemplate}
+                  onChange={(e) => setTitleTemplate(e.target.value)}
+                  maxLength={300}
+                  placeholder="Ana <> {name} | {Company} || Ana <> {name}"
+                />
+                <p className="mt-1 text-xs text-[var(--color-faint)]">
+                  Use {"{name}"}, {"{email}"} or a booking question&apos;s label in braces. Separate
+                  options with ||: the first one whose fields are all answered is used. Empty = the
+                  title above.
+                </p>
+                {titleTemplate.trim() ? (
+                  <TitlePreview template={titleTemplate} fallback={title} questions={questions} />
+                ) : null}
+              </div>
+
+              <div className="border-t border-[var(--color-border)] pt-4">
                 <p className="mb-1 text-xs font-medium uppercase tracking-wide text-[var(--color-faint)]">
                   Booking questions
                 </p>
@@ -1273,5 +1296,39 @@ export function EventTypeForm({
         loading={deleting}
       />
     </Card>
+  );
+}
+
+/** Live example of the calendar title, with every question answered and with none. */
+function TitlePreview({
+  template,
+  fallback,
+  questions,
+}: {
+  template: string;
+  fallback: string;
+  questions: BookingQuestionInput[];
+}) {
+  const named = questions.filter((q) => q.label.trim());
+  const unknown = unknownTitlePlaceholders(template, named);
+  if (unknown.length > 0) {
+    return (
+      <p className="mt-1 text-xs text-[var(--color-danger)]">
+        No booking question named: {unknown.join(", ")}
+      </p>
+    );
+  }
+  const sample = (answered: boolean) =>
+    renderBookingTitle(template, fallback || "Untitled", {
+      name: "Maria",
+      email: "maria@example.com",
+      questions: named,
+      responses: answered ? Object.fromEntries(named.map((q) => [q.id, q.label])) : {},
+    });
+  return (
+    <ul className="mt-1 text-xs text-[var(--color-muted)]">
+      <li>All answered: {sample(true)}</li>
+      <li>No answers: {sample(false)}</li>
+    </ul>
   );
 }
