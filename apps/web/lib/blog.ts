@@ -18,6 +18,52 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: "self-hosting-dayotter-one-command",
+    title: "Self-hosting DayOtter: one command, your own scheduling",
+    excerpt:
+      "You can run the whole of DayOtter on your own server in about ten minutes. Here is the one command, what it sets up, and the one thing it needs from you.",
+    date: "2026-11-19",
+    author: "The DayOtter team",
+    readMinutes: 4,
+    body: [
+      {
+        paragraphs: [
+          "Most scheduling tools ask you to hand over your calendar and trust them with it. DayOtter is open source, so you do not have to. You can run the entire thing, booking pages, team routing, reminders, and the Otter assistant, on a box you control, and your availability never leaves it.",
+          "We wanted self-hosting to be a real option, not a dare. So the whole stack installs with a single command.",
+        ],
+      },
+      {
+        heading: "One command",
+        paragraphs: [
+          "On a fresh Ubuntu or Debian server with a domain pointed at it, this is the whole install:",
+          "curl -fsSL https://raw.githubusercontent.com/Dayotter/dayotter/main/deploy/install.sh | sudo DAYOTTER_DOMAIN=yourdomain.com bash",
+          "The installer puts Docker on the machine if it is not already there, generates every secret once, runs the database migrations, and starts Postgres, Redis, the web app, the background worker, and a reverse proxy that gets you HTTPS automatically. First boot builds the images, so give it five to ten minutes. Then open your domain and create the first account.",
+        ],
+      },
+      {
+        heading: "What it needs from you",
+        paragraphs: [
+          "Two things: a Linux server you can reach, a small VPS is plenty, and a domain name pointed at it.",
+          "The domain matters more than it sounds. Connecting Google or Outlook calendars, and receiving booking webhooks, both need a public HTTPS address, so DayOtter asks for one up front rather than half working on a bare IP. Point an A record at the server, pass the domain to the installer, and the proxy handles the certificate for you.",
+          "You can skip the domain to poke around on plain HTTP at the server's IP, but calendar sync will not connect until there is a real address, so it is worth doing first.",
+        ],
+      },
+      {
+        heading: "Connect the rest when you want",
+        paragraphs: [
+          "Nothing else is required to start. Google, Outlook and Apple calendar sync, Zoom and Meet links, Stripe payments, SMS and WhatsApp reminders, and the Otter assistant are all optional and stay switched off until you add their keys. Turn them on from settings, one at a time, on your own schedule.",
+        ],
+      },
+      {
+        heading: "Your data stays yours",
+        paragraphs: [
+          "Everything lives in the Postgres volume on your machine. Connected-account tokens are encrypted at rest, outbound requests are guarded, and an update is a pull and a restart. There is no phone-home, no seat count, and no upgrade nag. It is free to run, for as many people as you like.",
+          "If you have been meaning to get off a hosted scheduler, this is the afternoon to do it.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "the-app-now-runs-your-whole-setup",
     title: "The DayOtter app now runs your whole setup, not just your day",
     excerpt:
