@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import {
   AppleCalendarAdapter,
-  CaldavConfigError,
   type AppleCredentials,
+  CaldavConfigError,
   type CalendarAdapter,
   type ExternalCalendar,
   GoogleCalendarAdapter,

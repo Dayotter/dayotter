@@ -1,4 +1,4 @@
-import { resolvePublicIp } from "@dayotter/core";
+import { resolvePublicIp, safeFetch } from "@dayotter/core";
 import icalGenerator from "ical-generator";
 import ical from "node-ical";
 // tsdav is CommonJS; a named ESM import isn't statically resolvable at runtime,
@@ -19,18 +19,30 @@ const { createDAVClient } = tsdav;
 const ICLOUD_CALDAV = "https://caldav.icloud.com";
 
 /**
- * Reject a user-supplied CalDAV server URL that isn't a public https endpoint.
- * We now invite arbitrary CalDAV URLs (Nextcloud, Fastmail, self-hosted, ...), so
- * a hostname allow-list isn't enough: RESOLVE the host and reject any address in
- * a private/loopback/link-local range (defeats `internal.corp` or a domain that
- * points at 169.254.169.254 / 127.0.0.1). NB: tsdav re-resolves DNS when it
- * connects, so this is check-then-use, not a hard IP pin - good enough here since
- * the credentials are the user's own, but keep it in mind.
+ * A `fetch()` that pins the connection to the host's validated public IP (via the
+ * core SSRF transport), so `tsdav` cannot be steered at an internal address by DNS
+ * rebinding between our check and its connect. Passed to `createDAVClient`, which
+ * threads it through every request (discovery, calendar list, busy sync, writes).
  */
+const caldavSafeFetch: typeof fetch = (input, init) => {
+  const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+  const headers: Record<string, string> = {};
+  new Headers(init?.headers).forEach((v, k) => {
+    headers[k] = v;
+  });
+  return safeFetch(url, {
+    method: init?.method,
+    headers,
+    body: typeof init?.body === "string" ? init.body : undefined,
+    timeoutMs: 30_000,
+  });
+};
+
 /**
- * Well-known managed CalDAV hosts allowed by default. Self-hosted servers
- * (Nextcloud, Baïkal, Radicale, ...) are added by the deployer via
- * `CALDAV_ALLOWED_HOSTS` (comma-separated hostnames / parent domains).
+ * Baseline managed CalDAV hosts, used only when an operator opts into restricting
+ * connections via `CALDAV_ALLOWED_HOSTS`. When that env var is unset, any public
+ * https host is allowed - the SSRF control is the IP pin in `caldavSafeFetch`, not
+ * this list.
  */
 const DEFAULT_CALDAV_HOSTS = [
   "icloud.com",
@@ -47,30 +59,31 @@ const DEFAULT_CALDAV_HOSTS = [
   "yahoo.com",
 ];
 
-function allowedCaldavHosts(): string[] {
-  const extra = (process.env.CALDAV_ALLOWED_HOSTS ?? "")
+/** Hosts an operator confined CalDAV connections to via CALDAV_ALLOWED_HOSTS (empty = no restriction). */
+function envCaldavHosts(): string[] {
+  return (process.env.CALDAV_ALLOWED_HOSTS ?? "")
     .split(",")
     .map((h) => h.trim().toLowerCase())
     .filter(Boolean);
-  return [...DEFAULT_CALDAV_HOSTS, ...extra];
 }
 
 /**
- * Validate a user-supplied CalDAV server URL. We resolve-and-reject internal IPs,
- * but `tsdav` re-resolves DNS at connect time (check-then-use), so that alone is
- * defeatable by DNS rebinding. The load-bearing control is therefore a HOST
- * ALLOWLIST - only well-known managed providers (plus any the deployer adds via
- * CALDAV_ALLOWED_HOSTS) may be reached, which closes the SSRF regardless of what
- * DNS returns later. Default iCloud connections don't pass a serverUrl and skip
- * this entirely.
- */
-/**
  * Thrown when a CalDAV server URL is rejected before authentication (bad URL, not
- * https, host not allow-listed, or internal). Lets the caller show the real reason
+ * https, host not allowed, or internal). Lets the caller show the real reason
  * instead of blaming the user's credentials.
  */
 export class CaldavConfigError extends Error {}
 
+/**
+ * Validate a user-supplied CalDAV server URL before connecting. The load-bearing
+ * SSRF control is that every request is pinned to the host's validated public IP
+ * (see {@link caldavSafeFetch}), which closes DNS-rebinding regardless of what the
+ * host later resolves to - so any public https host is allowed by default, and the
+ * connection itself is the per-user confirmation (it persists only after the
+ * credentials authenticate). `CALDAV_ALLOWED_HOSTS` is an OPTIONAL operator
+ * restriction: when set, connections are confined to the managed providers plus
+ * the listed hosts. iCloud connections pass no serverUrl and skip this entirely.
+ */
 async function assertPublicHttpsUrl(raw: string): Promise<void> {
   let url: URL;
   try {
@@ -80,16 +93,23 @@ async function assertPublicHttpsUrl(raw: string): Promise<void> {
   }
   if (url.protocol !== "https:") throw new CaldavConfigError("CalDAV server URL must use https");
 
-  const host = url.hostname.toLowerCase();
-  const allowed = allowedCaldavHosts().some((h) => host === h || host.endsWith(`.${h}`));
-  if (!allowed) {
-    throw new CaldavConfigError(
-      "That CalDAV host isn't on the allowed list. Ask your admin to add it to CALDAV_ALLOWED_HOSTS.",
+  const restrictTo = envCaldavHosts();
+  if (restrictTo.length > 0) {
+    const host = url.hostname.toLowerCase();
+    const allowed = [...DEFAULT_CALDAV_HOSTS, ...restrictTo].some(
+      (h) => host === h || host.endsWith(`.${h}`),
     );
+    if (!allowed) {
+      throw new CaldavConfigError(
+        "That CalDAV host isn't allowed on this instance. Ask your admin to add it to CALDAV_ALLOWED_HOSTS.",
+      );
+    }
   }
 
+  // Reject hosts that resolve to an internal address; caldavSafeFetch then pins
+  // the connection to this validated public IP on every request.
   try {
-    await resolvePublicIp(url.hostname); // belt-and-braces: still reject internal IPs
+    await resolvePublicIp(url.hostname);
   } catch {
     throw new CaldavConfigError("CalDAV server URL points at a disallowed (internal) host");
   }
@@ -128,6 +148,7 @@ export class AppleCalendarAdapter implements CalendarAdapter {
       credentials: { username: creds.username, password: creds.password },
       authMethod: "Basic",
       defaultAccountType: "caldav",
+      fetch: caldavSafeFetch,
     });
     const calendars = await client.fetchCalendars();
     return new AppleCalendarAdapter(client, calendars);
