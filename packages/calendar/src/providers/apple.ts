@@ -64,19 +64,26 @@ function allowedCaldavHosts(): string[] {
  * DNS returns later. Default iCloud connections don't pass a serverUrl and skip
  * this entirely.
  */
+/**
+ * Thrown when a CalDAV server URL is rejected before authentication (bad URL, not
+ * https, host not allow-listed, or internal). Lets the caller show the real reason
+ * instead of blaming the user's credentials.
+ */
+export class CaldavConfigError extends Error {}
+
 async function assertPublicHttpsUrl(raw: string): Promise<void> {
   let url: URL;
   try {
     url = new URL(raw);
   } catch {
-    throw new Error("Invalid CalDAV server URL");
+    throw new CaldavConfigError("Invalid CalDAV server URL");
   }
-  if (url.protocol !== "https:") throw new Error("CalDAV server URL must use https");
+  if (url.protocol !== "https:") throw new CaldavConfigError("CalDAV server URL must use https");
 
   const host = url.hostname.toLowerCase();
   const allowed = allowedCaldavHosts().some((h) => host === h || host.endsWith(`.${h}`));
   if (!allowed) {
-    throw new Error(
+    throw new CaldavConfigError(
       "That CalDAV host isn't on the allowed list. Ask your admin to add it to CALDAV_ALLOWED_HOSTS.",
     );
   }
@@ -84,7 +91,7 @@ async function assertPublicHttpsUrl(raw: string): Promise<void> {
   try {
     await resolvePublicIp(url.hostname); // belt-and-braces: still reject internal IPs
   } catch {
-    throw new Error("CalDAV server URL points at a disallowed (internal) host");
+    throw new CaldavConfigError("CalDAV server URL points at a disallowed (internal) host");
   }
 }
 
