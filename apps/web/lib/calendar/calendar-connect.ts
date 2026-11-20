@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import {
   AppleCalendarAdapter,
   type AppleCredentials,
+  CaldavConfigError,
   type CalendarAdapter,
   type ExternalCalendar,
   GoogleCalendarAdapter,
@@ -123,7 +124,10 @@ export async function connectAppleAccount(params: {
   let adapter: AppleCalendarAdapter;
   try {
     adapter = await AppleCalendarAdapter.connect(params.credentials);
-  } catch {
+  } catch (err) {
+    // A rejected server URL (host not allow-listed, bad URL) is not a credentials
+    // problem - surface its real reason instead of blaming the password.
+    if (err instanceof CaldavConfigError) throw new AppleConnectError(err.message);
     throw new AppleConnectError(
       "Could not sign in. Check your Apple ID and app-specific password.",
     );
