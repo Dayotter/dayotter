@@ -25,7 +25,7 @@ export function CancelButton({ uid, isRecurring = false }: { uid: string; isRecu
     });
     if (!res.ok) {
       setLoading(false);
-      setError("Could not cancel - it may already be cancelled.");
+      setError("Could not cancel. It may already be cancelled.");
       return;
     }
     router.push(`/booking/${uid}`);
@@ -44,7 +44,7 @@ export function CancelButton({ uid, isRecurring = false }: { uid: string; isRecu
           onChange={(e) => setReason(e.target.value)}
           rows={3}
           maxLength={500}
-          placeholder="Add a note - it's included in the cancellation email everyone gets."
+          placeholder="Add a note. It's included in the cancellation email everyone gets."
           className="w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
         />
       </div>

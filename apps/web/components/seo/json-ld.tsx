@@ -37,7 +37,7 @@ export function OrganizationJsonLd() {
           applicationCategory: "BusinessApplication",
           operatingSystem: "Web, Android",
           description:
-            "AI-native, open-source scheduling platform. Otter books meetings, protects focus, and clears the back-and-forth - confirm-first.",
+            "AI-native, open-source scheduling platform. Otter books meetings, protects focus, and clears the back-and-forth, always confirm-first.",
           offers: [
             { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" },
             { "@type": "Offer", price: "9", priceCurrency: "USD", name: "Pro (per seat / month)" },

@@ -32,8 +32,8 @@ export function Hero() {
         <FadeUp delay={0.16}>
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-[var(--color-muted)] sm:text-xl">
             Talk to your calendar like you'd talk to an assistant. Otter books meetings, protects
-            your focus, and clears the back-and-forth - confirm-first. Or share one link and let
-            people book you themselves.
+            your focus, and clears the back-and-forth, always confirm-first. Or share one link and
+            let people book you themselves.
           </p>
         </FadeUp>
         <FadeUp delay={0.24}>
@@ -57,7 +57,7 @@ export function Hero() {
             className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)]/60 px-3.5 py-1.5 text-sm text-[var(--color-muted)] backdrop-blur transition-colors hover:text-[var(--color-text)]"
           >
             <Smartphone size={14} className="text-[var(--color-accent)]" />
-            On the web and Android today - iOS on the way
+            On the web and Android today, iOS on the way
             <ArrowRight size={13} />
           </a>
         </FadeUp>

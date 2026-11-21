@@ -115,7 +115,7 @@ export function Features() {
         <Card
           className="md:col-span-2"
           title="Every calendar, in sync"
-          body="Google, Outlook and Apple - one source of truth."
+          body="Google, Outlook and Apple in one source of truth."
         >
           <ProviderChips />
         </Card>
@@ -131,7 +131,7 @@ export function Features() {
         <Card
           className="md:col-span-3"
           title="Let people book you"
-          body="A booking page as calm as it is capable - buffers, intake questions, recurring meetings, instant video links."
+          body="A booking page as calm as it is capable: buffers, intake questions, recurring meetings, instant video links."
         >
           <BookingMock />
         </Card>
@@ -139,7 +139,7 @@ export function Features() {
         <Card
           className="md:col-span-3"
           title="Schedule as a team"
-          body="Round-robin and collective booking, weighted your way. Routing forms send each visitor to the right person - never behind a paywall."
+          body="Round-robin and collective booking, weighted your way. Routing forms send each visitor to the right person, never behind a paywall."
         >
           <TeamAvailabilityMock />
         </Card>

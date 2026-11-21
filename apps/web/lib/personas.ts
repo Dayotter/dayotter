@@ -1,7 +1,7 @@
 /**
  * Audience ("for X") landing content, rendered at /for/[slug]. Same template
  * for each persona: the pain they feel, how DayOtter fits, how it works, an FAQ.
- * Tailor the language to the reader - name their specific problem plainly.
+ * Tailor the language to the reader, name their specific problem plainly.
  */
 
 export interface Persona {
@@ -10,9 +10,9 @@ export interface Persona {
   label: string;
   title: string;
   subtitle: string;
-  /** Why generic scheduling fails this person - 3 concrete pains. */
+  /** Why generic scheduling fails this person, 3 concrete pains. */
   problems: { title: string; body: string }[];
-  /** Why DayOtter fits - 4 tailored capabilities. */
+  /** Why DayOtter fits, 4 tailored capabilities. */
   solutions: { title: string; body: string }[];
   /** Three plain steps. */
   steps: string[];
@@ -25,11 +25,11 @@ export const PERSONAS: Persona[] = [
     label: "Founders",
     title: "The scheduling assistant for founders who'd rather build than book.",
     subtitle:
-      "Talk your week into place, protect deep work, and let investors and candidates book you - without the calendar becoming a second job.",
+      "Talk your week into place, protect deep work, and let investors and candidates book you, without the calendar becoming a second job.",
     problems: [
       {
         title: "Calendar admin is a tax you don't notice",
-        body: "Five minutes here, ten there - by Friday you've spent an hour tending tools instead of talking to customers.",
+        body: "Five minutes here, ten there, by Friday you've spent an hour tending tools instead of talking to customers.",
       },
       {
         title: "Deep work keeps getting eaten",
@@ -47,11 +47,11 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Deep work, defended",
-        body: "Ask Otter to hold two hours a morning for building - it treats them as real events, not soft suggestions.",
+        body: "Ask Otter to hold two hours a morning for building, it treats them as real events, not soft suggestions.",
       },
       {
         title: "One link for everyone",
-        body: "Share a booking page so candidates, investors and customers grab a slot themselves - buffers and video links included.",
+        body: "Share a booking page so candidates, investors and customers grab a slot themselves, buffers and video links included.",
       },
       {
         title: "Free, and yours",
@@ -59,7 +59,7 @@ export const PERSONAS: Persona[] = [
       },
     ],
     steps: [
-      "Connect Google, Outlook or iCloud - Otter learns when you're actually free.",
+      "Connect Google, Outlook or iCloud, Otter learns when you're actually free.",
       "Tell Otter what to hold and share your booking link.",
       "Confirm the drafts. Get back to building.",
     ],
@@ -70,7 +70,7 @@ export const PERSONAS: Persona[] = [
       },
       {
         q: "Is it really free for a solo founder?",
-        a: "Yes - unlimited event types, calendar sync, group polls and reminders, free forever. Pay only when you add teammates.",
+        a: "Yes, unlimited event types, calendar sync, group polls and reminders, free forever. Pay only when you add teammates.",
       },
     ],
   },
@@ -79,7 +79,7 @@ export const PERSONAS: Persona[] = [
     label: "Teams",
     title: "Scheduling your whole team can actually run on.",
     subtitle:
-      "Round-robin that's fair, routing that sends people to the right person, and shared availability - without a per-seat tax that punishes growth.",
+      "Round-robin that's fair, routing that sends people to the right person, and shared availability, without a per-seat tax that punishes growth.",
     problems: [
       {
         title: "Round-robin isn't really fair",
@@ -97,7 +97,7 @@ export const PERSONAS: Persona[] = [
     solutions: [
       {
         title: "Weighted round-robin",
-        body: "Distribute meetings by weight - book your closers more, pause anyone who's away - and it stays load-balanced automatically.",
+        body: "Distribute meetings by weight, book your closers more, pause anyone who's away, and it stays load-balanced automatically.",
       },
       {
         title: "Routing forms",
@@ -109,7 +109,7 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Fair pricing",
-        body: "$9/seat for the whole toolkit - half of Calendly - or self-host every feature for free.",
+        body: "$9/seat for the whole toolkit, half of Calendly, or self-host every feature for free.",
       },
     ],
     steps: [
@@ -124,16 +124,16 @@ export const PERSONAS: Persona[] = [
       },
       {
         q: "How does routing decide where a booking goes?",
-        a: 'You write simple rules - "if they pick Enterprise, send them to sales" - checked top to bottom, with a fallback. It\'s all no-code.',
+        a: 'You write simple rules, "if they pick Enterprise, send them to sales", checked top to bottom, with a fallback. It\'s all no-code.',
       },
     ],
   },
   {
     slug: "consultants",
     label: "Consultants & coaches",
-    title: "Booking, rescheduling and payments - handled, so you can do the work.",
+    title: "Booking, rescheduling and payments, handled, so you can do the work.",
     subtitle:
-      "Let clients book recurring sessions, take payment up front, and let Otter handle the reschedules - all on a page that looks like you.",
+      "Let clients book recurring sessions, take payment up front, and let Otter handle the reschedules, all on a page that looks like you.",
     problems: [
       {
         title: "Recurring clients, manual booking",
@@ -145,13 +145,13 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "The reschedule shuffle",
-        body: '"Can we move to Thursday?" turns into a thread - and sometimes a double-booking.',
+        body: '"Can we move to Thursday?" turns into a thread, and sometimes a double-booking.',
       },
     ],
     solutions: [
       {
         title: "Recurring sessions in one booking",
-        body: "Offer a weekly or biweekly series - one confirmation books the whole run, on your calendar and theirs.",
+        body: "Offer a weekly or biweekly series, one confirmation books the whole run, on your calendar and theirs.",
       },
       {
         title: "Take payment to book",
@@ -159,7 +159,7 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Otter handles the changes",
-        body: '"Move my 3pm to Thursday." Otter finds the slot and reschedules - you just confirm.',
+        body: '"Move my 3pm to Thursday." Otter finds the slot and reschedules, you just confirm.',
       },
       {
         title: "A page that's yours",
@@ -167,18 +167,18 @@ export const PERSONAS: Persona[] = [
       },
     ],
     steps: [
-      "Create a booking type - set duration, price and whether it recurs.",
+      "Create a booking type, set duration, price and whether it recurs.",
       "Share your link; clients book (and pay) themselves.",
       "Let Otter handle reschedules and reminders.",
     ],
     faq: [
       {
         q: "Can clients book a recurring series?",
-        a: "Yes - mark a booking type as recurring (weekly, biweekly or monthly) and one booking schedules the whole series.",
+        a: "Yes, mark a booking type as recurring (weekly, biweekly or monthly) and one booking schedules the whole series.",
       },
       {
         q: "Can I charge for sessions?",
-        a: "Yes - connect Stripe and require full payment or a deposit before a booking is confirmed.",
+        a: "Yes, connect Stripe and require full payment or a deposit before a booking is confirmed.",
       },
     ],
   },
@@ -187,7 +187,7 @@ export const PERSONAS: Persona[] = [
     label: "Recruiters",
     title: "Interview scheduling without the coordination headache.",
     subtitle:
-      "Route candidates to the right interviewer, find a time across a panel, and share one link - so hiring loops move in hours, not days.",
+      "Route candidates to the right interviewer, find a time across a panel, and share one link, so hiring loops move in hours, not days.",
     problems: [
       {
         title: "Panel scheduling is a puzzle",
@@ -199,13 +199,13 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Loops stall over timezones",
-        body: "Candidate in one timezone, panel in another - and every reschedule risks a double-booking.",
+        body: "Candidate in one timezone, panel in another, and every reschedule risks a double-booking.",
       },
     ],
     solutions: [
       {
         title: "Group polls to find a time",
-        body: "Propose a few slots, let the panel and candidate vote, and lock in the winner - no back-and-forth thread.",
+        body: "Propose a few slots, let the panel and candidate vote, and lock in the winner, no back-and-forth thread.",
       },
       {
         title: "Routing to the right interviewer",
@@ -222,7 +222,7 @@ export const PERSONAS: Persona[] = [
     ],
     steps: [
       "Set up interviewers, routing and round-robin weights.",
-      "Share the link - or send a poll for panel loops.",
+      "Share the link, or send a poll for panel loops.",
       "Confirm; everyone gets the invite and reminders.",
     ],
     faq: [
@@ -232,7 +232,7 @@ export const PERSONAS: Persona[] = [
       },
       {
         q: "Can I route candidates by role?",
-        a: "Yes - a routing form asks a question or two and sends each candidate to the right interviewer or event type.",
+        a: "Yes, a routing form asks a question or two and sends each candidate to the right interviewer or event type.",
       },
     ],
   },
@@ -241,7 +241,7 @@ export const PERSONAS: Persona[] = [
     label: "Agencies",
     title: "Client scheduling that doesn't eat your billable hours.",
     subtitle:
-      "Let clients book the right person on your team, keep every account's meetings straight, and hand the back-and-forth to Otter - so your hours go to the work, not the calendar.",
+      "Let clients book the right person on your team, keep every account's meetings straight, and hand the back-and-forth to Otter, so your hours go to the work, not the calendar.",
     problems: [
       {
         title: "Booking eats billable time",
@@ -271,18 +271,18 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Otter runs the back-and-forth",
-        body: '"Move the Acme review to Thursday." Otter finds the time and reschedules - you confirm and get back to the work.',
+        body: '"Move the Acme review to Thursday." Otter finds the time and reschedules, you confirm and get back to the work.',
       },
     ],
     steps: [
       "Add your team and connect everyone's calendars.",
       "Build a routing form and set round-robin weights per pod.",
-      "Share one link - clients book the right person, every time.",
+      "Share one link, clients book the right person, every time.",
     ],
     faq: [
       {
         q: "Can different clients book different people?",
-        a: "Yes - a routing form asks a question or two and sends each client to the right account lead, pod or event type.",
+        a: "Yes, a routing form asks a question or two and sends each client to the right account lead, pod or event type.",
       },
       {
         q: "Does it handle our whole team's availability?",
@@ -293,13 +293,13 @@ export const PERSONAS: Persona[] = [
   {
     slug: "sales",
     label: "Sales teams",
-    title: "Turn inbound into booked meetings - instantly, on the right rep.",
+    title: "Turn inbound into booked meetings, instantly, on the right rep.",
     subtitle:
-      "Qualify and route leads the moment they land, distribute meetings fairly with weighted round-robin, and cut the no-shows - so your pipeline moves faster.",
+      "Qualify and route leads the moment they land, distribute meetings fairly with weighted round-robin, and cut the no-shows, so your pipeline moves faster.",
     problems: [
       {
         title: "Speed-to-lead is killing you",
-        body: "A lead fills a form, then waits for a rep to email back. By the time you reply, they've cooled - or booked a competitor.",
+        body: "A lead fills a form, then waits for a rep to email back. By the time you reply, they've cooled, or booked a competitor.",
       },
       {
         title: "Leads land on the wrong rep",
@@ -307,21 +307,21 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Round-robin isn't really fair",
-        body: "Meetings get spread evenly whether or not that's right - you can't book your top closers more or pause someone who's out.",
+        body: "Meetings get spread evenly whether or not that's right, you can't book your top closers more or pause someone who's out.",
       },
     ],
     solutions: [
       {
         title: "Qualify and book on the spot",
-        body: "A routing form scores the lead and drops them straight onto the right rep's live availability - no reply-and-wait.",
+        body: "A routing form scores the lead and drops them straight onto the right rep's live availability, no reply-and-wait.",
       },
       {
         title: "Weighted round-robin",
-        body: "Send more meetings to your best closers, weight by territory or segment, and pause anyone who's away - always load-balanced.",
+        body: "Send more meetings to your best closers, weight by territory or segment, and pause anyone who's away, always load-balanced.",
       },
       {
         title: "Fewer no-shows",
-        body: "Automated reminders over email, SMS and Slack - plus optional deposits - keep booked meetings booked.",
+        body: "Automated reminders over email, SMS and Slack, plus optional deposits, keep booked meetings booked.",
       },
       {
         title: "Wired into your stack",
@@ -331,20 +331,20 @@ export const PERSONAS: Persona[] = [
     steps: [
       "Build a routing form that qualifies inbound.",
       "Set round-robin weights across your reps.",
-      "Share the link - qualified leads book the right rep instantly.",
+      "Share the link, qualified leads book the right rep instantly.",
     ],
     faq: [
       {
         q: "How fast can a lead book after filling the form?",
-        a: "Immediately - the routing form sends a qualified lead straight to the right rep's live availability, so there's no reply-and-wait gap.",
+        a: "Immediately, the routing form sends a qualified lead straight to the right rep's live availability, so there's no reply-and-wait gap.",
       },
       {
         q: "Can I weight meetings toward my best reps?",
-        a: "Yes - each rep has a weight you can tune by performance, territory or segment, and set to zero to pause anyone who's out.",
+        a: "Yes, each rep has a weight you can tune by performance, territory or segment, and set to zero to pause anyone who's out.",
       },
       {
         q: "Does it connect to our CRM?",
-        a: "Yes - native Salesforce and HubSpot sync logs every booking as a contact + activity (currently in beta), and you can also push bookings to the rest of your stack via webhooks and our API.",
+        a: "Yes, native Salesforce and HubSpot sync logs every booking as a contact + activity (currently in beta), and you can also push bookings to the rest of your stack via webhooks and our API.",
       },
     ],
   },
@@ -357,7 +357,7 @@ export const PERSONAS: Persona[] = [
     problems: [
       {
         title: "Getting started is the hardest part",
-        body: "Opening the calendar, picking a time, doing the timezone math - the setup cost alone is enough to make you put it off.",
+        body: "Opening the calendar, picking a time, doing the timezone math, the setup cost alone is enough to make you put it off.",
       },
       {
         title: "Time blindness eats the day",
@@ -365,21 +365,21 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Planners become guilt machines",
-        body: "A screen full of overdue tasks doesn't help - it just makes you want to close the app and avoid it.",
+        body: "A screen full of overdue tasks doesn't help, it just makes you want to close the app and avoid it.",
       },
     ],
     solutions: [
       {
-        title: "Just say it - Otter does the setup",
+        title: "Just say it, Otter does the setup",
         body: '"Book the dentist and hold an hour to prep the deck." Say it once; Otter turns it into real calendar events. No forms, no friction.',
       },
       {
         title: "Focus time, actually protected",
-        body: "Ask Otter to hold blocks for deep work and it defends them as real events - so the day has room for the hard stuff, not just meetings.",
+        body: "Ask Otter to hold blocks for deep work and it defends them as real events, so the day has room for the hard stuff, not just meetings.",
       },
       {
         title: "Gentle nudges, not a pile of red",
-        body: "Reminders when they matter - plus a running-late ping to your next meeting - instead of a growing list of things you've failed to do.",
+        body: "Reminders when they matter, plus a running-late ping to your next meeting, instead of a growing list of things you've failed to do.",
       },
       {
         title: "One calm surface",
@@ -387,31 +387,31 @@ export const PERSONAS: Persona[] = [
       },
     ],
     steps: [
-      "Connect your calendar - Otter learns when you're actually free.",
+      "Connect your calendar, Otter learns when you're actually free.",
       "Brain-dump by voice or text; Otter turns it into events you confirm.",
       "Get nudged at the right moment. Nothing slips, nothing shames.",
     ],
     faq: [
       {
         q: "Is this actually different from a to-do app?",
-        a: "Yes - instead of a list you have to maintain, you talk to Otter and it puts real, time-boxed events on your calendar, then reminds you at the right moment. Less managing, more doing.",
+        a: "Yes, instead of a list you have to maintain, you talk to Otter and it puts real, time-boxed events on your calendar, then reminds you at the right moment. Less managing, more doing.",
       },
       {
         q: "Will it nag me?",
-        a: "No. Otter is confirm-first and quiet by default - it nudges when something's genuinely coming up, and never buries you in overdue-task guilt.",
+        a: "No. Otter is confirm-first and quiet by default, it nudges when something's genuinely coming up, and never buries you in overdue-task guilt.",
       },
       {
         q: "Can I just talk to it?",
-        a: "Yes. On mobile, tap the mic and say what you need - Otter turns speech into scheduled events, so you can capture a thought before it's gone.",
+        a: "Yes. On mobile, tap the mic and say what you need, Otter turns speech into scheduled events, so you can capture a thought before it's gone.",
       },
     ],
   },
   {
     slug: "customer-success",
     label: "Customer success",
-    title: "Onboarding, QBRs and check-ins - booked without the chase.",
+    title: "Onboarding, QBRs and check-ins, booked without the chase.",
     subtitle:
-      "Let customers self-book onboarding and reviews, route accounts to the right CSM, and let Otter handle the reschedules - so your team spends time on customers, not calendars.",
+      "Let customers self-book onboarding and reviews, route accounts to the right CSM, and let Otter handle the reschedules, so your team spends time on customers, not calendars.",
     problems: [
       {
         title: "Chasing customers to book",
@@ -429,7 +429,7 @@ export const PERSONAS: Persona[] = [
     solutions: [
       {
         title: "Self-book onboarding and reviews",
-        body: "Share a booking page so customers grab their kickoff or QBR themselves, on your real availability - no reply-and-wait, no stalled starts.",
+        body: "Share a booking page so customers grab their kickoff or QBR themselves, on your real availability, no reply-and-wait, no stalled starts.",
       },
       {
         title: "Route accounts to the right CSM",
@@ -437,7 +437,7 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Otter handles the reshuffle",
-        body: '"Move the Acme QBR to next Tuesday." Otter finds the slot and reschedules across timezones - you just confirm.',
+        body: '"Move the Acme QBR to next Tuesday." Otter finds the slot and reschedules across timezones, you just confirm.',
       },
       {
         title: "Reminders that cut no-shows",
@@ -447,25 +447,25 @@ export const PERSONAS: Persona[] = [
     steps: [
       "Add your CSMs and connect their calendars.",
       "Build a routing form by tier or product and set round-robin.",
-      "Share one link - customers book the right owner, every time.",
+      "Share one link, customers book the right owner, every time.",
     ],
     faq: [
       {
         q: "Can customers book their own onboarding?",
-        a: "Yes - share a booking page and customers pick a real, free slot themselves, with the video link and reminders attached. No back-and-forth kickoff thread.",
+        a: "Yes, share a booking page and customers pick a real, free slot themselves, with the video link and reminders attached. No back-and-forth kickoff thread.",
       },
       {
         q: "Can I route accounts to a specific CSM?",
-        a: "Yes - a routing form asks a question or two (tier, product, region) and sends each customer to the right owner or pod automatically.",
+        a: "Yes, a routing form asks a question or two (tier, product, region) and sends each customer to the right owner or pod automatically.",
       },
     ],
   },
   {
     slug: "tutors",
     label: "Tutors & educators",
-    title: "Lessons booked and paid for - so you can teach, not schedule.",
+    title: "Lessons booked and paid for, so you can teach, not schedule.",
     subtitle:
-      "Let students book recurring lessons, take payment up front, and let Otter handle the reschedules - on a calm page that works across every timezone.",
+      "Let students book recurring lessons, take payment up front, and let Otter handle the reschedules, on a calm page that works across every timezone.",
     problems: [
       {
         title: "Re-booking the same lesson every week",
@@ -473,7 +473,7 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "No-shows and unpaid lessons",
-        body: "A missed session with no deposit is just lost income - and awkward to chase after the fact.",
+        body: "A missed session with no deposit is just lost income, and awkward to chase after the fact.",
       },
       {
         title: "Timezones with remote students",
@@ -483,15 +483,15 @@ export const PERSONAS: Persona[] = [
     solutions: [
       {
         title: "Recurring lessons in one booking",
-        body: "Offer a weekly or biweekly series - one confirmation books the whole term, on your calendar and theirs.",
+        body: "Offer a weekly or biweekly series, one confirmation books the whole term, on your calendar and theirs.",
       },
       {
         title: "Payment up front",
-        body: "Charge per lesson or take a deposit through Stripe before a slot is held - or sell a prepaid package of sessions students draw down.",
+        body: "Charge per lesson or take a deposit through Stripe before a slot is held, or sell a prepaid package of sessions students draw down.",
       },
       {
         title: "Otter handles the moves",
-        body: '"Move Maya\'s Thursday lesson to Friday 4pm." Otter finds the slot and reschedules - you just confirm.',
+        body: '"Move Maya\'s Thursday lesson to Friday 4pm." Otter finds the slot and reschedules, you just confirm.',
       },
       {
         title: "Timezone-safe for every student",
@@ -499,27 +499,27 @@ export const PERSONAS: Persona[] = [
       },
     ],
     steps: [
-      "Create a lesson type - set duration, price and whether it recurs.",
+      "Create a lesson type, set duration, price and whether it recurs.",
       "Share your link; students book (and pay) themselves.",
       "Let Otter handle reschedules and send reminders.",
     ],
     faq: [
       {
         q: "Can students book a recurring weekly lesson?",
-        a: "Yes - mark a lesson type recurring (weekly, biweekly or monthly) and one booking schedules the whole series on both calendars.",
+        a: "Yes, mark a lesson type recurring (weekly, biweekly or monthly) and one booking schedules the whole series on both calendars.",
       },
       {
         q: "Can I sell a package of lessons up front?",
-        a: "Yes - connect Stripe and sell prepaid session packages; each booking draws down a credit, so students pay once and book as they go.",
+        a: "Yes, connect Stripe and sell prepaid session packages; each booking draws down a credit, so students pay once and book as they go.",
       },
     ],
   },
   {
     slug: "freelancers",
     label: "Freelancers",
-    title: "Client calls, discovery and paid consults - handled on one page.",
+    title: "Client calls, discovery and paid consults, handled on one page.",
     subtitle:
-      "Let clients book discovery and working sessions, charge for paid consults, and let Otter run the back-and-forth - so more of your day is billable work, not calendar admin.",
+      "Let clients book discovery and working sessions, charge for paid consults, and let Otter run the back-and-forth, so more of your day is billable work, not calendar admin.",
     problems: [
       {
         title: "Scheduling isn't billable",
@@ -527,7 +527,7 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Free consults get flaky",
-        body: "Without a deposit, a free discovery call is easy to no-show - and your time is the product.",
+        body: "Without a deposit, a free discovery call is easy to no-show, and your time is the product.",
       },
       {
         title: "Juggling clients and focus time",
@@ -537,11 +537,11 @@ export const PERSONAS: Persona[] = [
     solutions: [
       {
         title: "One link for every kind of call",
-        body: "Discovery, working sessions, paid consults - separate booking types on one page, each with its own length, price and intake questions.",
+        body: "Discovery, working sessions, paid consults, separate booking types on one page, each with its own length, price and intake questions.",
       },
       {
         title: "Charge for your time",
-        body: "Take full payment or a deposit through Stripe before a consult is held - fewer no-shows, paid before you show up.",
+        body: "Take full payment or a deposit through Stripe before a consult is held, fewer no-shows, paid before you show up.",
       },
       {
         title: "Protect the billable work",
@@ -549,7 +549,7 @@ export const PERSONAS: Persona[] = [
       },
       {
         title: "Otter runs the back-and-forth",
-        body: '"Move my 2pm with the client to Thursday." Otter finds the time and reschedules - you confirm and get back to work.',
+        body: '"Move my 2pm with the client to Thursday." Otter finds the time and reschedules, you confirm and get back to work.',
       },
     ],
     steps: [
@@ -560,11 +560,11 @@ export const PERSONAS: Persona[] = [
     faq: [
       {
         q: "Can I charge for a consultation?",
-        a: "Yes - connect Stripe and require full payment or a deposit before a paid consult is confirmed. Free discovery calls can stay free.",
+        a: "Yes, connect Stripe and require full payment or a deposit before a paid consult is confirmed. Free discovery calls can stay free.",
       },
       {
         q: "Is it really free for a solo freelancer?",
-        a: "Yes - unlimited event types, calendar sync, reminders and paid bookings, free forever. You only pay when you add teammates.",
+        a: "Yes, unlimited event types, calendar sync, reminders and paid bookings, free forever. You only pay when you add teammates.",
       },
     ],
   },
@@ -573,7 +573,7 @@ export const PERSONAS: Persona[] = [
     label: "Support teams",
     title: "Escalations and callbacks booked on the right agent, fast.",
     subtitle:
-      "Let customers book callbacks and screen-shares, route by product or tier, and spread the load fairly with weighted round-robin - so support conversations happen when they should.",
+      "Let customers book callbacks and screen-shares, route by product or tier, and spread the load fairly with weighted round-robin, so support conversations happen when they should.",
     problems: [
       {
         title: "Ticket ping-pong instead of a call",
@@ -591,15 +591,15 @@ export const PERSONAS: Persona[] = [
     solutions: [
       {
         title: "Let customers book a callback",
-        body: "Drop a booking link into a ticket or help widget and the customer grabs a real slot on an agent's live availability - no more time-zone tennis.",
+        body: "Drop a booking link into a ticket or help widget and the customer grabs a real slot on an agent's live availability, no more time-zone tennis.",
       },
       {
         title: "Route by product or tier",
-        body: "A short routing form sends each request to the right queue - billing, technical, priority - so it lands with an agent who can actually help.",
+        body: "A short routing form sends each request to the right queue, billing, technical, priority, so it lands with an agent who can actually help.",
       },
       {
         title: "Weighted round-robin",
-        body: "Spread callbacks fairly across the team, weight by seniority or specialty, and pause anyone at capacity - always load-balanced.",
+        body: "Spread callbacks fairly across the team, weight by seniority or specialty, and pause anyone at capacity, always load-balanced.",
       },
       {
         title: "Reminders that keep both sides on time",
@@ -609,16 +609,16 @@ export const PERSONAS: Persona[] = [
     steps: [
       "Add your agents and connect their calendars.",
       "Build a routing form by product or tier and set round-robin weights.",
-      "Drop the link into tickets - customers book the right agent instantly.",
+      "Drop the link into tickets, customers book the right agent instantly.",
     ],
     faq: [
       {
         q: "Can customers book a support callback themselves?",
-        a: "Yes - share a booking link in a ticket or help widget and the customer picks a real, free slot on the right agent's calendar, with reminders attached.",
+        a: "Yes, share a booking link in a ticket or help widget and the customer picks a real, free slot on the right agent's calendar, with reminders attached.",
       },
       {
         q: "Can I route escalations to the right queue?",
-        a: "Yes - a routing form asks a question or two (product, tier, issue type) and sends each request to the right agent or team automatically.",
+        a: "Yes, a routing form asks a question or two (product, tier, issue type) and sends each request to the right agent or team automatically.",
       },
     ],
   },

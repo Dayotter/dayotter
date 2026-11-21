@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Scheduling glossary",
   description:
-    "Plain-English definitions of scheduling terms - round-robin, collective availability, routing forms, buffer time, free/busy, focus time, confirm-first AI and more.",
+    "Plain-English definitions of scheduling terms, round-robin, collective availability, routing forms, buffer time, free/busy, focus time, confirm-first AI and more.",
   alternates: { canonical: "/glossary" },
 };
 
@@ -17,7 +17,7 @@ export default function GlossaryHub() {
       <MarketingHeader
         eyebrow="Glossary"
         title="The scheduling glossary"
-        subtitle="Every term you'll meet in modern scheduling, defined plainly - and how DayOtter does each one."
+        subtitle="Every term you'll meet in modern scheduling, defined plainly, and how DayOtter does each one."
       />
       <section className="mx-auto max-w-5xl px-6 py-16">
         {GLOSSARY_CATEGORIES.map((cat) => {
