@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 const HIGHLIGHTS = [
   { icon: CalendarCheck, text: "Sync Google, Outlook & iCloud in one place" },
   { icon: Users, text: "Share availability across your whole team" },
-  { icon: Sparkles, text: "AI, automations & analytics - confirm-first" },
+  { icon: Sparkles, text: "AI, automations & analytics, confirm-first" },
 ];
 
 export default async function AuthLayout({ children }: { children: ReactNode }) {

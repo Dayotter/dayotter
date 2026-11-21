@@ -349,7 +349,7 @@ export function RoutingBuilder({
           <Label htmlFor="rf-fallback">Otherwise, send everyone to</Label>
           <div className="max-w-sm">
             <Select id="rf-fallback" value={fallback} onChange={(e) => setFallback(e.target.value)}>
-              <option value="">No default - show a thank-you</option>
+              <option value="">No default, show a thank-you</option>
               {eventTypes.map((et) => (
                 <option key={et.id} value={et.id}>
                   {et.title}

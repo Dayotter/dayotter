@@ -13,7 +13,7 @@ import "./globals.css";
 // network request).
 
 const DESCRIPTION =
-  "DayOtter is the AI-native, open-source scheduling platform. Otter books meetings, protects your focus, and clears the back-and-forth - confirm-first. Sync every calendar, run your team, self-host it all under AGPLv3.";
+  "DayOtter is the AI-native, open-source scheduling platform. Otter books meetings, protects your focus, and clears the back-and-forth, always confirm-first. Sync every calendar, run your team, self-host it all under AGPLv3.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND.url),

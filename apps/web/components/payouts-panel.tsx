@@ -77,7 +77,7 @@ export function PayoutsPanel({
       <Card className="max-w-2xl">
         <CardHeader
           title="Get paid directly"
-          description="Connect a Stripe account so booking and package payments land in your bank - not ours."
+          description="Connect a Stripe account so booking and package payments land in your bank, not ours."
         />
         <CardBody className="space-y-4">
           <p className="text-sm text-[var(--color-muted)]">

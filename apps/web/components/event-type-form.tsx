@@ -597,7 +597,7 @@ export function EventTypeForm({
             className="flex w-full items-center justify-between rounded-md border border-[var(--color-border)] px-4 py-2.5 text-sm font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
           >
             <span>
-              {showMore ? "Fewer options" : "More options - buffers, limits, price, questions…"}
+              {showMore ? "Fewer options" : "More options: buffers, limits, price, questions…"}
             </span>
             <ChevronDown
               size={16}

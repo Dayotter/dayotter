@@ -44,7 +44,7 @@ export function TeamCalendarSharing({
     }
     setToken(data.token);
     toast({
-      title: token ? "New link generated - old one revoked" : "Share link created",
+      title: token ? "New link generated, old one revoked" : "Share link created",
       variant: "success",
     });
   }

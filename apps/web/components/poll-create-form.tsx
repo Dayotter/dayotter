@@ -99,7 +99,7 @@ export function PollCreateForm() {
           ? data.emailFailures > 0
             ? `Poll created, but ${data.emailFailures} invitation${data.emailFailures === 1 ? "" : "s"} could not be sent.`
             : `Poll created and sent to ${data.invitedCount} recipient${data.invitedCount === 1 ? "" : "s"}.`
-          : "Poll created - share the public link to collect votes.",
+          : "Poll created. Share the public link to collect votes.",
       variant: data.emailFailures > 0 ? "error" : "success",
     });
     router.push(data.url as `/${string}`);
