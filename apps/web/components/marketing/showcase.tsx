@@ -238,8 +238,8 @@ export function OtterDemo() {
             Say it once. Watch it happen.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-[var(--color-muted)]">
-            Type a request, or tap an example. Otter drafts the change and waits for your OK. In
-            the app it reads your real availability and works over chat, voice, WhatsApp and SMS.
+            Type a request, or tap an example. Otter drafts the change and waits for your OK. In the
+            app it reads your real availability and works over chat, voice, WhatsApp and SMS.
           </p>
           <ul className="mt-6 space-y-3">
             {[

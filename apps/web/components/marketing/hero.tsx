@@ -32,8 +32,8 @@ export function Hero() {
         <FadeUp delay={0.16}>
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-[var(--color-muted)] sm:text-xl">
             Talk to your calendar like you'd talk to an assistant. Otter books meetings, protects
-            your focus, and clears the back-and-forth, always confirm-first. Or share one link and let
-            people book you themselves.
+            your focus, and clears the back-and-forth, always confirm-first. Or share one link and
+            let people book you themselves.
           </p>
         </FadeUp>
         <FadeUp delay={0.24}>
