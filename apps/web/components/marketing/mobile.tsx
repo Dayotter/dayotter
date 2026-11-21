@@ -185,7 +185,7 @@ export function MobileApps() {
             Run your scheduling <em className="text-[var(--color-accent)]">from your phone.</em>
           </h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-[var(--color-muted)]">
-            Open the app and your day is right there - what's booked, what's next, and anything
+            Open the app and your day is right there: what's booked, what's next, and anything
             waiting on you. Set up how people book you, adjust your hours, handle your team, and
             hand the busywork to Otter by voice. It does the real work, not just a read-only glance
             at your calendar.

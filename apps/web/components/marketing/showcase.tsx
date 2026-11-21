@@ -31,7 +31,7 @@ const MOMENTS = [
   {
     time: "2:20",
     label: "Running behind",
-    body: "Your 1:1 ran long. Otter quietly pings your 2:30 that you're ten minutes out - no awkward apology needed.",
+    body: "Your 1:1 ran long. Otter quietly pings your 2:30 that you're ten minutes out, no awkward apology needed.",
   },
   {
     time: "6:00",
@@ -49,7 +49,7 @@ export function DayWithOtter() {
           It works the whole day, so you don't have to.
         </h2>
         <p className="mt-4 text-lg text-[var(--color-muted)]">
-          Not a booking link you forget about - an assistant that shows up from your first coffee to
+          Not a booking link you forget about. An assistant that shows up from your first coffee to
           your last meeting.
         </p>
       </Reveal>
@@ -238,13 +238,13 @@ export function OtterDemo() {
             Say it once. Watch it happen.
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-[var(--color-muted)]">
-            Type a request - or tap an example. Otter drafts the change and waits for your OK. In
+            Type a request, or tap an example. Otter drafts the change and waits for your OK. In
             the app it reads your real availability and works over chat, voice, WhatsApp and SMS.
           </p>
           <ul className="mt-6 space-y-3">
             {[
               "Understands plain language, across every timezone",
-              "Confirm-first - it proposes, you approve",
+              "Confirm-first: it proposes, you approve",
               "Works over chat, voice, WhatsApp and SMS",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm">
@@ -336,7 +336,7 @@ export function OtterDemo() {
               )}
             </div>
             <p className="mt-2 text-center text-xs text-[var(--color-faint)]">
-              A preview - nothing's booked.{" "}
+              A preview, nothing's booked.{" "}
               <Link href="/sign-up" className="text-[var(--color-accent)] hover:underline">
                 Sign up
               </Link>{" "}
