@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Who DayOtter is for",
   description:
-    "How DayOtter fits founders, teams, sales, agencies, consultants, recruiters, customer success, tutors, freelancers, support teams and busy minds - scheduling shaped around how you actually work.",
+    "How DayOtter fits founders, teams, sales, agencies, consultants, recruiters, customer success, tutors, freelancers, support teams and busy minds, scheduling shaped around how you actually work.",
   alternates: { canonical: "/for" },
 };
 

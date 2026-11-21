@@ -29,13 +29,13 @@ const TIERS: Tier[] = [
     name: "Free",
     price: "$0",
     cadence: "forever",
-    tagline: "Everything one person needs to get booked - Otter included.",
+    tagline: "Everything one person needs to get booked, Otter included.",
     features: [
-      "Otter - your AI scheduling assistant",
+      "Otter, your AI scheduling assistant",
       "Unlimited event types & booking pages",
       "Google, Microsoft & Apple calendar sync",
       "Deep-work & focus-time defense",
-      "CRM sync - Salesforce & HubSpot",
+      "CRM sync, Salesforce & HubSpot",
       "Developer API, webhooks & embed",
       "Slack & WhatsApp reminders",
       "Group polls, email reminders & confirmations",
@@ -49,8 +49,8 @@ const TIERS: Tier[] = [
     tagline: "The full toolkit for teams that live in their calendar.",
     features: [
       "Everything in Free",
-      "Team scheduling - weighted round-robin & collective",
-      "Routing forms - qualify & route inbound",
+      "Team scheduling, weighted round-robin & collective",
+      "Routing forms, qualify & route inbound",
       "Adaptive availability & travel-aware scheduling",
       "Automations & attendee workflows",
       "Booking analytics & CSV export",
@@ -64,7 +64,7 @@ const TIERS: Tier[] = [
     name: "Self-hosted",
     price: "Free",
     cadence: "open source",
-    tagline: "Run DayOtter on your own infrastructure - every feature, unlocked.",
+    tagline: "Run DayOtter on your own infrastructure, every feature, unlocked.",
     features: [
       "Every Pro feature, free forever",
       "Your data on your servers",
@@ -79,11 +79,11 @@ const TIERS: Tier[] = [
 const FAQ = [
   {
     q: "How does DayOtter compare to Calendly or Cal.com?",
-    a: "You get the scheduling table stakes both have - team round-robin & collective, routing forms, recurring meetings, group polls, workflows, payments and calendar sync - at $9/seat, below Calendly ($10–20) and Cal.com's team plan. Our free plan is genuinely usable (unlimited event types) instead of one-event-only. And we add what neither does: Otter, a proactive AI assistant that protects your focus time and flags overflow - plus an open-source core you can self-host.",
+    a: "You get the scheduling table stakes both have, team round-robin & collective, routing forms, recurring meetings, group polls, workflows, payments and calendar sync, at $9/seat, below Calendly ($10–20) and Cal.com's team plan. Our free plan is genuinely usable (unlimited event types) instead of one-event-only. And we add what neither does: Otter, a proactive AI assistant that protects your focus time and flags overflow, plus an open-source core you can self-host.",
   },
   {
     q: "Is DayOtter really free?",
-    a: "Yes. Individuals get a genuinely useful free plan on the cloud, and if you self-host, every feature - including the Pro ones - is free forever. You only pay for Pro on our hosted product.",
+    a: "Yes. Individuals get a genuinely useful free plan on the cloud, and if you self-host, every feature, including the Pro ones, is free forever. You only pay for Pro on our hosted product.",
   },
   {
     q: "How does per-seat billing work?",
@@ -91,11 +91,11 @@ const FAQ = [
   },
   {
     q: "What's the difference between cloud and self-hosting?",
-    a: "The open-source edition you run yourself is fully featured and free. Our hosted cloud adds a free tier plus the $9/seat Pro plan, and takes the ops off your hands - managed AI and hosted messaging today, with team extras like SSO and custom booking domains on the way.",
+    a: "The open-source edition you run yourself is fully featured and free. Our hosted cloud adds a free tier plus the $9/seat Pro plan, and takes the ops off your hands, managed AI and hosted messaging today, with team extras like SSO and custom booking domains on the way.",
   },
   {
     q: "Can I cancel anytime?",
-    a: "Anytime, from the billing portal. Your plan stays active until the end of the period, then drops to Free - nothing is deleted.",
+    a: "Anytime, from the billing portal. Your plan stays active until the end of the period, then drops to Free, nothing is deleted.",
   },
 ];
 
