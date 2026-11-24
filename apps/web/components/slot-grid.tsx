@@ -1,10 +1,11 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { slotWindow } from "@/lib/booking/slot-window";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/booking";
 import { useBookingLocale } from "@/lib/i18n/use-locale";
-import { Layers } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { Sparkles } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -112,6 +113,12 @@ export function SlotGrid({
   const [recommended, setRecommended] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeDay, setActiveDay] = useState<string | null>(null);
+  // Where the booker paged to (null = today) and the event's booking-window
+  // limit from the API, so dates past the first two weeks stay reachable.
+  const [windowStart, setWindowStart] = useState<number | null>(null);
+  // undefined = not fetched yet; null = unlimited.
+  const [bookableUntil, setBookableUntil] = useState<number | null | undefined>(undefined);
+  const win = slotWindow(windowStart, Date.now(), bookableUntil ?? null);
 
   // SavvyCal-style overlay: the booker's own busy intervals (from a pasted ICS
   // feed), used to grey out slots that clash with their calendar.
@@ -126,8 +133,9 @@ export function SlotGrid({
 
   useEffect(() => {
     setLoading(true);
-    const from = new Date().toISOString();
-    const to = new Date(Date.now() + 14 * 86_400_000).toISOString();
+    const range = slotWindow(windowStart, Date.now(), null);
+    const from = new Date(range.from).toISOString();
+    const to = new Date(range.to).toISOString();
     const durationParam = duration ? `&duration=${duration}` : "";
     const hostsParam = hostsKey ? `&hosts=${hostsKey}` : "";
     let active = true;
@@ -137,6 +145,7 @@ export function SlotGrid({
         if (!active) return;
         setSlots(data.slots ?? []);
         setRecommended(data.recommended ?? []);
+        setBookableUntil(data.bookableUntil ? Date.parse(data.bookableUntil) : null);
       })
       .catch(() => {
         if (!active) return;
@@ -147,7 +156,14 @@ export function SlotGrid({
     return () => {
       active = false;
     };
-  }, [eventTypeId, duration, hostsKey]);
+  }, [eventTypeId, duration, hostsKey, windowStart]);
+
+  /** Page to another two-week window; the overlay was read for the old one. */
+  function goTo(start: number) {
+    setWindowStart(start);
+    setActiveDay(null);
+    clearOverlay();
+  }
 
   async function applyOverlay() {
     if (!overlayUrl.trim()) return;
@@ -159,8 +175,8 @@ export function SlotGrid({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           icsUrl: overlayUrl.trim(),
-          from: new Date().toISOString(),
-          to: new Date(Date.now() + 14 * 86_400_000).toISOString(),
+          from: new Date(win.from).toISOString(),
+          to: new Date(win.to).toISOString(),
         }),
       });
       const data = await res.json();
@@ -221,19 +237,72 @@ export function SlotGrid({
   const dayRail = useScrollFade<HTMLDivElement>(days.length);
   const timeGrid = useScrollFade<HTMLDivElement>(`${currentDay}:${daySlots.length}`);
 
+  // Only once the API told us the limit, and only when there is somewhere to
+  // go: a type whose window fits in two weeks renders exactly as before.
+  const nav =
+    bookableUntil !== undefined && (win.hasPrev || win.hasNext) ? (
+      <div className="mb-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => goTo(win.from - (win.to - win.from))}
+          disabled={!win.hasPrev || loading}
+          aria-label={t(locale, "prevWeeks")}
+          title={t(locale, "prevWeeks")}
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-border-strong)] text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-40"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <input
+          type="date"
+          aria-label={t(locale, "jumpToDate")}
+          value={DateTime.fromMillis(win.from).setZone(zone).toISODate() ?? ""}
+          min={DateTime.now().setZone(zone).toISODate() ?? undefined}
+          max={
+            bookableUntil
+              ? (DateTime.fromMillis(bookableUntil).setZone(zone).toISODate() ?? undefined)
+              : undefined
+          }
+          onChange={(e) => {
+            const day = DateTime.fromISO(e.target.value, { zone }).startOf("day");
+            if (day.isValid) goTo(day.toMillis());
+          }}
+          className="h-10 min-w-0 flex-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 text-sm tabular-nums text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+        />
+        <button
+          type="button"
+          onClick={() => goTo(win.to)}
+          disabled={!win.hasNext || loading}
+          className="inline-flex h-10 shrink-0 items-center gap-1 rounded-md border border-[var(--color-border-strong)] px-3 text-sm text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-40"
+        >
+          {t(locale, "nextWeeks")} <ChevronRight size={16} />
+        </button>
+      </div>
+    ) : null;
+
   if (loading) {
     return (
-      <output aria-busy="true" aria-label={t(locale, "loading")} className="block">
-        <SlotGridSkeleton />
-      </output>
+      <>
+        {nav}
+        <output aria-busy="true" aria-label={t(locale, "loading")} className="block">
+          <SlotGridSkeleton />
+        </output>
+      </>
     );
   }
   if (days.length === 0) {
-    return <p className="text-sm text-[var(--color-muted)]">{t(locale, "noTimes")}</p>;
+    return (
+      <>
+        {nav}
+        <p className="text-sm text-[var(--color-muted)]">
+          {t(locale, win.hasPrev ? "noTimesRange" : "noTimes")}
+        </p>
+      </>
+    );
   }
 
   return (
     <div>
+      {nav}
       {recommendedSlots.length > 0 ? (
         <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/[0.06] p-3">
           <p className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-accent)]">

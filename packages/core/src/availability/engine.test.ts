@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeAvailability, intersectAvailability } from "./engine";
+import { bookingWindowLimit, computeAvailability, intersectAvailability } from "./engine";
 import type { AvailabilityInput, Schedule } from "./types";
 
 // Mon–Fri 09:00–17:00 in New York (EST / UTC-5 in January).
@@ -109,6 +109,14 @@ describe("computeAvailability - constraints", () => {
     expect(slots.every((s) => s.start.getTime() < new Date("2026-01-06T05:00:00Z").getTime())).toBe(
       true,
     );
+  });
+
+  it("reports the booking-window limit, unlimited when unset", () => {
+    const now = new Date("2026-11-24T12:00:00Z");
+    expect(bookingWindowLimit({ bookingWindowDays: 365 }, now)).toBe(
+      Date.parse("2027-11-24T12:00:00Z"),
+    );
+    expect(bookingWindowLimit({ bookingWindowDays: null }, now)).toBe(Number.POSITIVE_INFINITY);
   });
 
   it("honors slotIntervalMinutes independent of duration", () => {
