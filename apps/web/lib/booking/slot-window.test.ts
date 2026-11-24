@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WINDOW_DAYS, slotWindow } from "./slot-window";
+import { WINDOW_DAYS, jumpTarget, slotWindow } from "./slot-window";
 
 const DAY = 86_400_000;
 const now = Date.parse("2026-11-24T12:00:00Z");
@@ -43,5 +43,30 @@ describe("slotWindow", () => {
     const w = slotWindow(april, now, now + 365 * DAY);
     expect(w.from).toBe(april);
     expect(w.to).toBe(april + WINDOW_DAYS * DAY);
+  });
+
+  it("ignores a few seconds of clock skew against the server limit", () => {
+    // A 14-day type seen from a phone running 5 s behind must not page to an empty window.
+    expect(slotWindow(null, now - 5_000, now + WINDOW_DAYS * DAY).hasNext).toBe(false);
+  });
+});
+
+describe("jumpTarget", () => {
+  const today = Date.parse("2026-11-24T03:00:00Z"); // local midnight in Sao Paulo
+
+  it("ignores a day before today (e.g. a year half-typed as 0202)", () => {
+    expect(jumpTarget(Date.parse("0202-04-14T03:00:00Z"), now, null)).toBeNull();
+    expect(jumpTarget(today - DAY, now, null)).toBeNull();
+  });
+
+  it("goes to today or any later day when unlimited", () => {
+    expect(jumpTarget(today, now, null)).toBe(today);
+    expect(jumpTarget(today + 141 * DAY, now, null)).toBe(today + 141 * DAY);
+  });
+
+  it("keeps a typed day past the limit inside the last bookable window", () => {
+    const limit = now + 60 * DAY;
+    expect(jumpTarget(today + 30 * DAY, now, limit)).toBe(today + 30 * DAY);
+    expect(jumpTarget(today + 200 * DAY, now, limit)).toBe(limit - WINDOW_DAYS * DAY);
   });
 });

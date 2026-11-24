@@ -1,7 +1,7 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { slotWindow } from "@/lib/booking/slot-window";
+import { jumpTarget, slotWindow } from "@/lib/booking/slot-window";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n/booking";
 import { useBookingLocale } from "@/lib/i18n/use-locale";
@@ -118,6 +118,8 @@ export function SlotGrid({
   const [windowStart, setWindowStart] = useState<number | null>(null);
   // undefined = not fetched yet; null = unlimited.
   const [bookableUntil, setBookableUntil] = useState<number | null | undefined>(undefined);
+  // What the booker is typing in the date input; null = show the window's first day.
+  const [dateDraft, setDateDraft] = useState<string | null>(null);
   const win = slotWindow(windowStart, Date.now(), bookableUntil ?? null);
 
   // SavvyCal-style overlay: the booker's own busy intervals (from a pasted ICS
@@ -159,7 +161,8 @@ export function SlotGrid({
   }, [eventTypeId, duration, hostsKey, windowStart]);
 
   /** Page to another two-week window; the overlay was read for the old one. */
-  function goTo(start: number) {
+  function goTo(start: number, draft: string | null = null) {
+    setDateDraft(draft);
     setWindowStart(start);
     setActiveDay(null);
     clearOverlay();
@@ -244,18 +247,18 @@ export function SlotGrid({
       <div className="mb-4 flex items-center gap-2">
         <button
           type="button"
-          onClick={() => goTo(win.from - (win.to - win.from))}
-          disabled={!win.hasPrev || loading}
+          onClick={() => win.hasPrev && !loading && goTo(win.from - (win.to - win.from))}
+          aria-disabled={!win.hasPrev || loading}
           aria-label={t(locale, "prevWeeks")}
           title={t(locale, "prevWeeks")}
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-border-strong)] text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-40"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-[var(--color-border-strong)] text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] aria-disabled:opacity-40"
         >
           <ChevronLeft size={16} />
         </button>
         <input
           type="date"
           aria-label={t(locale, "jumpToDate")}
-          value={DateTime.fromMillis(win.from).setZone(zone).toISODate() ?? ""}
+          value={dateDraft ?? DateTime.fromMillis(win.from).setZone(zone).toISODate() ?? ""}
           min={DateTime.now().setZone(zone).toISODate() ?? undefined}
           max={
             bookableUntil
@@ -263,16 +266,21 @@ export function SlotGrid({
               : undefined
           }
           onChange={(e) => {
-            const day = DateTime.fromISO(e.target.value, { zone }).startOf("day");
-            if (day.isValid) goTo(day.toMillis());
+            const value = e.target.value;
+            setDateDraft(value);
+            const day = DateTime.fromISO(value, { zone }).startOf("day");
+            const target = day.isValid
+              ? jumpTarget(day.toMillis(), Date.now(), bookableUntil ?? null)
+              : null;
+            if (target !== null) goTo(target, value);
           }}
           className="h-10 min-w-0 flex-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 text-sm tabular-nums text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
         />
         <button
           type="button"
-          onClick={() => goTo(win.to)}
-          disabled={!win.hasNext || loading}
-          className="inline-flex h-10 shrink-0 items-center gap-1 rounded-md border border-[var(--color-border-strong)] px-3 text-sm text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-40"
+          onClick={() => win.hasNext && !loading && goTo(win.to)}
+          aria-disabled={!win.hasNext || loading}
+          className="inline-flex h-10 shrink-0 items-center gap-1 rounded-md border border-[var(--color-border-strong)] px-3 text-sm text-[var(--color-text)] transition-colors hover:border-[var(--color-accent)] aria-disabled:opacity-40"
         >
           {t(locale, "nextWeeks")} <ChevronRight size={16} />
         </button>
@@ -281,22 +289,22 @@ export function SlotGrid({
 
   if (loading) {
     return (
-      <>
+      <div>
         {nav}
         <output aria-busy="true" aria-label={t(locale, "loading")} className="block">
           <SlotGridSkeleton />
         </output>
-      </>
+      </div>
     );
   }
   if (days.length === 0) {
     return (
-      <>
+      <div>
         {nav}
         <p className="text-sm text-[var(--color-muted)]">
-          {t(locale, win.hasPrev ? "noTimesRange" : "noTimes")}
+          {t(locale, nav ? "noTimesRange" : "noTimes")}
         </p>
-      </>
+      </div>
     );
   }
 
