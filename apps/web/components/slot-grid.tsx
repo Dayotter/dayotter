@@ -272,7 +272,8 @@ export function SlotGrid({
             const target = day.isValid
               ? jumpTarget(day.toMillis(), Date.now(), bookableUntil ?? null)
               : null;
-            if (target !== null) goTo(target, value);
+            // Keep the typed text only when the grid opens on that day.
+            if (target !== null) goTo(target, target === day.toMillis() ? value : null);
           }}
           className="h-10 min-w-0 flex-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 text-sm tabular-nums text-[var(--color-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
         />
