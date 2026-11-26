@@ -1,5 +1,7 @@
 import { getEventTypeAvailability, recommendSlotsForEventType } from "@/lib/booking/availability";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { bookingWindowLimit } from "@dayotter/core";
+import { eq, getDb, schema } from "@dayotter/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -69,10 +71,21 @@ export async function GET(
   // Smart-scheduling: highlight a few recommended times (individual events only).
   const recommended = await recommendSlotsForEventType(eventTypeId, slots);
 
+  // Tells the booking page how far ahead it may page (null = unlimited).
+  const eventType = await getDb().query.eventTypes.findFirst({
+    where: eq(schema.eventTypes.id, eventTypeId),
+    columns: { bookingWindowDays: true },
+  });
+  const limit = bookingWindowLimit(
+    { bookingWindowDays: eventType?.bookingWindowDays ?? null },
+    new Date(),
+  );
+
   return NextResponse.json({
     eventTypeId,
     from: from.toISOString(),
     to: to.toISOString(),
+    bookableUntil: Number.isFinite(limit) ? new Date(limit).toISOString() : null,
     slots: slots.map((s) => ({ start: s.start.toISOString(), end: s.end.toISOString() })),
     recommended,
   });

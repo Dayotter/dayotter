@@ -1,5 +1,12 @@
 import { DateTime } from "luxon";
-import type { AvailabilityInput, BusyInterval, DateOverride, Slot, WeeklyRule } from "./types";
+import type {
+  AvailabilityInput,
+  BusyInterval,
+  DateOverride,
+  EventConstraints,
+  Slot,
+  WeeklyRule,
+} from "./types";
 
 /** Set a wall-clock "HH:mm" / "HH:mm:ss" onto a day, returning epoch millis.
  *  Uses Luxon `.set()` (calendar-correct) rather than adding a raw minute
@@ -10,6 +17,16 @@ function atWallClock(day: DateTime, time: string): number {
   const hour = Number(parts[0] ?? 0);
   const minute = Number(parts[1] ?? 0);
   return day.set({ hour, minute, second: 0, millisecond: 0 }).toMillis();
+}
+
+/** Latest bookable instant (epoch ms) for an event; +Infinity when unlimited. */
+export function bookingWindowLimit(
+  event: Pick<EventConstraints, "bookingWindowDays">,
+  now: Date,
+): number {
+  return event.bookingWindowDays != null
+    ? now.getTime() + event.bookingWindowDays * 86_400_000
+    : Number.POSITIVE_INFINITY;
 }
 
 /** An open window for a day, as epoch-millis bounds (so the inner slot loop can
@@ -67,10 +84,7 @@ export function computeAvailability(input: AvailabilityInput): Slot[] {
 
   // Effective lower/upper bounds as epoch millis.
   const earliest = now.getTime() + event.minimumNoticeMinutes * 60_000;
-  const windowLimit =
-    event.bookingWindowDays != null
-      ? now.getTime() + event.bookingWindowDays * 86_400_000
-      : Number.POSITIVE_INFINITY;
+  const windowLimit = bookingWindowLimit(event, now);
   const rangeStartMs = Math.max(rangeStart.getTime(), earliest);
   const rangeEndMs = Math.min(rangeEnd.getTime(), windowLimit);
   if (rangeStartMs >= rangeEndMs) return [];
